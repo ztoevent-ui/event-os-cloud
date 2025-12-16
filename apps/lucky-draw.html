@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grand Lucky Draw (Final Fixed)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            height: 100vh; overflow: hidden; 
+            background-image: url('https://img.freepik.com/free-vector/gradient-lucky-draw-background_23-2150063963.jpg');
+            background-size: cover; background-position: center; transition: background-image 0.5s ease;
+        }
+        #globalOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; transition: background-color 0.3s ease; }
+        .content-layer { position: relative; z-index: 10; height: 100%; width: 100%; display: flex; flex-direction: column; }
+        
+        #topTitleContainer { width: 100%; display: flex; padding-top: 40px; padding-bottom: 20px; transition: all 0.1s linear; z-index: 50; }
+        #eventTitle { background: transparent; text-shadow: 0 4px 15px rgba(0,0,0,0.3); line-height: 1.2; font-size: 3rem; }
+        #eventTitle:focus { background: rgba(255,255,255,0.1); border-radius: 8px; outline: 2px dashed rgba(255,255,255,0.3); }
+        
+        .stage-section { flex: 1; width: 100%; display: flex; align-items: center; justify-content: center; position: relative; }
+        .settings-panel { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform: translateX(100%); }
+        .settings-panel.open { transform: translateX(0); }
+
+        /* 巨型中奖弹窗 */
+        #bigWinnerModal { opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        #bigWinnerModal.active { opacity: 1; pointer-events: auto; }
+        .modal-content-box {
+            background: radial-gradient(circle, #b91c1c 0%, #7f1d1d 100%);
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.8);
+            transform: scale(0.8); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        #bigWinnerModal.active .modal-content-box { transform: scale(1); }
+        .winner-scroll::-webkit-scrollbar { width: 6px; }
+        .winner-scroll::-webkit-scrollbar-thumb { background: rgba(255, 215, 0, 0.5); border-radius: 4px; }
+
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 14px; width: 14px; border-radius: 50%; background: #3b82f6; cursor: pointer; margin-top: -5px; box-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #e5e7eb; border-radius: 2px; }
+        
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div id="globalOverlay" style="background-color: rgba(255, 255, 255, 0.5);"></div>
+
+    <div class="content-layer">
+        
+        <div id="topTitleContainer" class="justify-center">
+            <input type="text" id="eventTitle" 
+                class="text-gray-800 font-black uppercase tracking-wider w-full border-none focus:ring-0 outline-none placeholder-gray-400/50 text-center" 
+                placeholder="EVENT TITLE" onchange="saveSettings()">
+        </div>
+
+        <div class="stage-section relative">
+            <div class="absolute top-4 left-6 z-10">
+                <div class="flex items-center gap-2 text-gray-700 bg-white/40 border border-white/40 px-3 py-1 rounded-full backdrop-blur-md shadow-sm">
+                    <i class="fa-solid fa-users text-blue-600"></i>
+                    <span class="font-bold text-lg" id="countDisplay">0</span>
+                </div>
+            </div>
+
+            <div class="h-[75%] aspect-square relative flex items-center justify-center">
+                <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-4 z-20 w-0 h-0 border-l-[20px] border-l-transparent border-r-[20px] border-r-transparent border-t-[50px] border-t-red-600 drop-shadow-xl"></div>
+                <canvas id="wheelCanvas" class="drop-shadow-2xl"></canvas>
+                
+                <div class="absolute -bottom-8 flex flex-col items-center gap-2 z-30">
+                    <button id="spinBtn" onclick="startSpin()" 
+                        class="bg-gradient-to-r from-red-600 to-rose-600 text-white text-3xl font-black px-12 py-3 rounded-full shadow-lg shadow-red-500/40 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 border-2 border-white/20">
+                        SPIN
+                    </button>
+                    <div class="bg-white/60 backdrop-blur-md rounded-full px-4 py-1 shadow-sm border border-white/40 flex items-center gap-2 text-sm">
+                        <span class="text-gray-600 font-bold text-xs">DRAW:</span>
+                        <input type="number" id="drawCount" value="1" min="1" class="w-10 bg-transparent text-center font-bold text-gray-800 outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <div class="absolute right-6 top-6 bottom-6 w-64 flex flex-col pointer-events-none">
+                <div class="flex justify-between items-center pointer-events-auto pl-2 mb-2">
+                    <h3 class="font-bold text-gray-500 text-xs uppercase tracking-wider">Winners</h3>
+                    <button onclick="downloadResults()" class="text-xs text-blue-600 hover:bg-blue-50 px-2 py-1 rounded transition bg-white/50 backdrop-blur"><i class="fa-solid fa-download"></i> Save</button>
+                </div>
+                <div id="winnerList" class="flex-1 overflow-y-auto space-y-2 pr-1 pointer-events-auto" style="direction: rtl;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="bigWinnerModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div class="modal-content-box w-[90%] h-[80%] md:w-[80%] md:h-[85%] rounded-3xl border-4 border-yellow-400 flex flex-col relative overflow-hidden">
+            <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20"></div>
+            
+            <div class="text-center pt-8 pb-4 z-10">
+                <h2 class="text-yellow-400 font-black text-4xl md:text-6xl uppercase tracking-widest drop-shadow-lg" style="text-shadow: 0 4px 0 #000;">
+                    🎉 Congratulations 🎉
+                </h2>
+            </div>
+
+            <div id="bigWinnerList" class="flex-1 overflow-y-auto p-6 z-10 text-center flex flex-col items-center justify-center gap-4 winner-scroll"></div>
+
+            <div class="pb-8 pt-4 flex justify-center z-10 bg-gradient-to-t from-red-900 to-transparent">
+                <button onclick="closeBigModal()" class="bg-yellow-400 hover:bg-yellow-300 text-red-900 text-xl font-black px-12 py-3 rounded-full shadow-lg hover:scale-105 transition transform border-b-4 border-yellow-600">
+                    CLOSE
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="fixed top-6 right-6 z-50 flex gap-2">
+        <button onclick="toggleFullscreen()" class="w-10 h-10 bg-white/30 hover:bg-white/50 backdrop-blur text-gray-800 rounded-full shadow border border-white/30 transition flex items-center justify-center" title="Full Screen">
+            <i class="fa-solid fa-expand"></i>
+        </button>
+        <button onclick="toggleMute()" id="muteBtn" class="w-10 h-10 bg-white/30 hover:bg-white/50 backdrop-blur text-gray-800 rounded-full shadow border border-white/30 transition flex items-center justify-center" title="Sound On/Off">
+            <i class="fa-solid fa-volume-high" id="muteIcon"></i>
+        </button>
+        <button onclick="toggleSettings()" class="w-10 h-10 bg-white/30 hover:bg-white/50 backdrop-blur text-gray-800 rounded-full shadow border border-white/30 transition flex items-center justify-center" title="Settings">
+            <i class="fa-solid fa-gear"></i>
+        </button>
+    </div>
+
+    <div id="settingsPanel" class="fixed inset-y-0 right-0 w-80 bg-white shadow-2xl z-40 settings-panel flex flex-col text-gray-800 font-sans border-l border-gray-100">
+        <div class="p-5 bg-gray-900 text-white flex justify-between items-center shadow-md">
+            <h2 class="font-bold text-lg"><i class="fa-solid fa-sliders mr-2"></i> Settings</h2>
+            <button onclick="toggleSettings()" class="hover:text-red-400 transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+        </div>
+
+        <div class="p-5 flex-1 overflow-y-auto space-y-6">
+            <div class="bg-indigo-50 p-4 rounded-xl border border-indigo-100 space-y-4">
+                <h3 class="text-xs font-bold text-indigo-500 uppercase flex items-center gap-2"><i class="fa-solid fa-text-height"></i> Title Controls</h3>
+                <div>
+                    <div class="flex justify-between text-xs font-bold text-gray-500 mb-1"><span>V-Position</span><span class="text-indigo-400">↕️ Move</span></div>
+                    <input type="range" id="titlePosInput" min="0" max="500" value="40" oninput="updateTitlePos(this.value)">
+                </div>
+                <div>
+                    <div class="flex justify-between text-xs font-bold text-gray-500 mb-1"><span>Font Size</span><span class="text-indigo-400">Aa Size</span></div>
+                    <input type="range" id="titleSizeInput" min="20" max="150" value="48" oninput="updateTitleSize(this.value)">
+                </div>
+                <div class="flex items-center justify-between gap-2 pt-2 border-t border-indigo-200">
+                    <input type="color" id="titleColorInput" class="w-8 h-8 rounded cursor-pointer border-none bg-transparent" value="#333333" onchange="handleTitleColor(this.value)">
+                    <div class="flex bg-white rounded-lg border border-indigo-200 overflow-hidden flex-1">
+                        <button onclick="setTitleAlign('left')" class="flex-1 py-1 hover:bg-indigo-50 text-indigo-400 transition border-r border-indigo-100"><i class="fa-solid fa-align-left"></i></button>
+                        <button onclick="setTitleAlign('center')" class="flex-1 py-1 hover:bg-indigo-50 text-indigo-400 transition border-r border-indigo-100"><i class="fa-solid fa-align-center"></i></button>
+                        <button onclick="setTitleAlign('right')" class="flex-1 py-1 hover:bg-indigo-50 text-indigo-400 transition"><i class="fa-solid fa-align-right"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-3 pt-2">
+                 <h3 class="text-xs font-bold text-gray-400 uppercase">Music Source</h3>
+                 <select id="bgmSelect" class="w-full text-sm p-2 border border-gray-200 rounded bg-white focus:outline-none">
+                    <option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3">🎵 Default Upbeat</option>
+                    <option value="https://cdn.pixabay.com/download/audio/2022/03/24/audio_07349d8361.mp3">🥁 Drum Roll</option>
+                    <option value="upload">📂 Custom MP3...</option>
+                </select>
+                <input type="file" id="bgmUpload" accept="audio/*" class="hidden" onchange="handleAudioUpload(this)">
+            </div>
+
+            <div class="space-y-3 pt-2">
+                <h3 class="text-xs font-bold text-gray-400 uppercase">Background Mask</h3>
+                <div class="flex bg-gray-100 rounded p-1">
+                    <button onclick="setMaskColor('white')" id="btnMaskWhite" class="flex-1 py-1 text-xs font-bold rounded bg-white shadow-sm">White</button>
+                    <button onclick="setMaskColor('black')" id="btnMaskBlack" class="flex-1 py-1 text-xs font-bold rounded text-gray-500">Black</button>
+                </div>
+                <input type="range" id="maskOpacity" min="0" max="100" value="50" oninput="handleOpacityChange(this.value)">
+            </div>
+
+            <div class="space-y-3 border-t border-gray-100 pt-4">
+                <button onclick="document.getElementById('bannerInput').click()" class="w-full text-left px-3 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 text-sm font-medium text-gray-700 flex items-center justify-between">
+                    <span><i class="fa-solid fa-image mr-2 text-gray-400"></i> Change BG</span> <i class="fa-solid fa-upload text-xs text-gray-300"></i>
+                </button>
+                <input type="file" id="bannerInput" accept="image/*" class="hidden" onchange="handleBanner(this)">
+                
+                <button onclick="document.getElementById('excelInput').click()" class="w-full text-left px-3 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 text-sm font-medium text-gray-700 flex items-center justify-between">
+                    <span><i class="fa-solid fa-file-excel mr-2 text-emerald-500"></i> Import Excel</span> <i class="fa-solid fa-plus text-xs text-gray-300"></i>
+                </button>
+                <input type="file" id="excelInput" accept=".xlsx, .xls" class="hidden" onchange="handleExcel(this)">
+                
+                <button onclick="toggleGSInput()" class="w-full text-left px-3 py-2 rounded-lg border border-gray-200 hover:bg-blue-50 text-sm font-medium text-gray-700 flex items-center justify-between transition">
+                    <span><i class="fa-brands fa-google mr-2 text-blue-500"></i> Google Sheet</span> <i class="fa-solid fa-chevron-down text-xs text-gray-300"></i>
+                </button>
+                <div id="gsInputArea" class="hidden bg-blue-50 p-3 rounded-lg border border-blue-100 space-y-2">
+                    <input type="text" id="gsUrl" placeholder="Paste CSV Link here..." class="w-full text-xs p-2 border border-blue-200 rounded focus:outline-none focus:border-blue-400">
+                    <button onclick="loadFromGS()" class="w-full bg-blue-600 text-white text-xs font-bold py-2 rounded hover:bg-blue-700 transition">Load Data</button>
+                </div>
+
+                <button onclick="resetData()" class="w-full text-red-500 hover:bg-red-50 font-bold py-2 rounded-xl transition text-sm flex items-center justify-center gap-2 mt-2">
+                    <i class="fa-solid fa-trash"></i> Reset All
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <audio id="bgmPlayer" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
+    <audio id="winSoundEffect" src="https://www.soundjay.com/human/sounds/applause-01.mp3" preload="auto"></audio>
+
+    <script>
+        let wheelChart; let names = []; let winners = []; let isSpinning = false; let maskColor = 'white';
+        let isMuted = false;
+        const colors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
+
+        window.onload = function() { loadData(); initWheel(); updateUI(); };
+        function toggleSettings() { document.getElementById('settingsPanel').classList.toggle('open'); }
+        function toggleFullscreen() { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else if (document.exitFullscreen) document.exitFullscreen(); }
+        function toggleGSInput() { document.getElementById('gsInputArea').classList.toggle('hidden'); }
+
+        function toggleMute() {
+            const player = document.getElementById('bgmPlayer');
+            const icon = document.getElementById('muteIcon');
+            isMuted = !isMuted;
+            if(isMuted) {
+                player.pause();
+                icon.className = 'fa-solid fa-volume-xmark text-red-500';
+            } else {
+                icon.className = 'fa-solid fa-volume-high';
+                if(isSpinning) player.play().catch(e => console.log(e));
+                else { 
+                     // 短暂播放测试
+                     player.volume = 0.5;
+                }
+            }
+        }
+
+        // --- 核心：Spin按钮点击时预热音效 ---
+        function startSpin() {
+            if (isSpinning) return;
+            if (names.length === 0) return Swal.fire('Error', 'Import Data First', 'error');
+            let count = parseInt(document.getElementById('drawCount').value) || 1;
+            if (count > names.length) return Swal.fire('Error', 'Not enough people', 'error');
+
+            isSpinning = true; 
+            document.getElementById('spinBtn').innerText = '...';
+            
+            // 1. 播放/恢复背景音乐
+            if(!isMuted) {
+                const p = document.getElementById('bgmPlayer');
+                p.play().catch(e => {
+                    console.error("BGM blocked", e);
+                    // 闪烁提示音量键
+                    document.getElementById('muteBtn').classList.add('animate-ping');
+                    setTimeout(()=>document.getElementById('muteBtn').classList.remove('animate-ping'), 1000);
+                });
+            }
+
+            // 2. 【关键】预热恭喜音效：播放音量0，然后暂停
+            // 这样浏览器就认为这个音频已经“由于用户点击”而激活了
+            const winS = document.getElementById('winSoundEffect');
+            winS.volume = 0; 
+            winS.play().then(() => {
+                winS.pause();
+                winS.currentTime = 0;
+                winS.volume = 1; // 恢复音量准备后续播放
+            }).catch(e => console.log("Preload sound blocked", e));
+
+            let rot = 0; let spd = 60;
+            const spinInterval = setInterval(() => { rot += spd; wheelChart.options.rotation = rot % 360; wheelChart.update('none'); if (spd > 0.5) spd *= 0.99; }, 16);
+            
+            setTimeout(() => { 
+                clearInterval(spinInterval); 
+                selectWinners(count); 
+            }, 3000);
+        }
+
+        function selectWinners(count) {
+            // 停止背景音
+            document.getElementById('bgmPlayer').pause();
+            
+            // 播放恭喜音效 (此时音量已在 startSpin 恢复)
+            if(!isMuted) {
+                const winS = document.getElementById('winSoundEffect');
+                winS.currentTime = 0;
+                winS.play().catch(e => console.log("Win sound error", e));
+            }
+            
+            fireConfetti();
+            let bn = []; 
+            for(let i=0; i<count; i++) { 
+                if(!names.length) break; 
+                const r = Math.floor(Math.random()*names.length); 
+                bn.push(names[r]); 
+                winners.push({name:names[r], time:''}); 
+                names.splice(r, 1); 
+            }
+            updateUI(); 
+            isSpinning = false; 
+            document.getElementById('spinBtn').innerText = 'SPIN';
+            setTimeout(() => showBigWinner(bn), 500);
+        }
+
+        function showBigWinner(winnerNames) {
+            const listEl = document.getElementById('bigWinnerList');
+            listEl.innerHTML = winnerNames.map(name => `
+                <div class="bg-white/10 backdrop-blur-md text-white font-black text-3xl md:text-5xl py-4 px-8 rounded-2xl border border-yellow-400/30 shadow-lg w-full max-w-3xl transform transition hover:scale-105">
+                    ${name}
+                </div>
+            `).join('');
+            document.getElementById('bigWinnerModal').classList.add('active');
+            const end = Date.now() + 3000;
+            (function f(){ confetti({particleCount:7, spread:70, origin:{y:0.6}, zIndex: 200}); if(Date.now()<end) requestAnimationFrame(f); })();
+        }
+        function closeBigModal() { document.getElementById('bigWinnerModal').classList.remove('active'); }
+
+        // --- Other Logic ---
+        document.getElementById('bgmSelect').addEventListener('change', function() {
+            const player = document.getElementById('bgmPlayer');
+            if(this.value === 'upload') document.getElementById('bgmUpload').click();
+            else { player.src = this.value; }
+        });
+        function handleAudioUpload(input) {
+            if(input.files[0]) {
+                document.getElementById('bgmPlayer').src = URL.createObjectURL(input.files[0]);
+                Swal.fire({toast:true, icon:'success', title:'BGM Loaded', position:'top', timer:1500, showConfirmButton:false});
+            }
+        }
+        function updateTitlePos(val) { document.getElementById('topTitleContainer').style.paddingTop = val + 'px'; localStorage.setItem('ld_title_pos', val); }
+        function updateTitleSize(val) { document.getElementById('eventTitle').style.fontSize = val + 'px'; localStorage.setItem('ld_title_size', val); }
+        function handleTitleColor(color) { document.getElementById('eventTitle').style.color = color; localStorage.setItem('ld_title_color', color); }
+        function setTitleAlign(align) {
+            const container = document.getElementById('topTitleContainer'); const input = document.getElementById('eventTitle');
+            container.classList.remove('justify-start', 'justify-center', 'justify-end'); input.classList.remove('text-left', 'text-center', 'text-right');
+            if(align === 'left') { container.classList.add('justify-start'); input.classList.add('text-left'); }
+            else if (align === 'right') { container.classList.add('justify-end'); input.classList.add('text-right'); }
+            else { container.classList.add('justify-center'); input.classList.add('text-center'); }
+            localStorage.setItem('ld_title_align', align);
+        }
+        function setMaskColor(color) {
+            maskColor = color;
+            const btnWhite = document.getElementById('btnMaskWhite'); const btnBlack = document.getElementById('btnMaskBlack');
+            if(color === 'white') { btnWhite.className = "flex-1 py-1 text-xs font-bold rounded bg-blue-100 text-blue-700 shadow-sm transition"; btnBlack.className = "flex-1 py-1 text-xs font-bold rounded text-gray-500 hover:bg-gray-100 transition"; } 
+            else { btnBlack.className = "flex-1 py-1 text-xs font-bold rounded bg-gray-800 text-white shadow-sm transition"; btnWhite.className = "flex-1 py-1 text-xs font-bold rounded text-gray-500 hover:bg-gray-100 transition"; }
+            handleOpacityChange(document.getElementById('maskOpacity').value); localStorage.setItem('ld_mask_color', color);
+        }
+        function handleOpacityChange(val) {
+            document.getElementById('globalOverlay').style.backgroundColor = maskColor === 'white' ? `rgba(255, 255, 255, ${val/100})` : `rgba(0, 0, 0, ${val/100})`;
+            localStorage.setItem('ld_mask_opacity', val);
+        }
+        function saveData() { localStorage.setItem('ld_names', JSON.stringify(names)); localStorage.setItem('ld_winners', JSON.stringify(winners)); localStorage.setItem('ld_title', document.getElementById('eventTitle').value); }
+        function loadData() {
+            const savedNames = localStorage.getItem('ld_names'); const savedWinners = localStorage.getItem('ld_winners'); const savedTitle = localStorage.getItem('ld_title');
+            if (savedNames) names = JSON.parse(savedNames); if (savedWinners) winners = JSON.parse(savedWinners); if (savedTitle) document.getElementById('eventTitle').value = savedTitle;
+            const sPos = localStorage.getItem('ld_title_pos'); const sSize = localStorage.getItem('ld_title_size'); const sColor = localStorage.getItem('ld_title_color'); const sAlign = localStorage.getItem('ld_title_align');
+            const sMaskColor = localStorage.getItem('ld_mask_color'); const sOpacity = localStorage.getItem('ld_mask_opacity');
+            if (sPos) { document.getElementById('titlePosInput').value = sPos; updateTitlePos(sPos); }
+            if (sSize) { document.getElementById('titleSizeInput').value = sSize; updateTitleSize(sSize); }
+            if (sColor) { document.getElementById('titleColorInput').value = sColor; handleTitleColor(sColor); }
+            setTitleAlign(sAlign || 'center');
+            if(sMaskColor) setMaskColor(sMaskColor);
+            if(sOpacity) { document.getElementById('maskOpacity').value = sOpacity; handleOpacityChange(sOpacity); }
+        }
+        function resetData() { Swal.fire({ title: 'Reset All?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33' }).then((r) => { if (r.isConfirmed) { localStorage.clear(); location.reload(); } }) }
+        function initWheel() {
+            const ctx = document.getElementById('wheelCanvas').getContext('2d'); Chart.register(ChartDataLabels);
+            wheelChart = new Chart(ctx, { type: 'pie', data: getChartData(), options: { responsive: true, maintainAspectRatio: false, animation: { duration: 0 }, layout: { padding: 20 }, plugins: { legend: { display: false }, tooltip: { enabled: false }, datalabels: { color: '#fff', font: { weight: 'bold', size: (ctx) => names.length > 50 ? 0 : 16 }, formatter: (v, c) => c.chart.data.labels[c.dataIndex], rotation: (ctx) => (ctx.dataIndex * (360 / ctx.chart.data.labels.length) + (360 / ctx.chart.data.labels.length / 2)) + 90, anchor: 'end', align: 'start', offset: 10 } } } });
+        }
+        function getChartData() { const d = names.length > 0 ? names : ['READY', 'SPIN']; return { labels: d, datasets: [{ data: d.map(() => 1), backgroundColor: d.map((_, i) => colors[i % colors.length]), borderWidth: 0 }] }; }
+        function updateUI() {
+            wheelChart.data = getChartData(); wheelChart.update();
+            document.getElementById('countDisplay').innerText = names.length;
+            document.getElementById('winnerList').innerHTML = [...winners].reverse().map((w, i) => `<div class="bg-white/60 p-2 rounded-lg shadow-sm border-l-4 border-yellow-400 ml-2 backdrop-blur-sm" style="direction: ltr;"><div class="flex justify-between items-center"><span class="font-bold text-gray-800 text-sm truncate w-32">${w.name}</span><span class="text-[10px] text-gray-600">#${winners.length - i}</span></div></div>`).join('');
+            saveData();
+        }
+        function fireConfetti() { const end = Date.now()+3000; (function f(){ confetti({particleCount:5, spread:60, origin:{y:0.6}}); if(Date.now()<end) requestAnimationFrame(f); })(); }
+        function handleBanner(input) { if(input.files[0]) { const r=new FileReader(); r.onload=(e)=>document.body.style.backgroundImage=`url(${e.target.result})`; r.readAsDataURL(input.files[0]); } }
+        function handleExcel(input) { if(input.files[0]) { const r=new FileReader(); r.onload=(e)=>{ try { const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'}); processImport(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).flat()); } catch(err){ Swal.fire('Error','Invalid Excel','error'); } }; r.readAsArrayBuffer(input.files[0]); input.value=''; } }
+        function loadFromGS() { const u = document.getElementById('gsUrl').value; if(!u) return Swal.fire('Error','Link required','error'); fetch(u).then(r=>r.arrayBuffer()).then(b=> { const wb = XLSX.read(new Uint8Array(b), {type:'array'}); processImport(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header:1}).flat()); }).catch(() => Swal.fire('Error', 'Check Link', 'error')); }
+        function processImport(list) { const v = list.filter(x => x && !x.toString().toLowerCase().includes('name')); if(v.length) { names = v; Swal.fire('Success', `Loaded ${names.length} people`, 'success'); updateUI(); } else Swal.fire('Error', 'No data found', 'warning'); }
+    </script>
+</body>
+</html>
