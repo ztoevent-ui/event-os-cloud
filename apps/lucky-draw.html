@@ -336,6 +336,6 @@
         function saveSettings() { localStorage.setItem('ld_title', document.getElementById('eventTitle').value); }
         function loadSettings() { const t = localStorage.getItem('ld_title'); if (t) document.getElementById('eventTitle').value = t; const p = localStorage.getItem('ld_title_pos'); if (p) updateTitlePos(p); const s = localStorage.getItem('ld_title_size'); if (s) updateTitleSize(s); const c = localStorage.getItem('ld_title_color'); if (c) handleTitleColor(c); setTitleAlign(localStorage.getItem('ld_title_align') || 'center'); const mc = localStorage.getItem('ld_mask_color'); if(mc) setMaskColor(mc); const mo = localStorage.getItem('ld_mask_opacity'); if(mo) handleOpacityChange(mo); }
         function downloadResults() { let csv = "data:text/csv;charset=utf-8,Name\n"; winners.forEach(r => csv += r.name + "\r\n"); const l = document.createElement("a"); l.href = encodeURI(csv); l.download = "winners.csv"; l.click(); }
-    </script>
+    </script> 
 </body>
 </html>
