@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grand Lucky Draw (Fixed v2.4)</title>
+    <title>Grand Lucky Draw (Fixed v2.5)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
@@ -16,25 +16,38 @@
     <style>
         .back-home-btn { position: fixed; top: 24px; left: 24px; z-index: 60; background: rgba(255,255,255,0.2); backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.3); color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.3s; cursor: pointer; text-decoration: none; }
         .back-home-btn:hover { background: white; color: #333; transform: scale(1.1); }
+        
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; height: 100vh; overflow: hidden; background-image: url('https://img.freepik.com/free-vector/gradient-lucky-draw-background_23-2150063963.jpg'); background-size: cover; background-position: center; transition: background-image 0.5s ease; }
-        #globalOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; transition: background-color 0.3s ease; }
-        .content-layer { position: relative; z-index: 10; height: 100%; width: 100%; display: flex; flex-direction: column; }
-        #topTitleContainer { width: 100%; display: flex; padding-top: 40px; padding-bottom: 20px; transition: all 0.1s linear; z-index: 50; }
-        #eventTitle { background: transparent; text-shadow: 0 4px 15px rgba(0,0,0,0.3); line-height: 1.2; font-size: 3rem; }
+        
+        /* FIX: z-index -1 to keep it behind everything, !important to ensure clicks pass through */
+        #globalOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none !important; z-index: -1; transition: background-color 0.3s ease; }
+        
+        .content-layer { position: relative; z-index: 10; height: 100%; width: 100%; display: flex; flex-direction: column; pointer-events: auto; }
+        
+        #topTitleContainer { width: 100%; display: flex; padding-top: 40px; padding-bottom: 20px; transition: all 0.1s linear; z-index: 50; position: relative; pointer-events: none; }
+        #eventTitle { pointer-events: auto; background: transparent; text-shadow: 0 4px 15px rgba(0,0,0,0.3); line-height: 1.2; font-size: 3rem; }
         #eventTitle:focus { background: rgba(255,255,255,0.1); border-radius: 8px; outline: 2px dashed rgba(255,255,255,0.3); }
+        
         .stage-section { flex: 1; width: 100%; display: flex; align-items: center; justify-content: center; position: relative; }
         .settings-panel { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform: translateX(100%); }
         .settings-panel.open { transform: translateX(0); }
-        #bigWinnerModal { opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
-        #bigWinnerModal.active { opacity: 1; pointer-events: auto; }
+        
+        /* FIX: Strict pointer events management for Modal */
+        #bigWinnerModal { opacity: 0; pointer-events: none !important; transition: opacity 0.3s ease; }
+        #bigWinnerModal.active { opacity: 1; pointer-events: auto !important; }
+        
         .modal-content-box { background: radial-gradient(circle, #b91c1c 0%, #7f1d1d 100%); box-shadow: 0 0 50px rgba(255, 215, 0, 0.8); transform: scale(0.8); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
         #bigWinnerModal.active .modal-content-box { transform: scale(1); }
+        
         .winner-scroll::-webkit-scrollbar { width: 6px; }
         .winner-scroll::-webkit-scrollbar-thumb { background: rgba(255, 215, 0, 0.5); border-radius: 4px; }
+        
         .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 6px; }
         .status-online { background-color: #22c55e; box-shadow: 0 0 8px #22c55e; animation: pulse 2s infinite; }
         .status-offline { background-color: #ef4444; }
+        
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        
         input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
         input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 14px; width: 14px; border-radius: 50%; background: #3b82f6; cursor: pointer; margin-top: -5px; box-shadow: 0 1px 2px rgba(0,0,0,0.3); }
         input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #e5e7eb; border-radius: 2px; }
@@ -43,7 +56,7 @@
 </head>
 <body>
     <a href="../index.html" class="back-home-btn" title="Back to Dashboard"><i class="fa-solid fa-arrow-left"></i></a>
-    <div id="globalOverlay" style="background-color: rgba(255, 255, 255, 0.5);"></div>
+    <div id="globalOverlay" class="pointer-events-none" style="background-color: rgba(255, 255, 255, 0.5);"></div>
 
     <div class="content-layer">
         <div id="topTitleContainer" class="justify-center">
@@ -59,10 +72,10 @@
             </div>
 
             <div class="h-[75%] aspect-square relative flex items-center justify-center">
-                <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-4 z-20 w-0 h-0 border-l-[20px] border-l-transparent border-r-[20px] border-r-transparent border-t-[50px] border-t-red-600 drop-shadow-xl"></div>
+                <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-4 z-20 w-0 h-0 border-l-[20px] border-l-transparent border-r-[20px] border-r-transparent border-t-[50px] border-t-red-600 drop-shadow-xl pointer-events-none"></div>
                 <canvas id="wheelCanvas" class="drop-shadow-2xl"></canvas>
                 <div class="absolute -bottom-8 flex flex-col items-center gap-2 z-30">
-                    <button id="spinBtn" onclick="startSpin()" class="bg-gradient-to-r from-red-600 to-rose-600 text-white text-3xl font-black px-12 py-3 rounded-full shadow-lg shadow-red-500/40 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 border-2 border-white/20">SPIN</button>
+                    <button id="spinBtn" onclick="startSpin()" class="cursor-pointer bg-gradient-to-r from-red-600 to-rose-600 text-white text-3xl font-black px-12 py-3 rounded-full shadow-lg shadow-red-500/40 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 border-2 border-white/20">SPIN</button>
                     <div class="bg-white/60 backdrop-blur-md rounded-full px-4 py-1 shadow-sm border border-white/40 flex items-center gap-2 text-sm">
                         <span class="text-gray-600 font-bold text-xs">DRAW:</span>
                         <input type="number" id="drawCount" value="1" min="1" class="w-10 bg-transparent text-center font-bold text-gray-800 outline-none">
@@ -80,21 +93,21 @@
         </div>
     </div>
 
-    <div id="bigWinnerModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+    <div id="bigWinnerModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm pointer-events-none">
         <div class="modal-content-box w-[90%] h-[80%] md:w-[80%] md:h-[85%] rounded-3xl border-4 border-yellow-400 flex flex-col relative overflow-hidden">
             <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20"></div>
             <div class="text-center pt-8 pb-4 z-10"><h2 class="text-yellow-400 font-black text-4xl md:text-6xl uppercase tracking-widest drop-shadow-lg" style="text-shadow: 0 4px 0 #000;">🎉 Congratulations 🎉</h2></div>
             <div id="bigWinnerList" class="flex-1 overflow-y-auto p-6 z-10 text-center flex flex-col items-center justify-center gap-4 winner-scroll"></div>
             <div class="pb-8 pt-4 flex justify-center z-10 bg-gradient-to-t from-red-900 to-transparent">
-                <button onclick="closeBigModal()" class="bg-yellow-400 hover:bg-yellow-300 text-red-900 text-xl font-black px-12 py-3 rounded-full shadow-lg hover:scale-105 transition transform border-b-4 border-yellow-600">CLOSE</button>
+                <button onclick="closeBigModal()" class="bg-yellow-400 hover:bg-yellow-300 text-red-900 text-xl font-black px-12 py-3 rounded-full shadow-lg hover:scale-105 transition transform border-b-4 border-yellow-600 cursor-pointer">CLOSE</button>
             </div>
         </div>
     </div>
 
     <div class="fixed top-6 right-6 z-50 flex gap-2">
-        <button onclick="toggleFullscreen()" class="w-10 h-10 bg-white/30 hover:bg-white/50 backdrop-blur text-gray-800 rounded-full shadow border border-white/30 transition flex items-center justify-center"><i class="fa-solid fa-expand"></i></button>
-        <button onclick="toggleMute()" id="muteBtn" class="w-10 h-10 bg-white/30 hover:bg-white/50 backdrop-blur text-gray-800 rounded-full shadow border border-white/30 transition flex items-center justify-center"><i class="fa-solid fa-volume-high" id="muteIcon"></i></button>
-        <button onclick="toggleSettings()" class="w-10 h-10 bg-white/30 hover:bg-white/50 backdrop-blur text-gray-800 rounded-full shadow border border-white/30 transition flex items-center justify-center"><i class="fa-solid fa-gear"></i></button>
+        <button onclick="toggleFullscreen()" class="w-10 h-10 bg-white/30 hover:bg-white/50 backdrop-blur text-gray-800 rounded-full shadow border border-white/30 transition flex items-center justify-center cursor-pointer"><i class="fa-solid fa-expand"></i></button>
+        <button onclick="toggleMute()" id="muteBtn" class="w-10 h-10 bg-white/30 hover:bg-white/50 backdrop-blur text-gray-800 rounded-full shadow border border-white/30 transition flex items-center justify-center cursor-pointer"><i class="fa-solid fa-volume-high" id="muteIcon"></i></button>
+        <button onclick="toggleSettings()" class="w-10 h-10 bg-white/30 hover:bg-white/50 backdrop-blur text-gray-800 rounded-full shadow border border-white/30 transition flex items-center justify-center cursor-pointer"><i class="fa-solid fa-gear"></i></button>
     </div>
 
     <div id="settingsPanel" class="fixed inset-y-0 right-0 w-80 bg-white shadow-2xl z-40 settings-panel flex flex-col text-gray-800 font-sans border-l border-gray-100">
@@ -132,20 +145,33 @@
         const SUPABASE_URL = 'https://zihjzbweasaqqbwilshx.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppaGp6YndlYXNhcXFid2lsc2h4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4OTQ5MTYsImV4cCI6MjA4MTQ3MDkxNn0.ilHqOs75eUA6p2n-h1rgfulwNwq_hPQyptFg-kcjbv4';
         
-        // 关键修改：变量名改为 db，避免跟库名字冲突
-        const { createClient } = supabase;
-        const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+        // FIX: 不要在这里直接初始化，防止脚本崩溃
+        let db = null; 
 
         let wheelChart; let names = []; let winners = []; let isSpinning = false; let maskColor = 'white'; let isMuted = false;
         const colors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
 
         window.onload = function() { 
-            try { initWheel(); loadSettings(); initSupabase(); } 
+            try { 
+                initWheel(); 
+                loadSettings(); 
+                initSupabase(); // 初始化放在这里
+            } 
             catch(e) { console.error("Init Error", e); Swal.fire('Error', 'System Error. Check Console.', 'error'); } 
         };
 
         async function initSupabase() {
             try {
+                // FIX: Check if supabase object exists
+                if (typeof supabase === 'undefined') {
+                    console.error('Supabase lib not loaded');
+                    document.getElementById('dbStatus').className = 'status-dot status-offline';
+                    Swal.fire('Error', 'Network Error: Cannot load database library.', 'error');
+                    return;
+                }
+                const { createClient } = supabase;
+                db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
                 await fetchData();
                 db.channel('public:participants').on('postgres_changes', { event: '*', schema: 'public', table: 'participants' }, (payload) => {
                     console.log('DB Change:', payload); fetchData(); 
@@ -153,12 +179,12 @@
                     const dot = document.getElementById('dbStatus');
                     if(dot) dot.className = (status === 'SUBSCRIBED') ? 'status-dot status-online' : 'status-dot status-offline';
                 });
-            } catch(e) { console.error(e); }
+            } catch(e) { console.error('Supabase Init Fail', e); }
         }
 
         async function fetchData() {
+            if(!db) return;
             try {
-                // 使用 db.from 而不是 supabase.from
                 const { data: activeData } = await db.from('participants').select('name').eq('is_winner', false);
                 if(activeData) names = activeData.map(r => r.name);
                 const { data: winData } = await db.from('participants').select('name').eq('is_winner', true).order('id', {ascending: false});
@@ -168,6 +194,7 @@
         }
 
         async function handleExcel(input) {
+            if(!db) return Swal.fire('Error', 'Database not connected', 'error');
             if(!input.files[0]) return;
             Swal.fire({title: 'Uploading...', didOpen: () => Swal.showLoading()});
             const r = new FileReader();
@@ -177,7 +204,6 @@
                     const list = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).flat();
                     const validNames = list.filter(x => x && !x.toString().toLowerCase().includes('name')).map(n => ({ name: n.toString(), is_winner: false }));
                     if(validNames.length === 0) throw new Error('No names found');
-                    // 使用 db.from
                     const { error } = await db.from('participants').insert(validNames);
                     if(error) throw error;
                     Swal.fire('Success', `Uploaded ${validNames.length} names!`, 'success');
@@ -187,6 +213,7 @@
         }
 
         function resetWinnersOnly() {
+            if(!db) return;
             Swal.fire({ title: 'Restart Game?', text: "Keep names but clear winners?", icon: 'question', showCancelButton: true, confirmButtonText: 'Yes' }).then(async (r) => { 
                 if (r.isConfirmed) { 
                     Swal.showLoading();
@@ -196,6 +223,7 @@
             });
         }
         function resetData() {
+            if(!db) return;
             Swal.fire({ title: 'DELETE DATABASE?', text: "Remove ALL names permanently?", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'DELETE ALL' }).then(async (r) => { 
                 if (r.isConfirmed) { 
                     Swal.showLoading();
@@ -214,7 +242,7 @@
                 const r = Math.floor(Math.random() * tempNames.length);
                 batchNames.push(tempNames[r]); tempNames.splice(r, 1);
             }
-            if(batchNames.length > 0) await db.from('participants').update({ is_winner: true }).in('name', batchNames);
+            if(batchNames.length > 0 && db) await db.from('participants').update({ is_winner: true }).in('name', batchNames);
             fireConfetti(); updateUI(); isSpinning = false; document.getElementById('spinBtn').innerText = 'SPIN'; setTimeout(() => showBigWinner(batchNames), 500);
         }
 
