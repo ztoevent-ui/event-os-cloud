@@ -178,14 +178,32 @@
                 const { createClient } = supabase;
                 db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+                // Verify DB connectivity (some networks block Supabase; this gives a clear reason)
+                const { error: pingError } = await db.from('participants').select('id', { head: true, count: 'exact' }).limit(1);
+                if (pingError) {
+                    console.error('DB ping failed:', pingError);
+                    db = null;
+                    const dot = document.getElementById('dbStatus');
+                    if (dot) dot.className = 'status-dot status-offline';
+                    Swal.fire('Error', `Database not connected: ${pingError.message}`, 'error');
+                    return;
+                }
+
                 await fetchData();
                 db.channel('public:participants').on('postgres_changes', { event: '*', schema: 'public', table: 'participants' }, (payload) => {
-                    console.log('DB Change:', payload); fetchData(); 
+                    console.log('DB Change:', payload);
+                    fetchData(); 
                 }).subscribe((status) => {
                     const dot = document.getElementById('dbStatus');
                     if(dot) dot.className = (status === 'SUBSCRIBED') ? 'status-dot status-online' : 'status-dot status-offline';
                 });
-            } catch(e) { console.error('Supabase Init Fail', e); }
+            } catch(e) {
+                console.error('Supabase Init Fail', e);
+                db = null;
+                const dot = document.getElementById('dbStatus');
+                if (dot) dot.className = 'status-dot status-offline';
+                Swal.fire('Error', `Database not connected: ${e.message || e}`, 'error');
+            }
         }
 
         // --- UPDATED: PAGINATION FETCH TO BREAK 1000 ROW LIMIT ---
@@ -227,6 +245,9 @@
                 const activeData = await fetchAllRows('participants', false);
                 names = activeData.map(r => r.name);
 
+                // Diagnostics (helps identify RLS/filter issues quickly)
+                console.log('[LuckyDraw] fetched active participants:', activeData.length);
+
                 const winData = await fetchAllRows('participants', true);
                 winners = winData
                     .map(r => ({ id: r.id, name: r.name, updated_at: r.updated_at, created_at: r.created_at }))
@@ -242,7 +263,10 @@
 
         // --- UPDATED: Google Sheet Logic (RAW) ---
         async function handleGoogleSheet() {
-            if(!db) return Swal.fire('Error', 'Database not connected', 'error');
+            if(!db) {
+                await initSupabase();
+                if(!db) return; // initSupabase already showed error
+            }
             
             const { value: url } = await Swal.fire({
                 title: 'Import CSV Link',
@@ -257,11 +281,60 @@
                 Swal.fire({title: 'Fetching...', didOpen: () => Swal.showLoading()});
                 try {
                     // PURE FETCH: No string manipulation
-                    const res = await fetch(url);
+                    // NOTE: Some environments block cross-origin fetch to docs.google.com
+                    // with a generic "Load failed". We try direct fetch first, then fallback
+                    // to a public CORS proxy. If both fail, user can download CSV and use Excel upload.
+                    let res;
+                    try {
+                        res = await fetch(url);
+                    } catch (e) {
+                        res = null;
+                    }
+
+                    // Fallback via CORS proxy if direct fetch failed.
+                    // (Keeps the feature working on locked-down networks.)
+                    if (!res || !res.ok) {
+                        const proxied = `https://r.jina.ai/http(s)://` + url.replace(/^https:\/\//, '');
+                        res = await fetch(proxied);
+                    }
+
                     if(!res.ok) throw new Error(`Fetch Failed (Status: ${res.status}). Is it published?`);
                     
                     const csvText = await res.text();
                     if(!csvText) throw new Error('Empty file received');
+
+                    // If jina proxy is used, it may wrap text with metadata. Keep only CSV-like lines.
+                    const normalizedCsvText = csvText
+                        .split('\n')
+                        .filter(line => line && !line.startsWith('Title:') && !line.startsWith('URL Source:') && !line.startsWith('Markdown Content:'))
+                        .join('\n');
+                    // NOTE: Some environments block cross-origin fetch to docs.google.com
+                    // with a generic "Load failed". We try direct fetch first, then fallback
+                    // to a public CORS proxy. If both fail, user can download CSV and use Excel upload.
+                    let res;
+                    try {
+                        res = await fetch(url);
+                    } catch (e) {
+                        res = null;
+                    }
+
+                    // Fallback via CORS proxy if direct fetch failed.
+                    // (Keeps the feature working on locked-down networks.)
+                    if (!res || !res.ok) {
+                        const proxied = `https://r.jina.ai/http(s)://` + url.replace(/^https:\/\//, '');
+                        res = await fetch(proxied);
+                    }
+
+                    if(!res.ok) throw new Error(`Fetch Failed (Status: ${res.status}). Is it published?`);
+                    
+                    const rawText = await res.text();
+                    if(!rawText) throw new Error('Empty file received');
+
+                    // If jina proxy is used, it may wrap text with metadata. Keep only CSV-like lines.
+                    const csvText = rawText
+                        .split('\n')
+                        .filter(line => line && !line.startsWith('Title:') && !line.startsWith('URL Source:') && !line.startsWith('Markdown Content:'))
+                        .join('\n');
 
                     // Google publish CSV can be:
                     // - real CSV with commas
@@ -295,6 +368,9 @@
                         if(error) throw error;
                     }
 
+                    // Refresh immediately so count updates without waiting realtime
+                    await fetchData();
+
                     Swal.fire('Success', `Imported ${validNames.length} names!`, 'success');
                 } catch(e) {
                     Swal.fire('Error', `Failed: ${e.message}`, 'error');
@@ -304,7 +380,10 @@
         }
 
         async function handleExcel(input) {
-            if(!db) return Swal.fire('Error', 'Database not connected', 'error');
+            if(!db) {
+                await initSupabase();
+                if(!db) return; // initSupabase already showed error
+            }
             if(!input.files[0]) return;
             Swal.fire({title: 'Uploading...', didOpen: () => Swal.showLoading()});
             const r = new FileReader();
@@ -312,7 +391,14 @@
                 try {
                     const wb = XLSX.read(new Uint8Array(e.target.result),{type:'array'});
                     const list = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).flat();
-                    const validNames = list.filter(x => x && !x.toString().toLowerCase().includes('name')).map(n => ({ name: n.toString(), is_winner: false }));
+
+                    // Normalize: trim + drop header-like cells + force boolean
+                    const validNames = list
+                        .filter(x => x != null)
+                        .map(x => x.toString().trim())
+                        .filter(x => x && !/^name$/i.test(x) && !/^nama$/i.test(x))
+                        .map(name => ({ name, is_winner: false }));
+
                     if(validNames.length === 0) throw new Error('No names found');
                     
                     // Chunk upload here too
@@ -323,8 +409,14 @@
                         if(error) throw error;
                     }
 
+                    // Refresh immediately so count updates without waiting realtime
+                    await fetchData();
+
                     Swal.fire('Success', `Uploaded ${validNames.length} names!`, 'success');
-                } catch(err) { Swal.fire('Error', err.message || 'Upload failed', 'error'); }
+                } catch(err) {
+                    console.error('Excel upload failed:', err);
+                    Swal.fire('Error', err.message || 'Upload failed', 'error');
+                }
             };
             r.readAsArrayBuffer(input.files[0]); input.value = '';
         }
