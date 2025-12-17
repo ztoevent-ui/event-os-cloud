@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grand Lucky Draw (No Limit + Manual Link v2.7)</title>
+    <title>Grand Lucky Draw (v2.8 Unlimited + Raw Sheet)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
@@ -14,12 +14,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
+        /* 基础样式保持不变 */
         .back-home-btn { position: fixed; top: 24px; left: 24px; z-index: 60; background: rgba(255,255,255,0.2); backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.3); color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.3s; cursor: pointer; text-decoration: none; }
         .back-home-btn:hover { background: white; color: #333; transform: scale(1.1); }
         
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; height: 100vh; overflow: hidden; background-image: url('https://img.freepik.com/free-vector/gradient-lucky-draw-background_23-2150063963.jpg'); background-size: cover; background-position: center; transition: background-image 0.5s ease; }
         
-        /* Model Overlay Fixes */
+        /* 遮罩层修复：强制不挡鼠标 */
         #globalOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none !important; z-index: -1; transition: background-color 0.3s ease; }
         
         .content-layer { position: relative; z-index: 10; height: 100%; width: 100%; display: flex; flex-direction: column; pointer-events: auto; }
@@ -32,7 +33,7 @@
         .settings-panel { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform: translateX(100%); }
         .settings-panel.open { transform: translateX(0); }
         
-        /* Modal Fixes */
+        /* 弹窗修复 */
         #bigWinnerModal { opacity: 0; pointer-events: none !important; transition: opacity 0.3s ease; }
         #bigWinnerModal.active { opacity: 1; pointer-events: auto !important; }
         
@@ -124,6 +125,7 @@
             </div>
             <div class="space-y-3 pt-2">
                  <h3 class="text-xs font-bold text-gray-400 uppercase">Music & BG</h3>
+                 <p class="text-[10px] text-gray-400 leading-tight">Note: Background images are saved locally. Please set them on the main display computer.</p>
                  <select id="bgmSelect" class="w-full text-sm p-2 border border-gray-200 rounded bg-white focus:outline-none"><option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3">🎵 Default Upbeat</option><option value="https://cdn.pixabay.com/download/audio/2022/03/24/audio_07349d8361.mp3">🥁 Drum Roll</option><option value="upload">📂 Custom MP3...</option></select>
                 <input type="file" id="bgmUpload" accept="audio/*" class="hidden" onchange="handleAudioUpload(this)">
                 <button onclick="document.getElementById('bannerInput').click()" class="w-full text-left px-3 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 text-sm font-medium text-gray-700 flex items-center justify-between"><span><i class="fa-solid fa-image mr-2 text-gray-400"></i> Change BG</span> <i class="fa-solid fa-upload text-xs text-gray-300"></i></button><input type="file" id="bannerInput" accept="image/*" class="hidden" onchange="handleBanner(this)">
@@ -185,30 +187,53 @@
             } catch(e) { console.error('Supabase Init Fail', e); }
         }
 
+        // --- UPDATED: PAGINATION FETCH TO BREAK 1000 ROW LIMIT ---
+        async function fetchAllRows(table, isWinner) {
+            let allRows = [];
+            let from = 0;
+            const step = 1000;
+            let keepFetching = true;
+
+            while (keepFetching) {
+                const { data, error } = await db.from(table)
+                    .select('name')
+                    .eq('is_winner', isWinner)
+                    .range(from, from + step - 1); // Get 1000 rows
+
+                if (error) {
+                    console.error('Fetch error:', error);
+                    return allRows; // Return what we have
+                }
+
+                if (data && data.length > 0) {
+                    allRows = allRows.concat(data);
+                    from += step;
+                    if (data.length < step) keepFetching = false; // Reached end
+                } else {
+                    keepFetching = false;
+                }
+            }
+            return allRows;
+        }
+
         async function fetchData() {
             if(!db) return;
             try {
-                // UPDATE: Added .range(0, 20000) to bypass default 1000 limit
-                const { data: activeData } = await db.from('participants')
-                    .select('name')
-                    .eq('is_winner', false)
-                    .range(0, 20000); 
-
-                if(activeData) names = activeData.map(r => r.name);
+                // Use pagination for both fetches
+                const activeData = await fetchAllRows('participants', false);
+                names = activeData.map(r => r.name);
                 
-                // Also bump limit for winners just in case
-                const { data: winData } = await db.from('participants')
-                    .select('name')
-                    .eq('is_winner', true)
-                    .order('id', {ascending: false})
-                    .range(0, 20000);
-
-                if(winData) winners = winData.map(r => ({name: r.name}));
+                const winData = await fetchAllRows('participants', true);
+                winners = winData.map(r => ({name: r.name}));
+                
+                // Sort winners locally since we fetched in batches (optional)
+                winners.reverse(); // Assuming DB default order, just a rough sort
+                
                 updateUI();
-            } catch(e) { console.error('Fetch error:', e); }
+            } catch(e) { console.error('Fetch logic error:', e); }
         }
 
-        // --- UPDATED: Google Sheet Logic (Manual Link) ---
+        // --- UPDATED: Google Sheet Logic (RAW) ---
         async function handleGoogleSheet() {
             if(!db) return Swal.fire('Error', 'Database not connected', 'error');
             
@@ -217,30 +242,38 @@
                 input: 'url',
                 inputLabel: 'Paste your Direct CSV Link (Publish to Web)',
                 inputPlaceholder: 'https://docs.google.com/.../pub?output=csv',
-                text: 'NOTE: Ensure you paste the CSV link, I will not convert it automatically.',
+                text: 'Please paste the exact CSV link. No auto-conversion will be applied.',
                 showCancelButton: true
             });
 
             if (url) {
                 Swal.fire({title: 'Fetching...', didOpen: () => Swal.showLoading()});
                 try {
-                    // UPDATE: Removed regex replacement. Uses URL exactly as pasted.
+                    // PURE FETCH: No string manipulation
                     const res = await fetch(url);
-                    if(!res.ok) throw new Error('Cannot fetch. Check link permission.');
+                    if(!res.ok) throw new Error(`Fetch Failed (Status: ${res.status}). Is it published?`);
+                    
                     const csvText = await res.text();
+                    if(!csvText) throw new Error('Empty file received');
 
                     const rows = csvText.split('\n').map(r => r.trim()).filter(r => r);
                     const validNames = rows.filter(r => !r.toLowerCase().match(/^(name|nama|no|id)$/)).map(n => {
                         return { name: n.split(',')[0].replace(/['"]/g, '').trim(), is_winner: false };
                     }).filter(n => n.name.length > 0);
 
-                    if(validNames.length === 0) throw new Error('No names found');
+                    if(validNames.length === 0) throw new Error('No valid names found in CSV');
 
-                    const { error } = await db.from('participants').insert(validNames);
-                    if(error) throw error;
+                    // Batch Insert (1000 at a time) to avoid payload too large
+                    const chunkSize = 1000;
+                    for (let i = 0; i < validNames.length; i += chunkSize) {
+                        const chunk = validNames.slice(i, i + chunkSize);
+                        const { error } = await db.from('participants').insert(chunk);
+                        if(error) throw error;
+                    }
+
                     Swal.fire('Success', `Imported ${validNames.length} names!`, 'success');
                 } catch(e) {
-                    Swal.fire('Error', 'Failed. Make sure link is "Published to Web" as CSV.', 'error');
+                    Swal.fire('Error', `Failed: ${e.message}`, 'error');
                     console.error(e);
                 }
             }
@@ -257,8 +290,15 @@
                     const list = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).flat();
                     const validNames = list.filter(x => x && !x.toString().toLowerCase().includes('name')).map(n => ({ name: n.toString(), is_winner: false }));
                     if(validNames.length === 0) throw new Error('No names found');
-                    const { error } = await db.from('participants').insert(validNames);
-                    if(error) throw error;
+                    
+                    // Chunk upload here too
+                    const chunkSize = 1000;
+                    for (let i = 0; i < validNames.length; i += chunkSize) {
+                        const chunk = validNames.slice(i, i + chunkSize);
+                        const { error } = await db.from('participants').insert(chunk);
+                        if(error) throw error;
+                    }
+
                     Swal.fire('Success', `Uploaded ${validNames.length} names!`, 'success');
                 } catch(err) { Swal.fire('Error', err.message || 'Upload failed', 'error'); }
             };
@@ -336,6 +376,6 @@
         function saveSettings() { localStorage.setItem('ld_title', document.getElementById('eventTitle').value); }
         function loadSettings() { const t = localStorage.getItem('ld_title'); if (t) document.getElementById('eventTitle').value = t; const p = localStorage.getItem('ld_title_pos'); if (p) updateTitlePos(p); const s = localStorage.getItem('ld_title_size'); if (s) updateTitleSize(s); const c = localStorage.getItem('ld_title_color'); if (c) handleTitleColor(c); setTitleAlign(localStorage.getItem('ld_title_align') || 'center'); const mc = localStorage.getItem('ld_mask_color'); if(mc) setMaskColor(mc); const mo = localStorage.getItem('ld_mask_opacity'); if(mo) handleOpacityChange(mo); }
         function downloadResults() { let csv = "data:text/csv;charset=utf-8,Name\n"; winners.forEach(r => csv += r.name + "\r\n"); const l = document.createElement("a"); l.href = encodeURI(csv); l.download = "winners.csv"; l.click(); }
-    </script> 
+    </script>
 </body>
 </html>
