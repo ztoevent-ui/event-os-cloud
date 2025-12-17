@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grand Lucky Draw (Fixed v2.5)</title>
+    <title>Grand Lucky Draw (Fixed v2.6 + GSheet)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
@@ -19,7 +19,7 @@
         
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; height: 100vh; overflow: hidden; background-image: url('https://img.freepik.com/free-vector/gradient-lucky-draw-background_23-2150063963.jpg'); background-size: cover; background-position: center; transition: background-image 0.5s ease; }
         
-        /* FIX: z-index -1 to keep it behind everything, !important to ensure clicks pass through */
+        /* FIX: 保持 z-index -1 防止遮挡 */
         #globalOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none !important; z-index: -1; transition: background-color 0.3s ease; }
         
         .content-layer { position: relative; z-index: 10; height: 100%; width: 100%; display: flex; flex-direction: column; pointer-events: auto; }
@@ -32,7 +32,7 @@
         .settings-panel { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform: translateX(100%); }
         .settings-panel.open { transform: translateX(0); }
         
-        /* FIX: Strict pointer events management for Modal */
+        /* FIX: 强制 Model 不遮挡鼠标 */
         #bigWinnerModal { opacity: 0; pointer-events: none !important; transition: opacity 0.3s ease; }
         #bigWinnerModal.active { opacity: 1; pointer-events: auto !important; }
         
@@ -131,9 +131,14 @@
                 <input type="range" id="maskOpacity" min="0" max="100" value="50" oninput="handleOpacityChange(this.value)">
             </div>
             <div class="space-y-3 border-t border-gray-100 pt-4">
-                <button onclick="document.getElementById('excelInput').click()" class="w-full text-left px-3 py-2 rounded-lg border border-gray-200 hover:bg-emerald-50 text-sm font-medium text-emerald-700 flex items-center justify-between"><span><i class="fa-solid fa-cloud-arrow-up mr-2"></i> Upload Excel to Cloud</span> <i class="fa-solid fa-plus text-xs text-emerald-300"></i></button><input type="file" id="excelInput" accept=".xlsx, .xls" class="hidden" onchange="handleExcel(this)">
-                <button onclick="resetWinnersOnly()" class="w-full bg-orange-100 text-orange-700 hover:bg-orange-200 font-bold py-2 rounded-xl transition text-sm flex items-center justify-center gap-2 mt-2 border border-orange-200"><i class="fa-solid fa-rotate-right"></i> Reset Winners (Keep Names)</button>
-                <button onclick="resetData()" class="w-full text-red-500 hover:bg-red-50 font-bold py-2 rounded-xl transition text-sm flex items-center justify-center gap-2 mt-2"><i class="fa-solid fa-trash"></i> DELETE All Database</button>
+                <h3 class="text-xs font-bold text-gray-400 uppercase">Data Sources</h3>
+                <button onclick="document.getElementById('excelInput').click()" class="w-full text-left px-3 py-2 rounded-lg border border-gray-200 hover:bg-emerald-50 text-sm font-medium text-emerald-700 flex items-center justify-between"><span><i class="fa-solid fa-file-excel mr-2"></i> Upload Excel</span> <i class="fa-solid fa-plus text-xs text-emerald-300"></i></button><input type="file" id="excelInput" accept=".xlsx, .xls" class="hidden" onchange="handleExcel(this)">
+                
+                <button onclick="handleGoogleSheet()" class="w-full text-left px-3 py-2 rounded-lg border border-gray-200 hover:bg-green-50 text-sm font-medium text-green-700 flex items-center justify-between"><span><i class="fa-brands fa-google-drive mr-2"></i> Import Google Sheet</span> <i class="fa-solid fa-link text-xs text-green-300"></i></button>
+
+                <div class="h-px bg-gray-100 my-2"></div>
+                <button onclick="resetWinnersOnly()" class="w-full bg-orange-100 text-orange-700 hover:bg-orange-200 font-bold py-2 rounded-xl transition text-sm flex items-center justify-center gap-2 border border-orange-200"><i class="fa-solid fa-rotate-right"></i> Reset Winners (Keep Names)</button>
+                <button onclick="resetData()" class="w-full text-red-500 hover:bg-red-50 font-bold py-2 rounded-xl transition text-sm flex items-center justify-center gap-2"><i class="fa-solid fa-trash"></i> DELETE All Database</button>
             </div>
         </div>
     </div>
@@ -145,7 +150,7 @@
         const SUPABASE_URL = 'https://zihjzbweasaqqbwilshx.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppaGp6YndlYXNhcXFid2lsc2h4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4OTQ5MTYsImV4cCI6MjA4MTQ3MDkxNn0.ilHqOs75eUA6p2n-h1rgfulwNwq_hPQyptFg-kcjbv4';
         
-        // FIX: 不要在这里直接初始化，防止脚本崩溃
+        // Safe Init
         let db = null; 
 
         let wheelChart; let names = []; let winners = []; let isSpinning = false; let maskColor = 'white'; let isMuted = false;
@@ -155,14 +160,13 @@
             try { 
                 initWheel(); 
                 loadSettings(); 
-                initSupabase(); // 初始化放在这里
+                initSupabase(); 
             } 
             catch(e) { console.error("Init Error", e); Swal.fire('Error', 'System Error. Check Console.', 'error'); } 
         };
 
         async function initSupabase() {
             try {
-                // FIX: Check if supabase object exists
                 if (typeof supabase === 'undefined') {
                     console.error('Supabase lib not loaded');
                     document.getElementById('dbStatus').className = 'status-dot status-offline';
@@ -191,6 +195,50 @@
                 if(winData) winners = winData.map(r => ({name: r.name}));
                 updateUI();
             } catch(e) { console.error('Fetch error:', e); }
+        }
+
+        // --- NEW: Google Sheet Logic ---
+        async function handleGoogleSheet() {
+            if(!db) return Swal.fire('Error', 'Database not connected', 'error');
+            
+            const { value: url } = await Swal.fire({
+                title: 'Google Sheet URL',
+                input: 'url',
+                inputLabel: 'Paste your PUBLIC Google Sheet Link',
+                inputPlaceholder: 'https://docs.google.com/spreadsheets/d/...',
+                text: 'Make sure the Sheet is set to "Anyone with the link"',
+                showCancelButton: true
+            });
+
+            if (url) {
+                Swal.fire({title: 'Fetching...', didOpen: () => Swal.showLoading()});
+                try {
+                    // Try to convert regular edit URL to CSV export URL
+                    let cleanUrl = url.replace(/\/edit.*$/, '/export?format=csv');
+                    if(!cleanUrl.includes('export?format=csv')) cleanUrl += '/export?format=csv';
+
+                    const res = await fetch(cleanUrl);
+                    if(!res.ok) throw new Error('Cannot fetch. Check if Sheet is Public.');
+                    const csvText = await res.text();
+
+                    // Simple CSV parsing (Assumes name is in first column)
+                    const rows = csvText.split('\n').map(r => r.trim()).filter(r => r);
+                    // Remove header if it says 'name' or 'nama'
+                    const validNames = rows.filter(r => !r.toLowerCase().match(/^(name|nama|no|id)$/)).map(n => {
+                        // Cleanup quotes if CSV has them
+                        return { name: n.split(',')[0].replace(/['"]/g, '').trim(), is_winner: false };
+                    }).filter(n => n.name.length > 0);
+
+                    if(validNames.length === 0) throw new Error('No names found in Sheet');
+
+                    const { error } = await db.from('participants').insert(validNames);
+                    if(error) throw error;
+                    Swal.fire('Success', `Imported ${validNames.length} names from Google Sheet!`, 'success');
+                } catch(e) {
+                    Swal.fire('Error', 'Failed to load. Is the Sheet PUBLIC?', 'error');
+                    console.error(e);
+                }
+            }
         }
 
         async function handleExcel(input) {
