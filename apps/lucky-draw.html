@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grand Lucky Draw (Final v2.3)</title>
+    <title>Grand Lucky Draw (Fixed v2.4)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
@@ -131,7 +131,11 @@
     <script>
         const SUPABASE_URL = 'https://zihjzbweasaqqbwilshx.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppaGp6YndlYXNhcXFid2lsc2h4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4OTQ5MTYsImV4cCI6MjA4MTQ3MDkxNn0.ilHqOs75eUA6p2n-h1rgfulwNwq_hPQyptFg-kcjbv4';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // 关键修改：变量名改为 db，避免跟库名字冲突
+        const { createClient } = supabase;
+        const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
         let wheelChart; let names = []; let winners = []; let isSpinning = false; let maskColor = 'white'; let isMuted = false;
         const colors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
 
@@ -143,7 +147,7 @@
         async function initSupabase() {
             try {
                 await fetchData();
-                supabase.channel('public:participants').on('postgres_changes', { event: '*', schema: 'public', table: 'participants' }, (payload) => {
+                db.channel('public:participants').on('postgres_changes', { event: '*', schema: 'public', table: 'participants' }, (payload) => {
                     console.log('DB Change:', payload); fetchData(); 
                 }).subscribe((status) => {
                     const dot = document.getElementById('dbStatus');
@@ -154,9 +158,10 @@
 
         async function fetchData() {
             try {
-                const { data: activeData } = await supabase.from('participants').select('name').eq('is_winner', false);
+                // 使用 db.from 而不是 supabase.from
+                const { data: activeData } = await db.from('participants').select('name').eq('is_winner', false);
                 if(activeData) names = activeData.map(r => r.name);
-                const { data: winData } = await supabase.from('participants').select('name').eq('is_winner', true).order('id', {ascending: false});
+                const { data: winData } = await db.from('participants').select('name').eq('is_winner', true).order('id', {ascending: false});
                 if(winData) winners = winData.map(r => ({name: r.name}));
                 updateUI();
             } catch(e) { console.error('Fetch error:', e); }
@@ -172,7 +177,8 @@
                     const list = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).flat();
                     const validNames = list.filter(x => x && !x.toString().toLowerCase().includes('name')).map(n => ({ name: n.toString(), is_winner: false }));
                     if(validNames.length === 0) throw new Error('No names found');
-                    const { error } = await supabase.from('participants').insert(validNames);
+                    // 使用 db.from
+                    const { error } = await db.from('participants').insert(validNames);
                     if(error) throw error;
                     Swal.fire('Success', `Uploaded ${validNames.length} names!`, 'success');
                 } catch(err) { Swal.fire('Error', err.message || 'Upload failed', 'error'); }
@@ -184,7 +190,7 @@
             Swal.fire({ title: 'Restart Game?', text: "Keep names but clear winners?", icon: 'question', showCancelButton: true, confirmButtonText: 'Yes' }).then(async (r) => { 
                 if (r.isConfirmed) { 
                     Swal.showLoading();
-                    const { error } = await supabase.from('participants').update({ is_winner: false }).neq('id', 0);
+                    const { error } = await db.from('participants').update({ is_winner: false }).neq('id', 0);
                     if(!error) Swal.fire('Restarted', 'Ready!', 'success');
                 } 
             });
@@ -193,7 +199,7 @@
             Swal.fire({ title: 'DELETE DATABASE?', text: "Remove ALL names permanently?", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'DELETE ALL' }).then(async (r) => { 
                 if (r.isConfirmed) { 
                     Swal.showLoading();
-                    const { error } = await supabase.from('participants').delete().neq('id', 0);
+                    const { error } = await db.from('participants').delete().neq('id', 0);
                     if(!error) Swal.fire('Deleted', 'Database cleared.', 'success');
                 } 
             });
@@ -208,7 +214,7 @@
                 const r = Math.floor(Math.random() * tempNames.length);
                 batchNames.push(tempNames[r]); tempNames.splice(r, 1);
             }
-            if(batchNames.length > 0) await supabase.from('participants').update({ is_winner: true }).in('name', batchNames);
+            if(batchNames.length > 0) await db.from('participants').update({ is_winner: true }).in('name', batchNames);
             fireConfetti(); updateUI(); isSpinning = false; document.getElementById('spinBtn').innerText = 'SPIN'; setTimeout(() => showBigWinner(batchNames), 500);
         }
 
