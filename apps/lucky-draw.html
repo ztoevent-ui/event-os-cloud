@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grand Lucky Draw (Fixed v2.6 + GSheet)</title>
+    <title>Grand Lucky Draw (No Limit + Manual Link v2.7)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
@@ -19,7 +19,7 @@
         
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; height: 100vh; overflow: hidden; background-image: url('https://img.freepik.com/free-vector/gradient-lucky-draw-background_23-2150063963.jpg'); background-size: cover; background-position: center; transition: background-image 0.5s ease; }
         
-        /* FIX: 保持 z-index -1 防止遮挡 */
+        /* Model Overlay Fixes */
         #globalOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none !important; z-index: -1; transition: background-color 0.3s ease; }
         
         .content-layer { position: relative; z-index: 10; height: 100%; width: 100%; display: flex; flex-direction: column; pointer-events: auto; }
@@ -32,7 +32,7 @@
         .settings-panel { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform: translateX(100%); }
         .settings-panel.open { transform: translateX(0); }
         
-        /* FIX: 强制 Model 不遮挡鼠标 */
+        /* Modal Fixes */
         #bigWinnerModal { opacity: 0; pointer-events: none !important; transition: opacity 0.3s ease; }
         #bigWinnerModal.active { opacity: 1; pointer-events: auto !important; }
         
@@ -150,7 +150,6 @@
         const SUPABASE_URL = 'https://zihjzbweasaqqbwilshx.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppaGp6YndlYXNhcXFid2lsc2h4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4OTQ5MTYsImV4cCI6MjA4MTQ3MDkxNn0.ilHqOs75eUA6p2n-h1rgfulwNwq_hPQyptFg-kcjbv4';
         
-        // Safe Init
         let db = null; 
 
         let wheelChart; let names = []; let winners = []; let isSpinning = false; let maskColor = 'white'; let isMuted = false;
@@ -189,53 +188,59 @@
         async function fetchData() {
             if(!db) return;
             try {
-                const { data: activeData } = await db.from('participants').select('name').eq('is_winner', false);
+                // UPDATE: Added .range(0, 20000) to bypass default 1000 limit
+                const { data: activeData } = await db.from('participants')
+                    .select('name')
+                    .eq('is_winner', false)
+                    .range(0, 20000); 
+
                 if(activeData) names = activeData.map(r => r.name);
-                const { data: winData } = await db.from('participants').select('name').eq('is_winner', true).order('id', {ascending: false});
+                
+                // Also bump limit for winners just in case
+                const { data: winData } = await db.from('participants')
+                    .select('name')
+                    .eq('is_winner', true)
+                    .order('id', {ascending: false})
+                    .range(0, 20000);
+
                 if(winData) winners = winData.map(r => ({name: r.name}));
                 updateUI();
             } catch(e) { console.error('Fetch error:', e); }
         }
 
-        // --- NEW: Google Sheet Logic ---
+        // --- UPDATED: Google Sheet Logic (Manual Link) ---
         async function handleGoogleSheet() {
             if(!db) return Swal.fire('Error', 'Database not connected', 'error');
             
             const { value: url } = await Swal.fire({
-                title: 'Google Sheet URL',
+                title: 'Import CSV Link',
                 input: 'url',
-                inputLabel: 'Paste your PUBLIC Google Sheet Link',
-                inputPlaceholder: 'https://docs.google.com/spreadsheets/d/...',
-                text: 'Make sure the Sheet is set to "Anyone with the link"',
+                inputLabel: 'Paste your Direct CSV Link (Publish to Web)',
+                inputPlaceholder: 'https://docs.google.com/.../pub?output=csv',
+                text: 'NOTE: Ensure you paste the CSV link, I will not convert it automatically.',
                 showCancelButton: true
             });
 
             if (url) {
                 Swal.fire({title: 'Fetching...', didOpen: () => Swal.showLoading()});
                 try {
-                    // Try to convert regular edit URL to CSV export URL
-                    let cleanUrl = url.replace(/\/edit.*$/, '/export?format=csv');
-                    if(!cleanUrl.includes('export?format=csv')) cleanUrl += '/export?format=csv';
-
-                    const res = await fetch(cleanUrl);
-                    if(!res.ok) throw new Error('Cannot fetch. Check if Sheet is Public.');
+                    // UPDATE: Removed regex replacement. Uses URL exactly as pasted.
+                    const res = await fetch(url);
+                    if(!res.ok) throw new Error('Cannot fetch. Check link permission.');
                     const csvText = await res.text();
 
-                    // Simple CSV parsing (Assumes name is in first column)
                     const rows = csvText.split('\n').map(r => r.trim()).filter(r => r);
-                    // Remove header if it says 'name' or 'nama'
                     const validNames = rows.filter(r => !r.toLowerCase().match(/^(name|nama|no|id)$/)).map(n => {
-                        // Cleanup quotes if CSV has them
                         return { name: n.split(',')[0].replace(/['"]/g, '').trim(), is_winner: false };
                     }).filter(n => n.name.length > 0);
 
-                    if(validNames.length === 0) throw new Error('No names found in Sheet');
+                    if(validNames.length === 0) throw new Error('No names found');
 
                     const { error } = await db.from('participants').insert(validNames);
                     if(error) throw error;
-                    Swal.fire('Success', `Imported ${validNames.length} names from Google Sheet!`, 'success');
+                    Swal.fire('Success', `Imported ${validNames.length} names!`, 'success');
                 } catch(e) {
-                    Swal.fire('Error', 'Failed to load. Is the Sheet PUBLIC?', 'error');
+                    Swal.fire('Error', 'Failed. Make sure link is "Published to Web" as CSV.', 'error');
                     console.error(e);
                 }
             }
