@@ -155,6 +155,7 @@
         let db = null; 
 
         let wheelChart; let names = []; let winners = []; let isSpinning = false; let maskColor = 'white'; let isMuted = false;
+        let spinningIntervalId = null;
         const colors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
 
         window.onload = function() { 
@@ -189,26 +190,30 @@
 
         // --- UPDATED: PAGINATION FETCH TO BREAK 1000 ROW LIMIT ---
         async function fetchAllRows(table, isWinner) {
+            // IMPORTANT: Always use a stable order when paginating.
+            // Also fetch id so we can safely update winners even if names repeat.
             let allRows = [];
             let from = 0;
             const step = 1000;
             let keepFetching = true;
 
             while (keepFetching) {
-                const { data, error } = await db.from(table)
-                    .select('name')
+                const { data, error } = await db
+                    .from(table)
+                    .select('id,name,is_winner,updated_at,created_at')
                     .eq('is_winner', isWinner)
-                    .range(from, from + step - 1); // Get 1000 rows
+                    .order('id', { ascending: true })
+                    .range(from, from + step - 1);
 
                 if (error) {
                     console.error('Fetch error:', error);
-                    return allRows; // Return what we have
+                    return allRows;
                 }
 
                 if (data && data.length > 0) {
                     allRows = allRows.concat(data);
                     from += step;
-                    if (data.length < step) keepFetching = false; // Reached end
+                    if (data.length < step) keepFetching = false;
                 } else {
                     keepFetching = false;
                 }
@@ -219,16 +224,18 @@
         async function fetchData() {
             if(!db) return;
             try {
-                // Use pagination for both fetches
                 const activeData = await fetchAllRows('participants', false);
                 names = activeData.map(r => r.name);
-                
+
                 const winData = await fetchAllRows('participants', true);
-                winners = winData.map(r => ({name: r.name}));
-                
-                // Sort winners locally since we fetched in batches (optional)
-                winners.reverse(); // Assuming DB default order, just a rough sort
-                
+                winners = winData
+                    .map(r => ({ id: r.id, name: r.name, updated_at: r.updated_at, created_at: r.created_at }))
+                    .sort((a, b) => {
+                        const ta = new Date(a.updated_at || a.created_at || 0).getTime();
+                        const tb = new Date(b.updated_at || b.created_at || 0).getTime();
+                        return tb - ta;
+                    });
+
                 updateUI();
             } catch(e) { console.error('Fetch logic error:', e); }
         }
@@ -256,10 +263,27 @@
                     const csvText = await res.text();
                     if(!csvText) throw new Error('Empty file received');
 
-                    const rows = csvText.split('\n').map(r => r.trim()).filter(r => r);
-                    const validNames = rows.filter(r => !r.toLowerCase().match(/^(name|nama|no|id)$/)).map(n => {
-                        return { name: n.split(',')[0].replace(/['"]/g, '').trim(), is_winner: false };
-                    }).filter(n => n.name.length > 0);
+                    // Google publish CSV can be:
+                    // - real CSV with commas
+                    // - OR a single text column (space separated) depending on the sheet.
+                    // Also handle CRLF.
+                    const rows = csvText
+                        .replace(/\r/g, '')
+                        .split('\n')
+                        .map(r => r.trim())
+                        .filter(r => r);
+
+                    // Drop common headers (supports "Name", "Nama", "No", "ID" as sole-cell headers)
+                    const dataRows = rows.filter(r => !r.toLowerCase().match(/^(name|nama|no|id)$/));
+
+                    const validNames = dataRows
+                        .map(line => {
+                            // Prefer first CSV cell if comma separated, else use whole line.
+                            const firstCell = line.includes(',') ? line.split(',')[0] : line;
+                            const name = firstCell.replace(/['"]/g, '').trim();
+                            return { name, is_winner: false };
+                        })
+                        .filter(n => n.name.length > 0);
 
                     if(validNames.length === 0) throw new Error('No valid names found in CSV');
 
@@ -310,7 +334,7 @@
             Swal.fire({ title: 'Restart Game?', text: "Keep names but clear winners?", icon: 'question', showCancelButton: true, confirmButtonText: 'Yes' }).then(async (r) => { 
                 if (r.isConfirmed) { 
                     Swal.showLoading();
-                    const { error } = await db.from('participants').update({ is_winner: false }).neq('id', 0);
+                    const { error } = await db.from('participants').update({ is_winner: false }).eq('is_winner', true);
                     if(!error) Swal.fire('Restarted', 'Ready!', 'success');
                 } 
             });
@@ -320,23 +344,86 @@
             Swal.fire({ title: 'DELETE DATABASE?', text: "Remove ALL names permanently?", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'DELETE ALL' }).then(async (r) => { 
                 if (r.isConfirmed) { 
                     Swal.showLoading();
-                    const { error } = await db.from('participants').delete().neq('id', 0);
+                    // Supabase disallows delete() without a filter.
+                    // If you really want to wipe everything, this is a common workaround.
+                    const { error } = await db.from('participants').delete().gte('id', 0);
                     if(!error) Swal.fire('Deleted', 'Database cleared.', 'success');
                 } 
             });
         }
 
         async function selectWinners(count) {
+            // NOTE: This is “fake wheel animation + random draw”.
+            // We still try to make the draw robust:
+            // 1) Pick by id (avoid same-name multi-update)
+            // 2) Use conditional update (avoid drawing someone who already became winner due to another client)
+            // 3) Retry a few times if collision happens
+
             document.getElementById('bgmPlayer').pause();
             if(!isMuted) { const w = document.getElementById('winSoundEffect'); w.currentTime = 0; w.play().catch(e=>{}); }
-            let batchNames = []; let tempNames = [...names];
-            for(let i=0; i<count; i++) {
-                if(tempNames.length === 0) break;
-                const r = Math.floor(Math.random() * tempNames.length);
-                batchNames.push(tempNames[r]); tempNames.splice(r, 1);
+
+            const spinBtn = document.getElementById('spinBtn');
+
+            try {
+                // Pull fresh eligible rows (reduce race with other screens)
+                const eligible = await fetchAllRows('participants', false);
+                if (!eligible || eligible.length === 0) {
+                    Swal.fire('Error', 'No eligible participants left.', 'error');
+                    return;
+                }
+
+                const targetCount = Math.min(count, eligible.length);
+
+                const picked = new Map();
+                const maxAttempts = targetCount * 8; // retry budget
+                let attempts = 0;
+
+                while (picked.size < targetCount && attempts < maxAttempts) {
+                    attempts++;
+                    const r = Math.floor(Math.random() * eligible.length);
+                    const row = eligible[r];
+                    if (!row || row.id == null) continue;
+                    if (picked.has(row.id)) continue;
+
+                    // Try to claim this row (only if still not winner)
+                    const { data, error } = await db
+                        .from('participants')
+                        .update({ is_winner: true })
+                        .eq('id', row.id)
+                        .eq('is_winner', false)
+                        .select('id,name');
+
+                    if (error) {
+                        console.error('Claim winner error:', error);
+                        continue;
+                    }
+
+                    // data length 1 means we successfully claimed; 0 means someone else claimed first
+                    if (data && data.length === 1) {
+                        picked.set(data[0].id, data[0].name);
+                    }
+                }
+
+                const batchNames = [...picked.values()];
+
+                if (batchNames.length === 0) {
+                    Swal.fire('Error', 'Draw failed (collision). Please try again.', 'error');
+                    return;
+                }
+
+                // Refresh UI from DB (authoritative)
+                await fetchData();
+
+                fireConfetti();
+                isSpinning = false;
+                spinBtn.innerText = 'SPIN';
+                setTimeout(() => showBigWinner(batchNames), 500);
+
+            } finally {
+                // If anything throws, unlock UI
+                isSpinning = false;
+                if (spinBtn) spinBtn.innerText = 'SPIN';
             }
-            if(batchNames.length > 0 && db) await db.from('participants').update({ is_winner: true }).in('name', batchNames);
-            fireConfetti(); updateUI(); isSpinning = false; document.getElementById('spinBtn').innerText = 'SPIN'; setTimeout(() => showBigWinner(batchNames), 500);
         }
 
         function showBigWinner(winnerNames) {
@@ -345,13 +432,59 @@
         }
         function closeBigModal() { document.getElementById('bigWinnerModal').classList.remove('active'); }
         function startSpin() {
-            if (isSpinning) return; if (names.length === 0) return Swal.fire('Error', 'Database Empty!', 'error');
-            let count = parseInt(document.getElementById('drawCount').value) || 1; if (count > names.length) return Swal.fire('Error', 'Not enough people', 'error');
-            isSpinning = true; document.getElementById('spinBtn').innerText = '...';
-            if(!isMuted) { const p = document.getElementById('bgmPlayer'); p.play().catch(e => { document.getElementById('muteBtn').classList.add('animate-ping'); setTimeout(()=>document.getElementById('muteBtn').classList.remove('animate-ping'), 1000); }); }
-            const winS = document.getElementById('winSoundEffect'); winS.volume = 0; winS.play().then(() => { winS.pause(); winS.currentTime = 0; winS.volume = 1; }).catch(e => {});
-            let rot = 0; let spd = 60; const spinInterval = setInterval(() => { rot += spd; wheelChart.options.rotation = rot % 360; wheelChart.update('none'); if (spd > 0.5) spd *= 0.99; }, 16);
-            setTimeout(() => { clearInterval(spinInterval); selectWinners(count); }, 3000);
+            if (isSpinning) return;
+            if (names.length === 0) return Swal.fire('Error', 'Database Empty!', 'error');
+
+            let count = parseInt(document.getElementById('drawCount').value) || 1;
+            if (count > names.length) return Swal.fire('Error', 'Not enough people', 'error');
+
+            // Defensive: clear any previous interval
+            if (spinningIntervalId) {
+                clearInterval(spinningIntervalId);
+                spinningIntervalId = null;
+            }
+
+            isSpinning = true;
+            document.getElementById('spinBtn').innerText = '...';
+
+            if(!isMuted) {
+                const p = document.getElementById('bgmPlayer');
+                p.play().catch(e => {
+                    document.getElementById('muteBtn').classList.add('animate-ping');
+                    setTimeout(()=>document.getElementById('muteBtn').classList.remove('animate-ping'), 1000);
+                });
+            }
+
+            const winS = document.getElementById('winSoundEffect');
+            winS.volume = 0;
+            winS.play().then(() => {
+                winS.pause();
+                winS.currentTime = 0;
+                winS.volume = 1;
+            }).catch(e => {});
+
+            let rot = 0;
+            let spd = 60;
+            spinningIntervalId = setInterval(() => {
+                try {
+                    rot += spd;
+                    wheelChart.options.rotation = rot % 360;
+                    wheelChart.update('none');
+                    if (spd > 0.5) spd *= 0.99;
+                } catch (e) {
+                    console.error('Spin interval error:', e);
+                    clearInterval(spinningIntervalId);
+                    spinningIntervalId = null;
+                }
+            }, 16);
+
+            setTimeout(() => {
+                if (spinningIntervalId) {
+                    clearInterval(spinningIntervalId);
+                    spinningIntervalId = null;
+                }
+                selectWinners(count);
+            }, 3000);
         }
         function initWheel() { const ctx = document.getElementById('wheelCanvas').getContext('2d'); Chart.register(ChartDataLabels); wheelChart = new Chart(ctx, { type: 'pie', data: getChartData(), options: { responsive: true, maintainAspectRatio: false, animation: { duration: 0 }, layout: { padding: 20 }, plugins: { legend: { display: false }, tooltip: { enabled: false }, datalabels: { color: '#fff', font: { weight: 'bold', size: (ctx) => names.length > 50 ? 0 : 16 }, formatter: (v, c) => c.chart.data.labels[c.dataIndex], rotation: (ctx) => (ctx.dataIndex * (360 / ctx.chart.data.labels.length) + (360 / ctx.chart.data.labels.length / 2)) + 90, anchor: 'end', align: 'start', offset: 10 } } } }); }
         function getChartData() { const d = names.length > 0 ? names : ['READY', 'SPIN']; return { labels: d, datasets: [{ data: d.map(() => 1), backgroundColor: d.map((_, i) => colors[i % colors.length]), borderWidth: 0 }] }; }
