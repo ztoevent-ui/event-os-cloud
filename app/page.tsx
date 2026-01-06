@@ -136,6 +136,29 @@ export default function Home() {
 
         <div className="mb-12">
           <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+            <i className="fa-solid fa-layer-group"></i> Event Planning & Design
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="app-card disabled bg-white rounded-2xl p-6 border border-gray-100 shadow-sm relative overflow-hidden">
+              <div className="absolute top-3 right-3 bg-gray-100 text-gray-400 text-[10px] font-bold px-2 py-1 rounded">
+                DEV
+              </div>
+              <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 text-xl mb-4">
+                <i className="fa-solid fa-cube"></i>
+              </div>
+              <h4 className="text-lg font-bold text-gray-900">3D Event Layout</h4>
+              <p className="text-sm text-gray-500 mt-1">
+                Design floor plans and outdoor setups in 3D.
+              </p>
+              <div className="mt-4 text-xs font-bold text-gray-300 flex items-center gap-1">
+                <i className="fa-solid fa-lock"></i> COMING SOON
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mb-12">
+          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
             <i className="fa-solid fa-rings-wedding"></i> Wedding Suite
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
