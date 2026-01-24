@@ -162,18 +162,24 @@ export default function Home() {
             <i className="fa-solid fa-rings-wedding"></i> Wedding Suite
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="app-card disabled bg-white rounded-2xl p-6 border border-gray-100 shadow-sm relative overflow-hidden">
-              <div className="w-12 h-12 bg-pink-50 rounded-xl flex items-center justify-center text-pink-500 text-xl mb-4">
+            <Link
+              href="/apps/wedding-rsvp"
+              className="app-card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm relative overflow-hidden group block"
+            >
+              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
+                <i className="fa-solid fa-envelope-open-text text-6xl text-pink-500"></i>
+              </div>
+              <div className="w-12 h-12 bg-pink-50 rounded-xl flex items-center justify-center text-pink-500 text-xl mb-4 group-hover:bg-pink-500 group-hover:text-white transition-colors">
                 <i className="fa-solid fa-envelope-open-text"></i>
               </div>
               <h4 className="text-lg font-bold text-gray-900">Wedding RSVP</h4>
               <p className="text-sm text-gray-500 mt-1">
-                Guest list management and attendance confirmation.
+                Guest list management, seating charts & RSVP design.
               </p>
-              <div className="mt-4 text-xs font-bold text-gray-300 flex items-center gap-1">
-                <i className="fa-solid fa-lock"></i> COMING SOON
+              <div className="mt-4 flex items-center text-xs font-bold text-pink-500">
+                LAUNCH APP <i className="fa-solid fa-arrow-right ml-1"></i>
               </div>
-            </div>
+            </Link>
 
             <div className="app-card disabled bg-white rounded-2xl p-6 border border-gray-100 shadow-sm relative overflow-hidden">
               <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600 text-xl mb-4">
