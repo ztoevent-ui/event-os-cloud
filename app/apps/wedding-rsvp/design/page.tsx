@@ -42,8 +42,8 @@ export default function DesignPage() {
                                     key={t.id}
                                     onClick={() => setSelectedTemplate(t.id)}
                                     className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${selectedTemplate === t.id
-                                            ? 'border-pink-500 bg-pink-50'
-                                            : 'border-gray-200 hover:border-pink-200'
+                                        ? 'border-pink-500 bg-pink-50'
+                                        : 'border-gray-200 hover:border-pink-200'
                                         }`}
                                 >
                                     <div className="w-12 h-12 rounded-lg bg-gray-200 overflow-hidden shrink-0">
@@ -96,7 +96,21 @@ export default function DesignPage() {
                     </div>
 
                     {/* Actions */}
-                    <button className="w-full py-3 bg-pink-600 hover:bg-pink-700 text-white font-bold rounded-xl shadow-lg shadow-pink-200 transition">
+                    <button
+                        onClick={(e) => {
+                            const btn = e.currentTarget;
+                            const originalText = btn.innerText;
+                            btn.innerText = 'Saved!';
+                            btn.classList.add('bg-green-600', 'hover:bg-green-700');
+                            btn.classList.remove('bg-pink-600', 'hover:bg-pink-700');
+                            setTimeout(() => {
+                                btn.innerText = originalText;
+                                btn.classList.remove('bg-green-600', 'hover:bg-green-700');
+                                btn.classList.add('bg-pink-600', 'hover:bg-pink-700');
+                            }, 2000);
+                        }}
+                        className="w-full py-3 bg-pink-600 hover:bg-pink-700 text-white font-bold rounded-xl shadow-lg shadow-pink-200 transition"
+                    >
                         Save & Publish
                     </button>
                 </div>
@@ -117,8 +131,8 @@ export default function DesignPage() {
 
                             {/* Content */}
                             <div className={`h-full w-full overflow-y-auto ${selectedTemplate === 'modern' ? 'bg-white' :
-                                    selectedTemplate === 'classic' ? 'bg-stone-100' :
-                                        selectedTemplate === 'floral' ? 'bg-pink-50' : 'bg-yellow-50'
+                                selectedTemplate === 'classic' ? 'bg-stone-100' :
+                                    selectedTemplate === 'floral' ? 'bg-pink-50' : 'bg-yellow-50'
                                 }`}>
                                 <div className="h-64 bg-gray-200 relative">
                                     <img
