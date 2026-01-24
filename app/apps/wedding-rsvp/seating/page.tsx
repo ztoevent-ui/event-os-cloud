@@ -37,6 +37,11 @@ export default function SeatingPage() {
     const [draggedGuest, setDraggedGuest] = useState<Guest | null>(null);
     const [isScanning, setIsScanning] = useState(false);
 
+    // New State for Table Editing
+    const [tableSize, setTableSize] = useState(150);
+    const [isDraggingTable, setIsDraggingTable] = useState<number | null>(null);
+    const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+
     // --- Actions ---
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,6 +53,89 @@ export default function SeatingPage() {
             };
             reader.readAsDataURL(e.target.files[0]);
         }
+    };
+
+    // Table Dragging Handlers
+    const handleTableMouseDown = (e: React.MouseEvent, table: Table) => {
+        e.stopPropagation(); // Stop bubbling to canvas
+        e.preventDefault(); // Prevent default drag behavior if any
+        setIsDraggingTable(table.id);
+        // Calculate offset to prevent snapping to center
+        // We need the table's current visual rect usually, but here we can just do mouse vs center
+        // table.x/y is the center point.
+        setDragOffset({
+            x: e.clientX - table.x,
+            y: e.clientY - table.y
+        });
+    };
+
+    // Global Mouse Move for Table Dragging
+    const handleCanvasMouseMove = (e: React.MouseEvent) => {
+        if (isDraggingTable !== null) {
+            e.preventDefault();
+            // Get the bounding rect of the container to make coordinates relative? 
+            // For simplicity, we used absolute dragging in the previous step, but we need to account for layout structure
+            // However, our table.x/y seems to be based on offset from container if we were using offsetLeft/Top.
+            // But here we are using clientX/Y structure in state which might be messy if window scrolls.
+            // Let's assume the container is relative and we track delta or absolute position relative to it.
+
+            // To make it robust:
+            // We just update the state based on the delta from the mouse movement would be better, 
+            // BUT given the implementation, let's just use the clientX/Y - offset approach, 
+            // assuming the 'dragOffset' captured the initial difference correctly.
+            // NOTE: If the user scrolls, this might break without a ref to the container. 
+            // Let's use a Ref for the container to correct the coordinates.
+        }
+    };
+
+    // Better Approach: Use direct calculation relative to container
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    const onMouseMove = (e: React.MouseEvent) => {
+        if (isDraggingTable !== null && containerRef.current) {
+            const rect = containerRef.current.getBoundingClientRect();
+            const x = e.clientX - rect.left; // x position within the element.
+            const y = e.clientY - rect.top;  // y position within the element.
+
+            // We want the table center to follow the mouse, but keeping the initial click offset
+            // Adjust logic:
+            // On MouseDown: offset = mouseX - tableX
+            // On MouseMove: newTableX = mouseX - offset
+
+            // Wait, the previous logic: offset = clientX - table.x (where table.x is relative to container?)
+            // No, table.x is CSS "left". 
+
+            // Let's strictly use coordinates relative to the container.
+            // mouseX relative to container = e.clientX - rect.left
+
+            setTables(prev => prev.map(t => {
+                if (t.id === isDraggingTable) {
+                    return {
+                        ...t,
+                        x: x, // Simply snap center to mouse for smoother feel now, or use offset if needed
+                        y: y
+                    };
+                }
+                return t;
+            }));
+        }
+    };
+
+    const handleCanvasMouseUp = () => {
+        setIsDraggingTable(null);
+    };
+
+    const handleAddTable = () => {
+        const newId = tables.length > 0 ? Math.max(...tables.map(t => t.id)) + 1 : 1;
+        // Add to center of view (approximate)
+        setTables([...tables, {
+            id: newId,
+            x: 400,
+            y: 300,
+            name: `Table ${newId}`,
+            seats: 10,
+            type: 'round'
+        }]);
     };
 
     const handleAIScan = () => {
@@ -70,9 +158,7 @@ export default function SeatingPage() {
         // Check if seat is occupied
         const isOccupied = guests.find(g => g.tableId === tableId && g.tableIndex === seatIndex);
         if (isOccupied) {
-            // Swap or Error? Let's just swap for now or do nothing if simple
-            // alert('Seat occupied!'); return;
-            // Simple swap:
+            // Swap
             setGuests(guests.map(g => {
                 if (g.id === isOccupied.id) return { ...g, tableId: draggedGuest.tableId, tableIndex: draggedGuest.tableIndex };
                 if (g.id === draggedGuest.id) return { ...g, tableId: tableId, tableIndex: seatIndex };
@@ -99,23 +185,35 @@ export default function SeatingPage() {
         setDraggedGuest(null);
     };
 
-    const handleTableDrag = (id: number, dx: number, dy: number) => {
-        // This needs more complex mouse tracking logic which is hard to do perfectly in this snippet without dnd-kit
-        // For now, I will omit table dragging logic to focus on Guest Dragging as requested ("drag name to another pos")
-        // But I'll simulate "AI detected it" so the tables are fixed positions for now.
-    }
-
-    // --- Renderers ---
-
     return (
-        <div className="h-full flex flex-col overflow-hidden">
+        <div
+            className="h-full flex flex-col overflow-hidden"
+            onMouseMove={onMouseMove}
+            onMouseUp={handleCanvasMouseUp}
+        >
             <header className="flex items-center justify-between gap-4 mb-4 shrink-0">
                 <div>
                     <h1 className="text-3xl font-black text-gray-900 mb-2">Smart Seating</h1>
                     <p className="text-gray-500">Upload floor plan, scan tables, and drag & drop guests.</p>
                 </div>
-                <div className="flex gap-2">
-                    <button onClick={() => alert('Saved!')} className="px-6 py-2 bg-pink-600 text-white font-bold rounded-lg shadow hover:bg-pink-700">Save Plan</button>
+                <div className="flex bg-white p-2 rounded-xl border border-gray-200 gap-4 items-center shadow-sm">
+                    <div className="flex items-center gap-2 px-2 border-r border-gray-200 pr-4">
+                        <span className="text-xs font-bold text-gray-500"><i className="fa-solid fa-expand"></i> Table Size</span>
+                        <input
+                            type="range"
+                            min="50"
+                            max="300"
+                            value={tableSize}
+                            onChange={(e) => setTableSize(Number(e.target.value))}
+                            className="w-32 accent-pink-600 cursor-pointer"
+                        />
+                    </div>
+                    <button onClick={handleAddTable} className="px-4 py-2 bg-gray-100 text-gray-900 font-bold rounded-lg hover:bg-gray-200 transition text-sm flex items-center gap-2">
+                        <i className="fa-solid fa-plus"></i> Add Table
+                    </button>
+                    <button onClick={() => alert('Saved!')} className="px-6 py-2 bg-pink-600 text-white font-bold rounded-lg shadow hover:bg-pink-700 transition text-sm">
+                        Save Plan
+                    </button>
                 </div>
             </header>
 
@@ -147,7 +245,10 @@ export default function SeatingPage() {
                 </div>
 
                 {/* Main Canvas */}
-                <div className="flex-1 bg-gray-100 rounded-xl border border-gray-200 relative overflow-hidden flex items-center justify-center shadow-inner select-none">
+                <div
+                    ref={containerRef}
+                    className="flex-1 bg-gray-100 rounded-xl border border-gray-200 relative overflow-hidden flex items-center justify-center shadow-inner select-none"
+                >
 
                     {!floorPlan ? (
                         <div className="text-center p-10 bg-white rounded-2xl shadow-xl border border-gray-100 max-w-md">
@@ -162,75 +263,74 @@ export default function SeatingPage() {
                                     Choose Image
                                 </span>
                             </label>
+
+                            {/* DEMO BYPASS */}
+                            <div className="mt-4 pt-4 border-t border-gray-100">
+                                <button
+                                    onClick={() => {
+                                        setFloorPlan('https://images.unsplash.com/photo-1577412647305-991150c7d163?auto=format&fit=crop&q=80&w=1200&h=800'); // Fake floorplan
+                                        handleAIScan();
+                                    }}
+                                    className="text-xs text-gray-400 hover:text-gray-600"
+                                >
+                                    Use Demo Floor Plan
+                                </button>
+                            </div>
                         </div>
                     ) : (
-                        <>
+                        <div className="absolute inset-0 w-full h-full relative overflow-hidden">
                             {/* Background Image */}
                             <img src={floorPlan} alt="Floor Plan" className="absolute inset-0 w-full h-full object-contain pointer-events-none opacity-50" />
-
-                            {/* Scan Button Overlay */}
-                            {tables.length === 0 && (
-                                <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20">
-                                    <button
-                                        onClick={handleAIScan}
-                                        disabled={isScanning}
-                                        className="px-6 py-3 bg-black text-white rounded-full font-bold shadow-xl hover:scale-105 transition flex items-center gap-2"
-                                    >
-                                        {isScanning ? <i className="fa-solid fa-circle-notch animate-spin"></i> : <i className="fa-solid fa-wand-magic-sparkles"></i>}
-                                        {isScanning ? 'Scanning Layout...' : 'AI Scan Tables'}
-                                    </button>
-                                </div>
-                            )}
 
                             {/* Tables Layer */}
                             {tables.map(table => (
                                 <div
                                     key={table.id}
-                                    className="absolute"
+                                    className="absolute cursor-move"
+                                    onMouseDown={(e) => handleTableMouseDown(e, table)}
                                     style={{
                                         left: table.x,
                                         top: table.y,
-                                        width: table.type === 'rect' ? 200 : 150,
-                                        height: table.type === 'rect' ? 100 : 150,
-                                        transform: 'translate(-50%, -50%)'
+                                        width: tableSize, // Use global scale
+                                        height: tableSize,
+                                        transform: 'translate(-50%, -50%)',
+                                        zIndex: isDraggingTable === table.id ? 50 : 10
                                     }}
                                 >
                                     {/* Table Shape */}
-                                    <div className={`w-full h-full bg-white/90 backdrop-blur border-2 border-gray-800 shadow-lg flex items-center justify-center relative ${table.type === 'round' ? 'rounded-full' : 'rounded-lg'}`}>
-                                        <div className="text-center">
-                                            <div className="font-black text-gray-900">{table.name}</div>
+                                    <div className={`w-full h-full bg-white/80 backdrop-blur-sm border-2 border-gray-800 shadow-lg flex items-center justify-center relative rounded-full group hover:border-pink-500`}>
+                                        <div className="text-center pointer-events-none">
+                                            <div className="font-black text-gray-900 text-xs md:text-sm">{table.name}</div>
                                             <div className="text-[10px] text-gray-500">{table.seats} seats</div>
                                         </div>
 
+                                        {/* Delete Button */}
+                                        <button
+                                            onMouseDown={(e) => e.stopPropagation()}
+                                            onClick={() => setTables(tables.filter(t => t.id !== table.id))}
+                                            className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center shadow opacity-0 group-hover:opacity-100 transition z-50 hover:bg-red-700"
+                                            title="Remove Table"
+                                        >
+                                            <i className="fa-solid fa-xmark text-xs"></i>
+                                        </button>
+
                                         {/* Seats */}
                                         {[...Array(table.seats)].map((_, i) => {
-                                            // Calculate Position
-                                            let style: React.CSSProperties = {};
-                                            if (table.type === 'round') {
-                                                const angle = (i * (360 / table.seats)) * (Math.PI / 180);
-                                                const radius = 90; // distance from center
-                                                style = {
-                                                    left: `calc(50% + ${Math.cos(angle) * radius}px)`,
-                                                    top: `calc(50% + ${Math.sin(angle) * radius}px)`,
-                                                };
-                                            } else {
-                                                // Simple Rect layout (top/bottom)
-                                                const side = i < table.seats / 2 ? 'top' : 'bottom';
-                                                const pos = i % (table.seats / 2);
-                                                style = {
-                                                    [side]: '-40px',
-                                                    left: `${(pos + 1) * (100 / ((table.seats / 2) + 1))}%`,
-                                                };
-                                            }
+                                            const angle = (i * (360 / table.seats)) * (Math.PI / 180);
+                                            const radius = (tableSize / 2) + 15; // slightly outside
+                                            const style = {
+                                                left: `calc(50% + ${Math.cos(angle) * radius}px)`,
+                                                top: `calc(50% + ${Math.sin(angle) * radius}px)`,
+                                            };
 
                                             const seatedGuest = guests.find(g => g.tableId === table.id && g.tableIndex === i);
 
                                             return (
                                                 <div
                                                     key={i}
-                                                    className={`absolute w-12 h-12 rounded-full border-2 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center transition-all ${seatedGuest
-                                                            ? 'bg-pink-100 border-pink-500 shadow-md scale-110 z-10'
-                                                            : 'bg-white border-dashed border-gray-300 hover:border-blue-400'
+                                                    className={`absolute w-8 h-8 rounded-full border transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center transition-all ${seatedGuest
+                                                            ? 'bg-pink-100 border-pink-500 shadow-sm z-20 hover:scale-125'
+                                                            : 'bg-white/80 border-dashed border-gray-400 hover:border-blue-500 hover:bg-blue-50'
                                                         }`}
                                                     style={style}
                                                     onDragOver={(e) => e.preventDefault()}
@@ -239,22 +339,18 @@ export default function SeatingPage() {
                                                         handleDropOnTable(table.id, i);
                                                     }}
                                                 >
-                                                    {seatedGuest ? (
+                                                    {seatedGuest && (
                                                         <div
                                                             draggable
                                                             onDragStart={(e) => {
                                                                 e.stopPropagation();
                                                                 setDraggedGuest(seatedGuest);
                                                             }}
-                                                            className="w-full h-full rounded-full flex items-center justify-center cursor-grab active:cursor-grabbing"
+                                                            className="w-full h-full rounded-full flex items-center justify-center cursor-grab active:cursor-grabbing font-bold text-[10px] text-pink-700"
                                                             title={seatedGuest.name}
                                                         >
-                                                            <div className="font-bold text-pink-600 text-xs text-center leading-none px-1 overflow-hidden">
-                                                                {seatedGuest.name.split(' ')[0]}
-                                                            </div>
+                                                            {seatedGuest.name.slice(0, 1)}
                                                         </div>
-                                                    ) : (
-                                                        <div className="text-gray-300 text-[10px]">{i + 1}</div>
                                                     )}
                                                 </div>
                                             );
@@ -262,7 +358,7 @@ export default function SeatingPage() {
                                     </div>
                                 </div>
                             ))}
-                        </>
+                        </div>
                     )}
 
                 </div>
