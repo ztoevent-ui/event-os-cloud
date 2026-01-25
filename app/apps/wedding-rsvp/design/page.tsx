@@ -1,17 +1,24 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Template } from './types';
+import { getTemplates } from './store';
 
 export default function DesignPage() {
-    const [selectedTemplate, setSelectedTemplate] = useState('classic');
+    const router = useRouter();
+    const [templates, setTemplates] = useState<Template[]>([]);
+    const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
     const [musicFile, setMusicFile] = useState<File | null>(null);
 
-    const templates = [
-        { id: 'classic', name: 'Classic Elegance', color: 'bg-stone-100', image: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=300' },
-        { id: 'modern', name: 'Modern Minimal', color: 'bg-white', image: 'https://images.unsplash.com/photo-1510076860523-8c11e64903ec?auto=format&fit=crop&q=80&w=300' },
-        { id: 'floral', name: 'Floral Garden', color: 'bg-pink-50', image: 'https://images.unsplash.com/photo-1507504031981-723e9edd684e?auto=format&fit=crop&q=80&w=300' },
-        { id: 'gold', name: 'Golden Luxury', color: 'bg-yellow-50', image: 'https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?auto=format&fit=crop&q=80&w=300' },
-    ];
+    useEffect(() => {
+        // Load templates from store
+        const loaded = getTemplates();
+        setTemplates(loaded);
+        if (loaded.length > 0) {
+            setSelectedTemplate(loaded[0]);
+        }
+    }, []);
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -19,40 +26,52 @@ export default function DesignPage() {
         }
     };
 
+    if (!selectedTemplate) return <div>Loading...</div>;
+
     return (
-        <div className="max-w-5xl mx-auto space-y-8">
-            <header>
-                <h1 className="text-3xl font-black text-gray-900 mb-2">Design Invitation</h1>
-                <p className="text-gray-500">Customize how your RSVP page looks to your guests.</p>
+        <div className="max-w-6xl mx-auto space-y-8">
+            <header className="flex justify-between items-end">
+                <div>
+                    <h1 className="text-3xl font-black text-gray-900 mb-2">Design Invitation</h1>
+                    <p className="text-gray-500">Customize how your RSVP page looks to your guests.</p>
+                </div>
+                <button
+                    onClick={() => router.push('/apps/wedding-rsvp/design/builder')}
+                    className="text-sm font-bold text-pink-600 hover:text-pink-700 bg-pink-50 px-4 py-2 rounded-lg transition"
+                >
+                    <i className="fa-solid fa-wand-magic-sparkles mr-2"></i>
+                    Open Template Studio
+                </button>
             </header>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
                 {/* Settings Column */}
-                <div className="lg:col-span-1 space-y-8">
+                <div className="lg:col-span-1 space-y-8 h-fit">
 
                     {/* Template Selection */}
                     <div className="bg-white rounded-2xl p-6 border border-pink-100 shadow-sm">
                         <h2 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
                             <i className="fa-solid fa-layer-group text-pink-500"></i> Choose Template
                         </h2>
-                        <div className="space-y-3">
+                        <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
                             {templates.map((t) => (
                                 <div
                                     key={t.id}
-                                    onClick={() => setSelectedTemplate(t.id)}
-                                    className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${selectedTemplate === t.id
+                                    onClick={() => setSelectedTemplate(t)}
+                                    className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${selectedTemplate.id === t.id
                                         ? 'border-pink-500 bg-pink-50'
                                         : 'border-gray-200 hover:border-pink-200'
                                         }`}
                                 >
                                     <div className="w-12 h-12 rounded-lg bg-gray-200 overflow-hidden shrink-0">
-                                        <img src={t.image} alt={t.name} className="w-full h-full object-cover" />
+                                        <img src={t.coverImage} alt={t.name} className="w-full h-full object-cover" />
                                     </div>
                                     <div className="flex-1">
                                         <div className="font-bold text-gray-900 text-sm">{t.name}</div>
+                                        {t.description && <div className="text-xs text-gray-400 truncate">{t.description}</div>}
                                     </div>
-                                    {selectedTemplate === t.id && (
+                                    {selectedTemplate.id === t.id && (
                                         <i className="fa-solid fa-circle-check text-pink-500"></i>
                                     )}
                                 </div>
@@ -129,55 +148,51 @@ export default function DesignPage() {
                                 </div>
                             </div>
 
-                            {/* Content */}
-                            <div className={`h-full w-full overflow-y-auto ${selectedTemplate === 'modern' ? 'bg-white' :
-                                selectedTemplate === 'classic' ? 'bg-stone-100' :
-                                    selectedTemplate === 'floral' ? 'bg-pink-50' : 'bg-yellow-50'
-                                }`}>
+                            {/* Content based on Selected Template */}
+                            <div className={`h-full w-full overflow-y-auto ${selectedTemplate.backgroundColor} ${selectedTemplate.fontFamily} ${selectedTemplate.textColor}`}>
                                 <div className="h-64 bg-gray-200 relative">
                                     <img
-                                        src={templates.find(t => t.id === selectedTemplate)?.image}
+                                        src={selectedTemplate.coverImage}
                                         alt="Cover"
                                         className="w-full h-full object-cover"
                                     />
                                     <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                                        <h1 className="text-4xl font-serif text-white italic tracking-wider">S & J</h1>
+                                        <h1 className="text-4xl text-white italic tracking-wider">S & J</h1>
                                     </div>
                                 </div>
                                 <div className="p-6 text-center space-y-6">
                                     <div>
-                                        <h2 className="text-sm uppercase tracking-widest text-gray-500">You Are Invited</h2>
-                                        <h1 className="text-3xl font-serif text-gray-900 my-4">Sarah & James</h1>
-                                        <p className="text-gray-600 font-light italic">Request the honor of your presence</p>
+                                        <h2 className="text-sm uppercase tracking-widest opacity-60">You Are Invited</h2>
+                                        <h1 className="text-3xl my-4">Sarah & James</h1>
+                                        <p className="opacity-80 font-light italic">Request the honor of your presence</p>
                                     </div>
 
-                                    <div className="py-6 border-t border-b border-gray-200 space-y-2">
-                                        <p className="font-bold text-gray-900">OCTOBER 24, 2026</p>
-                                        <p className="text-sm text-gray-500">AT FOUR O'CLOCK IN THE AFTERNOON</p>
-                                        <p className="text-sm font-bold text-gray-900 mt-4">THE GRAND BALLROOM</p>
-                                        <p className="text-xs text-gray-500">123 Wedding Ave, New York</p>
+                                    <div className="py-6 border-t border-b border-black/10 space-y-2">
+                                        <p className="font-bold">OCTOBER 24, 2026</p>
+                                        <p className="text-sm opacity-80">AT FOUR O'CLOCK IN THE AFTERNOON</p>
+                                        <p className="text-sm font-bold mt-4">THE GRAND BALLROOM</p>
+                                        <p className="text-xs opacity-60">123 Wedding Ave, New York</p>
                                     </div>
 
-                                    <button className="px-8 py-3 bg-black text-white rounded-full text-sm uppercase tracking-wider">
+                                    <button className={`px-8 py-3 rounded-full text-white text-sm uppercase tracking-wider ${selectedTemplate.accentColor?.replace('text-', 'bg-') || 'bg-black'}`}>
                                         RSVP Now
                                     </button>
 
                                     {/* Music Player Mock */}
-                                    <div className="bg-white/50 backdrop-blur-sm rounded-full p-2 flex items-center gap-3 w-max mx-auto border border-gray-200">
-                                        <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center text-pink-500 animate-spin-slow">
+                                    <div className="bg-white/50 backdrop-blur-sm rounded-full p-2 flex items-center gap-3 w-max mx-auto border border-black/5 mt-8">
+                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center animate-spin-slow ${selectedTemplate.accentColor?.replace('text-', 'bg-') || 'bg-pink-500'} bg-opacity-20 ${selectedTemplate.accentColor || 'text-pink-600'}`}>
                                             <i className="fa-solid fa-compact-disc"></i>
                                         </div>
-                                        <span className="text-xs font-medium text-gray-600">
+                                        <span className="text-xs font-medium opacity-80">
                                             {musicFile ? musicFile.name : 'Wedding March'}
                                         </span>
-                                        <i className="fa-solid fa-volume-high text-xs text-gray-400"></i>
+                                        <i className="fa-solid fa-volume-high text-xs opacity-40"></i>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-
             </div>
         </div>
     );
