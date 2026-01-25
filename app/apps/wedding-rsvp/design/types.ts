@@ -57,4 +57,14 @@ export const DEFAULT_TEMPLATES: Template[] = [
         accentColor: 'text-amber-600',
         coverImage: 'https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?auto=format&fit=crop&q=80&w=300'
     },
+    {
+        id: 'oriental',
+        name: 'Oriental Celebration',
+        description: 'Traditional red and gold Chinese style.',
+        backgroundColor: 'bg-red-900',
+        fontFamily: 'font-serif',
+        textColor: 'text-amber-50',
+        accentColor: 'text-amber-400',
+        coverImage: 'https://images.unsplash.com/photo-1546825316-f048b62828be?auto=format&fit=crop&q=80&w=300'
+    },
 ];

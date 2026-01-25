@@ -14,12 +14,14 @@ export function getTemplates(): Template[] {
 
     try {
         const parsed = JSON.parse(stored);
-        // Merge defaults with stored custom ones if desired, or just return stored
-        // For simplicity, let's assume stored completely overrides or extends.
-        // But to ensure defaults always exist if I mess up:
-        // Let's checking if it's an empty array.
-        if (Array.isArray(parsed) && parsed.length > 0) {
-            return parsed;
+
+        // Strategy: Always prefer code-defined DEFAULT_TEMPLATES for their IDs.
+        // Only keep stored templates that are NOT in the default list (i.e. custom ones).
+        if (Array.isArray(parsed)) {
+            const customTemplates = parsed.filter((t: Template) =>
+                !DEFAULT_TEMPLATES.some(dt => dt.id === t.id)
+            );
+            return [...DEFAULT_TEMPLATES, ...customTemplates];
         }
         return DEFAULT_TEMPLATES;
     } catch (e) {
