@@ -33,8 +33,8 @@ export default function AuthPage() {
                 if (error) throw error;
                 router.push('/');
             }
-        } catch (error: any) {
-            setMessage(error.message);
+        } catch (error: Error | any) {
+            setMessage(error.message || 'An error occurred');
         } finally {
             setLoading(false);
         }
