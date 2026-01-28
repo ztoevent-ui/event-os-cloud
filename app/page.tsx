@@ -21,7 +21,7 @@ export default function Home() {
               <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
               System Online
             </div>
-            <Link href="/auth" className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-300 transition-colors">
+            <Link href="/account" className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-300 transition-colors">
               <i className="fa-solid fa-user"></i>
             </Link>
           </div>

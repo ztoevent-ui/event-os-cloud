@@ -1,4 +1,30 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabaseClient';
+
 export default function WeddingDashboard() {
+    const router = useRouter();
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const checkAuth = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                router.replace('/auth');
+            } else {
+                setLoading(false);
+            }
+        };
+
+        checkAuth();
+    }, [router]);
+
+    if (loading) {
+        return <div className="min-h-screen flex items-center justify-center text-gray-500">Loading...</div>;
+    }
+
     return (
         <div className="max-w-5xl mx-auto">
             <header className="mb-10">
