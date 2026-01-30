@@ -268,8 +268,31 @@ export default function SeatingPage() {
                             <div className="mt-4 pt-4 border-t border-gray-100">
                                 <button
                                     onClick={() => {
-                                        setFloorPlan('https://images.unsplash.com/photo-1577412647305-991150c7d163?auto=format&fit=crop&q=80&w=1200&h=800'); // Fake floorplan
-                                        handleAIScan();
+                                        // High quality SVG Floorplan Data URI
+                                        const svg = `data:image/svg+xml,%3Csvg width='800' height='600' viewBox='0 0 800 600' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='800' height='600' fill='%23f8fafc'/%3E%3C!-- Walls --%3E%3Cpath d='M50,50 L750,50 L750,550 L50,550 Z' fill='none' stroke='%23334155' stroke-width='8'/%3E%3C!-- Entrance --%3E%3Cpath d='M350,550 L450,550' stroke='%23f8fafc' stroke-width='12'/%3E%3Ctext x='400' y='580' text-anchor='middle' font-family='sans-serif' font-size='14' fill='%2364748b' font-weight='bold'%3EENTRANCE%3C/text%3E%3C!-- Stage --%3E%3Crect x='300' y='50' width='200' height='80' fill='%23e2e8f0' stroke='%2394a3b8' stroke-width='2'/%3E%3Ctext x='400' y='100' text-anchor='middle' font-family='sans-serif' font-size='16' fill='%2364748b' font-weight='bold' letter-spacing='2'%3ESTAGE%3C/text%3E%3C!-- Dance Floor --%3E%3Crect x='300' y='200' width='200' height='200' fill='%23f1f5f9' stroke='%23cbd5e1' stroke-dasharray='5,5'/%3E%3Ctext x='400' y='305' text-anchor='middle' font-family='sans-serif' font-size='12' fill='%2394a3b8'%3EDANCE FLOOR%3C/text%3E%3C!-- Decor Plants --%3E%3Ccircle cx='60' cy='60' r='15' fill='%23bbf7d0' stroke='%2386efac'/%3E%3Ccircle cx='740' cy='60' r='15' fill='%23bbf7d0' stroke='%2386efac'/%3E%3Ccircle cx='60' cy='540' r='15' fill='%23bbf7d0' stroke='%2386efac'/%3E%3Ccircle cx='740' cy='540' r='15' fill='%23bbf7d0' stroke='%2386efac'/%3E%3C/svg%3E`;
+                                        setFloorPlan(svg);
+
+                                        setIsScanning(true);
+                                        // Simulate AI Scan
+                                        setTimeout(() => {
+                                            setIsScanning(false);
+                                            // Perfect coordinates for this specific SVG layout
+                                            setTables([
+                                                // Left Side - Group 1
+                                                { id: 1, x: 150, y: 200, name: 'T1', seats: 10, type: 'round' },
+                                                { id: 2, x: 150, y: 350, name: 'T2', seats: 10, type: 'round' },
+                                                { id: 3, x: 150, y: 500, name: 'T3', seats: 10, type: 'round' },
+
+                                                // Right Side - Group 2
+                                                { id: 4, x: 650, y: 200, name: 'T4', seats: 10, type: 'round' },
+                                                { id: 5, x: 650, y: 350, name: 'T5', seats: 10, type: 'round' },
+                                                { id: 6, x: 650, y: 500, name: 'T6', seats: 10, type: 'round' },
+
+                                                // VIP / Head Tables near Dance Floor
+                                                { id: 7, x: 250, y: 450, name: 'VIP 1', seats: 8, type: 'round' },
+                                                { id: 8, x: 550, y: 450, name: 'VIP 2', seats: 8, type: 'round' },
+                                            ]);
+                                        }, 1200);
                                     }}
                                     className="text-xs text-gray-400 hover:text-gray-600"
                                 >
@@ -329,8 +352,8 @@ export default function SeatingPage() {
                                                 <div
                                                     key={i}
                                                     className={`absolute w-8 h-8 rounded-full border transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center transition-all ${seatedGuest
-                                                            ? 'bg-pink-100 border-pink-500 shadow-sm z-20 hover:scale-125'
-                                                            : 'bg-white/80 border-dashed border-gray-400 hover:border-blue-500 hover:bg-blue-50'
+                                                        ? 'bg-pink-100 border-pink-500 shadow-sm z-20 hover:scale-125'
+                                                        : 'bg-white/80 border-dashed border-gray-400 hover:border-blue-500 hover:bg-blue-50'
                                                         }`}
                                                     style={style}
                                                     onDragOver={(e) => e.preventDefault()}
