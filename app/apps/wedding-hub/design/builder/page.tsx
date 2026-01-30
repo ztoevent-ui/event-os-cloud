@@ -20,7 +20,7 @@ export default function TemplateBuilder() {
 
     const handleSave = () => {
         saveTemplate(template);
-        router.push('/apps/wedding-rsvp/design');
+        router.push('/apps/wedding-hub/design');
     };
 
     return (

@@ -36,7 +36,7 @@ export default function DesignPage() {
                     <p className="text-gray-500">Customize how your RSVP page looks to your guests.</p>
                 </div>
                 <button
-                    onClick={() => router.push('/apps/wedding-rsvp/design/builder')}
+                    onClick={() => router.push('/apps/wedding-hub/design/builder')}
                     className="text-sm font-bold text-pink-600 hover:text-pink-700 bg-pink-50 px-4 py-2 rounded-lg transition"
                 >
                     <i className="fa-solid fa-wand-magic-sparkles mr-2"></i>

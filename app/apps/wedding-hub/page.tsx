@@ -74,7 +74,7 @@ export default function WeddingDashboard() {
                             <h2 className="text-lg font-bold text-gray-900">Quick Actions</h2>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <a href="/apps/wedding-rsvp/guests" className="p-4 bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition flex items-center gap-4 group">
+                            <a href="/apps/wedding-hub/guests" className="p-4 bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition flex items-center gap-4 group">
                                 <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors">
                                     <i className="fa-solid fa-user-plus"></i>
                                 </div>
@@ -83,7 +83,7 @@ export default function WeddingDashboard() {
                                     <div className="text-xs text-gray-500">Manually add invitee</div>
                                 </div>
                             </a>
-                            <a href="/apps/wedding-rsvp/design" className="p-4 bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition flex items-center gap-4 group">
+                            <a href="/apps/wedding-hub/design" className="p-4 bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition flex items-center gap-4 group">
                                 <div className="w-10 h-10 bg-purple-50 text-purple-600 rounded-lg flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-colors">
                                     <i className="fa-solid fa-palette"></i>
                                 </div>
@@ -140,7 +140,7 @@ export default function WeddingDashboard() {
                         </div>
                         <h3 className="font-bold text-lg mb-2 relative z-10">Background Music</h3>
                         <p className="text-indigo-100 text-sm mb-6 relative z-10">Customize the vibe for your guests when they visit your RSVP page.</p>
-                        <a href="/apps/wedding-rsvp/design" className="inline-block bg-white text-indigo-600 text-sm font-bold px-4 py-2 rounded-lg hover:bg-indigo-50 transition relative z-10">
+                        <a href="/apps/wedding-hub/design" className="inline-block bg-white text-indigo-600 text-sm font-bold px-4 py-2 rounded-lg hover:bg-indigo-50 transition relative z-10">
                             Upload MP3
                         </a>
                     </div>
@@ -162,7 +162,7 @@ export default function WeddingDashboard() {
                             </div>
                         </div>
                         <div className="mt-6">
-                            <a href="/apps/wedding-rsvp/seating" className="text-sm text-pink-600 font-bold hover:text-pink-700 flex items-center justify-center border border-pink-200 rounded-lg py-2 hover:bg-pink-50 transition">
+                            <a href="/apps/wedding-hub/seating" className="text-sm text-pink-600 font-bold hover:text-pink-700 flex items-center justify-center border border-pink-200 rounded-lg py-2 hover:bg-pink-50 transition">
                                 Manage Seating
                             </a>
                         </div>

@@ -11,11 +11,11 @@ export default function WeddingLayout({
     const pathname = usePathname();
 
     const navItems = [
-        { name: 'Dashboard', href: '/apps/wedding-rsvp', icon: 'fa-solid fa-chart-pie' },
-        { name: 'Guest List', href: '/apps/wedding-rsvp/guests', icon: 'fa-solid fa-users' },
-        { name: 'Seating Chart', href: '/apps/wedding-rsvp/seating', icon: 'fa-solid fa-chair' },
-        { name: 'Design Invitation', href: '/apps/wedding-rsvp/design', icon: 'fa-solid fa-wand-magic-sparkles' },
-        { name: 'Butler Schedule', href: '/apps/wedding-rsvp/schedule', icon: 'fa-solid fa-clipboard-list' },
+        { name: 'Dashboard', href: '/apps/wedding-hub', icon: 'fa-solid fa-chart-pie' },
+        { name: 'Guest List', href: '/apps/wedding-hub/guests', icon: 'fa-solid fa-users' },
+        { name: 'Seating Chart', href: '/apps/wedding-hub/seating', icon: 'fa-solid fa-chair' },
+        { name: 'Design Invitation', href: '/apps/wedding-hub/design', icon: 'fa-solid fa-wand-magic-sparkles' },
+        { name: 'Butler Schedule', href: '/apps/wedding-hub/schedule', icon: 'fa-solid fa-clipboard-list' },
     ];
 
     const isClient = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('role') === 'client';

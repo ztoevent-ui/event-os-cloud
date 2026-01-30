@@ -163,7 +163,7 @@ export default function Home() {
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <Link
-              href="/apps/wedding-rsvp"
+              href="/apps/wedding-hub"
               className="app-card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm relative overflow-hidden group block"
             >
               <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
@@ -172,7 +172,7 @@ export default function Home() {
               <div className="w-12 h-12 bg-pink-50 rounded-xl flex items-center justify-center text-pink-500 text-xl mb-4 group-hover:bg-pink-500 group-hover:text-white transition-colors">
                 <i className="fa-solid fa-envelope-open-text"></i>
               </div>
-              <h4 className="text-lg font-bold text-gray-900">Wedding RSVP</h4>
+              <h4 className="text-lg font-bold text-gray-900">Wedding Hub</h4>
               <p className="text-sm text-gray-500 mt-1">
                 Guest list management, seating charts & RSVP design.
               </p>
