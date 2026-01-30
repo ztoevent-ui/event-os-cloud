@@ -22,16 +22,30 @@ export default function AuthPage() {
                 const { error } = await supabase.auth.signUp({
                     email,
                     password,
+                    options: {
+                        // Optional: We can calculate default role here or let admin assign it later.
+                        // For now, new signups have NO role until approved.
+                    }
                 });
                 if (error) throw error;
                 setMessage('Check your email for the confirmation link!');
             } else {
-                const { error } = await supabase.auth.signInWithPassword({
+                const { data, error } = await supabase.auth.signInWithPassword({
                     email,
                     password,
                 });
                 if (error) throw error;
-                router.push('/');
+
+                // Role Based Redirection
+                const role = data.user?.user_metadata?.role;
+                if (role === 'admin') {
+                    router.push('/admin/users');
+                } else if (role === 'client') {
+                    router.push('/apps/wedding-hub');
+                } else {
+                    // Default fallback or pending state
+                    router.push('/');
+                }
             }
         } catch (error: Error | any) {
             setMessage(error.message || 'An error occurred');
@@ -101,7 +115,7 @@ export default function AuthPage() {
                         <button
                             onClick={() => {
                                 // Simulate Client Login
-                                window.location.href = '/apps/wedding-rsvp?role=client';
+                                window.location.href = '/apps/wedding-hub?role=client';
                             }}
                             className="text-xs text-gray-400 hover:text-gray-600 block w-full"
                         >
