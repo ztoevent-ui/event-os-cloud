@@ -29,6 +29,19 @@ export default function Home() {
                         <p className="text-sm text-gray-500 mt-1">Event lucky draw system</p>
                     </div>
                 </Link>
+
+                <Link
+                    href="/projects"
+                    className="p-6 bg-white rounded-xl shadow-md hover:shadow-lg transition border border-gray-100 flex flex-col items-center text-center space-y-4 w-64"
+                >
+                    <div className="w-12 h-12 bg-purple-100 text-purple-500 rounded-full flex items-center justify-center text-xl">
+                        <i className="fa-solid fa-calendar-check"></i>
+                    </div>
+                    <div>
+                        <h2 className="text-xl font-bold text-gray-900">Event Manager</h2>
+                        <p className="text-sm text-gray-500 mt-1">SaaS Project Dashboard</p>
+                    </div>
+                </Link>
             </div>
         </div>
     );
