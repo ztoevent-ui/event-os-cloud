@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     assignee_id UUID,
     due_date TIMESTAMPTZ,
     ai_suggestions JSONB DEFAULT '{}', -- Stores Gemini recommendations
+    access_level TEXT DEFAULT 'staff', -- NEW: 'admin', 'staff', 'public_view'
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -65,8 +66,37 @@ CREATE TABLE IF NOT EXISTS budgets (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- SEED DATA: 'Destined Bintulu Wedding Expo 2026'
+-- 6. Guest Records (For Ticket Sales & On-site Check-in)
+CREATE TABLE IF NOT EXISTS guest_records (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+    email TEXT NOT NULL,
+    name TEXT,
+    phone TEXT,
+    ticket_type TEXT DEFAULT 'standard', -- 'vip', 'standard', 'free'
+    status TEXT DEFAULT 'pending', -- 'paid', 'pending', 'cancelled'
+    check_in_status BOOLEAN DEFAULT FALSE,
+    checked_in_at TIMESTAMPTZ,
+    source TEXT, -- 'online_sale', 'walk_in', 'invite'
+    access_level TEXT DEFAULT 'public', -- for future RBAC if needed
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
 
+-- 7. Tool States (For Realtime Sync between Admin & Display)
+CREATE TABLE IF NOT EXISTS tool_states (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+    tool_name TEXT NOT NULL, -- 'lucky_draw', 'spinning_wheel'
+    current_state JSONB DEFAULT '{}', -- stores { is_spinning: boolean, winner: ... }
+    last_updated_by UUID, -- admin user id
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable Realtime for tool_states
+-- ALTER PUBLICATION supabase_realtime ADD TABLE tool_states;
+-- Note: You might need to run this command manually in the Supabase Dashboard SQL Editor if using a managed instance where permissions vary.
+
+-- SEED DATA
 -- Insert Project
 WITH new_project AS (
     INSERT INTO projects (name, type, status, start_date, end_date)
@@ -86,19 +116,18 @@ phase3 AS (
     INSERT INTO timelines (project_id, name, order_index, start_date, end_date)
     SELECT project_id, 'Phase 3: Execution', 3, '2026-07-01', '2026-08-03' FROM phase1 RETURNING id
 )
--- Insert Initial Tasks (we link to project, can refine timeline linking later if needed but lets do basic)
-INSERT INTO tasks (project_id, title, status, priority, description)
-SELECT id, 'Define Expo Theme & Branding', 'done', 'high', 'Finalize "Destined" theme colors and logo.' FROM new_project
+-- Insert Initial Tasks
+INSERT INTO tasks (project_id, title, status, priority, description, access_level)
+SELECT id, 'Define Expo Theme & Branding', 'done', 'high', 'Finalize "Destined" theme colors and logo.', 'admin' FROM new_project
 UNION ALL
-SELECT id, 'Secure Venue Booking', 'in_progress', 'critical', 'Confirm dates with Bintulu Civic Centre.' FROM new_project
+SELECT id, 'Secure Venue Booking', 'in_progress', 'critical', 'Confirm dates with Bintulu Civic Centre.', 'admin' FROM new_project
 UNION ALL
-SELECT id, 'Draft Sponsor Packages', 'todo', 'high', 'Create Gold, Silver, Bronze tiers.' FROM new_project
+SELECT id, 'Draft Sponsor Packages', 'todo', 'high', 'Create Gold, Silver, Bronze tiers.', 'staff' FROM new_project
 UNION ALL
-SELECT id, 'Launch Vendor Recruitment', 'todo', 'medium', 'Start calling potential exhibitors.' FROM new_project;
+SELECT id, 'Launch Vendor Recruitment', 'todo', 'medium', 'Start calling potential exhibitors.', 'staff' FROM new_project;
 
 -- Insert Sample Vendors
 INSERT INTO vendors (project_id, name, category, status)
 SELECT id, 'Bintulu Civic Centre', 'venue', 'contacted' FROM projects WHERE name = 'Destined Bintulu Wedding Expo 2026'
 UNION ALL
 SELECT id, 'Grand Palace Hotel', 'accommodation', 'potential' FROM projects WHERE name = 'Destined Bintulu Wedding Expo 2026';
-
