@@ -41,6 +41,9 @@ CREATE TABLE IF NOT EXISTS tasks (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Ensure access_level column exists for existing tables (Migration Fix)
+ALTER TABLE tasks ADD COLUMN IF NOT EXISTS access_level TEXT DEFAULT 'staff';
+
 -- 4. Vendors
 CREATE TABLE IF NOT EXISTS vendors (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
