@@ -112,15 +112,12 @@ export default function AuthPage() {
                         {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
                     </button>
                     <div className="mt-4 pt-4 border-t border-gray-100">
-                        <button
-                            onClick={() => {
-                                // Simulate Client Login
-                                window.location.href = '/apps/wedding-hub?role=client';
-                            }}
+                        <a
+                            href="https://www.ztoevent.com/"
                             className="text-xs text-gray-400 hover:text-gray-600 block w-full"
                         >
-                            <i className="fa-solid fa-rings-wedding mr-1"></i> Client Invite Link Demo
-                        </button>
+                            <i className="fa-solid fa-globe mr-1"></i> Visit ZTO Event
+                        </a>
                     </div>
                 </div>
             </div>
