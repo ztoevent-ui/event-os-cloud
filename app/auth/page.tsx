@@ -20,8 +20,9 @@ export default function AuthPage() {
 
         try {
             if (isResetPassword) {
+                const origin = (typeof window !== 'undefined' && window.location.origin) ? window.location.origin : 'https://www.ztoevent.com';
                 const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                    redirectTo: `${window.location.origin}/auth/update-password`,
+                    redirectTo: `${origin}/auth/update-password`,
                 });
                 if (error) throw error;
                 setMessage('Check your email for the password reset link!');
