@@ -10,6 +10,12 @@ export default function WeddingDashboard() {
 
     useEffect(() => {
         const checkAuth = async () => {
+            // Bypass for Demo Link
+            if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('role') === 'client') {
+                setLoading(false);
+                return;
+            }
+
             const { data: { session } } = await supabase.auth.getSession();
             if (!session) {
                 router.replace('/auth');
