@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 export default function WeddingLayout({
     children,
@@ -18,13 +19,18 @@ export default function WeddingLayout({
         { name: 'Butler Schedule', href: '/apps/wedding-hub/schedule', icon: 'fa-solid fa-clipboard-list' },
     ];
 
-    const isClient = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('role') === 'client';
+    const [isClientMode, setIsClientMode] = useState(false);
+
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        setIsClientMode(params.get('role') === 'client');
+    }, []);
 
     return (
         <div className="min-h-screen bg-pink-50/30 flex font-sans">
             {/* Sidebar */}
             <aside className="w-64 bg-white border-r border-pink-100 flex flex-col fixed h-full z-10 hidden md:flex">
-                {!isClient && (
+                {!isClientMode && (
                     <div className="h-16 flex items-center px-6 border-b border-pink-100">
                         <Link href="/" className="flex items-center gap-2 group">
                             <div className="w-8 h-8 bg-pink-100 text-pink-500 rounded-lg flex items-center justify-center group-hover:bg-pink-500 group-hover:text-white transition-colors">
@@ -34,7 +40,7 @@ export default function WeddingLayout({
                         </Link>
                     </div>
                 )}
-                {isClient && (
+                {isClientMode && (
                     <div className="h-16 flex items-center px-6 border-b border-pink-100">
                         <span className="font-black text-xl italic text-pink-500 tracking-wider font-serif">Sarah & James</span>
                     </div>

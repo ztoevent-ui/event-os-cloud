@@ -312,10 +312,10 @@ export default function SeatingPage() {
                                     className="absolute cursor-move"
                                     onMouseDown={(e) => handleTableMouseDown(e, table)}
                                     style={{
-                                        left: table.x,
-                                        top: table.y,
-                                        width: tableSize, // Use global scale
-                                        height: tableSize,
+                                        left: `${table.x}px`,
+                                        top: `${table.y}px`,
+                                        width: `${tableSize}px`, // Use global scale
+                                        height: `${tableSize}px`,
                                         transform: 'translate(-50%, -50%)',
                                         zIndex: isDraggingTable === table.id ? 50 : 10
                                     }}

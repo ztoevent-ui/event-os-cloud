@@ -8,7 +8,7 @@ import { saveTemplate } from '../store';
 export default function TemplateBuilder() {
     const router = useRouter();
     const [template, setTemplate] = useState<Template>({
-        id: `custom-${Date.now()}`,
+        id: 'temp-id',
         name: 'New Template',
         description: 'Created by staff',
         backgroundColor: 'bg-white',
@@ -19,7 +19,11 @@ export default function TemplateBuilder() {
     });
 
     const handleSave = () => {
-        saveTemplate(template);
+        const finalTemplate = template.id === 'temp-id'
+            ? { ...template, id: `custom-${Date.now()}` }
+            : template;
+
+        saveTemplate(finalTemplate);
         router.push('/apps/wedding-hub/design');
     };
 
