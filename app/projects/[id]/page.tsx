@@ -1,7 +1,8 @@
 
-export default async function ProjectDashboard({ params }: { params: { id: string } }) {
+export default async function ProjectDashboard({ params }: { params: Promise<{ id: string }> }) {
     // Mock data simulation based on ID
     // In real implementation: const project = await supabase.from('projects').select('*').eq('id', params.id).single();
+    const { id } = await params;
 
     return (
         <div className="space-y-8 animate-in fade-in duration-700">

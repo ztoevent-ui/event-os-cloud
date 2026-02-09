@@ -1,18 +1,18 @@
 
 import { ReactNode } from 'react';
 import Link from 'next/link';
-// import { useRouter } from 'next/navigation'; // Server components can't use hook, need client component for active state or just simple links
 
-export default function ProjectLayout({
+export default async function ProjectLayout({
     children,
     params
 }: {
     children: ReactNode;
-    params: { id: string };
+    params: Promise<{ id: string }>;
 }) {
     // In a real app, fetch project details by params.id here to get name/theme
     // For demo, we assume the Bintulu Theme (Black/Gold)
-    const projectId = params?.id || '1';
+    const { id } = await params;
+    const projectId = id || '1';
 
     return (
         <div className="min-h-screen bg-black text-amber-500 font-sans selection:bg-amber-500 selection:text-black">
