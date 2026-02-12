@@ -109,8 +109,8 @@ export async function submitConsultation(formData: FormData) {
     const { error } = await supabase.from('consulting_forms').insert(payload);
 
     if (error) {
-        console.error('Error submitting form:', error);
-        throw new Error('Failed to submit consultation form');
+        console.error('Error submitting form to Supabase:', error.message, error.details);
+        throw new Error(`Failed to submit: ${error.message}`);
     }
 
     revalidatePath(`/projects/${project_id}/consultations`);
