@@ -10,6 +10,11 @@ interface WizardProps {
 }
 
 export default function ConsultingForm({ projectId }: WizardProps) {
+    // Vendor List for Step 3
+    const vendorServices = [
+        "Venue", "Photography / Videography", "Makeup Artist (MUA)", "Boutique / Gown", "Decor / Florist"
+    ];
+
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({
         project_id: projectId,
@@ -23,24 +28,11 @@ export default function ConsultingForm({ projectId }: WizardProps) {
         guest_count: '',
         budget_range: '',
         wedding_theme: '',
-        booked_vendors: [] as Array<{ service: string, name: string, contact: string, phone: string, isBooked: boolean }>,
+        booked_vendors: vendorServices.map(service => ({ service, name: '', contact: '', phone: '', isBooked: false })),
         special_features: '',
         important_notes: '',
         love_story: '',
     });
-
-    // Vendor List for Step 3
-    const vendorServices = [
-        "Venue", "Photography / Videography", "Makeup Artist (MUA)", "Boutique / Gown", "Decor / Florist"
-    ];
-
-    // Initialize vendor state if empty
-    if (formData.booked_vendors.length === 0) {
-        setFormData(prev => ({
-            ...prev,
-            booked_vendors: vendorServices.map(service => ({ service, name: '', contact: '', phone: '', isBooked: false }))
-        }));
-    }
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
