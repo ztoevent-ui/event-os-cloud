@@ -81,6 +81,14 @@ export default function Home() {
                             <h3 className="font-bold text-lg text-gray-900 mb-2">Tools Controller</h3>
                             <p className="text-gray-400 text-sm">Master control for Lucky Draw & Spin Wheel.</p>
                         </Link>
+
+                        <Link href="/consultations" className="group bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-indigo-100 transition-all hover:-translate-y-1">
+                            <div className="w-12 h-12 bg-teal-50 text-teal-600 rounded-xl flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
+                                <i className="fa-solid fa-clipboard-question"></i>
+                            </div>
+                            <h3 className="font-bold text-lg text-gray-900 mb-2">Consultations</h3>
+                            <p className="text-gray-400 text-sm">View all submitted consultation forms and AI summaries.</p>
+                        </Link>
                     </div>
                 </section>
 
@@ -109,15 +117,7 @@ export default function Home() {
                             </div>
                         </Link>
 
-                        <Link href="/public/consulting" className="flex items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
-                            <div className="w-10 h-10 bg-teal-50 text-teal-600 rounded-full flex items-center justify-center">
-                                <i className="fa-solid fa-clipboard-question"></i>
-                            </div>
-                            <div>
-                                <h3 className="font-bold text-gray-900">Consulting Form</h3>
-                                <p className="text-xs text-gray-400">Submit requests for event planning.</p>
-                            </div>
-                        </Link>
+
                     </div>
                 </section>
 
