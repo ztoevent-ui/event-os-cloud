@@ -1,24 +1,42 @@
+'use client';
 
 import { createClient } from '@supabase/supabase-js';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://zihjzbweasaqqbwilshx.supabase.co';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppaGp6YndlYXNhcXFid2lsc2h4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4OTQ5MTYsImV4cCI6MjA4MTQ3MDkxNn0.ilHqOs75eUA6p2n-h1rgfulwNwq_hPQyptFg-kcjbv4';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-export default async function GlobalConsultationsPage() {
-    // Fetch ALL consultations, regardless of project
-    const { data: consultations, error } = await supabase
-        .from('consulting_forms')
-        .select(`
-            *,
-            projects (name)
-        `)
-        .order('created_at', { ascending: false });
+export default function GlobalConsultationsPage() {
+    const [consultations, setConsultations] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    if (error) {
-        return <div className="text-red-500 p-8">Error fetching consultations: {error.message}</div>;
-    }
+    useEffect(() => {
+        const fetchConsultations = async () => {
+            try {
+                // Fetch ALL consultations, regardless of project
+                const { data, error } = await supabase
+                    .from('consulting_forms')
+                    .select(`
+                        *,
+                        projects (name)
+                    `)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+                setConsultations(data || []);
+            } catch (err: any) {
+                console.error("Error fetching consultations:", err);
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchConsultations();
+    }, []);
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
@@ -49,7 +67,17 @@ export default async function GlobalConsultationsPage() {
                     </div>
                 </div>
 
-                {!consultations || consultations.length === 0 ? (
+                {loading ? (
+                    <div className="text-center py-20">
+                        <i className="fa-solid fa-spinner fa-spin text-4xl text-indigo-500 mb-4"></i>
+                        <p className="text-zinc-500">Loading reports...</p>
+                    </div>
+                ) : error ? (
+                    <div className="text-red-500 p-8 bg-white rounded-xl border border-red-100 text-center">
+                        <i className="fa-solid fa-triangle-exclamation text-2xl mb-2"></i>
+                        <p>Error fetching consultations: {error}</p>
+                    </div>
+                ) : !consultations || consultations.length === 0 ? (
                     <div className="text-center py-20 bg-white rounded-xl shadow-sm border border-zinc-100">
                         <i className="fa-solid fa-folder-open text-4xl text-zinc-300 mb-4"></i>
                         <h3 className="text-xl font-bold text-zinc-700">No Consultations Found</h3>
@@ -69,6 +97,11 @@ export default async function GlobalConsultationsPage() {
                                                 {c.projects?.name && (
                                                     <span className="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider">
                                                         {c.projects.name}
+                                                    </span>
+                                                )}
+                                                {!c.projects?.name && (
+                                                    <span className="bg-gray-100 text-gray-500 px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider">
+                                                        General Inquiry
                                                     </span>
                                                 )}
                                                 <span><i className="fa-regular fa-calendar mr-1"></i> {c.wedding_date || 'No Date'}</span>
