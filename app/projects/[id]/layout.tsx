@@ -22,9 +22,13 @@ export default async function ProjectLayout({
                     <div className="flex justify-between h-16 items-center">
                         <div className="flex-shrink-0 flex items-center gap-3">
                             <Link href="/" className="flex items-center gap-3 group">
-                                <div className="w-8 h-8 bg-gradient-to-tr from-amber-400 to-amber-600 rounded-sm rotate-45 group-hover:rotate-90 transition-transform"></div>
+                                <img
+                                    src="https://zihjzbweasaqqbwilshx.supabase.co/storage/v1/object/public/logo/icon.png.JPG"
+                                    alt="ZTO Logo"
+                                    className="w-10 h-10 object-contain rounded-lg shadow-sm"
+                                />
                                 <span className="font-serif text-xl font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-200">
-                                    EVENTOS PROJECT
+                                    ZTO Event OS
                                 </span>
                             </Link>
                         </div>
