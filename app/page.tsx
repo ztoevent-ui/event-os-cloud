@@ -66,7 +66,7 @@ export default function Home() {
                             <p className="text-gray-400 text-sm">Manage projects, timelines, tasks & budgets.</p>
                         </Link>
 
-                        <Link href="/admin/check-in" className="group bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-indigo-100 transition-all hover:-translate-y-1">
+                        <Link href="/apps/check-in" className="group bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-indigo-100 transition-all hover:-translate-y-1">
                             <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
                                 <i className="fa-solid fa-id-card"></i>
                             </div>
@@ -78,7 +78,7 @@ export default function Home() {
                             <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
                                 <i className="fa-solid fa-gamepad"></i>
                             </div>
-                            <h3 className="font-bold text-lg text-gray-900 mb-2">Tools Controller</h3>
+                            <h3 className="font-bold text-lg text-gray-900 mb-2">Lucky Draw</h3>
                             <p className="text-gray-400 text-sm">Master control for Lucky Draw & Spin Wheel.</p>
                         </Link>
 
@@ -107,7 +107,7 @@ export default function Home() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <Link href="/public/ticket-sales" className="flex items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
+                        <Link href="/apps/ticketing/registration" className="flex items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
                             <div className="w-10 h-10 bg-green-50 text-green-600 rounded-full flex items-center justify-center">
                                 <i className="fa-solid fa-ticket"></i>
                             </div>
@@ -144,7 +144,7 @@ export default function Home() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <Link href="/display/lucky-draw" className="block text-center bg-gray-900 p-4 rounded-xl hover:bg-gray-800 transition text-white">
+                        <Link href="/apps/lucky-draw" className="block text-center bg-gray-900 p-4 rounded-xl hover:bg-gray-800 transition text-white">
                             <i className="fa-solid fa-gift text-2xl mb-2 text-yellow-400"></i>
                             <div className="font-bold text-sm">Lucky Draw Screen</div>
                         </Link>
