@@ -113,6 +113,11 @@ export async function submitConsultation(formData: FormData) {
         throw new Error(`Failed to submit: ${error.message}`);
     }
 
+
     revalidatePath(`/projects/${project_id}/consultations`);
     // redirect(`/projects/${project_id}/consultations/thank-you`); // Optional: redirect to success page
+}
+
+export async function getAiSummaryAction(loveStory: string, notes: string) {
+    return await generateAiSummary(loveStory, notes);
 }
