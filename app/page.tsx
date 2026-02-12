@@ -117,14 +117,13 @@ export default function Home() {
                             </div>
                         </Link>
 
-
                         <Link href="/public/consulting" className="flex items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
                             <div className="w-10 h-10 bg-teal-50 text-teal-600 rounded-full flex items-center justify-center">
                                 <i className="fa-solid fa-clipboard-question"></i>
                             </div>
                             <div>
-                                <h3 className="font-bold text-gray-900">Consulting Form</h3>
-                                <p className="text-xs text-gray-400">Submit requests for event planning.</p>
+                                <h3 className="font-bold text-gray-900">Start Consultation</h3>
+                                <p className="text-xs text-gray-400">Tell us about your dream event.</p>
                             </div>
                         </Link>
                     </div>
