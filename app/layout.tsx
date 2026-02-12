@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Destined Bintulu Wedding Expo 2026 | Eventos",
+  title: "Event OS",
   description: "Official Event Management Platform",
   icons: {
     icon: 'https://zihjzbweasaqqbwilshx.supabase.co/storage/v1/object/public/logo/icon.png.JPG',
