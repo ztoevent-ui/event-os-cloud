@@ -5,6 +5,8 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://zihjzbweasa
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppaGp6YndlYXNhcXFid2lsc2h4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4OTQ5MTYsImV4cCI6MjA4MTQ3MDkxNn0.ilHqOs75eUA6p2n-h1rgfulwNwq_hPQyptFg-kcjbv4';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+import { AddVendorButton } from '../../components/ProjectModals';
+
 export default async function VendorsPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
 
@@ -21,9 +23,7 @@ export default async function VendorsPage({ params }: { params: Promise<{ id: st
                     <h1 className="text-3xl font-serif font-bold text-white mb-2">Vendor Management</h1>
                     <p className="text-zinc-400">Track contracts and contact details.</p>
                 </div>
-                <button className="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-full transition-all flex items-center gap-2 transform hover:scale-105 shadow-lg shadow-amber-500/20">
-                    <i className="fa-solid fa-plus"></i> Add Vendor
-                </button>
+                <AddVendorButton projectId={id} />
             </div>
 
             {error && <div className="text-red-500">Error: {error.message}</div>}
@@ -33,8 +33,8 @@ export default async function VendorsPage({ params }: { params: Promise<{ id: st
                     <div key={vendor.id} className="bg-zinc-900 border border-zinc-800 p-6 rounded-2xl hover:border-amber-500/50 transition-all group relative overflow-hidden">
                         <div className="absolute top-4 right-4">
                             <span className={`text-xs font-bold px-2 py-1 rounded-full uppercase tracking-wide border ${vendor.status === 'confirmed' ? 'bg-green-900/20 text-green-500 border-green-500/30' :
-                                    vendor.status === 'contacted' ? 'bg-blue-900/20 text-blue-500 border-blue-500/30' :
-                                        'bg-zinc-800 text-zinc-500 border-zinc-700'
+                                vendor.status === 'contacted' ? 'bg-blue-900/20 text-blue-500 border-blue-500/30' :
+                                    'bg-zinc-800 text-zinc-500 border-zinc-700'
                                 }`}>
                                 {vendor.status}
                             </span>

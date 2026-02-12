@@ -6,6 +6,8 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOi
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+import { AddTaskButton } from '../../components/ProjectModals';
+
 export default async function TasksPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
 
@@ -22,9 +24,7 @@ export default async function TasksPage({ params }: { params: Promise<{ id: stri
                     <h1 className="text-3xl font-serif font-bold text-white mb-2">Tasks</h1>
                     <p className="text-zinc-400">Manage project deliverables and track progress.</p>
                 </div>
-                <button className="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-full transition-all flex items-center gap-2 transform hover:scale-105 shadow-lg shadow-amber-500/20">
-                    <i className="fa-solid fa-plus"></i> Add Task
-                </button>
+                <AddTaskButton projectId={id} />
             </div>
 
             {error && (
@@ -66,14 +66,14 @@ export default async function TasksPage({ params }: { params: Promise<{ id: stri
 
                                         {/* Priority Indicator */}
                                         <div className={`absolute left-0 top-0 bottom-0 w-1 ${task.priority === 'critical' ? 'bg-red-500' :
-                                                task.priority === 'high' ? 'bg-amber-500' :
-                                                    task.priority === 'medium' ? 'bg-blue-500' : 'bg-zinc-600'
+                                            task.priority === 'high' ? 'bg-amber-500' :
+                                                task.priority === 'medium' ? 'bg-blue-500' : 'bg-zinc-600'
                                             }`}></div>
 
                                         <div className="ml-3">
                                             <div className="flex justify-between items-start mb-2">
                                                 <span className={`text-[10px] uppercase font-bold tracking-wider ${task.access_level === 'admin' ? 'text-red-400 bg-red-900/20 px-1.5 py-0.5 rounded' :
-                                                        'text-zinc-500'
+                                                    'text-zinc-500'
                                                     }`}>
                                                     {task.access_level === 'admin' ? 'Admin Only' : ''}
                                                 </span>

@@ -5,6 +5,8 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://zihjzbweasa
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppaGp6YndlYXNhcXFid2lsc2h4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4OTQ5MTYsImV4cCI6MjA4MTQ3MDkxNn0.ilHqOs75eUA6p2n-h1rgfulwNwq_hPQyptFg-kcjbv4';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+import { AddTimelineButton } from '../../components/ProjectModals';
+
 export default async function TimelinesPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
 
@@ -21,9 +23,7 @@ export default async function TimelinesPage({ params }: { params: Promise<{ id: 
                     <h1 className="text-3xl font-serif font-bold text-white mb-2">Project Timeline</h1>
                     <p className="text-zinc-400">Key phases and milestones.</p>
                 </div>
-                <button className="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-full transition-all flex items-center gap-2 transform hover:scale-105 shadow-lg shadow-amber-500/20">
-                    <i className="fa-solid fa-plus"></i> Add Phase
-                </button>
+                <AddTimelineButton projectId={id} />
             </div>
 
             {error && (

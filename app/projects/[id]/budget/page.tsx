@@ -5,7 +5,16 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://zihjzbweasa
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppaGp6YndlYXNhcXFid2lsc2h4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4OTQ5MTYsImV4cCI6MjA4MTQ3MDkxNn0.ilHqOs75eUA6p2n-h1rgfulwNwq_hPQyptFg-kcjbv4';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+import { AddBudgetButton } from '../../components/ProjectModals';
+
 export default async function BudgetPage({ params }: { params: Promise<{ id: string }> }) {
+    // ... params extraction code actually exists above, but replace tool matches content.
+    // Wait, I need to match the imports and the button block.
+    // The previous tool call view showed imports at top.
+    // Let me target the button block specifically.
+
+    // Actually, I can't easily inject the import if I target the validation block.
+    // I will replace the whole top section to include imports.
     const { id } = await params;
 
     const { data: budgetItems, error } = await supabase
@@ -32,9 +41,7 @@ export default async function BudgetPage({ params }: { params: Promise<{ id: str
                     <button className="px-6 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-full transition-all flex items-center gap-2 border border-zinc-700">
                         <i className="fa-solid fa-file-invoice-dollar"></i> Report
                     </button>
-                    <button className="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-full transition-all flex items-center gap-2 transform hover:scale-105 shadow-lg shadow-amber-500/20">
-                        <i className="fa-solid fa-plus"></i> Add Item
-                    </button>
+                    <AddBudgetButton projectId={id} />
                 </div>
             </div>
 
