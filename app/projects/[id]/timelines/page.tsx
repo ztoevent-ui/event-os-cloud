@@ -5,7 +5,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://zihjzbweasa
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppaGp6YndlYXNhcXFid2lsc2h4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4OTQ5MTYsImV4cCI6MjA4MTQ3MDkxNn0.ilHqOs75eUA6p2n-h1rgfulwNwq_hPQyptFg-kcjbv4';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-import { AddTimelineButton } from '../../components/ProjectModals';
+import { AddTimelineButton, DeleteTimelineButton } from '../../components/ProjectModals';
 
 export default async function TimelinesPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
@@ -42,6 +42,8 @@ export default async function TimelinesPage({ params }: { params: Promise<{ id: 
                             <div className="absolute top-0 right-0 p-4 opacity-10 font-black text-6xl text-zinc-700 pointer-events-none">
                                 {index + 1}
                             </div>
+
+                            <DeleteTimelineButton id={phase.id} projectId={id} />
 
                             <h3 className="text-xl font-bold text-white mb-2 group-hover:text-amber-400 transition-colors">
                                 {phase.name}

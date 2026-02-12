@@ -6,7 +6,7 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOi
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-import { AddTaskButton } from '../../components/ProjectModals';
+import { AddTaskButton, TaskCard } from '../../components/ProjectModals';
 
 export default async function TasksPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
@@ -62,45 +62,7 @@ export default async function TasksPage({ params }: { params: Promise<{ id: stri
 
                             <div className="space-y-4 flex-1">
                                 {statusTasks.map((task) => (
-                                    <div key={task.id} className="bg-zinc-900 border border-zinc-800 hover:border-amber-500/50 p-4 rounded-xl transition-all group cursor-pointer shadow-sm hover:shadow-md relative overflow-hidden">
-
-                                        {/* Priority Indicator */}
-                                        <div className={`absolute left-0 top-0 bottom-0 w-1 ${task.priority === 'critical' ? 'bg-red-500' :
-                                            task.priority === 'high' ? 'bg-amber-500' :
-                                                task.priority === 'medium' ? 'bg-blue-500' : 'bg-zinc-600'
-                                            }`}></div>
-
-                                        <div className="ml-3">
-                                            <div className="flex justify-between items-start mb-2">
-                                                <span className={`text-[10px] uppercase font-bold tracking-wider ${task.access_level === 'admin' ? 'text-red-400 bg-red-900/20 px-1.5 py-0.5 rounded' :
-                                                    'text-zinc-500'
-                                                    }`}>
-                                                    {task.access_level === 'admin' ? 'Admin Only' : ''}
-                                                </span>
-                                                {task.priority === 'critical' && <i className="fa-solid fa-fire text-red-500 animate-pulse text-xs" title="Critical"></i>}
-                                            </div>
-
-                                            <h4 className="font-medium text-zinc-100 mb-2 group-hover:text-amber-400 transition-colors leading-snug">
-                                                {task.title}
-                                            </h4>
-
-                                            {task.description && (
-                                                <p className="text-xs text-zinc-500 line-clamp-2 mb-4 font-light">
-                                                    {task.description}
-                                                </p>
-                                            )}
-
-                                            <div className="flex justify-between items-center text-xs text-zinc-600 border-t border-zinc-800 pt-3 mt-1">
-                                                <div className="flex items-center gap-1.5">
-                                                    <i className="fa-regular fa-calendar text-zinc-500"></i>
-                                                    {task.due_date ? new Date(task.due_date).toLocaleDateString() : 'No date'}
-                                                </div>
-                                                {task.ai_suggestions && typeof task.ai_suggestions === 'object' && Object.keys(task.ai_suggestions).length > 0 && (
-                                                    <i className="fa-solid fa-wand-magic-sparkles text-purple-500" title="AI Suggestion Available"></i>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <TaskCard key={task.id} task={task} projectId={id} />
                                 ))}
 
                                 {statusTasks.length === 0 && (

@@ -5,16 +5,9 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://zihjzbweasa
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppaGp6YndlYXNhcXFid2lsc2h4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4OTQ5MTYsImV4cCI6MjA4MTQ3MDkxNn0.ilHqOs75eUA6p2n-h1rgfulwNwq_hPQyptFg-kcjbv4';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-import { AddBudgetButton } from '../../components/ProjectModals';
+import { AddBudgetButton, DeleteBudgetButton } from '../../components/ProjectModals';
 
 export default async function BudgetPage({ params }: { params: Promise<{ id: string }> }) {
-    // ... params extraction code actually exists above, but replace tool matches content.
-    // Wait, I need to match the imports and the button block.
-    // The previous tool call view showed imports at top.
-    // Let me target the button block specifically.
-
-    // Actually, I can't easily inject the import if I target the validation block.
-    // I will replace the whole top section to include imports.
     const { id } = await params;
 
     const { data: budgetItems, error } = await supabase
@@ -86,13 +79,16 @@ export default async function BudgetPage({ params }: { params: Promise<{ id: str
                                     <p className="text-xs text-zinc-500 uppercase tracking-wide">{item.category}</p>
                                 </div>
                             </div>
-                            <div className="text-right">
-                                <div className={`font-mono font-bold ${item.type === 'expense' ? 'text-zinc-200' : 'text-green-400'}`}>
-                                    {item.type === 'expense' ? '-' : '+'} RM {Number(item.amount).toFixed(2)}
+                            <div className="flex items-center gap-4">
+                                <div className="text-right">
+                                    <div className={`font-mono font-bold ${item.type === 'expense' ? 'text-zinc-200' : 'text-green-400'}`}>
+                                        {item.type === 'expense' ? '-' : '+'} RM {Number(item.amount).toFixed(2)}
+                                    </div>
+                                    <span className={`text-xs px-2 py-0.5 rounded-full ${item.status === 'actual' ? 'bg-green-900/30 text-green-500' : 'bg-zinc-800 text-zinc-500'}`}>
+                                        {item.status}
+                                    </span>
                                 </div>
-                                <span className={`text-xs px-2 py-0.5 rounded-full ${item.status === 'actual' ? 'bg-green-900/30 text-green-500' : 'bg-zinc-800 text-zinc-500'}`}>
-                                    {item.status}
-                                </span>
+                                <DeleteBudgetButton id={item.id} projectId={id} />
                             </div>
                         </div>
                     ))}

@@ -5,7 +5,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://zihjzbweasa
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppaGp6YndlYXNhcXFid2lsc2h4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4OTQ5MTYsImV4cCI6MjA4MTQ3MDkxNn0.ilHqOs75eUA6p2n-h1rgfulwNwq_hPQyptFg-kcjbv4';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-import { AddVendorButton } from '../../components/ProjectModals';
+import { AddVendorButton, DeleteVendorButton } from '../../components/ProjectModals';
 
 export default async function VendorsPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
@@ -40,6 +40,8 @@ export default async function VendorsPage({ params }: { params: Promise<{ id: st
                             </span>
                         </div>
 
+                        <DeleteVendorButton id={vendor.id} projectId={id} />
+
                         <div className="mb-4">
                             <div className="w-12 h-12 bg-zinc-800 rounded-xl flex items-center justify-center text-amber-500 text-xl border border-zinc-700 mb-4 group-hover:scale-110 transition-transform">
                                 <i className="fa-solid fa-store"></i>
@@ -56,15 +58,25 @@ export default async function VendorsPage({ params }: { params: Promise<{ id: st
                                 </div>
                             )}
                             {vendor.phone && (
-                                <div className="flex items-center gap-2 text-sm text-zinc-400">
-                                    <i className="fa-solid fa-phone w-4 text-center"></i>
-                                    <span>{vendor.phone}</span>
+                                <div className="flex items-center justify-between gap-2 text-sm text-zinc-400">
+                                    <div className="flex items-center gap-2">
+                                        <i className="fa-solid fa-phone w-4 text-center"></i>
+                                        <span>{vendor.phone}</span>
+                                    </div>
+                                    <a href={`https://wa.me/${vendor.phone.replace(/[^0-9]/g, '')}`} target="_blank" className="text-green-500 hover:text-green-400">
+                                        <i className="fa-brands fa-whatsapp text-lg"></i>
+                                    </a>
                                 </div>
                             )}
                             {vendor.email && (
-                                <div className="flex items-center gap-2 text-sm text-zinc-400">
-                                    <i className="fa-solid fa-envelope w-4 text-center"></i>
-                                    <span>{vendor.email}</span>
+                                <div className="flex items-center justify-between gap-2 text-sm text-zinc-400">
+                                    <div className="flex items-center gap-2">
+                                        <i className="fa-solid fa-envelope w-4 text-center"></i>
+                                        <span>{vendor.email}</span>
+                                    </div>
+                                    <a href={`mailto:${vendor.email}`} className="text-blue-500 hover:text-blue-400">
+                                        <i className="fa-solid fa-paper-plane"></i>
+                                    </a>
                                 </div>
                             )}
                         </div>
