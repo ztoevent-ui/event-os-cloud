@@ -20,10 +20,12 @@ export default function Home() {
             {/* Hero Section */}
             <header className="bg-white border-b border-gray-100 py-6 px-4 md:px-8 flex justify-between items-center shadow-sm">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-black text-xl shadow-indigo-200 shadow-lg">
-                        E
-                    </div>
-                    <span className="font-bold text-xl text-gray-900 tracking-tight">Eventos.com</span>
+                    <img
+                        src="https://zihjzbweasaqqbwilshx.supabase.co/storage/v1/object/public/logo/icon.png.JPG"
+                        alt="ZTO Logo"
+                        className="w-10 h-10 object-contain rounded-lg shadow-sm"
+                    />
+                    <span className="font-bold text-xl text-gray-900 tracking-tight">ZTO Event OS</span>
                 </div>
                 <div className="flex gap-4">
                     {!user ? (
