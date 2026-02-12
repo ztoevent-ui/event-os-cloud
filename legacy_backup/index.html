@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Master OS - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f3f4f6;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        /* 卡片悬停特效 */
+        .app-card {
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .app-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+        /* 禁用状态 */
+        .app-card.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            filter: grayscale(100%);
+        }
+        .app-card.disabled:hover {
+            transform: none;
+            box-shadow: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <header class="bg-white shadow-sm border-b border-gray-200 z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">
+                    <i class="fa-solid fa-cube"></i>
+                </div>
+                <h1 class="text-xl font-bold text-gray-800 tracking-tight">Event<span class="text-blue-600">OS</span> <span class="text-xs text-gray-400 font-normal px-2 border border-gray-200 rounded-full">v1.0 Beta</span></h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="hidden md:flex items-center gap-2 text-sm text-gray-500">
+                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                    System Online
+                </div>
+                <div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-gray-500">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        
+        <div class="mb-10">
+            <h2 class="text-3xl font-black text-gray-900 mb-2">Command Center</h2>
+            <p class="text-gray-500">Select a tool to launch.</p>
+        </div>
+
+        <div class="mb-12">
+            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-bolt"></i> Live Interaction
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                <a href="apps/lucky-draw.html" target="_blank" class="app-card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
+                        <i class="fa-solid fa-gift text-6xl text-red-500"></i>
+                    </div>
+                    <div class="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center text-red-600 text-xl mb-4 group-hover:bg-red-600 group-hover:text-white transition-colors">
+                        <i class="fa-solid fa-gift"></i>
+                    </div>
+                    <h4 class="text-lg font-bold text-gray-900">Lucky Draw Ultimate</h4>
+                    <p class="text-sm text-gray-500 mt-1">Full-screen lucky draw system with sound effects and confetti.</p>
+                    <div class="mt-4 flex items-center text-xs font-bold text-red-600">
+                        LAUNCH APP <i class="fa-solid fa-arrow-right ml-1"></i>
+                    </div>
+                </a>
+
+                <a href="apps/spinning-wheel.html" target="_blank" class="app-card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
+                        <i class="fa-solid fa-circle-notch text-6xl text-emerald-500"></i>
+                    </div>
+                    <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 text-xl mb-4 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                        <i class="fa-solid fa-circle-notch"></i>
+                    </div>
+                    <h4 class="text-lg font-bold text-gray-900">Spinning Wheel Pro</h4>
+                    <p class="text-sm text-gray-500 mt-1">Canvas wheel + clean settings panel, Google Sheet/Excel import, big winner screen.</p>
+                    <div class="mt-4 flex items-center text-xs font-bold text-emerald-600">
+                        LAUNCH APP <i class="fa-solid fa-arrow-right ml-1"></i>
+                    </div>
+                </a>
+
+            </div>
+        </div>
+
+        <div class="mb-12">
+            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-print"></i> Ticketing & Hardware
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                <div class="app-card disabled bg-white rounded-2xl p-6 border border-gray-100 shadow-sm relative overflow-hidden">
+                    <div class="absolute top-3 right-3 bg-gray-100 text-gray-400 text-[10px] font-bold px-2 py-1 rounded">DEV</div>
+                    <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 text-xl mb-4">
+                        <i class="fa-solid fa-qrcode"></i>
+                    </div>
+                    <h4 class="text-lg font-bold text-gray-900">On-site Check-in</h4>
+                    <p class="text-sm text-gray-500 mt-1">QR scan check-in system linked to participant database.</p>
+                    <div class="mt-4 text-xs font-bold text-gray-300 flex items-center gap-1">
+                        <i class="fa-solid fa-lock"></i> COMING SOON
+                    </div>
+                </div>
+
+                <div class="app-card disabled bg-white rounded-2xl p-6 border border-gray-100 shadow-sm relative overflow-hidden">
+                    <div class="absolute top-3 right-3 bg-gray-100 text-gray-400 text-[10px] font-bold px-2 py-1 rounded">HARDWARE</div>
+                    <div class="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center text-slate-700 text-xl mb-4">
+                        <i class="fa-solid fa-id-card-clip"></i>
+                    </div>
+                    <h4 class="text-lg font-bold text-gray-900">Badge Auto-Print</h4>
+                    <p class="text-sm text-gray-500 mt-1">Auto-trigger thermal printers upon successful check-in.</p>
+                    <div class="mt-4 text-xs font-bold text-gray-300 flex items-center gap-1">
+                        <i class="fa-solid fa-lock"></i> COMING SOON
+                    </div>
+                </div>
+
+                <div class="app-card disabled bg-white rounded-2xl p-6 border border-gray-100 shadow-sm relative overflow-hidden">
+                    <div class="absolute top-3 right-3 bg-gray-100 text-gray-400 text-[10px] font-bold px-2 py-1 rounded">WEB</div>
+                    <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 text-xl mb-4">
+                        <i class="fa-solid fa-ticket"></i>
+                    </div>
+                    <h4 class="text-lg font-bold text-gray-900">Ticket Sales</h4>
+                    <p class="text-sm text-gray-500 mt-1">Public facing website for selling event tickets.</p>
+                    <div class="mt-4 text-xs font-bold text-gray-300 flex items-center gap-1">
+                        <i class="fa-solid fa-lock"></i> COMING SOON
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="mb-12">
+            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-rings-wedding"></i> Wedding Suite
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                <div class="app-card disabled bg-white rounded-2xl p-6 border border-gray-100 shadow-sm relative overflow-hidden">
+                    <div class="w-12 h-12 bg-pink-50 rounded-xl flex items-center justify-center text-pink-500 text-xl mb-4">
+                        <i class="fa-solid fa-envelope-open-text"></i>
+                    </div>
+                    <h4 class="text-lg font-bold text-gray-900">Wedding RSVP</h4>
+                    <p class="text-sm text-gray-500 mt-1">Guest list management and attendance confirmation.</p>
+                    <div class="mt-4 text-xs font-bold text-gray-300 flex items-center gap-1">
+                        <i class="fa-solid fa-lock"></i> COMING SOON
+                    </div>
+                </div>
+
+                <div class="app-card disabled bg-white rounded-2xl p-6 border border-gray-100 shadow-sm relative overflow-hidden">
+                    <div class="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600 text-xl mb-4">
+                        <i class="fa-solid fa-user-tie"></i>
+                    </div>
+                    <h4 class="text-lg font-bold text-gray-900">Butler Consulting Form</h4>
+                    <p class="text-sm text-gray-500 mt-1">Pre-event questionnaire for VIP wedding clients.</p>
+                    <div class="mt-4 text-xs font-bold text-gray-300 flex items-center gap-1">
+                        <i class="fa-solid fa-lock"></i> COMING SOON
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="bg-white border-t border-gray-200 py-6">
+        <div class="max-w-7xl mx-auto px-4 text-center text-gray-400 text-sm">
+            &copy; 2025 EventOS System. All systems operational.
+        </div>
+    </footer>
+
+</body>
+</html>

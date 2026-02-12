@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grand Lucky Draw (v2.8 Unlimited + Raw Sheet)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* 基础样式保持不变 */
+        .back-home-btn { position: fixed; top: 24px; left: 24px; z-index: 60; background: rgba(255,255,255,0.2); backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.3); color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.3s; cursor: pointer; text-decoration: none; }
+        .back-home-btn:hover { background: white; color: #333; transform: scale(1.1); }
+        
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; height: 100vh; overflow: hidden; background-image: url('https://img.freepik.com/free-vector/gradient-lucky-draw-background_23-2150063963.jpg'); background-size: cover; background-position: center; transition: background-image 0.5s ease; }
+        
+        /* 遮罩层修复：强制不挡鼠标 */
+        #globalOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none !important; z-index: -1; transition: background-color 0.3s ease; }
+        
+        .content-layer { position: relative; z-index: 10; height: 100%; width: 100%; display: flex; flex-direction: column; pointer-events: auto; }
+        
+        #topTitleContainer { width: 100%; display: flex; padding-top: 40px; padding-bottom: 20px; transition: all 0.1s linear; z-index: 50; position: relative; pointer-events: none; }
+        #eventTitle { pointer-events: auto; background: transparent; text-shadow: 0 4px 15px rgba(0,0,0,0.3); line-height: 1.2; font-size: 3rem; }
+        #eventTitle:focus { background: rgba(255,255,255,0.1); border-radius: 8px; outline: 2px dashed rgba(255,255,255,0.3); }
+        
+        .stage-section { flex: 1; width: 100%; display: flex; align-items: center; justify-content: center; position: relative; }
+        .settings-panel { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform: translateX(100%); }
+        .settings-panel.open { transform: translateX(0); }
+        
+        /* 弹窗修复 */
+        #bigWinnerModal { opacity: 0; pointer-events: none !important; transition: opacity 0.3s ease; }
+        #bigWinnerModal.active { opacity: 1; pointer-events: auto !important; }
+        
+        .modal-content-box { background: radial-gradient(circle, #b91c1c 0%, #7f1d1d 100%); box-shadow: 0 0 50px rgba(255, 215, 0, 0.8); transform: scale(0.8); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        #bigWinnerModal.active .modal-content-box { transform: scale(1); }
+        
+        .winner-scroll::-webkit-scrollbar { width: 6px; }
+        .winner-scroll::-webkit-scrollbar-thumb { background: rgba(255, 215, 0, 0.5); border-radius: 4px; }
+        
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+        .status-online { background-color: #22c55e; box-shadow: 0 0 8px #22c55e; animation: pulse 2s infinite; }
+        .status-offline { background-color: #ef4444; }
+        
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 14px; width: 14px; border-radius: 50%; background: #3b82f6; cursor: pointer; margin-top: -5px; box-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #e5e7eb; border-radius: 2px; }
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-home-btn" title="Back to Dashboard"><i class="fa-solid fa-arrow-left"></i></a>
+    <div id="globalOverlay" class="pointer-events-none" style="background-color: rgba(255, 255, 255, 0.5);"></div>
+
+    <div class="content-layer">
+        <div id="topTitleContainer" class="justify-center">
+            <input type="text" id="eventTitle" class="text-gray-800 font-black uppercase tracking-wider w-full border-none focus:ring-0 outline-none placeholder-gray-400/50 text-center" placeholder="EVENT TITLE" onchange="saveSettings()">
+        </div>
+
+        <div class="stage-section relative">
+            <div class="absolute top-4 left-6 z-10">
+                <div class="flex items-center gap-2 text-gray-700 bg-white/40 border border-white/40 px-4 py-2 rounded-full backdrop-blur-md shadow-sm text-sm font-bold">
+                    <span id="dbStatus" class="status-dot status-offline"></span>
+                    <span id="countDisplay">0</span> Participants
+                </div>
+            </div>
+
+            <div class="h-[75%] aspect-square relative flex items-center justify-center">
+                <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-4 z-20 w-0 h-0 border-l-[20px] border-l-transparent border-r-[20px] border-r-transparent border-t-[50px] border-t-red-600 drop-shadow-xl pointer-events-none"></div>
+                <canvas id="wheelCanvas" class="drop-shadow-2xl"></canvas>
+                <div class="absolute -bottom-8 flex flex-col items-center gap-2 z-30">
+                    <button id="spinBtn" onclick="startSpin()" class="cursor-pointer bg-gradient-to-r from-red-600 to-rose-600 text-white text-3xl font-black px-12 py-3 rounded-full shadow-lg shadow-red-500/40 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 border-2 border-white/20">SPIN</button>
+                    <div class="bg-white/60 backdrop-blur-md rounded-full px-4 py-1 shadow-sm border border-white/40 flex items-center gap-2 text-sm">
+                        <span class="text-gray-600 font-bold text-xs">DRAW:</span>
+                        <input type="number" id="drawCount" value="1" min="1" class="w-10 bg-transparent text-center font-bold text-gray-800 outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <div class="absolute right-6 top-6 bottom-6 w-64 flex flex-col pointer-events-none">
+                <div class="flex justify-between items-center pointer-events-auto pl-2 mb-2">
+                    <h3 class="font-bold text-gray-500 text-xs uppercase tracking-wider">Cloud Winners</h3>
+                    <button onclick="downloadResults()" class="text-xs text-blue-600 hover:bg-blue-50 px-2 py-1 rounded transition bg-white/50 backdrop-blur"><i class="fa-solid fa-download"></i> Save</button>
+                </div>
+                <div id="winnerList" class="flex-1 overflow-y-auto space-y-2 pr-1 pointer-events-auto" style="direction: rtl;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="bigWinnerModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm pointer-events-none">
+        <div class="modal-content-box w-[90%] h-[80%] md:w-[80%] md:h-[85%] rounded-3xl border-4 border-yellow-400 flex flex-col relative overflow-hidden">
+            <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20"></div>
+            <div class="text-center pt-8 pb-4 z-10"><h2 class="text-yellow-400 font-black text-4xl md:text-6xl uppercase tracking-widest drop-shadow-lg" style="text-shadow: 0 4px 0 #000;">🎉 Congratulations 🎉</h2></div>
+            <div id="bigWinnerList" class="flex-1 overflow-y-auto p-6 z-10 text-center flex flex-col items-center justify-center gap-4 winner-scroll"></div>
+            <div class="pb-8 pt-4 flex justify-center z-10 bg-gradient-to-t from-red-900 to-transparent">
+                <button onclick="closeBigModal()" class="bg-yellow-400 hover:bg-yellow-300 text-red-900 text-xl font-black px-12 py-3 rounded-full shadow-lg hover:scale-105 transition transform border-b-4 border-yellow-600 cursor-pointer">CLOSE</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="fixed top-6 right-6 z-50 flex gap-2">
+        <button onclick="toggleFullscreen()" class="w-10 h-10 bg-white/30 hover:bg-white/50 backdrop-blur text-gray-800 rounded-full shadow border border-white/30 transition flex items-center justify-center cursor-pointer"><i class="fa-solid fa-expand"></i></button>
+        <button onclick="toggleMute()" id="muteBtn" class="w-10 h-10 bg-white/30 hover:bg-white/50 backdrop-blur text-gray-800 rounded-full shadow border border-white/30 transition flex items-center justify-center cursor-pointer"><i class="fa-solid fa-volume-high" id="muteIcon"></i></button>
+        <button onclick="toggleSettings()" class="w-10 h-10 bg-white/30 hover:bg-white/50 backdrop-blur text-gray-800 rounded-full shadow border border-white/30 transition flex items-center justify-center cursor-pointer"><i class="fa-solid fa-gear"></i></button>
+    </div>
+
+    <div id="settingsPanel" class="fixed inset-y-0 right-0 w-80 bg-white shadow-2xl z-40 settings-panel flex flex-col text-gray-800 font-sans border-l border-gray-100">
+        <div class="p-5 bg-gray-900 text-white flex justify-between items-center shadow-md">
+            <h2 class="font-bold text-lg"><i class="fa-solid fa-sliders mr-2"></i> Cloud Settings</h2>
+            <button onclick="toggleSettings()" class="hover:text-red-400 transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+        </div>
+        <div class="p-5 flex-1 overflow-y-auto space-y-6">
+            <div class="bg-indigo-50 p-4 rounded-xl border border-indigo-100 space-y-4">
+                <h3 class="text-xs font-bold text-indigo-500 uppercase flex items-center gap-2"><i class="fa-solid fa-text-height"></i> Title Controls</h3>
+                <div><div class="flex justify-between text-xs font-bold text-gray-500 mb-1"><span>V-Position</span><span class="text-indigo-400">↕️ Move</span></div><input type="range" id="titlePosInput" min="0" max="500" value="40" oninput="updateTitlePos(this.value)"></div>
+                <div><div class="flex justify-between text-xs font-bold text-gray-500 mb-1"><span>Font Size</span><span class="text-indigo-400">Aa Size</span></div><input type="range" id="titleSizeInput" min="20" max="150" value="48" oninput="updateTitleSize(this.value)"></div>
+                <div class="flex items-center justify-between gap-2 pt-2 border-t border-indigo-200"><input type="color" id="titleColorInput" class="w-8 h-8 rounded cursor-pointer border-none bg-transparent" value="#333333" onchange="handleTitleColor(this.value)"><div class="flex bg-white rounded-lg border border-indigo-200 overflow-hidden flex-1"><button onclick="setTitleAlign('left')" class="flex-1 py-1 hover:bg-indigo-50 text-indigo-400 transition border-r border-indigo-100"><i class="fa-solid fa-align-left"></i></button><button onclick="setTitleAlign('center')" class="flex-1 py-1 hover:bg-indigo-50 text-indigo-400 transition border-r border-indigo-100"><i class="fa-solid fa-align-center"></i></button><button onclick="setTitleAlign('right')" class="flex-1 py-1 hover:bg-indigo-50 text-indigo-400 transition"><i class="fa-solid fa-align-right"></i></button></div></div>
+            </div>
+            <div class="space-y-3 pt-2">
+                 <h3 class="text-xs font-bold text-gray-400 uppercase">Music & BG</h3>
+                 <p class="text-[10px] text-gray-400 leading-tight">Note: Background images are saved locally. Please set them on the main display computer.</p>
+                 <select id="bgmSelect" class="w-full text-sm p-2 border border-gray-200 rounded bg-white focus:outline-none"><option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3">🎵 Default Upbeat</option><option value="https://cdn.pixabay.com/download/audio/2022/03/24/audio_07349d8361.mp3">🥁 Drum Roll</option><option value="upload">📂 Custom MP3...</option></select>
+                <input type="file" id="bgmUpload" accept="audio/*" class="hidden" onchange="handleAudioUpload(this)">
+                <button onclick="document.getElementById('bannerInput').click()" class="w-full text-left px-3 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 text-sm font-medium text-gray-700 flex items-center justify-between"><span><i class="fa-solid fa-image mr-2 text-gray-400"></i> Change BG</span> <i class="fa-solid fa-upload text-xs text-gray-300"></i></button><input type="file" id="bannerInput" accept="image/*" class="hidden" onchange="handleBanner(this)">
+                <div class="flex bg-gray-100 rounded p-1"><button onclick="setMaskColor('white')" id="btnMaskWhite" class="flex-1 py-1 text-xs font-bold rounded bg-white shadow-sm">White</button><button onclick="setMaskColor('black')" id="btnMaskBlack" class="flex-1 py-1 text-xs font-bold rounded text-gray-500">Black</button></div>
+                <input type="range" id="maskOpacity" min="0" max="100" value="50" oninput="handleOpacityChange(this.value)">
+            </div>
+            <div class="space-y-3 border-t border-gray-100 pt-4">
+                <h3 class="text-xs font-bold text-gray-400 uppercase">Data Sources</h3>
+                <button onclick="document.getElementById('excelInput').click()" class="w-full text-left px-3 py-2 rounded-lg border border-gray-200 hover:bg-emerald-50 text-sm font-medium text-emerald-700 flex items-center justify-between"><span><i class="fa-solid fa-file-excel mr-2"></i> Upload Excel</span> <i class="fa-solid fa-plus text-xs text-emerald-300"></i></button><input type="file" id="excelInput" accept=".xlsx, .xls" class="hidden" onchange="handleExcel(this)">
+                
+                <button onclick="handleGoogleSheet()" class="w-full text-left px-3 py-2 rounded-lg border border-gray-200 hover:bg-green-50 text-sm font-medium text-green-700 flex items-center justify-between"><span><i class="fa-brands fa-google-drive mr-2"></i> Import Google Sheet</span> <i class="fa-solid fa-link text-xs text-green-300"></i></button>
+
+                <div class="h-px bg-gray-100 my-2"></div>
+                <button onclick="resetWinnersOnly()" class="w-full bg-orange-100 text-orange-700 hover:bg-orange-200 font-bold py-2 rounded-xl transition text-sm flex items-center justify-center gap-2 border border-orange-200"><i class="fa-solid fa-rotate-right"></i> Reset Winners (Keep Names)</button>
+                <button onclick="resetData()" class="w-full text-red-500 hover:bg-red-50 font-bold py-2 rounded-xl transition text-sm flex items-center justify-center gap-2"><i class="fa-solid fa-trash"></i> DELETE All Database</button>
+            </div>
+        </div>
+    </div>
+
+    <audio id="bgmPlayer" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
+    <audio id="winSoundEffect" src="https://www.soundjay.com/human/sounds/applause-01.mp3" preload="auto"></audio>
+
+    <script>
+        const SUPABASE_URL = 'https://zihjzbweasaqqbwilshx.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppaGp6YndlYXNhcXFid2lsc2h4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4OTQ5MTYsImV4cCI6MjA4MTQ3MDkxNn0.ilHqOs75eUA6p2n-h1rgfulwNwq_hPQyptFg-kcjbv4';
+        
+        let db = null; 
+
+        let wheelChart; let names = []; let winners = []; let isSpinning = false; let maskColor = 'white'; let isMuted = false;
+        let spinningIntervalId = null;
+        const colors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
+
+        window.onload = function() { 
+            try { 
+                initWheel(); 
+                loadSettings(); 
+                initSupabase(); 
+            } 
+            catch(e) { console.error("Init Error", e); Swal.fire('Error', 'System Error. Check Console.', 'error'); } 
+        };
+
+        async function initSupabase() {
+            try {
+                if (typeof supabase === 'undefined') {
+                    console.error('Supabase lib not loaded');
+                    document.getElementById('dbStatus').className = 'status-dot status-offline';
+                    Swal.fire('Error', 'Network Error: Cannot load database library.', 'error');
+                    return;
+                }
+                const { createClient } = supabase;
+                db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+                // Verify DB connectivity (some networks block Supabase; this gives a clear reason)
+                const { error: pingError } = await db.from('participants').select('id', { head: true, count: 'exact' }).limit(1);
+                if (pingError) {
+                    console.error('DB ping failed:', pingError);
+                    db = null;
+                    const dot = document.getElementById('dbStatus');
+                    if (dot) dot.className = 'status-dot status-offline';
+                    Swal.fire('Error', `Database not connected: ${pingError.message}`, 'error');
+                    return;
+                }
+
+                await fetchData();
+                db.channel('public:participants').on('postgres_changes', { event: '*', schema: 'public', table: 'participants' }, (payload) => {
+                    console.log('DB Change:', payload);
+                    fetchData(); 
+                }).subscribe((status) => {
+                    const dot = document.getElementById('dbStatus');
+                    if(dot) dot.className = (status === 'SUBSCRIBED') ? 'status-dot status-online' : 'status-dot status-offline';
+                });
+            } catch(e) {
+                console.error('Supabase Init Fail', e);
+                db = null;
+                const dot = document.getElementById('dbStatus');
+                if (dot) dot.className = 'status-dot status-offline';
+                Swal.fire('Error', `Database not connected: ${e.message || e}`, 'error');
+            }
+        }
+
+        // --- UPDATED: PAGINATION FETCH TO BREAK 1000 ROW LIMIT ---
+        async function fetchAllRows(table, isWinner) {
+            // IMPORTANT: Always use a stable order when paginating.
+            // Also fetch id so we can safely update winners even if names repeat.
+            let allRows = [];
+            let from = 0;
+            const step = 1000;
+            let keepFetching = true;
+
+            while (keepFetching) {
+                const { data, error } = await db
+                    .from(table)
+                    .select('id,name,is_winner,updated_at,created_at')
+                    .eq('is_winner', isWinner)
+                    .order('id', { ascending: true })
+                    .range(from, from + step - 1);
+
+                if (error) {
+                    console.error('Fetch error:', error);
+                    return allRows;
+                }
+
+                if (data && data.length > 0) {
+                    allRows = allRows.concat(data);
+                    from += step;
+                    if (data.length < step) keepFetching = false;
+                } else {
+                    keepFetching = false;
+                }
+            }
+            return allRows;
+        }
+
+        async function fetchData() {
+            if(!db) return;
+            try {
+                const activeData = await fetchAllRows('participants', false);
+                names = activeData.map(r => r.name);
+
+                // Diagnostics (helps identify RLS/filter issues quickly)
+                console.log('[LuckyDraw] fetched active participants:', activeData.length);
+
+                const winData = await fetchAllRows('participants', true);
+                winners = winData
+                    .map(r => ({ id: r.id, name: r.name, updated_at: r.updated_at, created_at: r.created_at }))
+                    .sort((a, b) => {
+                        const ta = new Date(a.updated_at || a.created_at || 0).getTime();
+                        const tb = new Date(b.updated_at || b.created_at || 0).getTime();
+                        return tb - ta;
+                    });
+
+                updateUI();
+            } catch(e) { console.error('Fetch logic error:', e); }
+        }
+
+        // --- UPDATED: Google Sheet Logic (RAW) ---
+        async function handleGoogleSheet() {
+            if(!db) {
+                await initSupabase();
+                if(!db) return; // initSupabase already showed error
+            }
+            
+            const { value: url } = await Swal.fire({
+                title: 'Import CSV Link',
+                input: 'url',
+                inputLabel: 'Paste your Direct CSV Link (Publish to Web)',
+                inputPlaceholder: 'https://docs.google.com/.../pub?output=csv',
+                text: 'Please paste the exact CSV link. No auto-conversion will be applied.',
+                showCancelButton: true
+            });
+
+            if (url) {
+                Swal.fire({title: 'Fetching...', didOpen: () => Swal.showLoading()});
+                try {
+                    // PURE FETCH: No string manipulation
+                    // NOTE: Some environments block cross-origin fetch to docs.google.com
+                    // with a generic "Load failed". We try direct fetch first, then fallback
+                    // to a public CORS proxy. If both fail, user can download CSV and use Excel upload.
+                    let res;
+                    try {
+                        res = await fetch(url);
+                    } catch (e) {
+                        res = null;
+                    }
+
+                    // Fallback via CORS proxy if direct fetch failed.
+                    // (Keeps the feature working on locked-down networks.)
+                    if (!res || !res.ok) {
+                        const proxied = `https://r.jina.ai/http(s)://` + url.replace(/^https:\/\//, '');
+                        res = await fetch(proxied);
+                    }
+
+                    if(!res.ok) throw new Error(`Fetch Failed (Status: ${res.status}). Is it published?`);
+                    
+                    const csvText = await res.text();
+                    if(!csvText) throw new Error('Empty file received');
+
+                    // If jina proxy is used, it may wrap text with metadata. Keep only CSV-like lines.
+                    const normalizedCsvText = csvText
+                        .split('\n')
+                        .filter(line => line && !line.startsWith('Title:') && !line.startsWith('URL Source:') && !line.startsWith('Markdown Content:'))
+                        .join('\n');
+                    // NOTE: Some environments block cross-origin fetch to docs.google.com
+                    // with a generic "Load failed". We try direct fetch first, then fallback
+                    // to a public CORS proxy. If both fail, user can download CSV and use Excel upload.
+                    let res;
+                    try {
+                        res = await fetch(url);
+                    } catch (e) {
+                        res = null;
+                    }
+
+                    // Fallback via CORS proxy if direct fetch failed.
+                    // (Keeps the feature working on locked-down networks.)
+                    if (!res || !res.ok) {
+                        const proxied = `https://r.jina.ai/http(s)://` + url.replace(/^https:\/\//, '');
+                        res = await fetch(proxied);
+                    }
+
+                    if(!res.ok) throw new Error(`Fetch Failed (Status: ${res.status}). Is it published?`);
+                    
+                    const rawText = await res.text();
+                    if(!rawText) throw new Error('Empty file received');
+
+                    // If jina proxy is used, it may wrap text with metadata. Keep only CSV-like lines.
+                    const csvText = rawText
+                        .split('\n')
+                        .filter(line => line && !line.startsWith('Title:') && !line.startsWith('URL Source:') && !line.startsWith('Markdown Content:'))
+                        .join('\n');
+
+                    // Google publish CSV can be:
+                    // - real CSV with commas
+                    // - OR a single text column (space separated) depending on the sheet.
+                    // Also handle CRLF.
+                    const rows = csvText
+                        .replace(/\r/g, '')
+                        .split('\n')
+                        .map(r => r.trim())
+                        .filter(r => r);
+
+                    // Drop common headers (supports "Name", "Nama", "No", "ID" as sole-cell headers)
+                    const dataRows = rows.filter(r => !r.toLowerCase().match(/^(name|nama|no|id)$/));
+
+                    const validNames = dataRows
+                        .map(line => {
+                            // Prefer first CSV cell if comma separated, else use whole line.
+                            const firstCell = line.includes(',') ? line.split(',')[0] : line;
+                            const name = firstCell.replace(/['"]/g, '').trim();
+                            return { name, is_winner: false };
+                        })
+                        .filter(n => n.name.length > 0);
+
+                    if(validNames.length === 0) throw new Error('No valid names found in CSV');
+
+                    // Batch Insert (1000 at a time) to avoid payload too large
+                    const chunkSize = 1000;
+                    for (let i = 0; i < validNames.length; i += chunkSize) {
+                        const chunk = validNames.slice(i, i + chunkSize);
+                        const { error } = await db.from('participants').insert(chunk);
+                        if(error) throw error;
+                    }
+
+                    // Refresh immediately so count updates without waiting realtime
+                    await fetchData();
+
+                    Swal.fire('Success', `Imported ${validNames.length} names!`, 'success');
+                } catch(e) {
+                    Swal.fire('Error', `Failed: ${e.message}`, 'error');
+                    console.error(e);
+                }
+            }
+        }
+
+        async function handleExcel(input) {
+            if(!db) {
+                await initSupabase();
+                if(!db) return; // initSupabase already showed error
+            }
+            if(!input.files[0]) return;
+            Swal.fire({title: 'Uploading...', didOpen: () => Swal.showLoading()});
+            const r = new FileReader();
+            r.onload = async (e) => {
+                try {
+                    const wb = XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+                    const list = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}).flat();
+
+                    // Normalize: trim + drop header-like cells + force boolean
+                    const validNames = list
+                        .filter(x => x != null)
+                        .map(x => x.toString().trim())
+                        .filter(x => x && !/^name$/i.test(x) && !/^nama$/i.test(x))
+                        .map(name => ({ name, is_winner: false }));
+
+                    if(validNames.length === 0) throw new Error('No names found');
+                    
+                    // Chunk upload here too
+                    const chunkSize = 1000;
+                    for (let i = 0; i < validNames.length; i += chunkSize) {
+                        const chunk = validNames.slice(i, i + chunkSize);
+                        const { error } = await db.from('participants').insert(chunk);
+                        if(error) throw error;
+                    }
+
+                    // Refresh immediately so count updates without waiting realtime
+                    await fetchData();
+
+                    Swal.fire('Success', `Uploaded ${validNames.length} names!`, 'success');
+                } catch(err) {
+                    console.error('Excel upload failed:', err);
+                    Swal.fire('Error', err.message || 'Upload failed', 'error');
+                }
+            };
+            r.readAsArrayBuffer(input.files[0]); input.value = '';
+        }
+
+        function resetWinnersOnly() {
+            if(!db) return;
+            Swal.fire({ title: 'Restart Game?', text: "Keep names but clear winners?", icon: 'question', showCancelButton: true, confirmButtonText: 'Yes' }).then(async (r) => { 
+                if (r.isConfirmed) { 
+                    Swal.showLoading();
+                    const { error } = await db.from('participants').update({ is_winner: false }).eq('is_winner', true);
+                    if(!error) Swal.fire('Restarted', 'Ready!', 'success');
+                } 
+            });
+        }
+        function resetData() {
+            if(!db) return;
+            Swal.fire({ title: 'DELETE DATABASE?', text: "Remove ALL names permanently?", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'DELETE ALL' }).then(async (r) => { 
+                if (r.isConfirmed) { 
+                    Swal.showLoading();
+                    // Supabase disallows delete() without a filter.
+                    // If you really want to wipe everything, this is a common workaround.
+                    const { error } = await db.from('participants').delete().gte('id', 0);
+                    if(!error) Swal.fire('Deleted', 'Database cleared.', 'success');
+                } 
+            });
+        }
+
+        async function selectWinners(count) {
+            // NOTE: This is “fake wheel animation + random draw”.
+            // We still try to make the draw robust:
+            // 1) Pick by id (avoid same-name multi-update)
+            // 2) Use conditional update (avoid drawing someone who already became winner due to another client)
+            // 3) Retry a few times if collision happens
+
+            document.getElementById('bgmPlayer').pause();
+            if(!isMuted) { const w = document.getElementById('winSoundEffect'); w.currentTime = 0; w.play().catch(e=>{}); }
+
+            const spinBtn = document.getElementById('spinBtn');
+
+            try {
+                // Pull fresh eligible rows (reduce race with other screens)
+                const eligible = await fetchAllRows('participants', false);
+                if (!eligible || eligible.length === 0) {
+                    Swal.fire('Error', 'No eligible participants left.', 'error');
+                    return;
+                }
+
+                const targetCount = Math.min(count, eligible.length);
+
+                const picked = new Map();
+                const maxAttempts = targetCount * 8; // retry budget
+                let attempts = 0;
+
+                while (picked.size < targetCount && attempts < maxAttempts) {
+                    attempts++;
+                    const r = Math.floor(Math.random() * eligible.length);
+                    const row = eligible[r];
+                    if (!row || row.id == null) continue;
+                    if (picked.has(row.id)) continue;
+
+                    // Try to claim this row (only if still not winner)
+                    const { data, error } = await db
+                        .from('participants')
+                        .update({ is_winner: true })
+                        .eq('id', row.id)
+                        .eq('is_winner', false)
+                        .select('id,name');
+
+                    if (error) {
+                        console.error('Claim winner error:', error);
+                        continue;
+                    }
+
+                    // data length 1 means we successfully claimed; 0 means someone else claimed first
+                    if (data && data.length === 1) {
+                        picked.set(data[0].id, data[0].name);
+                    }
+                }
+
+                const batchNames = [...picked.values()];
+
+                if (batchNames.length === 0) {
+                    Swal.fire('Error', 'Draw failed (collision). Please try again.', 'error');
+                    return;
+                }
+
+                // Refresh UI from DB (authoritative)
+                await fetchData();
+
+                fireConfetti();
+                isSpinning = false;
+                spinBtn.innerText = 'SPIN';
+                setTimeout(() => showBigWinner(batchNames), 500);
+
+            } finally {
+                // If anything throws, unlock UI
+                isSpinning = false;
+                if (spinBtn) spinBtn.innerText = 'SPIN';
+            }
+        }
+
+        function showBigWinner(winnerNames) {
+            document.getElementById('bigWinnerList').innerHTML = winnerNames.map(name => `<div class="bg-white/10 backdrop-blur-md text-white font-black text-3xl md:text-5xl py-4 px-8 rounded-2xl border border-yellow-400/30 shadow-lg w-full max-w-3xl transform transition hover:scale-105">${name}</div>`).join('');
+            document.getElementById('bigWinnerModal').classList.add('active'); const end = Date.now() + 3000; (function f(){ confetti({particleCount:7, spread:70, origin:{y:0.6}, zIndex: 200}); if(Date.now()<end) requestAnimationFrame(f); })();
+        }
+        function closeBigModal() { document.getElementById('bigWinnerModal').classList.remove('active'); }
+        function startSpin() {
+            if (isSpinning) return;
+            if (names.length === 0) return Swal.fire('Error', 'Database Empty!', 'error');
+
+            let count = parseInt(document.getElementById('drawCount').value) || 1;
+            if (count > names.length) return Swal.fire('Error', 'Not enough people', 'error');
+
+            // Defensive: clear any previous interval
+            if (spinningIntervalId) {
+                clearInterval(spinningIntervalId);
+                spinningIntervalId = null;
+            }
+
+            isSpinning = true;
+            document.getElementById('spinBtn').innerText = '...';
+
+            if(!isMuted) {
+                const p = document.getElementById('bgmPlayer');
+                p.play().catch(e => {
+                    document.getElementById('muteBtn').classList.add('animate-ping');
+                    setTimeout(()=>document.getElementById('muteBtn').classList.remove('animate-ping'), 1000);
+                });
+            }
+
+            const winS = document.getElementById('winSoundEffect');
+            winS.volume = 0;
+            winS.play().then(() => {
+                winS.pause();
+                winS.currentTime = 0;
+                winS.volume = 1;
+            }).catch(e => {});
+
+            let rot = 0;
+            let spd = 60;
+            spinningIntervalId = setInterval(() => {
+                try {
+                    rot += spd;
+                    wheelChart.options.rotation = rot % 360;
+                    wheelChart.update('none');
+                    if (spd > 0.5) spd *= 0.99;
+                } catch (e) {
+                    console.error('Spin interval error:', e);
+                    clearInterval(spinningIntervalId);
+                    spinningIntervalId = null;
+                }
+            }, 16);
+
+            setTimeout(() => {
+                if (spinningIntervalId) {
+                    clearInterval(spinningIntervalId);
+                    spinningIntervalId = null;
+                }
+                selectWinners(count);
+            }, 3000);
+        }
+        function initWheel() { const ctx = document.getElementById('wheelCanvas').getContext('2d'); Chart.register(ChartDataLabels); wheelChart = new Chart(ctx, { type: 'pie', data: getChartData(), options: { responsive: true, maintainAspectRatio: false, animation: { duration: 0 }, layout: { padding: 20 }, plugins: { legend: { display: false }, tooltip: { enabled: false }, datalabels: { color: '#fff', font: { weight: 'bold', size: (ctx) => names.length > 50 ? 0 : 16 }, formatter: (v, c) => c.chart.data.labels[c.dataIndex], rotation: (ctx) => (ctx.dataIndex * (360 / ctx.chart.data.labels.length) + (360 / ctx.chart.data.labels.length / 2)) + 90, anchor: 'end', align: 'start', offset: 10 } } } }); }
+        function getChartData() { const d = names.length > 0 ? names : ['READY', 'SPIN']; return { labels: d, datasets: [{ data: d.map(() => 1), backgroundColor: d.map((_, i) => colors[i % colors.length]), borderWidth: 0 }] }; }
+        function updateUI() { 
+            if(wheelChart) { wheelChart.data = getChartData(); wheelChart.update(); }
+            document.getElementById('countDisplay').innerText = names.length; 
+            document.getElementById('winnerList').innerHTML = [...winners].map((w, i) => `<div class="bg-white/60 p-2 rounded-lg shadow-sm border-l-4 border-yellow-400 ml-2 backdrop-blur-sm" style="direction: ltr;"><div class="flex justify-between items-center"><span class="font-bold text-gray-800 text-sm truncate w-32">${w.name}</span><span class="text-[10px] text-gray-600">Winner</span></div></div>`).join(''); 
+        }
+        function fireConfetti() { const end = Date.now()+3000; (function f(){ confetti({particleCount:5, spread:60, origin:{y:0.6}}); if(Date.now()<end) requestAnimationFrame(f); })(); }
+        function toggleSettings() { document.getElementById('settingsPanel').classList.toggle('open'); }
+        function toggleFullscreen() { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else if (document.exitFullscreen) document.exitFullscreen(); }
+        function toggleMute() { const p = document.getElementById('bgmPlayer'); const i = document.getElementById('muteIcon'); isMuted = !isMuted; if(isMuted) { p.pause(); i.className = 'fa-solid fa-volume-xmark text-red-500'; } else { i.className = 'fa-solid fa-volume-high'; if(isSpinning) p.play().catch(e=>{}); else p.volume = 0.5; } }
+        document.getElementById('bgmSelect').addEventListener('change', function() { if(this.value === 'upload') document.getElementById('bgmUpload').click(); else document.getElementById('bgmPlayer').src = this.value; });
+        function handleAudioUpload(i) { if(i.files[0]) { document.getElementById('bgmPlayer').src = URL.createObjectURL(i.files[0]); Swal.fire({toast:true, icon:'success', title:'BGM Loaded', position:'top', timer:1500, showConfirmButton:false}); } }
+        function updateTitlePos(v) { document.getElementById('topTitleContainer').style.paddingTop = v + 'px'; localStorage.setItem('ld_title_pos', v); }
+        function updateTitleSize(v) { document.getElementById('eventTitle').style.fontSize = v + 'px'; localStorage.setItem('ld_title_size', v); }
+        function handleTitleColor(c) { document.getElementById('eventTitle').style.color = c; localStorage.setItem('ld_title_color', c); }
+        function setTitleAlign(a) { const c = document.getElementById('topTitleContainer'); const i = document.getElementById('eventTitle'); c.classList.remove('justify-start', 'justify-center', 'justify-end'); i.classList.remove('text-left', 'text-center', 'text-right'); if(a === 'left') { c.classList.add('justify-start'); i.classList.add('text-left'); } else if (a === 'right') { c.classList.add('justify-end'); i.classList.add('text-right'); } else { c.classList.add('justify-center'); i.classList.add('text-center'); } localStorage.setItem('ld_title_align', a); }
+        function setMaskColor(c) { maskColor = c; handleOpacityChange(document.getElementById('maskOpacity').value); localStorage.setItem('ld_mask_color', c); }
+        function handleOpacityChange(v) { document.getElementById('globalOverlay').style.backgroundColor = maskColor === 'white' ? `rgba(255, 255, 255, ${v/100})` : `rgba(0, 0, 0, ${v/100})`; localStorage.setItem('ld_mask_opacity', v); }
+        function handleBanner(i) { if(i.files[0]) { const r=new FileReader(); r.onload=(e)=>document.body.style.backgroundImage=`url(${e.target.result})`; r.readAsDataURL(i.files[0]); } }
+        function saveSettings() { localStorage.setItem('ld_title', document.getElementById('eventTitle').value); }
+        function loadSettings() { const t = localStorage.getItem('ld_title'); if (t) document.getElementById('eventTitle').value = t; const p = localStorage.getItem('ld_title_pos'); if (p) updateTitlePos(p); const s = localStorage.getItem('ld_title_size'); if (s) updateTitleSize(s); const c = localStorage.getItem('ld_title_color'); if (c) handleTitleColor(c); setTitleAlign(localStorage.getItem('ld_title_align') || 'center'); const mc = localStorage.getItem('ld_mask_color'); if(mc) setMaskColor(mc); const mo = localStorage.getItem('ld_mask_opacity'); if(mo) handleOpacityChange(mo); }
+        function downloadResults() { let csv = "data:text/csv;charset=utf-8,Name\n"; winners.forEach(r => csv += r.name + "\r\n"); const l = document.createElement("a"); l.href = encodeURI(csv); l.download = "winners.csv"; l.click(); }
+    </script>
+</body>
+</html>

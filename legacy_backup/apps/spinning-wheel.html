@@ -1,0 +1,1830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spinning Wheel Pro (v1.0)</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --mask-r: 255;
+      --mask-g: 255;
+      --mask-b: 255;
+      --mask-a: 0.35;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      height: 100vh;
+      overflow: hidden;
+      background-image: url('https://img.freepik.com/free-vector/gradient-lucky-draw-background_23-2150063963.jpg');
+      background-size: cover;
+      background-position: center;
+      transition: background-image 0.3s ease;
+    }
+
+    #globalOverlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none !important;
+      background: rgba(var(--mask-r), var(--mask-g), var(--mask-b), var(--mask-a));
+      transition: background 0.2s ease;
+      z-index: 0;
+    }
+
+    .content-layer {
+      position: relative;
+      z-index: 10;
+      height: 100%;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      pointer-events: auto;
+    }
+
+    .back-home-btn {
+      position: fixed;
+      top: 24px;
+      left: 24px;
+      z-index: 60;
+      background: rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .back-home-btn:hover {
+      background: rgba(255, 255, 255, 0.88);
+      color: #222;
+      transform: scale(1.05);
+    }
+
+    #topTitleContainer {
+      width: 100%;
+      display: flex;
+      padding-top: 48px;
+      padding-bottom: 12px;
+      z-index: 20;
+      position: relative;
+      pointer-events: none;
+    }
+
+    #eventTitle {
+      pointer-events: auto;
+      background: transparent;
+      text-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+      line-height: 1.15;
+      font-size: 64px;
+      font-weight: 900;
+      letter-spacing: 0.06em;
+    }
+
+    #eventTitle:focus {
+      background: rgba(255, 255, 255, 0.16);
+      border-radius: 12px;
+      outline: 2px dashed rgba(255, 255, 255, 0.25);
+    }
+
+    .stage-section {
+      flex: 1;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      padding-bottom: 40px;
+    }
+
+    .settings-panel {
+      transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      transform: translateX(100%);
+    }
+    .settings-panel.open { transform: translateX(0); }
+
+    /* Result overlay */
+    #resultOverlay {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    #resultOverlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .result-shell {
+      width: min(1200px, 92vw);
+      height: min(80vh, 760px);
+      border-radius: 28px;
+      border: 4px solid rgba(250, 204, 21, 0.95);
+      background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.12) 0%, rgba(0, 0, 0, 0.15) 35%, rgba(0, 0, 0, 0.55) 100%),
+                  radial-gradient(circle at 60% 40%, rgba(220, 38, 38, 0.55) 0%, rgba(127, 29, 29, 0.85) 70%);
+      box-shadow: 0 0 120px rgba(255, 215, 0, 0.35), 0 40px 120px rgba(0, 0, 0, 0.35);
+      overflow: hidden;
+      transform: scale(0.92);
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+    }
+
+    #resultOverlay.active .result-shell { transform: scale(1); }
+
+    .sparkle-bg {
+      position: absolute;
+      inset: 0;
+      background-image: url('https://www.transparenttextures.com/patterns/stardust.png');
+      opacity: 0.18;
+      mix-blend-mode: overlay;
+    }
+
+    .winner-scroll::-webkit-scrollbar { width: 8px; }
+    .winner-scroll::-webkit-scrollbar-thumb { background: rgba(250, 204, 21, 0.55); border-radius: 10px; }
+
+    /* Result list layout (fix: ensure multi-winner draws show ALL names) */
+    #resultList {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      align-content: start;
+      justify-items: stretch;
+      padding-left: 32px;
+      padding-right: 32px;
+      padding-top: 12px;
+      padding-bottom: 24px;
+    }
+
+    /* On wide screens show more columns; on small screens fallback to 1 column */
+    @media (min-width: 900px) {
+      #resultList { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (max-width: 520px) {
+      #resultList { grid-template-columns: 1fr; }
+    }
+
+    .result-item {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.10);
+      backdrop-filter: blur(10px);
+      color: rgba(255, 255, 255, 0.98);
+      font-weight: 900;
+      border-radius: 18px;
+      border: 1px solid rgba(250, 204, 21, 0.28);
+      box-shadow: 0 10px 22px rgba(0, 0, 0, 0.18);
+      padding: 14px 16px;
+      text-align: center;
+      line-height: 1.1;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+
+    .result-item.big { font-size: clamp(28px, 4vw, 56px); padding: 22px 22px; }
+    .result-item.mid { font-size: clamp(22px, 3.2vw, 44px); }
+    .result-item.small { font-size: clamp(16px, 2.4vw, 28px); }
+
+    /* Controls */
+    .top-controls {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      z-index: 60;
+      display: flex;
+      gap: 10px;
+    }
+
+    .ctrl-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      color: #111827;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease;
+    }
+
+    .ctrl-btn:hover {
+      transform: scale(1.05);
+      background: rgba(255, 255, 255, 0.5);
+    }
+
+    /* Wheel */
+    /*
+      Wheel sizing fix:
+      - Using height:% inside flex + aspect-ratio can collapse on some browsers.
+      - Use a square based on viewport with min size to keep canvas measurable.
+    */
+    #wheelWrap {
+      width: min(78vh, 78vw);
+      height: min(78vh, 78vw);
+      min-width: 320px;
+      min-height: 320px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #wheelCanvas {
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 32px 44px rgba(0, 0, 0, 0.35));
+    }
+
+    #pointer {
+      position: absolute;
+      top: 4px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 18px solid transparent;
+      border-right: 18px solid transparent;
+      border-top: 44px solid rgb(220, 38, 38);
+      filter: drop-shadow(0 12px 16px rgba(0, 0, 0, 0.35));
+      pointer-events: none;
+    }
+
+    #centerHub {
+      position: absolute;
+      width: 148px;
+      height: 148px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.55) 35%, rgba(255, 255, 255, 0.15) 100%);
+      border: 2px solid rgba(255, 255, 255, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 12px;
+      box-shadow: inset 0 0 22px rgba(255, 255, 255, 0.25), 0 18px 40px rgba(0, 0, 0, 0.25);
+    }
+
+    #hubText {
+      font-weight: 900;
+      font-size: 20px;
+      color: #111827;
+      line-height: 1.1;
+    }
+
+    #spinBtn {
+      position: absolute;
+      bottom: -24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+    }
+
+    input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 14px; width: 14px; border-radius: 50%; background: #3b82f6; cursor: pointer; margin-top: -5px; box-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+    input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #e5e7eb; border-radius: 2px; }
+
+    @keyframes glowPulse {
+      0% { filter: drop-shadow(0 0 0 rgba(250, 204, 21, 0.0)); }
+      50% { filter: drop-shadow(0 0 22px rgba(250, 204, 21, 0.6)); }
+      100% { filter: drop-shadow(0 0 0 rgba(250, 204, 21, 0.0)); }
+    }
+
+    .glow-pulse { animation: glowPulse 1.6s ease-in-out infinite; }
+
+    .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+    .status-online { background-color: #22c55e; box-shadow: 0 0 8px #22c55e; animation: pulse 2s infinite; }
+    .status-offline { background-color: #ef4444; }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+  </style>
+</head>
+<body>
+  <a href="../index.html" class="back-home-btn" title="Back to Dashboard"><i class="fa-solid fa-arrow-left"></i></a>
+  <div id="globalOverlay"></div>
+
+  <div class="top-controls">
+    <button class="ctrl-btn" title="Fullscreen" onclick="toggleFullscreen()"><i class="fa-solid fa-expand"></i></button>
+    <button class="ctrl-btn" title="Mute" onclick="toggleMute()"><i id="muteIcon" class="fa-solid fa-volume-high"></i></button>
+    <button class="ctrl-btn" title="Settings" onclick="toggleSettings()"><i class="fa-solid fa-gear"></i></button>
+  </div>
+
+  <div class="content-layer">
+    <div id="topTitleContainer" class="justify-center">
+      <input id="eventTitle" type="text" class="text-white/95 uppercase tracking-wider w-full border-none focus:ring-0 outline-none placeholder-white/60 text-center" placeholder="EVENT TITLE" />
+    </div>
+
+    <div class="stage-section">
+      <!-- left status -->
+      <div class="absolute top-4 left-6 z-20">
+        <div class="flex items-center gap-2 text-gray-800 bg-white/50 border border-white/40 px-4 py-2 rounded-full backdrop-blur-md shadow-sm text-sm font-bold">
+          <span id="dbStatus" class="status-dot status-offline"></span>
+          <span id="countDisplay">0</span> Participants
+          <span id="countMeta" class="text-gray-600 font-extrabold text-[11px] ml-2">(Total: <span id="totalCountDisplay">0</span>)</span>
+        </div>
+      </div>
+
+      <!-- right winners list -->
+      <div class="absolute right-6 top-6 bottom-6 w-72 flex flex-col z-20">
+        <div class="flex justify-between items-center pl-2 mb-2">
+          <h3 class="font-bold text-white/80 text-xs uppercase tracking-wider">Winners</h3>
+          <button onclick="downloadResultsXlsx()" class="text-xs text-blue-100 hover:bg-white/10 px-2 py-1 rounded transition border border-white/20 backdrop-blur">
+            <i class="fa-solid fa-download"></i> Export
+          </button>
+        </div>
+        <div id="winnerList" class="flex-1 overflow-y-auto space-y-2 pr-1 winner-scroll"></div>
+      </div>
+
+      <!-- wheel -->
+      <div id="wheelWrap">
+        <div id="pointer"></div>
+        <canvas id="wheelCanvas"></canvas>
+        <div id="centerHub" class="glow-pulse">
+          <div>
+            <div id="hubText">READY</div>
+            <div class="text-xs font-bold text-gray-700 mt-2">
+              Draw <span id="drawCountMini">1</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="spinBtn" class="flex flex-col items-center gap-2">
+          <button onclick="startSpin()" class="cursor-pointer bg-gradient-to-r from-red-600 to-rose-600 text-white text-3xl font-black px-12 py-3 rounded-full shadow-lg shadow-red-500/40 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 border-2 border-white/20">SPIN</button>
+          <div class="bg-white/60 backdrop-blur-md rounded-full px-4 py-1 shadow-sm border border-white/40 flex items-center gap-2 text-sm">
+            <span class="text-gray-600 font-bold text-xs">DRAW:</span>
+            <span id="drawCount" class="w-12 text-center font-black text-gray-800">1</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Panel -->
+  <div id="settingsPanel" class="fixed inset-y-0 right-0 w-96 bg-white shadow-2xl z-50 settings-panel flex flex-col text-gray-800 border-l border-gray-100">
+    <div class="p-5 bg-gray-900 text-white flex justify-between items-center shadow-md">
+      <h2 class="font-bold text-lg"><i class="fa-solid fa-sliders mr-2"></i> Settings</h2>
+      <button onclick="toggleSettings()" class="hover:text-red-400 transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+    </div>
+
+    <div class="p-5 flex-1 overflow-y-auto space-y-6" style="scrollbar-gutter: stable; max-height: 100vh;">
+      <div class="bg-indigo-50 p-4 rounded-xl border border-indigo-100 space-y-4">
+        <h3 class="text-xs font-bold text-indigo-500 uppercase flex items-center gap-2"><i class="fa-solid fa-text-height"></i> Title</h3>
+
+        <div>
+          <div class="flex justify-between text-xs font-bold text-gray-500 mb-1"><span>V-Position</span><span class="text-indigo-400">↕️</span></div>
+          <input type="range" id="titlePosInput" min="0" max="520" value="48" oninput="updateTitlePos(this.value)" />
+        </div>
+
+        <div>
+          <div class="flex justify-between text-xs font-bold text-gray-500 mb-1"><span>Font Size</span><span class="text-indigo-400">Aa</span></div>
+          <input type="range" id="titleSizeInput" min="20" max="150" value="64" oninput="updateTitleSize(this.value)" />
+        </div>
+
+        <div class="flex items-center justify-between gap-2 pt-2 border-t border-indigo-200">
+          <input type="color" id="titleColorInput" class="w-10 h-10 rounded cursor-pointer border-none bg-transparent" value="#ffffff" onchange="handleTitleColor(this.value)" />
+          <div class="flex bg-white rounded-lg border border-indigo-200 overflow-hidden flex-1">
+            <button onclick="setTitleAlign('left')" class="flex-1 py-2 hover:bg-indigo-50 text-indigo-500 transition border-r border-indigo-100"><i class="fa-solid fa-align-left"></i></button>
+            <button onclick="setTitleAlign('center')" class="flex-1 py-2 hover:bg-indigo-50 text-indigo-500 transition border-r border-indigo-100"><i class="fa-solid fa-align-center"></i></button>
+            <button onclick="setTitleAlign('right')" class="flex-1 py-2 hover:bg-indigo-50 text-indigo-500 transition"><i class="fa-solid fa-align-right"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-100 space-y-3">
+        <h3 class="text-xs font-bold text-emerald-600 uppercase flex items-center gap-2"><i class="fa-solid fa-trophy"></i> Draw Rules</h3>
+
+        <div class="flex items-center justify-between">
+          <div class="text-sm font-bold text-gray-700">Remove winner from pool</div>
+          <button id="removeToggle" class="px-3 py-1 rounded-full text-xs font-black border" onclick="toggleRemoveWinners()">ON</button>
+        </div>
+
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <div class="text-sm font-bold text-gray-700">Draw per spin</div>
+            <div class="text-xs font-bold text-gray-500">(<span id="drawCountLabel">1</span>)</div>
+          </div>
+          <input type="number" id="drawCountSetting" value="1" min="1" class="w-full p-2 border border-emerald-200 rounded-lg bg-white font-bold text-gray-800 outline-none" />
+          <div class="text-[11px] text-gray-500 leading-snug">
+            Tip: If “Remove winner from pool” is ON, max draw will be capped to remaining eligible.
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <div class="text-sm font-bold text-gray-700">Show labels (<=150)</div>
+          <div class="text-xs font-bold text-gray-500">Auto</div>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <div class="text-sm font-bold text-gray-700">Spin duration</div>
+          <div class="text-xs font-bold text-gray-500"><span id="spinDurationLabel">3.0</span>s</div>
+        </div>
+        <input type="range" id="spinDuration" min="1500" max="6500" step="100" value="3000" oninput="setSpinDuration(this.value)" />
+      </div>
+
+      <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+        <h3 class="text-xs font-bold text-slate-600 uppercase flex items-center gap-2"><i class="fa-solid fa-image"></i> Background</h3>
+
+        <button onclick="document.getElementById('bgInput').click()" class="w-full text-left px-3 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 text-sm font-medium text-gray-700 flex items-center justify-between">
+          <span><i class="fa-solid fa-upload mr-2 text-gray-400"></i> Change background image</span>
+          <i class="fa-solid fa-arrow-up-from-bracket text-xs text-gray-300"></i>
+        </button>
+        <input type="file" id="bgInput" accept="image/*" class="hidden" onchange="handleBackgroundUpload(this)" />
+
+        <div class="flex bg-gray-100 rounded p-1">
+          <button onclick="setMaskColor('white')" id="btnMaskWhite" class="flex-1 py-1 text-xs font-bold rounded bg-white shadow-sm">White</button>
+          <button onclick="setMaskColor('black')" id="btnMaskBlack" class="flex-1 py-1 text-xs font-bold rounded text-gray-500">Black</button>
+        </div>
+
+        <div>
+          <div class="flex justify-between text-xs font-bold text-gray-500 mb-1"><span>Mask opacity</span><span id="maskOpacityLabel" class="text-gray-400">35%</span></div>
+          <input type="range" id="maskOpacity" min="0" max="100" value="35" oninput="handleOpacityChange(this.value)" />
+        </div>
+      </div>
+
+      <div class="bg-amber-50 p-4 rounded-xl border border-amber-100 space-y-3" id="audioSection">
+        <h3 class="text-xs font-bold text-amber-700 uppercase flex items-center gap-2"><i class="fa-solid fa-music"></i> Audio</h3>
+        <div class="text-[11px] text-gray-500">
+          Current spin: <span id="spinAudioNow" class="font-mono"></span><br />
+          Current celebrate: <span id="celebrateAudioNow" class="font-mono"></span>
+        </div>
+
+        <div class="space-y-2">
+          <div class="text-xs font-bold text-gray-500">Spin music</div>
+          <select id="spinAudioSelect" class="w-full text-sm p-2 border border-gray-200 rounded bg-white focus:outline-none">
+            <option value="../assets/spin.mp3">✅ Built-in (offline)</option>
+            <option value="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3">🌐 Online backup</option>
+            <option value="upload">📂 Upload MP3...</option>
+          </select>
+          <input type="file" id="spinAudioUpload" accept="audio/*" class="hidden" onchange="handleSpinAudioUpload(this)" />
+        </div>
+
+        <div class="space-y-2 pt-2 border-t border-amber-200">
+          <div class="text-xs font-bold text-gray-500">Celebration sound</div>
+          <select id="celebrateAudioSelect" class="w-full text-sm p-2 border border-gray-200 rounded bg-white focus:outline-none">
+            <option value="../assets/celebrate.mp3">✅ Built-in (offline)</option>
+            <option value="https://www.soundjay.com/human/sounds/applause-01.mp3">🌐 Online backup</option>
+            <option value="upload">📂 Upload sound...</option>
+          </select>
+          <input type="file" id="celebrateAudioUpload" accept="audio/*" class="hidden" onchange="handleCelebrateAudioUpload(this)" />
+        </div>
+      </div>
+
+      <div class="bg-white p-4 rounded-xl border border-gray-200 space-y-3">
+        <h3 class="text-xs font-bold text-gray-400 uppercase">Data Source</h3>
+
+        <button onclick="importGoogleSheetCsv()" class="w-full text-left px-3 py-2 rounded-lg border border-gray-200 hover:bg-green-50 text-sm font-medium text-green-700 flex items-center justify-between">
+          <span><i class="fa-brands fa-google-drive mr-2"></i> Import Google Sheet (CSV)</span>
+          <i class="fa-solid fa-link text-xs text-green-300"></i>
+        </button>
+
+        <button onclick="document.getElementById('excelInput').click()" class="w-full text-left px-3 py-2 rounded-lg border border-gray-200 hover:bg-emerald-50 text-sm font-medium text-emerald-700 flex items-center justify-between">
+          <span><i class="fa-solid fa-file-excel mr-2"></i> Upload Excel</span>
+          <i class="fa-solid fa-plus text-xs text-emerald-300"></i>
+        </button>
+        <input type="file" id="excelInput" accept=".xlsx,.xls" class="hidden" onchange="handleExcel(this)" />
+
+        <div class="h-px bg-gray-100 my-2"></div>
+
+        <button onclick="resetWinnersOnly()" class="w-full bg-orange-100 text-orange-700 hover:bg-orange-200 font-bold py-2 rounded-xl transition text-sm flex items-center justify-center gap-2 border border-orange-200">
+          <i class="fa-solid fa-rotate-right"></i> Reset Winners (Keep Names)
+        </button>
+        <button onclick="clearLocalRemoved()" class="w-full bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold py-2 rounded-xl transition text-sm flex items-center justify-center gap-2 border border-slate-200">
+          <i class="fa-solid fa-broom"></i> Clear LOCAL removed list
+        </button>
+        <button onclick="clearLocalWinners()" class="w-full bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold py-2 rounded-xl transition text-sm flex items-center justify-center gap-2 border border-slate-200">
+          <i class="fa-solid fa-eraser"></i> Clear LOCAL winners
+        </button>
+        <button onclick="resetAllData()" class="w-full text-red-500 hover:bg-red-50 font-bold py-2 rounded-xl transition text-sm flex items-center justify-center gap-2">
+          <i class="fa-solid fa-trash"></i> DELETE All Database
+        </button>
+      </div>
+
+      <div class="bg-slate-900 text-white p-4 rounded-xl space-y-2">
+        <div class="text-xs font-black uppercase tracking-widest text-white/70">Supabase Init SQL</div>
+        <div class="text-[11px] text-white/70 leading-snug">
+          Copy/paste this into Supabase SQL editor once to reset the table + RLS policies.
+        </div>
+        <textarea id="sqlBox" class="w-full h-52 bg-black/30 border border-white/10 rounded-lg p-3 text-[11px] font-mono text-white/90" readonly></textarea>
+        <button onclick="copySql()" class="w-full bg-white/10 hover:bg-white/15 border border-white/10 rounded-lg py-2 text-sm font-bold">Copy SQL</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Result Overlay -->
+  <div id="resultOverlay" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+    <div class="result-shell">
+      <div class="sparkle-bg"></div>
+      <div class="relative z-10 h-full flex flex-col">
+        <div class="text-center pt-8 pb-4">
+          <div class="text-yellow-300 font-black text-4xl md:text-6xl uppercase tracking-widest drop-shadow-lg" style="text-shadow: 0 4px 0 #000;">Congratulations</div>
+          <div id="resultSubtitle" class="text-white/80 font-bold mt-2">🎉 Winner(s) 🎉</div>
+        </div>
+        <div id="resultList" class="flex-1 overflow-y-auto winner-scroll"></div>
+        <div class="pb-8 pt-4 flex justify-center bg-gradient-to-t from-black/40 to-transparent">
+          <button onclick="closeResult()" class="bg-yellow-400 hover:bg-yellow-300 text-red-950 text-xl font-black px-12 py-3 rounded-full shadow-lg hover:scale-105 transition transform border-b-4 border-yellow-600 cursor-pointer">CLOSE</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <audio id="spinPlayer" loop preload="auto"></audio>
+  <audio id="celebratePlayer" preload="auto"></audio>
+
+  <script>
+    // -------------------- Config --------------------
+    const SUPABASE_URL = 'https://zihjzbweasaqqbwilshx.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppaGp6YndlYXNhcXFid2lsc2h4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4OTQ5MTYsImV4cCI6MjA4MTQ3MDkxNn0.ilHqOs75eUA6p2n-h1rgfulwNwq_hPQyptFg-kcjbv4';
+
+    const STORAGE_KEY = 'sw_pro_settings_v1';
+
+    // -------------------- State --------------------
+    let db = null;
+    let names = []; // eligible (is_winner=false)
+    let winners = []; // winner rows
+
+    let isMuted = false;
+    let isSpinning = false;
+
+    let removeWinners = true;
+    let spinDurationMs = 3000;
+
+    // Local-mode remove winner (when DB update is blocked)
+    const LOCAL_REMOVED_KEY = 'sw_removed_names_v1';
+
+    // Local winners list (when DB write is blocked / or for offline export)
+    const LOCAL_WINNERS_KEY = 'sw_winners_local_v1';
+    function loadLocalWinners() {
+      try {
+        const raw = localStorage.getItem(LOCAL_WINNERS_KEY);
+        const arr = raw ? JSON.parse(raw) : [];
+        return Array.isArray(arr) ? arr : [];
+      } catch {
+        return [];
+      }
+    }
+    function saveLocalWinners(list) {
+      try {
+        localStorage.setItem(LOCAL_WINNERS_KEY, JSON.stringify(Array.isArray(list) ? list : []));
+      } catch {}
+    }
+    function appendLocalWinners(winnerNames) {
+      const nowIso = new Date().toISOString();
+      const prev = loadLocalWinners();
+      const add = (Array.isArray(winnerNames) ? winnerNames : []).map(name => ({
+        name: String(name ?? ''),
+        created_at: nowIso,
+        source: 'local'
+      })).filter(x => x.name.trim().length > 0);
+      if (add.length === 0) return;
+      saveLocalWinners(prev.concat(add));
+    }
+
+    function getAllWinnersForDisplay() {
+      // Merge DB winners + local winners (local first for most recent feel)
+      const local = loadLocalWinners();
+      const dbW = Array.isArray(winners) ? winners : [];
+      const merged = local.concat(dbW.map(w => ({ ...w, source: 'db' })));
+      merged.sort((a, b) => {
+        const ta = new Date(a?.created_at || 0).getTime();
+        const tb = new Date(b?.created_at || 0).getTime();
+        return tb - ta;
+      });
+      return merged;
+    }
+    function loadLocalRemovedSet() {
+      try {
+        const raw = localStorage.getItem(LOCAL_REMOVED_KEY);
+        const arr = raw ? JSON.parse(raw) : [];
+        return new Set(Array.isArray(arr) ? arr.map(normalizeName) : []);
+      } catch {
+        return new Set();
+      }
+    }
+    function saveLocalRemovedSet(set) {
+      try {
+        localStorage.setItem(LOCAL_REMOVED_KEY, JSON.stringify([...set]));
+      } catch {}
+    }
+
+    function getEligibleCount() {
+      return getEligibleNames().length;
+    }
+
+    function getEligibleNames() {
+      const src = Array.isArray(names) ? names : [];
+      if (!removeWinners) return src.slice();
+
+      const localRemoved = loadLocalRemovedSet();
+      if (localRemoved.size === 0) return src.slice();
+
+      return src.filter(n => !localRemoved.has(normalizeName(n)));
+    }
+
+    // Wheel rendering
+    let wheelCanvas, wheelCtx;
+    let wheelAngle = 0; // radians
+    let rafId = null;
+    let lastFrameTs = 0;
+
+    // Visual palette
+    const palette = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
+
+    // -------------------- Init --------------------
+    window.addEventListener('load', () => {
+      try {
+        wheelCanvas = document.getElementById('wheelCanvas');
+        wheelCtx = wheelCanvas.getContext('2d');
+        resizeWheel();
+        window.addEventListener('resize', resizeWheel);
+
+        loadSettings();
+        initSqlBox();
+        wireAudioSelects();
+        initSupabase();
+
+        // initial draw
+        drawWheel();
+      } catch (e) {
+        console.error(e);
+        Swal.fire('Error', 'Init failed. Check console.', 'error');
+      }
+    });
+
+    function resizeWheel() {
+      const rect = wheelCanvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      wheelCanvas.width = Math.floor(rect.width * dpr);
+      wheelCanvas.height = Math.floor(rect.height * dpr);
+      wheelCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      drawWheel();
+    }
+
+    // -------------------- Settings persistence --------------------
+    function getDefaultSettings() {
+      return {
+        titleText: '',
+        titlePos: 48,
+        titleSize: 64,
+        titleColor: '#ffffff',
+        titleAlign: 'center',
+        maskColor: 'white',
+        maskOpacity: 35,
+        removeWinners: true,
+        spinDurationMs: 3000,
+        // If there is no persisted src yet, use current select values.
+        spinAudioSrc: document.getElementById('spinAudioSelect')?.value || '',
+        celebrateAudioSrc: document.getElementById('celebrateAudioSelect')?.value || '',
+      };
+    }
+
+    function saveSettings() {
+      const data = {
+        titleText: document.getElementById('eventTitle').value,
+        titlePos: Number(document.getElementById('titlePosInput').value),
+        titleSize: Number(document.getElementById('titleSizeInput').value),
+        titleColor: document.getElementById('titleColorInput').value,
+        titleAlign: localStorage.getItem('sw_title_align') || 'center',
+        maskColor: localStorage.getItem('sw_mask_color') || 'white',
+        maskOpacity: Number(document.getElementById('maskOpacity').value),
+        removeWinners,
+        spinDurationMs,
+        drawCount: getDrawCount(),
+        spinAudioSrc: document.getElementById('spinPlayer').src,
+        celebrateAudioSrc: document.getElementById('celebratePlayer').src,
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function loadSettings() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      const s = raw ? { ...getDefaultSettings(), ...safeJsonParse(raw) } : getDefaultSettings();
+
+      document.getElementById('eventTitle').value = s.titleText || '';
+      updateTitlePos(String(s.titlePos));
+      document.getElementById('titlePosInput').value = String(s.titlePos);
+
+      updateTitleSize(String(s.titleSize));
+      document.getElementById('titleSizeInput').value = String(s.titleSize);
+
+      handleTitleColor(s.titleColor);
+      document.getElementById('titleColorInput').value = s.titleColor;
+
+      setTitleAlign(s.titleAlign);
+
+      setMaskColor(s.maskColor);
+      document.getElementById('maskOpacity').value = String(s.maskOpacity);
+      handleOpacityChange(String(s.maskOpacity));
+
+      removeWinners = !!s.removeWinners;
+      syncRemoveToggle();
+
+      spinDurationMs = Number(s.spinDurationMs) || 3000;
+      document.getElementById('spinDuration').value = String(spinDurationMs);
+      setSpinDuration(String(spinDurationMs));
+
+      // audio
+      // Restore persisted src; if empty, fall back to select's current value.
+      document.getElementById('spinPlayer').src = s.spinAudioSrc || document.getElementById('spinAudioSelect')?.value || '';
+      document.getElementById('celebratePlayer').src = s.celebrateAudioSrc || document.getElementById('celebrateAudioSelect')?.value || '';
+      syncAudioNowLabels();
+
+      document.getElementById('eventTitle').addEventListener('change', saveSettings);
+
+      // draw count persistence + live sync
+      if (typeof s.drawCount === 'number' && !Number.isNaN(s.drawCount)) {
+        document.getElementById('drawCount').value = String(Math.max(1, Math.floor(s.drawCount)));
+      }
+      const drawSetting = document.getElementById('drawCountSetting');
+      if (typeof s.drawCount === 'number' && !Number.isNaN(s.drawCount) && drawSetting) {
+        drawSetting.value = String(Math.max(1, Math.floor(s.drawCount)));
+      }
+      if (drawSetting) {
+        drawSetting.addEventListener('input', syncDrawCountSetting);
+        drawSetting.addEventListener('change', syncDrawCountSetting);
+      }
+      syncDrawCountSetting();
+
+      // ensure overlay closed on load
+      document.getElementById('resultOverlay').classList.remove('active');
+    }
+
+    function safeJsonParse(s) {
+      try { return JSON.parse(s); } catch { return {}; }
+    }
+
+    // -------------------- UI controls --------------------
+    function toggleSettings() {
+      document.getElementById('settingsPanel').classList.toggle('open');
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen?.();
+      } else {
+        document.exitFullscreen?.();
+      }
+    }
+
+    function toggleMute() {
+      isMuted = !isMuted;
+      document.getElementById('muteIcon').className = isMuted ? 'fa-solid fa-volume-xmark text-red-500' : 'fa-solid fa-volume-high';
+      if (isMuted) {
+        stopSpinAudio();
+      }
+      saveSettings();
+    }
+
+    function updateTitlePos(v) {
+      document.getElementById('topTitleContainer').style.paddingTop = v + 'px';
+      saveSettings();
+    }
+
+    function updateTitleSize(v) {
+      document.getElementById('eventTitle').style.fontSize = v + 'px';
+      saveSettings();
+    }
+
+    function handleTitleColor(c) {
+      document.getElementById('eventTitle').style.color = c;
+      saveSettings();
+    }
+
+    function setTitleAlign(a) {
+      const c = document.getElementById('topTitleContainer');
+      const i = document.getElementById('eventTitle');
+      c.classList.remove('justify-start', 'justify-center', 'justify-end');
+      i.classList.remove('text-left', 'text-center', 'text-right');
+
+      if (a === 'left') {
+        c.classList.add('justify-start');
+        i.classList.add('text-left');
+      } else if (a === 'right') {
+        c.classList.add('justify-end');
+        i.classList.add('text-right');
+      } else {
+        c.classList.add('justify-center');
+        i.classList.add('text-center');
+      }
+
+      localStorage.setItem('sw_title_align', a);
+      saveSettings();
+    }
+
+    function setMaskColor(c) {
+      localStorage.setItem('sw_mask_color', c);
+      if (c === 'black') {
+        document.documentElement.style.setProperty('--mask-r', '0');
+        document.documentElement.style.setProperty('--mask-g', '0');
+        document.documentElement.style.setProperty('--mask-b', '0');
+        document.getElementById('btnMaskBlack').className = 'flex-1 py-1 text-xs font-bold rounded bg-white shadow-sm';
+        document.getElementById('btnMaskWhite').className = 'flex-1 py-1 text-xs font-bold rounded text-gray-500';
+      } else {
+        document.documentElement.style.setProperty('--mask-r', '255');
+        document.documentElement.style.setProperty('--mask-g', '255');
+        document.documentElement.style.setProperty('--mask-b', '255');
+        document.getElementById('btnMaskWhite').className = 'flex-1 py-1 text-xs font-bold rounded bg-white shadow-sm';
+        document.getElementById('btnMaskBlack').className = 'flex-1 py-1 text-xs font-bold rounded text-gray-500';
+      }
+      handleOpacityChange(document.getElementById('maskOpacity').value);
+      saveSettings();
+    }
+
+    function handleOpacityChange(v) {
+      const a = Math.max(0, Math.min(1, Number(v) / 100));
+      document.documentElement.style.setProperty('--mask-a', String(a));
+      document.getElementById('maskOpacityLabel').innerText = Math.round(a * 100) + '%';
+      saveSettings();
+    }
+
+    function setSpinDuration(v) {
+      spinDurationMs = Number(v) || 3000;
+      document.getElementById('spinDurationLabel').innerText = (spinDurationMs / 1000).toFixed(1);
+      saveSettings();
+    }
+
+    function toggleRemoveWinners() {
+      removeWinners = !removeWinners;
+      syncRemoveToggle();
+      saveSettings();
+    }
+
+    function syncRemoveToggle() {
+      const b = document.getElementById('removeToggle');
+      if (removeWinners) {
+        b.innerText = 'ON';
+        b.className = 'px-3 py-1 rounded-full text-xs font-black border border-emerald-300 bg-emerald-200 text-emerald-800';
+      } else {
+        b.innerText = 'OFF';
+        b.className = 'px-3 py-1 rounded-full text-xs font-black border border-gray-300 bg-gray-100 text-gray-700';
+      }
+    }
+
+    function handleBackgroundUpload(input) {
+      const f = input.files?.[0];
+      if (!f) return;
+      const r = new FileReader();
+      r.onload = (e) => {
+        document.body.style.backgroundImage = `url(${e.target.result})`;
+        // store in localStorage (data url) - ok for single machine
+        localStorage.setItem('sw_bg_dataurl', e.target.result);
+      };
+      r.readAsDataURL(f);
+    }
+
+    // Load saved background (if any)
+    (function loadSavedBg() {
+      const bg = localStorage.getItem('sw_bg_dataurl');
+      if (bg) document.body.style.backgroundImage = `url(${bg})`;
+    })();
+
+    // -------------------- Audio --------------------
+    // Audio unlock for browsers that block playback until a user gesture.
+    let audioUnlocked = false;
+
+    async function unlockAudioOnce() {
+      if (audioUnlocked) return;
+      audioUnlocked = true;
+
+      const spin = document.getElementById('spinPlayer');
+      const cel = document.getElementById('celebratePlayer');
+
+      // Preload + attempt a tiny play/pause to unlock.
+      try {
+        spin.load();
+        cel.load();
+
+        const p1 = spin.play();
+        if (p1 && typeof p1.then === 'function') {
+          await p1;
+          spin.pause();
+          spin.currentTime = 0;
+        }
+      } catch {}
+
+      try {
+        const p2 = cel.play();
+        if (p2 && typeof p2.then === 'function') {
+          await p2;
+          cel.pause();
+          cel.currentTime = 0;
+        }
+      } catch {}
+    }
+
+    function wireAudioSelects() {
+      document.getElementById('spinAudioSelect').addEventListener('change', function () {
+        if (this.value === 'upload') {
+          document.getElementById('spinAudioUpload').click();
+          return;
+        }
+        document.getElementById('spinPlayer').src = this.value;
+        syncAudioNowLabels();
+        saveSettings();
+      });
+
+      document.getElementById('celebrateAudioSelect').addEventListener('change', function () {
+        if (this.value === 'upload') {
+          document.getElementById('celebrateAudioUpload').click();
+          return;
+        }
+        document.getElementById('celebratePlayer').src = this.value;
+        syncAudioNowLabels();
+        saveSettings();
+      });
+
+      // Do NOT override sources here; loadSettings() restores persisted src.
+      // If no persisted src exists, loadSettings() falls back to select values.
+    }
+
+    function handleSpinAudioUpload(input) {
+      const f = input.files?.[0];
+      if (!f) return;
+      const url = URL.createObjectURL(f);
+      document.getElementById('spinPlayer').src = url;
+      syncAudioNowLabels();
+      Swal.fire({ toast: true, icon: 'success', title: 'Spin audio loaded', position: 'top', timer: 1600, showConfirmButton: false });
+      saveSettings();
+    }
+
+    function handleCelebrateAudioUpload(input) {
+      const f = input.files?.[0];
+      if (!f) return;
+      const url = URL.createObjectURL(f);
+      document.getElementById('celebratePlayer').src = url;
+      syncAudioNowLabels();
+      Swal.fire({ toast: true, icon: 'success', title: 'Celebration sound loaded', position: 'top', timer: 1600, showConfirmButton: false });
+      saveSettings();
+    }
+
+    function syncAudioNowLabels() {
+      const spin = document.getElementById('spinPlayer');
+      const cel = document.getElementById('celebratePlayer');
+      const s = document.getElementById('spinAudioNow');
+      const c = document.getElementById('celebrateAudioNow');
+      if (s) s.textContent = spin?.src ? String(spin.src) : '(none)';
+      if (c) c.textContent = cel?.src ? String(cel.src) : '(none)';
+    }
+
+    function toastWarn(msg) {
+      Swal.fire({ toast: true, icon: 'warning', title: msg, position: 'top', timer: 2400, showConfirmButton: false });
+    }
+
+    function normalizeName(n) {
+      return String(n ?? '').replace(/\s+/g, ' ').trim();
+    }
+
+    function playSpinAudio() {
+      if (isMuted) return;
+      const p = document.getElementById('spinPlayer');
+      p.currentTime = 0;
+      p.volume = 0.9;
+      p.play().catch((e) => {
+        console.warn('spin audio play blocked:', e);
+        toastWarn('Spin music blocked/unavailable. Please check Audio setting or browser permission.');
+      });
+    }
+
+    function stopSpinAudio() {
+      const p = document.getElementById('spinPlayer');
+      p.pause();
+      p.currentTime = 0;
+    }
+
+    function playCelebrate() {
+      if (isMuted) return;
+      const p = document.getElementById('celebratePlayer');
+      p.currentTime = 0;
+      p.volume = 1.0;
+      p.play().catch(() => {});
+    }
+
+    // -------------------- Supabase --------------------
+    async function initSupabase() {
+      try {
+        if (typeof supabase === 'undefined') {
+          Swal.fire('Error', 'Supabase library failed to load.', 'error');
+          return;
+        }
+
+        db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const { error: pingError } = await db.from('participants').select('id', { head: true, count: 'exact' }).limit(1);
+        if (pingError) {
+          console.error('Supabase ping failed:', pingError);
+          document.getElementById('dbStatus').className = 'status-dot status-offline';
+          Swal.fire('DB Error', `Database not connected: ${pingError.message}`, 'error');
+          return;
+        }
+
+        document.getElementById('dbStatus').className = 'status-dot status-online';
+
+        await fetchData();
+
+        db.channel('public:participants')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'participants' }, () => {
+            fetchData();
+          })
+          .subscribe((status) => {
+            document.getElementById('dbStatus').className = (status === 'SUBSCRIBED') ? 'status-dot status-online' : 'status-dot status-offline';
+          });
+
+      } catch (e) {
+        console.error(e);
+        document.getElementById('dbStatus').className = 'status-dot status-offline';
+        Swal.fire('Error', `Supabase init failed: ${e.message || e}`, 'error');
+      }
+    }
+
+    async function fetchAllRows(isWinner) {
+      if (!db) return [];
+      let all = [];
+      let from = 0;
+      const step = 1000;
+      let keep = true;
+      while (keep) {
+        const { data, error } = await db
+          .from('participants')
+          .select('id,name,is_winner,created_at', { count: 'exact' })
+          .eq('is_winner', isWinner)
+          .order('id', { ascending: true })
+          .range(from, from + step - 1);
+
+        if (error) {
+          console.error('fetchAllRows error:', error);
+          Swal.fire('DB Error', error.message || JSON.stringify(error), 'error');
+          return all;
+        }
+
+        if (data && data.length > 0) {
+          all = all.concat(data);
+          from += step;
+          if (data.length < step) keep = false;
+        } else {
+          keep = false;
+        }
+      }
+      return all;
+    }
+
+    async function fetchData() {
+      if (!db) return;
+      const active = await fetchAllRows(false);
+      names = active.map(r => r.name);
+
+      const win = await fetchAllRows(true);
+      winners = win
+        .map(r => ({ id: r.id, name: r.name, created_at: r.created_at }))
+        .sort((a, b) => {
+          const ta = new Date(a.created_at || 0).getTime();
+          const tb = new Date(b.created_at || 0).getTime();
+          return tb - ta;
+        });
+
+      updateUI();
+    }
+
+    function updateUI() {
+      // If DB update is blocked and removeWinners=ON, we still show remaining count using localRemoved
+      const totalActive = Array.isArray(names) ? names.length : 0;
+      const eligibleNames = getEligibleNames();
+      const shownCount = eligibleNames.length;
+
+      // show both: eligible (main) + total (meta)
+      document.getElementById('countDisplay').innerText = String(shownCount);
+      const totalEl = document.getElementById('totalCountDisplay');
+      if (totalEl) totalEl.innerText = String(totalActive);
+
+      document.getElementById('hubText').innerText = shownCount > 0 ? 'READY' : 'IMPORT';
+
+      // winners list (right) - render safely via DOM
+      const winnerListEl = document.getElementById('winnerList');
+      winnerListEl.innerHTML = '';
+      const winnersToShow = getAllWinnersForDisplay();
+      winnersToShow.slice(0, 200).forEach(w => {
+        const card = document.createElement('div');
+        card.className = 'bg-white/10 p-2 rounded-lg border border-white/10 backdrop-blur';
+
+        const row = document.createElement('div');
+        row.className = 'flex justify-between items-center';
+
+        const nameEl = document.createElement('span');
+        nameEl.className = 'font-bold text-white text-sm truncate w-44';
+        nameEl.textContent = String(w.name ?? '');
+
+        const tag = document.createElement('span');
+        tag.className = 'text-[10px] text-white/60';
+        tag.textContent = (w?.source === 'local') ? 'Local' : 'Winner';
+
+        row.appendChild(nameEl);
+        row.appendChild(tag);
+        card.appendChild(row);
+        winnerListEl.appendChild(card);
+      });
+
+      // keep draw count labels in sync (the numeric input lives in settings now)
+      syncDrawCountSetting();
+
+      drawWheel();
+    }
+
+    // -------------------- Import (Google CSV + Excel) --------------------
+    async function importGoogleSheetCsv() {
+      if (!db) {
+        Swal.fire('Error', 'DB not connected.', 'error');
+        return;
+      }
+
+      const { value: url } = await Swal.fire({
+        title: 'Import Google Sheet CSV',
+        input: 'url',
+        inputLabel: 'Paste “Publish to web” CSV link',
+        inputPlaceholder: 'https://docs.google.com/.../pub?output=csv',
+        showCancelButton: true,
+      });
+
+      if (!url) return;
+
+      Swal.fire({ title: 'Fetching...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+
+      try {
+        let res;
+        try {
+          res = await fetch(url);
+        } catch {
+          res = null;
+        }
+
+        if (!res || !res.ok) {
+          const proxied = `https://r.jina.ai/http(s)://` + url.replace(/^https:\/\//, '');
+          res = await fetch(proxied);
+        }
+
+        if (!res.ok) throw new Error(`Fetch failed (status ${res.status}). Ensure it is published.`);
+
+        const rawText = await res.text();
+        const csvText = rawText
+          .split('\n')
+          .filter(line => line && !line.startsWith('Title:') && !line.startsWith('URL Source:') && !line.startsWith('Markdown Content:'))
+          .join('\n')
+          .replace(/\r/g, '');
+
+        const rows = csvText.split('\n').map(r => r.trim()).filter(Boolean);
+        const dataRows = rows.filter(r => !r.toLowerCase().match(/^(name|nama|no|id)$/));
+
+        const validNames = dataRows
+          .map(line => {
+            const firstCell = line.includes(',') ? line.split(',')[0] : line;
+            const name = firstCell.replace(/["']/g, '').trim();
+            return name;
+          })
+          .filter(n => n.length > 0);
+
+        if (validNames.length === 0) throw new Error('No valid names found');
+
+        await insertNames(validNames);
+        await fetchData();
+
+        Swal.fire('Success', `Imported ${validNames.length} names`, 'success');
+      } catch (e) {
+        console.error(e);
+        Swal.fire('Error', e.message || String(e), 'error');
+      }
+    }
+
+    async function handleExcel(input) {
+      if (!db) {
+        Swal.fire('Error', 'DB not connected.', 'error');
+        return;
+      }
+
+      const f = input.files?.[0];
+      if (!f) return;
+
+      Swal.fire({ title: 'Uploading...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+
+      const r = new FileReader();
+      r.onload = async (e) => {
+        try {
+          const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+          const list = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 }).flat();
+
+          const validNames = list
+            .filter(x => x != null)
+            .map(x => String(x).trim())
+            .filter(x => x && !/^name$/i.test(x) && !/^nama$/i.test(x));
+
+          if (validNames.length === 0) throw new Error('No names found');
+
+          await insertNames(validNames);
+          await fetchData();
+
+          Swal.fire('Success', `Uploaded ${validNames.length} names`, 'success');
+        } catch (err) {
+          console.error(err);
+          Swal.fire('Error', err.message || 'Upload failed', 'error');
+        } finally {
+          input.value = '';
+        }
+      };
+      r.readAsArrayBuffer(f);
+    }
+
+    async function insertNames(nameList) {
+      const chunkSize = 800;
+      const rows = nameList.map(name => ({ name, is_winner: false }));
+
+      for (let i = 0; i < rows.length; i += chunkSize) {
+        const chunk = rows.slice(i, i + chunkSize);
+        const { error } = await db.from('participants').insert(chunk);
+        if (error) throw error;
+      }
+    }
+
+    // -------------------- Reset / export --------------------
+    function downloadResultsXlsx() {
+      try {
+        // Export winners from a unified source (DB + local fallback)
+        // Columns: Name, Time, Source
+        const rows = getAllWinnersForDisplay().map(w => ({
+          Name: String(w?.name ?? ''),
+          Time: w?.created_at ? new Date(w.created_at).toLocaleString() : '',
+          Source: w?.source || 'db'
+        }));
+
+        if (rows.length === 0) {
+          Swal.fire({ toast: true, icon: 'info', title: 'No winners to export yet', position: 'top', timer: 1800, showConfirmButton: false });
+          return;
+        }
+
+        const ws = XLSX.utils.json_to_sheet(rows);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Winners');
+
+        // File name includes date
+        const stamp = new Date().toISOString().slice(0, 10);
+        XLSX.writeFile(wb, `winners-${stamp}.xlsx`);
+      } catch (e) {
+        console.error(e);
+        Swal.fire('Export failed', e?.message || String(e), 'error');
+      }
+    }
+
+    function clearLocalRemoved() {
+      try {
+        localStorage.removeItem(LOCAL_REMOVED_KEY);
+      } catch {}
+      // refresh UI counts immediately
+      updateUI();
+      Swal.fire({ toast: true, icon: 'success', title: 'Local removed list cleared', position: 'top', timer: 1600, showConfirmButton: false });
+    }
+
+    function clearLocalWinners() {
+      try {
+        localStorage.removeItem(LOCAL_WINNERS_KEY);
+      } catch {}
+      updateUI();
+      Swal.fire({ toast: true, icon: 'success', title: 'Local winners cleared', position: 'top', timer: 1600, showConfirmButton: false });
+    }
+
+    function resetWinnersOnly() {
+      if (!db) return;
+      Swal.fire({
+        title: 'Reset winners?',
+        text: 'This will keep names but clear winners (and clear this device local removed list).',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, reset'
+      }).then(async (r) => {
+        if (!r.isConfirmed) return;
+        Swal.fire({ title: 'Working...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+
+        // 1) Clear DB winners
+        const { error } = await db.from('participants').update({ is_winner: false }).eq('is_winner', true);
+        if (error) {
+          Swal.fire('Error', error.message, 'error');
+          return;
+        }
+
+        // 2) Clear local removed list + local winners (fallback mode)
+        try { localStorage.removeItem(LOCAL_REMOVED_KEY); } catch {}
+        try { localStorage.removeItem(LOCAL_WINNERS_KEY); } catch {}
+
+        // 3) Force refresh
+        await fetchData();
+
+        Swal.fire('Done', 'Winners cleared.', 'success');
+      });
+    }
+
+    function resetAllData() {
+      if (!db) return;
+      Swal.fire({
+        title: 'DELETE ALL?',
+        text: 'This will remove ALL names permanently.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        confirmButtonText: 'DELETE'
+      }).then(async (r) => {
+        if (!r.isConfirmed) return;
+        Swal.fire({ title: 'Working...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+        const { error } = await db.from('participants').delete().gte('id', 0);
+        if (error) Swal.fire('Error', error.message, 'error');
+        else Swal.fire('Done', 'Database cleared.', 'success');
+      });
+    }
+
+    // -------------------- Wheel (Canvas) --------------------
+    function drawWheel() {
+      if (!wheelCtx) return;
+
+      const w = wheelCanvas.getBoundingClientRect().width;
+      const h = wheelCanvas.getBoundingClientRect().height;
+
+      wheelCtx.clearRect(0, 0, w, h);
+      const cx = w / 2;
+      const cy = h / 2;
+      const radius = Math.min(w, h) / 2 - 18;
+
+      // IMPORTANT: render wheel based on ELIGIBLE names to match countDisplay
+      const wheelNames = getEligibleNames();
+      const n = Math.max(wheelNames.length, 1);
+      const showLabels = wheelNames.length > 0 && wheelNames.length <= 150;
+
+      // subtle outer ring
+      wheelCtx.save();
+      wheelCtx.beginPath();
+      wheelCtx.arc(cx, cy, radius + 10, 0, Math.PI * 2);
+      wheelCtx.strokeStyle = 'rgba(255,255,255,0.28)';
+      wheelCtx.lineWidth = 6;
+      wheelCtx.stroke();
+      wheelCtx.restore();
+
+      const segAngle = (Math.PI * 2) / n;
+
+      for (let i = 0; i < n; i++) {
+        const start = wheelAngle + i * segAngle;
+        const end = start + segAngle;
+
+        const color = palette[i % palette.length];
+
+        wheelCtx.beginPath();
+        wheelCtx.moveTo(cx, cy);
+        wheelCtx.arc(cx, cy, radius, start, end);
+        wheelCtx.closePath();
+        wheelCtx.fillStyle = color;
+        wheelCtx.fill();
+
+        // segment divider
+        wheelCtx.strokeStyle = 'rgba(255,255,255,0.18)';
+        wheelCtx.lineWidth = 1;
+        wheelCtx.stroke();
+
+        if (showLabels) {
+          const label = wheelNames[i] || '';
+          const mid = (start + end) / 2;
+          wheelCtx.save();
+          wheelCtx.translate(cx, cy);
+          wheelCtx.rotate(mid);
+
+          wheelCtx.textAlign = 'right';
+          wheelCtx.textBaseline = 'middle';
+          wheelCtx.fillStyle = 'rgba(255,255,255,0.96)';
+          wheelCtx.shadowColor = 'rgba(0,0,0,0.25)';
+          wheelCtx.shadowBlur = 6;
+
+          // dynamic font size
+          const fontSize = Math.max(10, Math.min(18, Math.floor(260 / Math.sqrt(n))));
+          wheelCtx.font = `900 ${fontSize}px Segoe UI`;
+
+          const maxLen = Math.max(8, Math.floor(22 - n / 12));
+          const text = label.length > maxLen ? (label.slice(0, maxLen - 1) + '…') : label;
+
+          wheelCtx.fillText(text, radius - 16, 0);
+          wheelCtx.restore();
+        }
+      }
+
+      if (!showLabels && wheelNames.length > 0) {
+        // overlay blur-ish sheen by drawing translucent arcs
+        wheelCtx.save();
+        wheelCtx.translate(cx, cy);
+        wheelCtx.rotate(-wheelAngle * 0.25);
+        wheelCtx.beginPath();
+        wheelCtx.arc(0, 0, radius, 0, Math.PI * 2);
+        wheelCtx.strokeStyle = 'rgba(255,255,255,0.07)';
+        wheelCtx.lineWidth = 18;
+        wheelCtx.stroke();
+        wheelCtx.restore();
+      }
+
+      // center cap
+      wheelCtx.save();
+      wheelCtx.beginPath();
+      wheelCtx.arc(cx, cy, 80, 0, Math.PI * 2);
+      wheelCtx.fillStyle = 'rgba(255,255,255,0.12)';
+      wheelCtx.fill();
+      wheelCtx.restore();
+    }
+
+    function animateSpin(targetAngleRad, durationMs) {
+      return new Promise((resolve) => {
+        const startAngle = wheelAngle;
+        const delta = normalizeAngle(targetAngleRad - startAngle);
+        const startTs = performance.now();
+
+        function easeOutCubic(t) {
+          return 1 - Math.pow(1 - t, 3);
+        }
+
+        const tick = (ts) => {
+          const elapsed = ts - startTs;
+          const t = Math.min(1, elapsed / durationMs);
+          const eased = easeOutCubic(t);
+
+          // When many names, add subtle jitter for "fast blur" feel
+          if (getEligibleNames().length > 150) {
+            wheelAngle = startAngle + delta * eased + Math.sin(ts / 24) * 0.01;
+          } else {
+            wheelAngle = startAngle + delta * eased;
+          }
+
+          drawWheel();
+
+          if (t < 1) {
+            rafId = requestAnimationFrame(tick);
+          } else {
+            resolve();
+          }
+        };
+
+        rafId = requestAnimationFrame(tick);
+      });
+    }
+
+    function normalizeAngle(a) {
+      // normalize to nearest representation
+      while (a > Math.PI * 2) a -= Math.PI * 2;
+      while (a < -Math.PI * 2) a += Math.PI * 2;
+      return a;
+    }
+
+    // -------------------- Drawing logic --------------------
+    async function startSpin() {
+      if (isSpinning) return;
+      if (!db) return Swal.fire('Error', 'DB not connected.', 'error');
+
+      const eligibleNamesForSpin = getEligibleNames();
+      if (eligibleNamesForSpin.length === 0) return Swal.fire('Error', 'No participants. Import first.', 'error');
+
+      // Make sure browser allows audio (must be triggered by user gesture)
+      // IMPORTANT: Start spin music immediately (still within the click gesture)
+      await unlockAudioOnce();
+      playSpinAudio();
+
+      const count = getDrawCount();
+      if (removeWinners && count > eligibleNamesForSpin.length) {
+        return Swal.fire('Error', 'Not enough eligible participants.', 'error');
+      }
+
+      isSpinning = true;
+      document.getElementById('hubText').innerText = 'SPINNING';
+
+      try {
+        // 1) Pick winners first (authoritative)
+        const result = await pickWinners(count);
+        if (result.length === 0) {
+          Swal.fire('Error', 'Draw failed. Try again.', 'error');
+          return;
+        }
+
+        // 2) Animate wheel so that pointer lands on the FIRST winner
+        //    (Multi-winner draws still show all names; wheel landing matches the first name.)
+        const primary = result[0];
+        // Use the eligible list used for this spin to compute the landing segment,
+        // so LOCAL removals (when DB updates are blocked) still produce correct animation.
+        const idx = eligibleNamesForSpin.findIndex(n => String(n) === String(primary));
+
+        const n = Math.max(eligibleNamesForSpin.length, 1);
+        const seg = (Math.PI * 2) / n;
+
+        // pointer points to TOP. Our wheel draws segments starting at wheelAngle.
+        // We want the middle of segment idx to align at -Math.PI/2.
+        const safeIdx = idx >= 0 ? idx : 0;
+        const targetMid = -Math.PI / 2 - (safeIdx + 0.5) * seg;
+
+        // Add rotations to make it dramatic.
+        const rotations = 7 + Math.floor(Math.random() * 4); // 7-10
+        const target = targetMid + rotations * Math.PI * 2;
+
+        await animateSpin(target, spinDurationMs);
+        stopSpinAudio();
+
+        // 3) Show result
+        showResult(result);
+
+      } catch (e) {
+        console.error(e);
+        Swal.fire('Error', e.message || String(e), 'error');
+      } finally {
+        isSpinning = false;
+        document.getElementById('hubText').innerText = getEligibleNames().length > 0 ? 'READY' : 'IMPORT';
+      }
+    }
+
+    function getDrawCount() {
+      const el = document.getElementById('drawCountSetting');
+      const raw = parseInt(el?.value || '1', 10);
+      let v = Number.isFinite(raw) ? raw : 1;
+      v = Math.max(1, Math.floor(v));
+
+      if (removeWinners) {
+        const eligibleCount = getEligibleCount();
+        v = Math.min(v, Math.max(1, eligibleCount));
+      }
+      return v;
+    }
+
+    function syncDrawCountSetting() {
+      const input = document.getElementById('drawCountSetting');
+      if (!input) return;
+
+      // keep setting input valid
+      const v = getDrawCount();
+      input.value = String(v);
+
+      // sync mini label
+      const mini = document.getElementById('drawCountMini');
+      if (mini) mini.innerText = String(v);
+
+      // sync settings label
+      const lbl = document.getElementById('drawCountLabel');
+      if (lbl) lbl.innerText = String(v);
+
+      // sync bottom display (now a span)
+      const bottom = document.getElementById('drawCount');
+      if (bottom) bottom.innerText = String(v);
+
+      saveSettings();
+    }
+
+    async function pickWinners(count) {
+      // If removeWinners=false, we DO NOT mark is_winner and names may repeat across draws.
+      let eligible = await fetchAllRows(false);
+      if (!eligible || eligible.length === 0) return [];
+
+      // Apply LOCAL removed filter only when removeWinners is ON.
+      if (removeWinners) {
+        const localRemoved = loadLocalRemovedSet();
+        if (localRemoved.size > 0) {
+          eligible = eligible.filter(r => !localRemoved.has(normalizeName(r.name)));
+        }
+      }
+
+      const targetCount = Math.min(count, eligible.length);
+
+      if (!removeWinners) {
+        const copy = eligible.slice();
+        const out = [];
+        while (out.length < targetCount) {
+          const idx = Math.floor(Math.random() * copy.length);
+          out.push(copy[idx].name);
+        }
+        return out;
+      }
+
+      // Claim winners with conditional update to avoid multi-client collision
+      const picked = new Map();
+      const maxAttempts = targetCount * 10;
+      let attempts = 0;
+
+      let dbWriteFailed = false;
+
+      while (picked.size < targetCount && attempts < maxAttempts) {
+        attempts++;
+        const r = Math.floor(Math.random() * eligible.length);
+        const row = eligible[r];
+        if (!row || row.id == null) continue;
+        if (picked.has(row.id)) continue;
+
+        const { data, error } = await db
+          .from('participants')
+          .update({ is_winner: true })
+          .eq('id', row.id)
+          .eq('is_winner', false)
+          .select('id,name');
+
+        if (error) {
+          // RLS/permission issues (400/401/403). Log full details.
+          console.error('claim error:', {
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code,
+            raw: error,
+          });
+          dbWriteFailed = true;
+          break;
+        }
+
+        if (data && data.length === 1) {
+          picked.set(data[0].id, data[0].name);
+        }
+      }
+
+      // Fallback: if DB writes fail, do a local random draw (no DB update)
+      if (dbWriteFailed || picked.size === 0) {
+        const copy = eligible.slice();
+        const out = [];
+        const need = targetCount;
+        while (out.length < need && copy.length > 0) {
+          const idx = Math.floor(Math.random() * copy.length);
+          const [chosen] = copy.splice(idx, 1);
+          if (chosen?.name != null) out.push(chosen.name);
+        }
+
+        // If user enabled remove-winners, persist local removals so repeated spins won't repeat
+        if (removeWinners && out.length > 0) {
+          const localRemoved = loadLocalRemovedSet();
+          out.forEach(n => localRemoved.add(normalizeName(n)));
+          saveLocalRemovedSet(localRemoved);
+
+          // reflect immediately in UI count without requiring DB
+          updateUI();
+        }
+
+        if (dbWriteFailed) {
+          toastWarn('DB update blocked (RLS/Policy). Using LOCAL remove-winner list (this device only) until DB fixed.');
+        }
+
+        return out;
+      }
+
+      const batchNames = [...picked.values()];
+      await fetchData();
+      return batchNames;
+    }
+
+    // -------------------- Result overlay --------------------
+    function showResult(winnerNames) {
+      // Persist winners locally so export works even when DB write is blocked.
+      appendLocalWinners(winnerNames);
+
+      const list = document.getElementById('resultList');
+      list.innerHTML = '';
+
+      const total = Array.isArray(winnerNames) ? winnerNames.length : 0;
+      const sizeClass = total <= 3 ? 'big' : (total <= 12 ? 'mid' : 'small');
+
+      winnerNames.forEach((name, idx) => {
+        const delay = idx * 40;
+        const item = document.createElement('div');
+        item.className = `result-item ${sizeClass}`;
+        item.style.transform = 'translateY(10px) scale(0.985)';
+        item.style.opacity = '0';
+        item.style.animation = 'enter 420ms ease forwards';
+        item.style.animationDelay = `${delay}ms`;
+        item.textContent = String(name ?? '');
+        list.appendChild(item);
+      });
+
+      // Keyframes injected once
+      ensureEnterKeyframes();
+
+      document.getElementById('resultOverlay').classList.add('active');
+
+      playCelebrate();
+      fireConfetti(3200);
+      fireConfetti(3200);
+
+      // stop spinning audio if any
+      stopSpinAudio();
+    }
+
+    function closeResult() {
+      document.getElementById('resultOverlay').classList.remove('active');
+    }
+
+    function fireConfetti(ms) {
+      const end = Date.now() + ms;
+      (function frame() {
+        confetti({
+          particleCount: 6,
+          spread: 70,
+          origin: { y: 0.6 },
+          zIndex: 200,
+        });
+        if (Date.now() < end) requestAnimationFrame(frame);
+      })();
+    }
+
+    function ensureEnterKeyframes() {
+      if (document.getElementById('enterKeyframes')) return;
+      const s = document.createElement('style');
+      s.id = 'enterKeyframes';
+      s.textContent = `@keyframes enter { from { opacity: 0; transform: translateY(12px) scale(0.98);} to { opacity: 1; transform: translateY(0) scale(1);} }`;
+      document.head.appendChild(s);
+    }
+
+    // -------------------- Helpers --------------------
+    // NOTE: We render all dynamic winner names using textContent (not innerHTML),
+    // so escaping is not needed and XSS is prevented by default.
+
+    // -------------------- Supabase SQL box --------------------
+    function initSqlBox() {
+      const sql = `-- Participants table + RLS policies (copy into Supabase SQL editor)
+
+-- 1) Table
+create table if not exists public.participants (
+  id bigint generated by default as identity primary key,
+  name text not null,
+  is_winner boolean not null default false,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- 2) updated_at trigger
+create or replace function public.set_updated_at()
+returns trigger as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$ language plpgsql;
+
+drop trigger if exists trg_participants_updated_at on public.participants;
+create trigger trg_participants_updated_at
+before update on public.participants
+for each row execute function public.set_updated_at();
+
+-- 3) Indexes
+create index if not exists idx_participants_is_winner on public.participants(is_winner);
+create index if not exists idx_participants_name on public.participants(name);
+
+-- 4) RLS + policies
+alter table public.participants enable row level security;
+
+-- drop old policies (if any)
+drop policy if exists participants_read on public.participants;
+drop policy if exists participants_insert on public.participants;
+drop policy if exists participants_update on public.participants;
+drop policy if exists participants_delete on public.participants;
+
+-- allow read
+create policy participants_read
+on public.participants
+for select
+to anon, authenticated
+using (true);
+
+-- allow insert
+create policy participants_insert
+on public.participants
+for insert
+to anon, authenticated
+with check (true);
+
+-- allow update (THIS FIXES "DB update 被拒")
+create policy participants_update
+on public.participants
+for update
+to anon, authenticated
+using (true)
+with check (true);
+
+-- allow delete (optional, for reset buttons)
+create policy participants_delete
+on public.participants
+for delete
+to anon, authenticated
+using (true);
+`;
+      document.getElementById('sqlBox').value = sql;
+    }
+
+    async function copySql() {
+      const v = document.getElementById('sqlBox').value;
+      try {
+        await navigator.clipboard.writeText(v);
+        Swal.fire({ toast: true, icon: 'success', title: 'SQL copied', position: 'top', timer: 1200, showConfirmButton: false });
+      } catch {
+        Swal.fire('Copy failed', 'Your browser blocked clipboard. Select and copy manually.', 'info');
+      }
+    }
+  </script>
+</body>
+</html>
