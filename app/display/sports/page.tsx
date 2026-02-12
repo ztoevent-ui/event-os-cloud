@@ -39,6 +39,105 @@ export default function SportsDisplayPage() {
         }
     }, [activeMatches.length, isTop4]);
 
+    // Commercial Break Toggle
+    const [isCommercialBreak, setIsCommercialBreak] = useState(true);
+    const playerRef = React.useRef<any>(null);
+
+    // Initialize YouTube API
+    useEffect(() => {
+        const tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+
+        (window as any).onYouTubeIframeAPIReady = () => {
+            console.log('YT API Ready');
+        };
+    }, []);
+
+    // Handle Volume Fading
+    const fadeAudio = (targetVolume: number, duration: number, callback?: () => void) => {
+        if (!playerRef.current || typeof playerRef.current.getVolume !== 'function') {
+            callback?.();
+            return;
+        }
+
+        const startVolume = playerRef.current.getVolume();
+        const steps = 20;
+        const stepTime = duration / steps;
+        const volumeStep = (targetVolume - startVolume) / steps;
+
+        let currentStep = 0;
+        const interval = setInterval(() => {
+            currentStep++;
+            const newVolume = startVolume + (volumeStep * currentStep);
+            playerRef.current.setVolume(Math.max(0, Math.min(100, newVolume)));
+
+            if (currentStep >= steps) {
+                clearInterval(interval);
+                callback?.();
+            }
+        }, stepTime);
+    };
+
+    const toggleAdBreak = () => {
+        if (isCommercialBreak) {
+            // Fade out then close - Sped up to 500ms
+            fadeAudio(0, 500, () => setIsCommercialBreak(false));
+        } else {
+            setIsCommercialBreak(true);
+        }
+    };
+
+    useEffect(() => {
+        const handleKeyPress = (e: KeyboardEvent) => {
+            if (e.key.toLowerCase() === 'b') toggleAdBreak();
+        };
+        window.addEventListener('keydown', handleKeyPress);
+        return () => window.removeEventListener('keydown', handleKeyPress);
+    }, [isCommercialBreak]);
+
+    // Setup Player when overlay mounts
+    useEffect(() => {
+        if (isCommercialBreak && (window as any).YT) {
+            const initPlayer = () => {
+                playerRef.current = new (window as any).YT.Player('youtube-player', {
+                    videoId: 't7xDdQ0fxUI',
+                    playerVars: {
+                        autoplay: 1,
+                        controls: 0,
+                        mute: 0,
+                        loop: 1,
+                        playlist: 't7xDdQ0fxUI',
+                        showinfo: 0,
+                        rel: 0,
+                        iv_load_policy: 3
+                    },
+                    events: {
+                        onReady: (event: any) => {
+                            event.target.setVolume(0);
+                            event.target.playVideo();
+                            // Smooth fade in - Sped up to 1000ms
+                            setTimeout(() => fadeAudio(100, 1000), 500);
+                        },
+                        onStateChange: (event: any) => {
+                            if (event.data === (window as any).YT.PlayerState.ENDED) {
+                                event.target.playVideo(); // Force loop
+                            }
+                        }
+                    }
+                });
+            };
+
+            // Small delay to ensure div is in DOM
+            const timeout = setTimeout(initPlayer, 100);
+            return () => {
+                clearTimeout(timeout);
+                if (playerRef.current) playerRef.current.destroy();
+            };
+        }
+    }, [isCommercialBreak]);
+
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen bg-zto-dark text-zto-gold animate-pulse">
@@ -60,76 +159,62 @@ export default function SportsDisplayPage() {
         return <WinnerReveal winner={champion} tournamentName={tournament.name} />;
     }
 
-
     return (
-        <main className="min-h-screen bg-zto-dark text-white overflow-hidden relative">
-            {/* Ambient Background */}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-zto-gold/5 via-zto-dark to-black -z-10 animate-pulse"></div>
+        <main className="min-h-screen bg-black text-white overflow-hidden relative selection:bg-zto-gold selection:text-black">
+            {/* Ambient Background - More Subtle */}
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-zto-gold/10 via-black to-black -z-10"></div>
 
             <ZTOHeader tournamentName={tournament.name} />
 
-            <div className={`container mx-auto px-4 py-24 flex gap-8 h-screen`}>
-                <div className="flex-1 overflow-y-auto pb-20">
-                    <AnimatePresence mode="wait">
-                        {activeMatches.length === 0 ? (
-                            <motion.div
-                                key="waiting"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                className="text-center w-full py-20"
-                            >
-                                <h2 className="text-3xl font-bold text-white/40 uppercase tracking-widest">Waiting for next match...</h2>
-                                <div className="mt-8 animate-bounce text-zto-gold text-2xl">⚡</div>
-                            </motion.div>
-                        ) : (
-                            <div className={`grid gap-8 ${viewMode === 'portrait' ? 'grid-cols-1 w-full max-w-4xl mx-auto' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
-                                {activeMatches.map((match) => (
+            <div className="container mx-auto px-4 pt-32 pb-12 flex flex-col items-center justify-center min-h-screen">
+                <AnimatePresence mode="wait">
+                    {activeMatches.length === 0 ? (
+                        <motion.div
+                            key="waiting"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="text-center w-full py-20"
+                        >
+                            <h2 className="text-3xl font-bold text-white/20 uppercase tracking-widest">Next Match Starting Soon</h2>
+                            <p className="mt-4 text-zto-gold animate-pulse text-sm uppercase tracking-widest">Commercial Break in Progress...</p>
+                        </motion.div>
+                    ) : (
+                        <div className="w-full max-w-[1600px] mx-auto relative z-10">
+                            {activeMatches.map((match) => (
+                                <div key={match.id} className="relative w-full">
                                     <MatchCard
-                                        key={match.id}
                                         match={match}
                                         p1={players[match.player1_id || '']}
                                         p2={players[match.player2_id || '']}
+                                        activeAd={ads[currentAdIndex]}
                                     />
-                                ))}
-                            </div>
-                        )}
-                    </AnimatePresence>
-                </div>
-
-                {/* Sidebar Ads & QR */}
-                {ads && ads.length > 0 && viewMode !== 'portrait' && (
-                    <div className="hidden xl:flex flex-col w-80 gap-6 pt-20 sticky top-0 h-screen">
-                        <div className="bg-zto-dark/80 backdrop-blur rounded-xl border border-zto-gold/20 p-4 shadow-lg overflow-hidden relative aspect-[9/16]">
-                            {ads[currentAdIndex]?.type === 'video' ? (
-                                <video
-                                    src={ads[currentAdIndex].url} autoPlay muted loop
-                                    className="w-full h-full object-cover rounded-lg"
-                                />
-                            ) : (
-                                <img
-                                    src={ads[currentAdIndex]?.url || 'https://via.placeholder.com/300x600?text=Sponsor+Ad'}
-                                    alt="Sponsor"
-                                    className="w-full h-full object-cover rounded-lg"
-                                />
-                            )}
-                            <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
-                                Ad {currentAdIndex + 1}/{ads.length}
-                            </div>
+                                </div>
+                            ))}
                         </div>
-
-                        {/* QR Code */}
-                        <div className="bg-white p-4 rounded-xl shadow-lg flex flex-col items-center text-center">
-                            <h3 className="text-zto-dark font-bold uppercase text-sm mb-2">Scan for Stats</h3>
-                            <div className="w-32 h-32 bg-gray-200 mb-2 flex items-center justify-center">
-                                {/* Placeholder QR */}
-                                <span className="text-4xl">📱</span>
-                            </div>
-                            <p className="text-xs text-gray-500">Get your personal match report.</p>
-                        </div>
-                    </div>
-                )}
+                    )}
+                </AnimatePresence>
             </div>
+
+            {/* --- FULL SCREEN COMMERCIAL BREAK OVERLAY --- */}
+            <AnimatePresence>
+                {isCommercialBreak && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] bg-black flex items-center justify-center"
+                    >
+                        {/* YouTube IFrame API Container */}
+                        <div className="relative w-full h-full max-w-none max-h-none bg-black overflow-hidden">
+                            <div
+                                id="youtube-player"
+                                className="absolute top-1/2 left-1/2 w-[110vw] h-[110vh] -translate-x-1/2 -translate-y-1/2 pointer-events-none border-none scale-100"
+                            ></div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </main>
     );
 }

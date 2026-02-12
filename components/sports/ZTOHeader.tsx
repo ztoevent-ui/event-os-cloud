@@ -9,17 +9,33 @@ interface HeaderProps {
 
 export function ZTOHeader({ tournamentName }: HeaderProps) {
     return (
-        <header className="fixed top-0 left-0 right-0 z-50 flex justify-center items-center py-4 pointer-events-none">
-            <div className="relative">
-                <motion.h1
-                    className="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-yellow-500 to-yellow-300 animate-flow drop-shadow-[0_0_10px_rgba(212,175,55,0.5)]"
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8 }}
-                >
-                    ZTO ARENA <span className="mx-2 text-white/50">-</span> <span className="text-white drop-shadow-md">{tournamentName}</span>
-                </motion.h1>
-                <div className="absolute inset-0 blur-xl opacity-30 bg-gold-gradient rounded-full -z-10 animate-pulse"></div>
+        <header className="fixed top-0 left-0 right-0 z-50 flex justify-between items-center px-8 py-4 pointer-events-none bg-gradient-to-b from-black/80 to-transparent">
+            {/* Left: Brand */}
+            <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-zto-gold rounded flex items-center justify-center font-black text-black shadow-[0_0_15px_#D4AF37]">
+                    ZTO
+                </div>
+                <div className="flex flex-col">
+                    <span className="text-zto-gold font-bold tracking-[0.2em] text-sm">ARENA</span>
+                    <span className="text-white/60 text-[10px] uppercase tracking-widest leading-none">Official Timekeeper</span>
+                </div>
+            </div>
+
+            {/* Center: Tournament Name (Elegant) */}
+            <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="absolute left-1/2 -translate-x-1/2 text-center"
+            >
+                <div className="px-6 py-1 border border-zto-gold/30 bg-black/40 backdrop-blur rounded-full">
+                    <span className="text-white font-medium text-lg tracking-wide uppercase">{tournamentName}</span>
+                </div>
+            </motion.div>
+
+            {/* Right: Live Indicator */}
+            <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
+                <span className="text-red-500 font-bold text-xs tracking-widest uppercase">Live</span>
             </div>
         </header>
     );

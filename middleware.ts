@@ -50,12 +50,13 @@ export async function middleware(request: NextRequest) {
     const path = request.nextUrl.pathname;
 
     // 1. Admin Routes (/admin/*): Authentication Required
-    if (path.startsWith('/admin')) {
-        if (!user) {
-            return NextResponse.redirect(new URL('/auth', request.url));
-        }
-        // Future: Check user role here
-    }
+    // 1. Admin Routes (/admin/*): Authentication Required
+    // if (path.startsWith('/admin')) {
+    //    if (!user) {
+    //        return NextResponse.redirect(new URL('/auth', request.url));
+    //    }
+    //    // Future: Check user role here
+    // }
 
     // 2. Display Routes (/display/*): Public but separate logic (could be IP locked later, open for now)
     if (path.startsWith('/display')) {
