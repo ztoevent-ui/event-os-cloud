@@ -23,8 +23,10 @@ async function generateAiSummary(loveStory: string, notes: string) {
     return "New client inquiry. " + combined.slice(0, 80) + "...";
 }
 
+
 export async function submitConsultation(formData: FormData) {
-    const project_id = formData.get('project_id') as string;
+    const rawProjectId = formData.get('project_id') as string;
+    const project_id = rawProjectId && rawProjectId.trim() !== '' ? rawProjectId : null;
 
     // Step 1
     const groom_name = formData.get('groom_name') as string;
@@ -53,8 +55,8 @@ export async function submitConsultation(formData: FormData) {
     // AI Summary
     const ai_summary = await generateAiSummary(love_story, important_notes);
 
-    const { error } = await supabase.from('consulting_forms').insert({
-        project_id,
+    // Construct insert payload
+    const payload: any = {
         groom_name,
         bride_name,
         contact_phone,
@@ -71,7 +73,13 @@ export async function submitConsultation(formData: FormData) {
         love_story,
         ai_summary,
         status: 'new'
-    });
+    };
+
+    if (project_id) {
+        payload.project_id = project_id;
+    }
+
+    const { error } = await supabase.from('consulting_forms').insert(payload);
 
     if (error) {
         console.error('Error submitting form:', error);

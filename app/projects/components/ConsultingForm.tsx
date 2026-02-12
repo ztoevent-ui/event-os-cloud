@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { submitConsultation } from '../consultation-actions';
 
 interface WizardProps {
-    projectId: string;
+    projectId?: string; // Optional for public form
 }
 
 export default function ConsultingForm({ projectId }: WizardProps) {
@@ -17,7 +17,7 @@ export default function ConsultingForm({ projectId }: WizardProps) {
 
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({
-        project_id: projectId,
+        project_id: projectId || '', // Handle missing projectId
         groom_name: '',
         bride_name: '',
         contact_phone: '',
