@@ -95,6 +95,37 @@ CREATE TABLE IF NOT EXISTS tool_states (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 8. Consulting Forms (New Table)
+CREATE TABLE IF NOT EXISTS consulting_forms (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+    groom_name TEXT NOT NULL,
+    bride_name TEXT NOT NULL,
+    contact_phone TEXT NOT NULL,
+    contact_email TEXT,
+    contact_time TEXT,
+    wedding_date DATE,
+    location TEXT,
+    guest_count INTEGER,
+    budget_range TEXT,
+    wedding_theme TEXT,
+    
+    -- Progress & Vendors (JSONB for flexibility as it's dynamic)
+    booked_vendors JSONB DEFAULT '[]', -- stores array of { service, name, contact, phone }
+    
+    -- Personal
+    special_features TEXT,
+    important_notes TEXT,
+    love_story TEXT,
+    
+    -- AI Generated
+    ai_summary TEXT, -- Gemini summary
+    
+    status TEXT DEFAULT 'new', -- 'new', 'contacted', 'consulted', 'converted'
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Enable Realtime for tool_states
 -- ALTER PUBLICATION supabase_realtime ADD TABLE tool_states;
 -- Note: You might need to run this command manually in the Supabase Dashboard SQL Editor if using a managed instance where permissions vary.
