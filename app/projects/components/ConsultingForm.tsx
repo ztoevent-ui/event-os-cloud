@@ -84,10 +84,22 @@ export default function ConsultingForm({ projectId }: WizardProps) {
     const sectionTitle = "text-2xl font-serif text-zinc-900 mb-6 border-b border-[#D4AF37]/30 pb-2";
 
     return (
-        <div className="max-w-3xl mx-auto bg-white shadow-2xl rounded-2xl overflow-hidden border border-zinc-100 min-h-[600px] flex flex-col">
+        <div className="max-w-3xl mx-auto bg-white shadow-2xl rounded-2xl overflow-hidden border border-zinc-100 min-h-[600px] flex flex-col relative z-0">
+
+            {/* Botanical Background Pattern */}
+            <div
+                className="absolute inset-0 z-[-1] opacity-[0.03] pointer-events-none"
+                style={{
+                    backgroundImage: `url('https://images.unsplash.com/photo-1528459801416-a9e53bbf4e17?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80')`, // Elegant floral/leaf pattern
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                    mixBlendMode: 'multiply'
+                }}
+            ></div>
 
             {/* Progress Bar */}
-            <div className="bg-zinc-50 h-2 w-full">
+            <div className="bg-zinc-50 h-2 w-full relative z-10">
                 <div
                     className="h-full bg-[#D4AF37] transition-all duration-500 ease-out"
                     style={{ width: `${(step / 4) * 100}%` }}
