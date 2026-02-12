@@ -74,7 +74,7 @@ export default function Home() {
                             <p className="text-gray-400 text-sm">Verify guests via QR and print badges instantly.</p>
                         </Link>
 
-                        <Link href="/admin/tools/lucky-draw" className="group bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-indigo-100 transition-all hover:-translate-y-1">
+                        <Link href="/apps/lucky-draw" className="group bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-indigo-100 transition-all hover:-translate-y-1">
                             <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
                                 <i className="fa-solid fa-gamepad"></i>
                             </div>
