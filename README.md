@@ -1,5 +1,42 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## 🚀 ZTO Arena: Professional Sport Hub (Commercial Edition)
+
+**Status:** Live ✅  
+**Version:** 1.0.0 (ZTO Commercial Flagship)  
+**Date:** 2026-02-13
+
+## 🏆 Overview
+ZTO Arena is a professional sports management module integrated into Event-OS. It features autonomous tournament management, real-time scoreboards, and broadcast-quality visual effects.
+
+### ✨ Key Features
+- **Branding:** Gold/Black Premium Aesthetics with "ZTO ARENA" dynamic header.
+- **Display Engine:** `/display/sports` - Multi-court grid, Auto-Portrait Mode for Finals, Winner Reveal Celebration.
+- **Referee Console:** `/admin/sports` - Mobile-first virtual court interface, Realtime score updates.
+- **Core Rules:** Supports Badminton (21pts) & Pickleball scoring logic.
+- **Commercial:** Sponsor Ad slots (Video/Image) & QR Code integration (ready).
+
+## 🛠 Setup & Migration
+To activate the storage and database for ZTO Arena:
+
+1.  **Database Migration:**
+    Apply the new schema to your Supabase project:
+    ```bash
+    npx supabase db reset # CAUTION: Resets DB
+    # OR apply manually using content from: 
+    # supabase/schema_sports.sql
+    ```
+2.  **Environment:**
+    Ensure `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are set in `.env.local`.
+
+## 📱 Routes
+- **Public Display:** [http://localhost:3000/display/sports](http://localhost:3000/display/sports)
+- **Admin Console:** [http://localhost:3000/admin/sports](http://localhost:3000/admin/sports)
+
+---
+
+# Event-OS
+
 ## Getting Started
 
 First, run the development server:

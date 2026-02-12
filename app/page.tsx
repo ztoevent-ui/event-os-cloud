@@ -89,6 +89,15 @@ export default function Home() {
                             <h3 className="font-bold text-lg text-gray-900 mb-2">Consultations</h3>
                             <p className="text-gray-400 text-sm">View all submitted consultation forms and AI summaries.</p>
                         </Link>
+
+                        <Link href="/admin/sports" className="group bg-zinc-900 text-white p-6 rounded-2xl shadow-lg border border-yellow-600/30 hover:shadow-2xl hover:border-yellow-500 transition-all hover:-translate-y-1 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-yellow-500/20 to-transparent rounded-bl-full"></div>
+                            <div className="w-12 h-12 bg-yellow-400/10 text-yellow-400 rounded-xl flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform border border-yellow-400/20">
+                                <i className="fa-solid fa-medal animate-bounce"></i>
+                            </div>
+                            <h3 className="font-bold text-lg text-yellow-500 mb-2">ZTO Arena <span className="text-xs bg-yellow-500 text-black px-1.5 py-0.5 rounded ml-1 font-black">NEW</span></h3>
+                            <p className="text-gray-400 text-sm">Professional Tournament Referee Console.</p>
+                        </Link>
                     </div>
                 </section>
 
@@ -152,6 +161,11 @@ export default function Home() {
                         <Link href="/display/layout/demo" className="block text-center bg-gray-900 p-4 rounded-xl hover:bg-gray-800 transition text-white">
                             <i className="fa-solid fa-layer-group text-2xl mb-2 text-blue-400"></i>
                             <div className="font-bold text-sm">3D Layout Viewer</div>
+                        </Link>
+
+                        <Link href="/display/sports" className="block text-center bg-zinc-900 p-4 rounded-xl hover:bg-black transition text-white border border-yellow-600/50 shadow-[0_0_15px_rgba(212,175,55,0.2)]">
+                            <i className="fa-solid fa-trophy text-2xl mb-2 text-yellow-500 animate-pulse"></i>
+                            <div className="font-bold text-sm text-yellow-500">ZTO Arena Live</div>
                         </Link>
                     </div>
                 </section>
