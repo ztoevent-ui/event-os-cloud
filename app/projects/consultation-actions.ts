@@ -9,18 +9,45 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-/*
-Simplified AI Logic for now.
-Ideally, this should call an API route where you have the Gemini API key securely stored.
-For this MVP, we will simulate the summary or use a basic string manipulation.
-*/
-async function generateAiSummary(loveStory: string, notes: string) {
-    // Placeholder for actual Gemini API call
-    // const prompt = `Summarize this client profile in under 100 words based on their love story: "${loveStory}" and notes: "${notes}".`;
-    // const summary = await gemini.generate(prompt);
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-    const combined = `${loveStory} ${notes}`;
-    return "New client inquiry. " + combined.slice(0, 80) + "...";
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+
+/*
+ * Generates a concise client profile summary using Gemini AI.
+ * Focuses on extracting key themes, style preferences, and important logistical constraints.
+ */
+async function generateAiSummary(loveStory: string, notes: string) {
+    if (!process.env.GEMINI_API_KEY) {
+        console.warn("GEMINI_API_KEY is not set. Returning mock summary.");
+        return "AI Summary unavailable (API Key missing). Setup GEMINI_API_KEY in .env";
+    }
+
+    try {
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+        const prompt = `
+        You are an expert wedding planner assistant. 
+        Summarize the following couple's story and notes into a professional, 
+        concise client profile (max 80 words).
+        
+        Focus on:
+        1. The Vibe/Theme derived from their story.
+        2. Key priorities or specific constraints from notes.
+        3. Emotional tone.
+
+        Love Story: "${loveStory}"
+        Important Notes: "${notes}"
+        
+        Summary:`;
+
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        return response.text();
+    } catch (error) {
+        console.error("Gemini API Error:", error);
+        return "AI Summary generation failed. Please review notes manually.";
+    }
 }
 
 
