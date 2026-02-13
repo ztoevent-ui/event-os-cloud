@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { ZTOHeader } from '@/components/sports/ZTOHeader';
 import { MatchCard } from '@/components/sports/MatchCard';
 import { useSportsState } from '@/lib/sports/useSportsState';
@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 import { useSearchParams } from 'next/navigation';
 
-export default function SportsDisplayPage() {
+function SportsDisplayContent() {
     const searchParams = useSearchParams();
     const tournamentId = searchParams.get('id');
 
@@ -47,7 +47,16 @@ export default function SportsDisplayPage() {
     }, [activeMatches.length, isTop4]);
 
     // Commercial Break Logic derived from Active Ads
-    const activeFullscreenAd = ads.find(a => a.is_active && a.display_location === 'fullscreen');
+    // Commercial Break Logic
+    // Support Playlist: Multiple active ads rotate
+    const activeFullscreenAds = ads.filter(a => a.is_active && a.display_location === 'fullscreen');
+    const [currentPlaylistIndex, setCurrentPlaylistIndex] = useState(0);
+
+    // Derived current ad (preserves existing variable name for compatibility)
+    const activeFullscreenAd = activeFullscreenAds.length > 0
+        ? activeFullscreenAds[currentPlaylistIndex % activeFullscreenAds.length]
+        : undefined;
+
     const playerRef = React.useRef<any>(null);
 
     // Initialize YouTube API always
@@ -64,15 +73,17 @@ export default function SportsDisplayPage() {
     const [manualAdBreak, setManualAdBreak] = useState(false);
     const [hiddenLocally, setHiddenLocally] = useState(false); // New: Force close state
 
-    const showAdOverlay = (activeFullscreenAd || manualAdBreak) && !hiddenLocally;
+    const showAdOverlay = (activeFullscreenAds.length > 0 || manualAdBreak) && !hiddenLocally;
     const adToDisplay = activeFullscreenAd || { type: 'video', url: 'https://www.youtube.com/watch?v=t7xDdQ0fxUI', duration: 30 }; // Fallback Demo Ad
 
     useEffect(() => {
         // Reset local hide when admin status changes (new ad starts)
-        if (activeFullscreenAd) {
+        if (activeFullscreenAds.length > 0) {
             setHiddenLocally(false);
+            // Reset index if only 1 ad or new set
+            if (activeFullscreenAds.length === 1) setCurrentPlaylistIndex(0);
         }
-    }, [activeFullscreenAd]);
+    }, [activeFullscreenAds.length]);
 
     useEffect(() => {
         const handleKeyPress = (e: KeyboardEvent) => {
@@ -155,10 +166,16 @@ export default function SportsDisplayPage() {
                             const playerState = event.data;
                             const YT = (window as any).YT;
 
-                            // ENDED -> Loop
+                            // ENDED -> Playlist Increment or Loop
                             if (playerState === YT.PlayerState.ENDED) {
-                                event.target.seekTo(0);
-                                event.target.playVideo();
+                                if (activeFullscreenAds.length > 1) {
+                                    // Move to next ad in playlist
+                                    setCurrentPlaylistIndex(prev => (prev + 1) % activeFullscreenAds.length);
+                                } else {
+                                    // Only 1 ad? Loop it.
+                                    event.target.seekTo(0);
+                                    event.target.playVideo();
+                                }
                             }
 
                             // PAUSED -> Force Play (Fix for unexpected pausing)
@@ -336,5 +353,13 @@ export default function SportsDisplayPage() {
                 )}
             </AnimatePresence>
         </main>
+    );
+}
+
+export default function SportsDisplayPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen bg-black text-white flex items-center justify-center">Loading Experience...</div>}>
+            <SportsDisplayContent />
+        </Suspense>
     );
 }
