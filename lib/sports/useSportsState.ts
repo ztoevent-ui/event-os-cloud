@@ -316,5 +316,37 @@ export function useSportsState(targetTournamentId?: string | null) {
         fetchData();
     };
 
-    return { matches, players, tournament, allTournaments, switchTournament, ads, loading, updateScore, refresh: fetchData, createTournament, endCurrentTournament, addAd, deleteAd, toggleAd };
+    const createMatch = async (matchData: Partial<Match>) => {
+        if (!tournament) return;
+
+        // Defaults
+        const newMatch = {
+            ...matchData,
+            tournament_id: tournament.id,
+            status: 'ongoing',
+            current_score_p1: 0,
+            current_score_p2: 0,
+            sets_p1: 0,
+            sets_p2: 0,
+            is_paused: false,
+            timer_seconds: tournament.type === 'basketball' ? 720 : (tournament.type === 'football' ? 0 : undefined),
+            current_period: 1
+        };
+
+        const { error } = await supabase.from('matches').insert(newMatch);
+        if (error) {
+            console.error("Error creating match", error);
+            alert("Failed to create match");
+        } else {
+            fetchData();
+        }
+    };
+
+    const deleteMatch = async (matchId: string) => {
+        const { error } = await supabase.from('matches').delete().eq('id', matchId);
+        if (error) console.error("Error deleting match", error);
+        else fetchData();
+    };
+
+    return { matches, players, tournament, allTournaments, switchTournament, ads, loading, updateScore, refresh: fetchData, createTournament, endCurrentTournament, addAd, deleteAd, toggleAd, createMatch, deleteMatch };
 }

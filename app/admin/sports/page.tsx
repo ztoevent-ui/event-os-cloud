@@ -71,10 +71,11 @@ const CATEGORIES = [
 ];
 
 export default function SportsAdminPage() {
-    const { matches, players, tournament, allTournaments, switchTournament, loading, updateScore, createTournament, endCurrentTournament, ads, addAd, deleteAd, toggleAd } = useSportsState();
+    const { matches, players, tournament, allTournaments, switchTournament, loading, updateScore, createTournament, endCurrentTournament, ads, addAd, deleteAd, toggleAd, createMatch, deleteMatch } = useSportsState();
     const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
     const [isCreatingNew, setIsCreatingNew] = useState(false);
     const [showAdManager, setShowAdManager] = useState(false);
+    const [showMatchMaker, setShowMatchMaker] = useState(false);
 
     // Wizard State
     const [configResult, setConfigResult] = useState<{ sport: string } | null>(null);
@@ -114,12 +115,7 @@ export default function SportsAdminPage() {
             const lines = raw.split('\n').filter(l => l.trim().length > 0);
 
             lines.forEach((line, idx) => {
-                // Heuristic: If line contains "/", split it as players. Else single player.
-                // Or if it's doubles category.
-                // Simple version: Treat entire line as "Team Name" or "Name"
-                // For better usage, user inputs: "Player A / Player B" for doubles.
                 const ps = line.includes('/') ? line.split('/').map(s => s.trim()) : [line.trim()];
-
                 teams.push({
                     name: line.trim(),
                     category: catId,
@@ -266,10 +262,7 @@ export default function SportsAdminPage() {
                                             return (
                                                 <button
                                                     key={catId}
-                                                    // Use simple active state tracking if needed, or just let user click. 
-                                                    // For implementation simplicity, we iterate all. 
-                                                    // Let's implement active tab state for input.
-                                                    onClick={() => { /* This is complex for tab switching in simple map. Let's maintain active tab state */ }}
+                                                    onClick={() => { /* Tabs handled locally in RosterInput for now */ }}
                                                     className="px-4 py-2 font-bold text-sm text-gray-700 bg-gray-100 rounded-t-lg hover:bg-gray-200 border border-transparent focus:bg-white focus:border-gray-300 focus:border-b-white focus:mb-[-1px] relative z-10"
                                                 >
                                                     {catName}
@@ -305,7 +298,7 @@ export default function SportsAdminPage() {
             );
         }
 
-        // Mode B: Sport Selection (Modified to just create context)
+        // Mode B: Sport Selection
         return (
             <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-8 relative">
                 {allTournaments.length > 0 && (
@@ -348,6 +341,8 @@ export default function SportsAdminPage() {
     }
 
     // --- VIEW 2: ACTIVE TOURNAMENT DASHBOARD ---
+    if (!tournament) return null; // Safe guard
+
     return (
         <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
             <header className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center sticky top-0 z-10">
@@ -385,9 +380,14 @@ export default function SportsAdminPage() {
                     </div>
                 </div>
 
-
-
                 <div className="flex gap-4">
+                    <button
+                        onClick={() => setShowMatchMaker(true)}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2 shadow-sm"
+                    >
+                        <i className="fa-solid fa-plus"></i> New Match
+                    </button>
+
                     <button
                         onClick={() => setShowAdManager(true)}
                         className="bg-purple-100 hover:bg-purple-200 text-purple-800 px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2"
@@ -403,7 +403,7 @@ export default function SportsAdminPage() {
                             Back to List
                         </button>
                     )}
-                    <div className="w-8 h-8 rounded-full bg-yellow-400 text-yellow-900 border border-yellow-500 flex items-center justify-center font-bold">R</div>
+                    <div className="w-8 h-8 rounded-full bg-yellow-400 text-yellow-900 border border-yellow-500 flex items-center justify-center font-bold" title="Reset/End">!</div>
                     <button
                         onClick={() => {
                             if (confirm('Are you sure you want to end this tournament?')) endCurrentTournament();
@@ -431,25 +431,35 @@ export default function SportsAdminPage() {
                         {matches.map(m => (
                             <div
                                 key={m.id}
-                                onClick={() => setSelectedMatch(m)}
-                                className="bg-white p-6 rounded-xl border border-gray-200 hover:shadow-lg transition cursor-pointer group"
+                                className="bg-white p-6 rounded-xl border border-gray-200 hover:shadow-lg transition group relative"
                             >
-                                <div className="flex justify-between items-center mb-4">
-                                    <span className="font-bold text-gray-500 uppercase text-xs tracking-wider">{m.court_id}</span>
-                                    <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${m.status === 'ongoing' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                                        {m.status}
-                                    </span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <div className="flex flex-col gap-1">
-                                        <div className="font-bold text-gray-800">{players[m.player1_id || '']?.name || 'TBD'}</div>
-                                        <div className="font-bold text-gray-800">{players[m.player2_id || '']?.name || 'TBD'}</div>
+                                <div onClick={() => setSelectedMatch(m)} className="cursor-pointer">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <span className="font-bold text-gray-500 uppercase text-xs tracking-wider">{m.court_id}</span>
+                                        <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${m.status === 'ongoing' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                                            {m.status}
+                                        </span>
                                     </div>
-                                    <div className="flex flex-col gap-1 text-right">
-                                        <div className="font-mono font-bold text-2xl text-blue-600">{m.current_score_p1}</div>
-                                        <div className="font-mono font-bold text-2xl text-red-600">{m.current_score_p2}</div>
+                                    <div className="flex justify-between items-center">
+                                        <div className="flex flex-col gap-1">
+                                            <div className="font-bold text-gray-800">{players[m.player1_id || '']?.name || 'TBD'}</div>
+                                            <div className="font-bold text-gray-800">{players[m.player2_id || '']?.name || 'TBD'}</div>
+                                        </div>
+                                        <div className="flex flex-col gap-1 text-right">
+                                            <div className="font-mono font-bold text-2xl text-blue-600">{m.current_score_p1}</div>
+                                            <div className="font-mono font-bold text-2xl text-red-600">{m.current_score_p2}</div>
+                                        </div>
                                     </div>
                                 </div>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (confirm('Delete this match?')) deleteMatch(m.id);
+                                    }}
+                                    className="absolute top-4 right-4 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"
+                                >
+                                    <i className="fa-solid fa-trash"></i>
+                                </button>
                             </div>
                         ))}
 
@@ -460,7 +470,10 @@ export default function SportsAdminPage() {
                                 <p className="text-gray-400 max-w-sm mx-auto mt-2">
                                     Use the 'Match Maker' to create matchups from your registered roster of {tournament.config.teams?.length || 0} teams.
                                 </p>
-                                <button className="mt-6 px-6 py-2 bg-indigo-600 text-white rounded-lg font-bold shadow hover:bg-indigo-700">
+                                <button
+                                    onClick={() => setShowMatchMaker(true)}
+                                    className="mt-6 px-6 py-2 bg-indigo-600 text-white rounded-lg font-bold shadow hover:bg-indigo-700"
+                                >
                                     Open Match Maker
                                 </button>
                             </div>
@@ -489,7 +502,113 @@ export default function SportsAdminPage() {
                     </div>
                 )
             }
+
+            {/* MATCH MAKER MODAL */}
+            {
+                showMatchMaker && (
+                    <MatchMaker
+                        players={players}
+                        tournament={tournament}
+                        onClose={() => setShowMatchMaker(false)}
+                        onCreate={createMatch}
+                    />
+                )
+            }
         </div >
+    );
+}
+
+// MATCH MAKER COMPONENT
+function MatchMaker({ players, tournament, onClose, onCreate }: any) {
+    const playerList = Object.values(players);
+    const [p1, setP1] = useState('');
+    const [p2, setP2] = useState('');
+    const [court, setCourt] = useState('Court 1');
+    const [round, setRound] = useState('Round 1');
+
+    const handleSubmit = () => {
+        if (!p1 || !p2) return alert("Select 2 players");
+        onCreate({
+            player1_id: p1,
+            player2_id: p2,
+            court_id: court,
+            round_name: round,
+            tournament_id: tournament.id
+        });
+        onClose();
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up">
+                <div className="bg-indigo-900 p-6 flex justify-between items-center text-white">
+                    <h3 className="font-bold text-xl uppercase tracking-wider">Match Maker</h3>
+                    <button onClick={onClose} className="text-white/40 hover:text-white"><i className="fa-solid fa-xmark text-xl"></i></button>
+                </div>
+
+                <div className="p-6 space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Player 1</label>
+                            <select
+                                className="w-full border border-gray-300 rounded-lg p-3 font-bold text-gray-800 outline-none focus:ring-2 focus:ring-indigo-500"
+                                value={p1}
+                                onChange={e => setP1(e.target.value)}
+                            >
+                                <option value="">Select Player</option>
+                                {playerList.map((p: any) => (
+                                    <option key={p.id} value={p.id}>{p.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Player 2</label>
+                            <select
+                                className="w-full border border-gray-300 rounded-lg p-3 font-bold text-gray-800 outline-none focus:ring-2 focus:ring-indigo-500"
+                                value={p2}
+                                onChange={e => setP2(e.target.value)}
+                            >
+                                <option value="">Select Player</option>
+                                {playerList.map((p: any) => (
+                                    <option key={p.id} value={p.id} disabled={p.id === p1}>{p.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Court</label>
+                            <input
+                                className="w-full border border-gray-300 rounded-lg p-3 font-bold text-gray-800 outline-none focus:ring-2 focus:ring-indigo-500"
+                                value={court}
+                                onChange={e => setCourt(e.target.value)}
+                                placeholder="e.g. Court 1"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Round</label>
+                            <input
+                                className="w-full border border-gray-300 rounded-lg p-3 font-bold text-gray-800 outline-none focus:ring-2 focus:ring-indigo-500"
+                                value={round}
+                                onChange={e => setRound(e.target.value)}
+                                placeholder="e.g. Final"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="p-6 bg-gray-50 border-t border-gray-100 flex justify-end">
+                    <button
+                        onClick={handleSubmit}
+                        disabled={!p1 || !p2}
+                        className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl font-bold uppercase tracking-wider shadow-lg shadow-indigo-500/30 transition"
+                    >
+                        Create Match
+                    </button>
+                </div>
+            </div>
+        </div>
     );
 }
 
