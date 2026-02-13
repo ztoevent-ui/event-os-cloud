@@ -95,6 +95,10 @@ function SportsDisplayContent() {
                 if (showAdOverlay) {
                     setHiddenLocally(true);
                     setManualAdBreak(false);
+                    // Advance playlist when manually closing so next time it's fresh
+                    if (activeFullscreenAds.length > 1) {
+                        setCurrentPlaylistIndex(prev => (prev + 1) % activeFullscreenAds.length);
+                    }
                 } else {
                     setManualAdBreak(true);
                     setHiddenLocally(false);
@@ -203,7 +207,7 @@ function SportsDisplayContent() {
                 }
             };
         }
-    }, [showAdOverlay, adToDisplay]);
+    }, [showAdOverlay, adToDisplay.url]);
 
     if (loading) {
         return (
@@ -314,18 +318,32 @@ function SportsDisplayContent() {
                     >
 
 
+
+                        {/* UNIVERSAL CLOSE BUTTON */}
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                // Force Close Logic
+                                setHiddenLocally(true);
+                                setManualAdBreak(false);
+                                if (activeFullscreenAds.length > 1) {
+                                    setCurrentPlaylistIndex(prev => (prev + 1) % activeFullscreenAds.length);
+                                }
+                            }}
+                            className="absolute top-8 left-8 z-[1001] bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-full font-bold uppercase text-sm shadow-lg hover:scale-105 transition flex items-center gap-2"
+                        >
+                            <i className="fa-solid fa-xmark"></i> Close (Press B)
+                        </button>
+
                         {/* Sound Hint */}
                         <div className="absolute bottom-12 left-1/2 -translate-x-1/2 text-white/50 text-sm animate-pulse pointer-events-none z-[1001] bg-black/30 px-4 py-2 rounded-full backdrop-blur-sm">
                             Click or press 'M' to toggle sound
                         </div>
 
-
-
-
                         {/* Dynamic Content: YouTube OR Image OR Direct Video */}
                         {adToDisplay.type === 'video' ? (
                             adToDisplay.url.includes('youtu') ? (
-                                <div className="relative w-full h-full max-w-none max-h-none bg-black overflow-hidden flex items-center justify-center">
+                                <div key={adToDisplay.url} className="relative w-full h-full max-w-none max-h-none bg-black overflow-hidden flex items-center justify-center">
                                     <div id="youtube-player" className="absolute top-1/2 left-1/2 w-[110vw] h-[110vh] -translate-x-1/2 -translate-y-1/2 pointer-events-none border-none scale-100" />
                                 </div>
                             ) : (
