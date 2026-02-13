@@ -7,10 +7,17 @@ import { useSportsState } from '@/lib/sports/useSportsState';
 import { WinnerReveal } from '@/components/sports/WinnerReveal';
 import { motion, AnimatePresence } from 'framer-motion';
 
+import { useSearchParams } from 'next/navigation';
+
 export default function SportsDisplayPage() {
-    const { matches, players, tournament, ads, loading } = useSportsState();
+    const searchParams = useSearchParams();
+    const tournamentId = searchParams.get('id');
+
+    const { matches, players, tournament, allTournaments, switchTournament, ads, loading } = useSportsState(tournamentId); // Pass ID to hook
     const [viewMode, setViewMode] = useState<'grid' | 'portrait'>('grid');
     const [currentAdIndex, setCurrentAdIndex] = useState(0);
+    // No more local selector needed if we rely on URL, but we can keep a fallback if no ID provided.
+    const [showSelector, setShowSelector] = useState(!tournamentId);
 
     // Filter active matches
     const activeMatches = matches.filter(m => m.status === 'ongoing' || m.status === 'scheduled');
@@ -39,104 +46,147 @@ export default function SportsDisplayPage() {
         }
     }, [activeMatches.length, isTop4]);
 
-    // Commercial Break Toggle
-    const [isCommercialBreak, setIsCommercialBreak] = useState(true);
+    // Commercial Break Logic derived from Active Ads
+    const activeFullscreenAd = ads.find(a => a.is_active && a.display_location === 'fullscreen');
     const playerRef = React.useRef<any>(null);
 
-    // Initialize YouTube API
+    // Initialize YouTube API always
     useEffect(() => {
-        const tag = document.createElement('script');
-        tag.src = "https://www.youtube.com/iframe_api";
-        const firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
-
-        (window as any).onYouTubeIframeAPIReady = () => {
-            console.log('YT API Ready');
-        };
+        if (!(window as any).YT) {
+            const tag = document.createElement('script');
+            tag.src = "https://www.youtube.com/iframe_api";
+            const firstScriptTag = document.getElementsByTagName('script')[0];
+            firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+        }
     }, []);
 
-    // Handle Volume Fading
-    const fadeAudio = (targetVolume: number, duration: number, callback?: () => void) => {
-        if (!playerRef.current || typeof playerRef.current.getVolume !== 'function') {
-            callback?.();
-            return;
+    // Also support manual override via 'B' key for local testing or emergency
+    const [manualAdBreak, setManualAdBreak] = useState(false);
+    const [hiddenLocally, setHiddenLocally] = useState(false); // New: Force close state
+
+    const showAdOverlay = (activeFullscreenAd || manualAdBreak) && !hiddenLocally;
+    const adToDisplay = activeFullscreenAd || { type: 'video', url: 'https://www.youtube.com/watch?v=t7xDdQ0fxUI', duration: 30 }; // Fallback Demo Ad
+
+    useEffect(() => {
+        // Reset local hide when admin status changes (new ad starts)
+        if (activeFullscreenAd) {
+            setHiddenLocally(false);
         }
-
-        const startVolume = playerRef.current.getVolume();
-        const steps = 20;
-        const stepTime = duration / steps;
-        const volumeStep = (targetVolume - startVolume) / steps;
-
-        let currentStep = 0;
-        const interval = setInterval(() => {
-            currentStep++;
-            const newVolume = startVolume + (volumeStep * currentStep);
-            playerRef.current.setVolume(Math.max(0, Math.min(100, newVolume)));
-
-            if (currentStep >= steps) {
-                clearInterval(interval);
-                callback?.();
-            }
-        }, stepTime);
-    };
-
-    const toggleAdBreak = () => {
-        if (isCommercialBreak) {
-            // Fade out then close - Sped up to 500ms
-            fadeAudio(0, 500, () => setIsCommercialBreak(false));
-        } else {
-            setIsCommercialBreak(true);
-        }
-    };
+    }, [activeFullscreenAd]);
 
     useEffect(() => {
         const handleKeyPress = (e: KeyboardEvent) => {
-            if (e.key.toLowerCase() === 'b') toggleAdBreak();
+            const key = e.key.toLowerCase();
+
+            if (key === 'b') {
+                console.log('User pressed B');
+                // Intelligent Toggle
+                if (showAdOverlay) {
+                    setHiddenLocally(true);
+                    setManualAdBreak(false);
+                } else {
+                    setManualAdBreak(true);
+                    setHiddenLocally(false);
+                }
+            }
+
+            if (key === 'm') {
+                console.log('User pressed M');
+                if (playerRef.current && typeof playerRef.current.isMuted === 'function') {
+                    if (playerRef.current.isMuted()) {
+                        playerRef.current.unMute();
+                    } else {
+                        playerRef.current.mute();
+                    }
+                }
+            }
         };
         window.addEventListener('keydown', handleKeyPress);
         return () => window.removeEventListener('keydown', handleKeyPress);
-    }, [isCommercialBreak]);
+    }, [showAdOverlay]); // Depend on current state
 
-    // Setup Player when overlay mounts
+    // ... (rest of Youtube logic uses showAdOverlay) ...
+
+    // ... (Inside Return JSX) ...
+    // Setup YouTube Player when overlay mounts
     useEffect(() => {
-        if (isCommercialBreak && (window as any).YT) {
+        if (showAdOverlay && adToDisplay.type === 'video' && (adToDisplay.url.includes('youtu'))) {
+
+            // EXTRACT VIDEO ID - Robust Logic
+            let videoId = 't7xDdQ0fxUI';
+            const url = adToDisplay.url;
+
+            if (url.includes('youtu.be/')) {
+                videoId = url.split('youtu.be/')[1]?.split('?')[0];
+            } else if (url.includes('v=')) {
+                videoId = url.split('v=')[1]?.split('&')[0];
+            } else if (url.includes('/embed/')) {
+                videoId = url.split('/embed/')[1]?.split('?')[0];
+            }
+
+            // Fallback for clean ID
+            if (!videoId || videoId.length < 5) videoId = 't7xDdQ0fxUI';
+
             const initPlayer = () => {
+                if (!(window as any).YT) return; // Wait for API
+
+                if (playerRef.current) {
+                    try { playerRef.current.destroy(); } catch (e) { /* ignore */ }
+                }
+
                 playerRef.current = new (window as any).YT.Player('youtube-player', {
-                    videoId: 't7xDdQ0fxUI',
+                    videoId: videoId,
                     playerVars: {
                         autoplay: 1,
                         controls: 0,
-                        mute: 0,
-                        loop: 1,
-                        playlist: 't7xDdQ0fxUI',
+                        mute: 1, // Start muted to allow autoplay
                         showinfo: 0,
                         rel: 0,
-                        iv_load_policy: 3
+                        iv_load_policy: 3,
+                        modestbranding: 1
                     },
                     events: {
                         onReady: (event: any) => {
-                            event.target.setVolume(0);
                             event.target.playVideo();
-                            // Smooth fade in - Sped up to 1000ms
-                            setTimeout(() => fadeAudio(100, 1000), 500);
+                            // REMOVED auto-unmute: This trigger browser autoplay block policies which pause the video.
+                            // The video will play MUTED. To get sound, the user must interact with the page once.
                         },
                         onStateChange: (event: any) => {
-                            if (event.data === (window as any).YT.PlayerState.ENDED) {
-                                event.target.playVideo(); // Force loop
+                            const playerState = event.data;
+                            const YT = (window as any).YT;
+
+                            // ENDED -> Loop
+                            if (playerState === YT.PlayerState.ENDED) {
+                                event.target.seekTo(0);
+                                event.target.playVideo();
+                            }
+
+                            // PAUSED -> Force Play (Fix for unexpected pausing)
+                            if (playerState === YT.PlayerState.PAUSED) {
+                                console.log('Video paused unexpectedly - forcing play');
+                                event.target.playVideo();
                             }
                         }
                     }
                 });
             };
 
-            // Small delay to ensure div is in DOM
-            const timeout = setTimeout(initPlayer, 100);
+            // Poll for API ready
+            const checkAPI = setInterval(() => {
+                if ((window as any).YT && (window as any).YT.Player) {
+                    clearInterval(checkAPI);
+                    initPlayer();
+                }
+            }, 100);
+
             return () => {
-                clearTimeout(timeout);
-                if (playerRef.current) playerRef.current.destroy();
+                clearInterval(checkAPI);
+                if (playerRef.current) {
+                    try { playerRef.current.destroy(); } catch (e) { /* ignore */ }
+                }
             };
         }
-    }, [isCommercialBreak]);
+    }, [showAdOverlay, adToDisplay]);
 
     if (loading) {
         return (
@@ -146,11 +196,41 @@ export default function SportsDisplayPage() {
         );
     }
 
-    if (!tournament) {
+    if (!tournament || showSelector) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-screen bg-zto-dark text-white p-8">
-                <h1 className="text-4xl font-bold text-zto-gold mb-4">No Active Tournament</h1>
-                <p className="text-white/60">Please create a tournament in the Admin Console.</p>
+            <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white p-8 relative overflow-hidden">
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-indigo-900/40 via-black to-black"></div>
+
+                <div className="relative z-10 max-w-4xl w-full text-center">
+                    <h1 className="text-5xl font-black text-white mb-2 tracking-tighter uppercase">Live Events</h1>
+                    <p className="text-white/40 mb-12 text-lg">Select a broadcast to display</p>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {allTournaments.map(t => (
+                            <button
+                                key={t.id}
+                                onClick={() => {
+                                    // Navigate to URL with ID
+                                    window.location.href = `/display/sports?id=${t.id}`;
+                                }}
+                                className="group bg-white/5 hover:bg-white/10 border border-white/10 hover:border-indigo-500/50 p-6 rounded-2xl transition-all duration-300 backdrop-blur-sm text-left relative overflow-hidden"
+                            >
+                                <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500 opacity-0 group-hover:opacity-100 transition"></div>
+                                <h3 className="font-bold text-xl mb-2 group-hover:text-indigo-400 transition">{t.name}</h3>
+                                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-white/40">
+                                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                                    {t.type}
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+
+                    {allTournaments.length === 0 && (
+                        <div className="p-8 border border-white/10 rounded-xl bg-white/5 text-white/40">
+                            No active broadcasts found. Check Admin Console.
+                        </div>
+                    )}
+                </div>
             </div>
         );
     }
@@ -188,6 +268,7 @@ export default function SportsDisplayPage() {
                                         p1={players[match.player1_id || '']}
                                         p2={players[match.player2_id || '']}
                                         activeAd={ads[currentAdIndex]}
+                                        sportType={tournament.type}
                                     />
                                 </div>
                             ))}
@@ -198,19 +279,58 @@ export default function SportsDisplayPage() {
 
             {/* --- FULL SCREEN COMMERCIAL BREAK OVERLAY --- */}
             <AnimatePresence>
-                {isCommercialBreak && (
+                {showAdOverlay && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] bg-black flex items-center justify-center"
+                        className="fixed inset-0 z-[100] bg-black flex items-center justify-center cursor-pointer"
+                        onClick={() => {
+                            // User Interaction enables sound AND ensures focus for 'B' key
+                            window.focus();
+                            if (playerRef.current && typeof playerRef.current.unMute === 'function') {
+                                playerRef.current.unMute();
+                                playerRef.current.setVolume(100);
+                                console.log('User clicked - Unmuting');
+                            }
+                        }}
                     >
-                        {/* YouTube IFrame API Container */}
-                        <div className="relative w-full h-full max-w-none max-h-none bg-black overflow-hidden">
-                            <div
-                                id="youtube-player"
-                                className="absolute top-1/2 left-1/2 w-[110vw] h-[110vh] -translate-x-1/2 -translate-y-1/2 pointer-events-none border-none scale-100"
-                            ></div>
+
+
+                        {/* Sound Hint */}
+                        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 text-white/50 text-sm animate-pulse pointer-events-none z-[1001] bg-black/30 px-4 py-2 rounded-full backdrop-blur-sm">
+                            Click or press 'M' to toggle sound
+                        </div>
+
+
+
+
+                        {/* Dynamic Content: YouTube OR Image OR Direct Video */}
+                        {adToDisplay.type === 'video' ? (
+                            adToDisplay.url.includes('youtu') ? (
+                                <div className="relative w-full h-full max-w-none max-h-none bg-black overflow-hidden flex items-center justify-center">
+                                    <div id="youtube-player" className="absolute top-1/2 left-1/2 w-[110vw] h-[110vh] -translate-x-1/2 -translate-y-1/2 pointer-events-none border-none scale-100" />
+                                </div>
+                            ) : (
+                                <video
+                                    src={adToDisplay.url}
+                                    autoPlay
+                                    loop
+                                    muted={false}
+                                    className="w-full h-full object-cover"
+                                />
+                            )
+                        ) : (
+                            <img
+                                src={adToDisplay.url}
+                                className="w-full h-full object-contain bg-black"
+                                alt="Commercial"
+                            />
+                        )}
+
+                        {/* Overlay Label */}
+                        <div className="absolute top-8 right-8 bg-black/50 backdrop-blur text-white px-4 py-2 rounded-full text-xs font-bold border border-white/10 uppercase tracking-widest">
+                            Ad Break • {adToDisplay.duration}s
                         </div>
                     </motion.div>
                 )}
