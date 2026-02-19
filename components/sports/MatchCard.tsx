@@ -15,6 +15,7 @@ interface MatchCardProps {
     logoUrl?: string; // NEW
     bgUrl?: string; // NEW
     now: Date;
+    isGrid?: boolean;
 }
 
 export function MatchCard(props: MatchCardProps) {

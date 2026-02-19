@@ -85,10 +85,51 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
         onUpdateScore({ serving_player_id: match.serving_player_id === p1?.id ? p2?.id : p1?.id });
     };
 
+    // --- Fullscreen Logic ---
+    const [isFullscreen, setIsFullscreen] = React.useState(false);
+
+    const toggleFullscreen = () => {
+        const elem = document.getElementById('admin-court-container');
+        if (!elem) return;
+
+        // 1. Try Native API
+        if (!document.fullscreenElement && !(document as any).webkitFullscreenElement) {
+            // Enter
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(() => setIsFullscreen(true)); // Fallback
+            } else if ((elem as any).webkitRequestFullscreen) {
+                (elem as any).webkitRequestFullscreen();
+            } else {
+                // Fallback for iOS Safari which doesn't allow div fullscreen
+                setIsFullscreen(true);
+            }
+        } else {
+            // Exit Native
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if ((document as any).webkitExitFullscreen) {
+                (document as any).webkitExitFullscreen();
+            }
+            setIsFullscreen(false);
+        }
+    };
+
+    // Auto-serving logic for net sports: Point winner becomes the server
+    // (Ensure this logic remains if it was outside)
+
     // --- NET SPORT LAYOUT (Responsive Court) ---
     if (isNetSport) {
         return (
-            <div id="admin-court-container" className={`w-full min-h-[calc(100vh-140px)] ${theme.bg} p-4 md:p-6 rounded-xl md:rounded-3xl shadow-2xl border border-white/10 flex flex-col transition-all duration-300`}>
+            <div
+                id="admin-court-container"
+                className={`
+                    w-full ${theme.bg} p-4 md:p-6 shadow-2xl border border-white/10 flex flex-col transition-all duration-300
+                    ${isFullscreen
+                        ? 'fixed inset-0 z-[9999] h-screen rounded-none'
+                        : 'min-h-[calc(100vh-140px)] rounded-xl md:rounded-3xl'
+                    }
+                `}
+            >
                 {/* Header (Responsive Grid) */}
                 <div className="flex flex-col lg:flex-row justify-between items-center mb-4 md:mb-8 gap-4">
                     <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 md:gap-8 w-full lg:w-auto">
@@ -113,20 +154,11 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
 
                     <div className="flex flex-wrap justify-center gap-2 md:gap-4 w-full lg:w-auto">
                         <button
-                            onClick={() => {
-                                const elem = document.getElementById('admin-court-container');
-                                if (!document.fullscreenElement) {
-                                    elem?.requestFullscreen().catch(err => {
-                                        console.error(`Error attempting to enable fullscreen: ${err.message}`);
-                                    });
-                                } else {
-                                    document.exitFullscreen();
-                                }
-                            }}
-                            className="w-10 h-10 flex items-center justify-center rounded-lg bg-white/10 text-white hover:bg-white/20 transition"
-                            title="Toggle Fullscreen"
+                            onClick={toggleFullscreen}
+                            className={`w-10 h-10 flex items-center justify-center rounded-lg ${isFullscreen ? 'bg-red-500 hover:bg-red-600' : 'bg-white/10 hover:bg-white/20'} text-white transition`}
+                            title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
                         >
-                            <i className="fa-solid fa-expand"></i>
+                            <i className={`fa-solid ${isFullscreen ? 'fa-compress' : 'fa-expand'}`}></i>
                         </button>
                         <button
                             onClick={() => {

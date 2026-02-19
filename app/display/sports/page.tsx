@@ -337,6 +337,7 @@ function SportsDisplayContent() {
                                         logoUrl={tournament.config?.logo_url}
                                         bgUrl={tournament.config?.bg_url}
                                         now={now}
+                                        isGrid={filteredMatches.length > 1}
                                     />
                                 </div>
                             ))}
@@ -432,6 +433,8 @@ function SportsDisplayContent() {
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.6 }}
                         className="fixed inset-0 z-[1000] bg-black overflow-hidden flex flex-col items-center justify-center text-white font-sans"
                         onClick={() => {
                             // User Interaction enables sound AND ensures focus for 'B' key
