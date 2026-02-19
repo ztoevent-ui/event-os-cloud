@@ -8,45 +8,73 @@ import { SPORTS_ASSETS } from '@/lib/sports/assets';
 
 // Asset Picker Component (Same as before)
 function AssetPicker({ onSelect, onClose }: { onSelect: (url: string) => void, onClose: () => void }) {
-    const [tab, setTab] = useState<'states' | 'football_clubs' | 'countries'>('states');
+    const [tab, setTab] = useState<'states' | 'football_clubs' | 'countries' | 'upload'>('states');
+    const [manualUrl, setManualUrl] = useState('');
 
     return (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
             <div className="bg-white w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
                 <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                    <h3 className="font-bold text-gray-800">Select Asset</h3>
+                    <h3 className="font-black text-gray-800 uppercase tracking-tighter">Select or Upload Asset</h3>
                     <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><i className="fa-solid fa-xmark"></i></button>
                 </div>
 
                 <div className="flex border-b border-gray-200">
                     {[
-                        { id: 'states', label: 'Malaysia States' },
-                        { id: 'football_clubs', label: 'MY Football' },
-                        { id: 'countries', label: 'International' },
+                        { id: 'states', label: 'States' },
+                        { id: 'football_clubs', label: 'Clubs' },
+                        { id: 'countries', label: 'Countries' },
+                        { id: 'upload', label: 'Upload / URL' },
                     ].map(t => (
                         <button
                             key={t.id}
                             onClick={() => setTab(t.id as any)}
-                            className={`flex-1 py-3 text-sm font-bold uppercase tracking-wide ${tab === t.id ? 'bg-white text-indigo-600 border-b-2 border-indigo-600' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'}`}
+                            className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest ${tab === t.id ? 'bg-white text-indigo-600 border-b-2 border-indigo-600' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'}`}
                         >
                             {t.label}
                         </button>
                     ))}
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-6 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4 bg-gray-50/50">
-                    {SPORTS_ASSETS[tab].map((asset, idx) => (
-                        <button
-                            key={idx}
-                            onClick={() => { onSelect(asset.url); onClose(); }}
-                            className="bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-indigo-200 transition group flex flex-col items-center gap-2"
-                        >
-                            <div className="w-16 h-12 flex items-center justify-center">
-                                <img src={asset.url} className="max-w-full max-h-full object-contain group-hover:scale-110 transition" alt={asset.name} />
+                <div className="flex-1 overflow-y-auto p-6 bg-gray-50/50">
+                    {tab === 'upload' ? (
+                        <div className="flex flex-col items-center justify-center h-64 gap-6">
+                            <i className="fa-solid fa-cloud-arrow-up text-5xl text-gray-200"></i>
+                            <div className="w-full max-w-md space-y-4">
+                                <div className="text-center">
+                                    <p className="text-sm font-bold text-gray-500 uppercase">Paste Custom Image URL</p>
+                                    <p className="text-[10px] text-gray-400">Upload to Imgur/Cloud then paste link here</p>
+                                </div>
+                                <input
+                                    className="w-full border-2 border-dashed border-gray-300 rounded-xl p-4 text-sm font-medium focus:border-indigo-500 outline-none"
+                                    placeholder="https://example.com/my-photo.png"
+                                    value={manualUrl}
+                                    onChange={e => setManualUrl(e.target.value)}
+                                />
+                                <button
+                                    onClick={() => { if (manualUrl) { onSelect(manualUrl); onClose(); } }}
+                                    className="w-full bg-indigo-600 text-white py-3 rounded-xl font-black uppercase tracking-widest shadow-lg shadow-indigo-600/20"
+                                >
+                                    Use This Image
+                                </button>
                             </div>
-                            <span className="text-[10px] font-bold text-center text-gray-600 leading-tight group-hover:text-indigo-600">{asset.name.replace('Flag of ', '')}</span>
-                        </button>
-                    ))}
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
+                            {SPORTS_ASSETS[tab].map((asset, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={() => { onSelect(asset.url); onClose(); }}
+                                    className="bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-indigo-200 transition group flex flex-col items-center gap-2"
+                                >
+                                    <div className="w-16 h-12 flex items-center justify-center">
+                                        <img src={asset.url} className="max-w-full max-h-full object-contain group-hover:scale-110 transition" alt={asset.name} />
+                                    </div>
+                                    <span className="text-[10px] font-bold text-center text-gray-600 leading-tight group-hover:text-indigo-600">{asset.name.replace('Flag of ', '')}</span>
+                                </button>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
@@ -71,11 +99,14 @@ const CATEGORIES = [
 ];
 
 export default function SportsAdminPage() {
-    const { matches, players, tournament, allTournaments, switchTournament, loading, updateScore, createTournament, endCurrentTournament, ads, addAd, deleteAd, toggleAd, createMatch, deleteMatch } = useSportsState();
-    const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
+    const { now, matches, players, tournament, allTournaments, switchTournament, loading, updateScore, createTournament, endCurrentTournament, ads, addAd, deleteAd, toggleAd, createMatch, deleteMatch, updatePlayer, updateTournament } = useSportsState();
+    const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
+    const selectedMatch = matches.find(m => m.id === selectedMatchId);
     const [isCreatingNew, setIsCreatingNew] = useState(false);
     const [showAdManager, setShowAdManager] = useState(false);
     const [showMatchMaker, setShowMatchMaker] = useState(false);
+    const [showPlayerManager, setShowPlayerManager] = useState(false);
+    const [showSettings, setShowSettings] = useState(false); // NEW STATE
 
     // Wizard State
     const [configResult, setConfigResult] = useState<{ sport: string } | null>(null);
@@ -147,8 +178,8 @@ export default function SportsAdminPage() {
     };
 
     const handleUpdate = (updates: Partial<Match>) => {
-        if (selectedMatch) {
-            updateScore(selectedMatch.id, updates);
+        if (selectedMatchId) {
+            updateScore(selectedMatchId, updates);
         }
     };
 
@@ -345,6 +376,17 @@ export default function SportsAdminPage() {
 
     return (
         <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
+            {/* SETTINGS MODAL */}
+            {
+                showSettings && (
+                    <SettingsManager
+                        tournament={tournament}
+                        onUpdate={updateTournament}
+                        onClose={() => setShowSettings(false)}
+                    />
+                )
+            }
+
             <header className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center sticky top-0 z-10">
                 <div className="flex items-center gap-4">
                     <h1 className="text-xl font-bold text-gray-800">ZTO Arena Admin</h1>
@@ -395,9 +437,23 @@ export default function SportsAdminPage() {
                         <i className="fa-solid fa-rectangle-ad"></i> Sponsors
                     </button>
 
-                    {selectedMatch && (
+                    <button
+                        onClick={() => setShowPlayerManager(true)}
+                        className="bg-orange-100 hover:bg-orange-200 text-orange-800 px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2"
+                    >
+                        <i className="fa-solid fa-users"></i> Players
+                    </button>
+
+                    <button
+                        onClick={() => setShowSettings(true)}
+                        className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2"
+                    >
+                        <i className="fa-solid fa-gear"></i> Settings
+                    </button>
+
+                    {selectedMatchId && (
                         <button
-                            onClick={() => setSelectedMatch(null)}
+                            onClick={() => setSelectedMatchId(null)}
                             className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition"
                         >
                             Back to List
@@ -424,6 +480,7 @@ export default function SportsAdminPage() {
                             p2={players[selectedMatch.player2_id || '']}
                             onUpdateScore={handleUpdate}
                             sportType={tournament.type}
+                            now={now}
                         />
                     </div>
                 ) : (
@@ -433,7 +490,7 @@ export default function SportsAdminPage() {
                                 key={m.id}
                                 className="bg-white p-6 rounded-xl border border-gray-200 hover:shadow-lg transition group relative"
                             >
-                                <div onClick={() => setSelectedMatch(m)} className="cursor-pointer">
+                                <div onClick={() => setSelectedMatchId(m.id)} className="cursor-pointer">
                                     <div className="flex justify-between items-center mb-4">
                                         <span className="font-bold text-gray-500 uppercase text-xs tracking-wider">{m.court_id}</span>
                                         <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${m.status === 'ongoing' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
@@ -496,7 +553,12 @@ export default function SportsAdminPage() {
                                 </button>
                             </div>
                             <div className="flex-1 overflow-y-auto p-0">
-                                <AdManager ads={ads} onAdd={addAd} onDelete={deleteAd} onToggle={toggleAd} />
+                                <AdManager
+                                    ads={ads}
+                                    onAdd={addAd}
+                                    onDelete={deleteAd}
+                                    onToggle={toggleAd}
+                                />
                             </div>
                         </div>
                     </div>
@@ -514,17 +576,46 @@ export default function SportsAdminPage() {
                     />
                 )
             }
+
+            {/* PLAYER MANAGER MODAL */}
+            {
+                showPlayerManager && (
+                    <PlayerManager
+                        players={players}
+                        onUpdate={updatePlayer}
+                        onClose={() => setShowPlayerManager(false)}
+                    />
+                )
+            }
+
         </div >
     );
 }
 
 // MATCH MAKER COMPONENT
 function MatchMaker({ players, tournament, onClose, onCreate }: any) {
-    const playerList = Object.values(players);
+    const playerList = Object.values(players) as any[];
     const [p1, setP1] = useState('');
     const [p2, setP2] = useState('');
     const [court, setCourt] = useState('Court 1');
     const [round, setRound] = useState('Round 1');
+
+    // Filtering
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('all');
+
+    const categories = tournament.config?.categories || [];
+
+    const filteredPlayers = playerList.filter(p => {
+        const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
+        // Category filtering is tricky since 'players' table doesn't have category, 
+        // but we can try to match from roster config if available
+        if (selectedCategory === 'all') return matchesSearch;
+
+        // Find if this player belongs to the category in the config
+        const teamInConfig = tournament.config?.teams?.find((t: any) => t.name === p.name);
+        return matchesSearch && teamInConfig?.category === selectedCategory;
+    });
 
     const handleSubmit = () => {
         if (!p1 || !p2) return alert("Select 2 players");
@@ -540,72 +631,136 @@ function MatchMaker({ players, tournament, onClose, onCreate }: any) {
 
     return (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up">
-                <div className="bg-indigo-900 p-6 flex justify-between items-center text-white">
-                    <h3 className="font-bold text-xl uppercase tracking-wider">Match Maker</h3>
-                    <button onClick={onClose} className="text-white/40 hover:text-white"><i className="fa-solid fa-xmark text-xl"></i></button>
-                </div>
-
-                <div className="p-6 space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Player 1</label>
-                            <select
-                                className="w-full border border-gray-300 rounded-lg p-3 font-bold text-gray-800 outline-none focus:ring-2 focus:ring-indigo-500"
-                                value={p1}
-                                onChange={e => setP1(e.target.value)}
-                            >
-                                <option value="">Select Player</option>
-                                {playerList.map((p: any) => (
-                                    <option key={p.id} value={p.id}>{p.name}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Player 2</label>
-                            <select
-                                className="w-full border border-gray-300 rounded-lg p-3 font-bold text-gray-800 outline-none focus:ring-2 focus:ring-indigo-500"
-                                value={p2}
-                                onChange={e => setP2(e.target.value)}
-                            >
-                                <option value="">Select Player</option>
-                                {playerList.map((p: any) => (
-                                    <option key={p.id} value={p.id} disabled={p.id === p1}>{p.name}</option>
-                                ))}
-                            </select>
-                        </div>
+            <div className="bg-white w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden animate-fade-in-up flex flex-col max-h-[90vh]">
+                <div className="bg-indigo-900 p-8 flex justify-between items-center text-white">
+                    <div>
+                        <h3 className="font-black text-2xl uppercase tracking-tighter">Match Maker</h3>
+                        <p className="text-white/50 text-xs font-bold uppercase tracking-widest mt-1">Schedule New Matchup</p>
                     </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Court</label>
-                            <input
-                                className="w-full border border-gray-300 rounded-lg p-3 font-bold text-gray-800 outline-none focus:ring-2 focus:ring-indigo-500"
-                                value={court}
-                                onChange={e => setCourt(e.target.value)}
-                                placeholder="e.g. Court 1"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Round</label>
-                            <input
-                                className="w-full border border-gray-300 rounded-lg p-3 font-bold text-gray-800 outline-none focus:ring-2 focus:ring-indigo-500"
-                                value={round}
-                                onChange={e => setRound(e.target.value)}
-                                placeholder="e.g. Final"
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                <div className="p-6 bg-gray-50 border-t border-gray-100 flex justify-end">
-                    <button
-                        onClick={handleSubmit}
-                        disabled={!p1 || !p2}
-                        className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl font-bold uppercase tracking-wider shadow-lg shadow-indigo-500/30 transition"
-                    >
-                        Create Match
+                    <button onClick={onClose} className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition">
+                        <i className="fa-solid fa-xmark text-xl"></i>
                     </button>
+                </div>
+
+                <div className="flex-1 overflow-hidden flex flex-col md:flex-row">
+                    {/* LEFT: Configuration & Selection */}
+                    <div className="flex-1 p-8 overflow-y-auto border-r border-gray-100 space-y-8">
+
+                        {/* 1. Category & Search */}
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-end">
+                                <h4 className="text-sm font-black text-gray-400 uppercase tracking-widest">1. Select Players</h4>
+                                <div className="flex gap-2">
+                                    <select
+                                        className="bg-gray-100 border-none rounded-lg px-3 py-1.5 text-xs font-bold text-gray-600 outline-none focus:ring-2 focus:ring-indigo-500"
+                                        value={selectedCategory}
+                                        onChange={e => setSelectedCategory(e.target.value)}
+                                    >
+                                        <option value="all">All Categories</option>
+                                        {categories.map((c: any) => (
+                                            <option key={c.id} value={c.id}>{c.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="relative">
+                                <i className="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                <input
+                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-12 pr-4 text-sm font-medium focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition outline-none"
+                                    placeholder="Search by name..."
+                                    value={searchTerm}
+                                    onChange={e => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto p-1">
+                                {filteredPlayers.length === 0 && (
+                                    <div className="col-span-full py-8 text-center text-gray-400 text-sm">No players found matching your criteria.</div>
+                                )}
+                                {filteredPlayers.map((p: any) => (
+                                    <div
+                                        key={p.id}
+                                        className="flex flex-col gap-2"
+                                    >
+                                        <div className="flex gap-1">
+                                            <button
+                                                onClick={() => setP1(p.id)}
+                                                className={`flex-1 py-3 px-4 rounded-xl border-2 font-bold text-sm transition-all ${p1 === p.id ? 'border-blue-600 bg-blue-50 text-blue-700 shadow-lg scale-[1.02]' : 'border-gray-100 hover:border-blue-200 text-gray-600'}`}
+                                            >
+                                                P1
+                                            </button>
+                                            <button
+                                                onClick={() => setP2(p.id)}
+                                                className={`flex-1 py-3 px-4 rounded-xl border-2 font-bold text-sm transition-all ${p2 === p.id ? 'border-red-600 bg-red-50 text-red-700 shadow-lg scale-[1.02]' : 'border-gray-100 hover:border-red-200 text-gray-600'}`}
+                                            >
+                                                P2
+                                            </button>
+                                        </div>
+                                        <div className="text-[10px] uppercase font-bold text-gray-400 text-center truncate">{p.name}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* 2. Venue & Round */}
+                        <div className="space-y-4">
+                            <h4 className="text-sm font-black text-gray-400 uppercase tracking-widest">2. Match Info</h4>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-[10px] font-black text-gray-500 uppercase mb-1 ml-1">Court / Table</label>
+                                    <input
+                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 px-4 text-sm font-bold focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition outline-none"
+                                        value={court}
+                                        onChange={e => setCourt(e.target.value)}
+                                        placeholder="e.g. Court 1"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-black text-gray-500 uppercase mb-1 ml-1">Round Name</label>
+                                    <input
+                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 px-4 text-sm font-bold focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition outline-none"
+                                        value={round}
+                                        onChange={e => setRound(e.target.value)}
+                                        placeholder="e.g. Final"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* RIGHT: Preview */}
+                    <div className="w-full md:w-[320px] bg-gray-50 p-8 flex flex-col justify-center gap-6 items-center border-t md:border-t-0 md:border-l border-gray-200">
+                        <div className="text-center">
+                            <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6">Preview</h4>
+
+                            <div className="relative space-y-8">
+                                <div className="z-10 relative">
+                                    <div className={`w-24 h-24 rounded-full border-4 flex items-center justify-center text-2xl font-black transition-all duration-300 ${p1 ? 'bg-blue-600 border-white text-white shadow-xl scale-110' : 'bg-gray-200 border-gray-300 text-gray-400 border-dashed'}`}>
+                                        {p1 ? players[p1]?.name.charAt(0) : '?'}
+                                    </div>
+                                    <div className="mt-2 font-black text-gray-800 uppercase text-xs truncate max-w-[120px]">{p1 ? players[p1]?.name : 'PLAYER 1'}</div>
+                                </div>
+
+                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-3xl font-black text-gray-200 italic">VS</div>
+
+                                <div className="z-10 relative">
+                                    <div className={`w-24 h-24 rounded-full border-4 flex items-center justify-center text-2xl font-black transition-all duration-300 ${p2 ? 'bg-red-600 border-white text-white shadow-xl scale-110' : 'bg-gray-200 border-gray-300 text-gray-400 border-dashed'}`}>
+                                        {p2 ? players[p2]?.name.charAt(0) : '?'}
+                                    </div>
+                                    <div className="mt-2 font-black text-gray-800 uppercase text-xs truncate max-w-[120px]">{p2 ? players[p2]?.name : 'PLAYER 2'}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={handleSubmit}
+                            disabled={!p1 || !p2}
+                            className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:grayscale text-white py-4 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-indigo-600/20 hover:scale-105 active:scale-95 transition-all mt-4"
+                        >
+                            Create Match
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -652,6 +807,7 @@ function RosterInput({ categories, rosters, setRosters }: any) {
 
 function AdManager({ ads, onAdd, onDelete, onToggle }: { ads: any[], onAdd: (ad: any) => void, onDelete: (id: string) => void, onToggle: (id: string, s: boolean) => void }) {
     const [newAd, setNewAd] = useState({ type: 'image', url: '', duration: 10, display_location: 'fullscreen' });
+    const [showPicker, setShowPicker] = useState(false);
 
     const handleAdd = () => {
         if (!newAd.url) return;
@@ -726,15 +882,31 @@ function AdManager({ ads, onAdd, onDelete, onToggle }: { ads: any[], onAdd: (ad:
                             <option value="video">Video (Commercial)</option>
                         </select>
                     </div>
-                    <div className="md:col-span-5">
+                    <div className="md:col-span-12 lg:col-span-5">
                         <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Asset URL</label>
-                        <input
-                            className="w-full border border-gray-300 rounded-lg p-3 text-sm outline-none focus:ring-2 focus:ring-purple-500"
-                            placeholder="https://example.com/ad.mp4"
-                            value={newAd.url}
-                            onChange={e => setNewAd({ ...newAd, url: e.target.value })}
-                        />
+                        <div className="flex gap-2">
+                            <input
+                                className="flex-1 border border-gray-300 rounded-lg p-3 text-sm outline-none focus:ring-2 focus:ring-purple-500"
+                                placeholder="https://example.com/ad.mp4"
+                                value={newAd.url}
+                                onChange={e => setNewAd({ ...newAd, url: e.target.value })}
+                            />
+                            <button
+                                onClick={() => setShowPicker(true)}
+                                className="bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-700 px-3 rounded-lg transition"
+                                title="Pick from Library"
+                            >
+                                <i className="fa-solid fa-images"></i>
+                            </button>
+                        </div>
                     </div>
+
+                    {showPicker && (
+                        <AssetPicker
+                            onSelect={(url) => setNewAd({ ...newAd, url })}
+                            onClose={() => setShowPicker(false)}
+                        />
+                    )}
                     <div className="md:col-span-2">
                         <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Target</label>
                         <select
@@ -766,6 +938,258 @@ function AdManager({ ads, onAdd, onDelete, onToggle }: { ads: any[], onAdd: (ad:
                         </button>
                     </div>
                 </div>
+            </div>
+        </div>
+    );
+}
+
+// PLAYER MANAGER COMPONENT
+function PlayerManager({ players, onUpdate, onClose }: { players: Record<string, any>, onUpdate: (id: string, updates: any) => void, onClose: () => void }) {
+    const playerList = Object.values(players);
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [editForm, setEditForm] = useState({ name: '', avatar_url: '', country_code: '' });
+    const [activePicker, setActivePicker] = useState<'avatar' | 'flag' | null>(null);
+
+    const startEdit = (p: any) => {
+        setEditingId(p.id);
+        setEditForm({
+            name: p.name,
+            avatar_url: p.avatar_url || '',
+            country_code: p.country_code || ''
+        });
+    };
+
+    const handleSave = () => {
+        if (!editingId) return;
+        onUpdate(editingId, editForm);
+        setEditingId(null);
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-white w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+                <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                    <div>
+                        <h3 className="font-black text-xl text-gray-800 flex items-center gap-2 uppercase tracking-tighter">
+                            <i className="fa-solid fa-users text-orange-600"></i> Roster Management
+                        </h3>
+                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-1">Edit Player Profiles & Avatars</p>
+                    </div>
+                    <button onClick={onClose} className="w-10 h-10 rounded-full hover:bg-gray-100 flex items-center justify-center transition text-gray-400">
+                        <i className="fa-solid fa-xmark text-xl"></i>
+                    </button>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-6 bg-gray-50/50">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {playerList.map(p => (
+                            <div key={p.id} className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4 hover:border-orange-300 transition">
+                                <div className="w-16 h-16 rounded-full bg-gray-100 overflow-hidden border-2 border-white shadow-sm flex-shrink-0">
+                                    <img src={p.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&background=random`} className="w-full h-full object-cover" alt={p.name} />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <div className="font-black text-gray-800 uppercase tracking-tighter truncate">{p.name}</div>
+                                    <div className="text-[10px] text-gray-400 font-bold uppercase truncate">{p.avatar_url ? 'Custom Avatar Linked' : 'Default Placeholder'}</div>
+                                </div>
+                                <button
+                                    onClick={() => startEdit(p)}
+                                    className="px-4 py-2 bg-gray-100 hover:bg-orange-600 hover:text-white rounded-lg text-xs font-black uppercase transition"
+                                >
+                                    Edit
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {editingId && (
+                    <div className="p-6 border-t border-gray-200 bg-white shadow-2xl space-y-4 animate-slide-up">
+                        <div className="flex justify-between items-center">
+                            <h4 className="font-black text-gray-800 uppercase tracking-tighter">Editing Profile</h4>
+                            <button onClick={() => setEditingId(null)} className="text-gray-400 hover:text-gray-600"><i className="fa-solid fa-xmark"></i></button>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-[10px] font-black text-gray-500 uppercase mb-1">Display Name</label>
+                                <input
+                                    className="w-full border border-gray-300 rounded-lg p-3 text-sm font-bold"
+                                    value={editForm.name}
+                                    onChange={e => setEditForm({ ...editForm, name: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-black text-gray-500 uppercase mb-1">Avatar Image URL</label>
+                                <div className="flex gap-2">
+                                    <input
+                                        className="flex-1 border border-gray-300 rounded-lg p-3 text-sm font-medium"
+                                        placeholder="Paste URL or Pick..."
+                                        value={editForm.avatar_url}
+                                        onChange={e => setEditForm({ ...editForm, avatar_url: e.target.value })}
+                                    />
+                                    <button
+                                        onClick={() => setActivePicker('avatar')}
+                                        className="bg-indigo-600 text-white px-4 rounded-lg hover:bg-indigo-700 transition"
+                                    >
+                                        <i className="fa-solid fa-images"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-black text-gray-500 uppercase mb-1">Nationality / Flag</label>
+                                <div className="flex gap-2">
+                                    <div className="w-12 h-10 bg-gray-100 rounded-lg border border-gray-200 overflow-hidden flex items-center justify-center flex-shrink-0">
+                                        {editForm.country_code ? (
+                                            <img src={editForm.country_code} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <i className="fa-solid fa-flag text-gray-300"></i>
+                                        )}
+                                    </div>
+                                    <input
+                                        className="flex-1 border border-gray-300 rounded-lg p-3 text-sm font-medium"
+                                        placeholder="Flag URL..."
+                                        value={editForm.country_code}
+                                        onChange={e => setEditForm({ ...editForm, country_code: e.target.value })}
+                                    />
+                                    <button
+                                        onClick={() => setActivePicker('flag')}
+                                        className="bg-blue-600 text-white px-4 rounded-lg hover:bg-blue-700 transition"
+                                    >
+                                        <i className="fa-solid fa-flag"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex justify-end gap-3 mt-4">
+                            <button onClick={() => setEditingId(null)} className="px-6 py-2 text-sm font-bold text-gray-500">Cancel</button>
+                            <button onClick={handleSave} className="px-8 py-2 bg-green-600 text-white rounded-lg font-black uppercase shadow-lg shadow-green-500/20">Save Profile</button>
+                        </div>
+                    </div>
+                )}
+
+                {activePicker && (
+                    <AssetPicker
+                        onSelect={(url) => setEditForm({ ...editForm, [activePicker === 'avatar' ? 'avatar_url' : 'country_code']: url })}
+                        onClose={() => setActivePicker(null)}
+                    />
+                )}
+            </div>
+        </div>
+    );
+}
+
+// SETTINGS MANAGER COMPONENT
+function SettingsManager({ tournament, onUpdate, onClose }: { tournament: any, onUpdate: (updates: any) => void, onClose: () => void }) {
+    const [name, setName] = useState(tournament.name);
+    const [logoUrl, setLogoUrl] = useState(tournament.config?.logo_url || '');
+    const [bgUrl, setBgUrl] = useState(tournament.config?.bg_url || '');
+    const [activePicker, setActivePicker] = useState<'logo' | 'bg' | null>(null);
+
+    const handleSave = () => {
+        onUpdate({
+            name,
+            config: {
+                ...tournament.config,
+                logo_url: logoUrl,
+                bg_url: bgUrl
+            }
+        });
+        onClose();
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+                <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                    <div>
+                        <h3 className="font-black text-xl text-gray-800 flex items-center gap-2 uppercase tracking-tighter">
+                            <i className="fa-solid fa-gear text-gray-600"></i> Event Settings
+                        </h3>
+                    </div>
+                    <button onClick={onClose} className="w-10 h-10 rounded-full hover:bg-gray-100 flex items-center justify-center transition text-gray-400">
+                        <i className="fa-solid fa-xmark text-xl"></i>
+                    </button>
+                </div>
+
+                <div className="p-6 space-y-6">
+                    <div>
+                        <label className="block text-[10px] font-black text-gray-500 uppercase mb-1">Tournament Name</label>
+                        <input
+                            className="w-full border border-gray-300 rounded-lg p-3 text-sm font-bold"
+                            value={name}
+                            onChange={e => setName(e.target.value)}
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-[10px] font-black text-gray-500 uppercase mb-1">Tournament Logo</label>
+                        <div className="flex gap-4 items-center mb-4">
+                            <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300 overflow-hidden">
+                                {logoUrl ? (
+                                    <img src={logoUrl} className="w-full h-full object-contain" />
+                                ) : (
+                                    <i className="fa-solid fa-image text-gray-300 text-xl"></i>
+                                )}
+                            </div>
+                            <div className="flex-1 space-y-2">
+                                <div className="flex gap-2">
+                                    <input
+                                        className="flex-1 border border-gray-300 rounded-lg p-3 text-sm"
+                                        placeholder="Logo URL..."
+                                        value={logoUrl}
+                                        onChange={e => setLogoUrl(e.target.value)}
+                                    />
+                                    <button
+                                        onClick={() => setActivePicker('logo')}
+                                        className="bg-indigo-600 text-white px-4 rounded-lg hover:bg-indigo-700 transition"
+                                    >
+                                        <i className="fa-solid fa-images"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-[10px] font-black text-gray-500 uppercase mb-1">Background Image</label>
+                        <div className="flex gap-4 items-center mb-4">
+                            <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300 overflow-hidden">
+                                {bgUrl ? (
+                                    <img src={bgUrl} className="w-full h-full object-cover" />
+                                ) : (
+                                    <i className="fa-solid fa-mountain-sun text-gray-300 text-xl"></i>
+                                )}
+                            </div>
+                            <div className="flex-1 space-y-2">
+                                <div className="flex gap-2">
+                                    <input
+                                        className="flex-1 border border-gray-300 rounded-lg p-3 text-sm"
+                                        placeholder="Background URL..."
+                                        value={bgUrl}
+                                        onChange={e => setBgUrl(e.target.value)}
+                                    />
+                                    <button
+                                        onClick={() => setActivePicker('bg')}
+                                        className="bg-purple-600 text-white px-4 rounded-lg hover:bg-purple-700 transition"
+                                    >
+                                        <i className="fa-solid fa-image"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
+                    <button onClick={onClose} className="px-6 py-2 text-sm font-bold text-gray-500">Cancel</button>
+                    <button onClick={handleSave} className="px-8 py-2 bg-indigo-600 text-white rounded-lg font-black uppercase shadow-lg shadow-indigo-500/20">Save Settings</button>
+                </div>
+
+                {activePicker && (
+                    <AssetPicker
+                        onSelect={(url) => activePicker === 'logo' ? setLogoUrl(url) : setBgUrl(url)}
+                        onClose={() => setActivePicker(null)}
+                    />
+                )}
             </div>
         </div>
     );

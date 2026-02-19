@@ -5,19 +5,24 @@ import { motion } from 'framer-motion';
 
 interface HeaderProps {
     tournamentName: string;
+    logoUrl?: string; // NEW
 }
 
-export function ZTOHeader({ tournamentName }: HeaderProps) {
+export function ZTOHeader({ tournamentName, logoUrl }: HeaderProps) {
     return (
         <header className="fixed top-0 left-0 right-0 z-50 flex justify-between items-center px-8 py-4 pointer-events-none bg-gradient-to-b from-black/80 to-transparent">
             {/* Left: Brand */}
             <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-zto-gold rounded flex items-center justify-center font-black text-black shadow-[0_0_15px_#D4AF37]">
-                    ZTO
-                </div>
+                {logoUrl ? (
+                    <img src={logoUrl} className="h-10 w-auto object-contain" alt="Tournament Logo" />
+                ) : (
+                    <div className="w-10 h-10 bg-zto-gold rounded flex items-center justify-center font-black text-black shadow-[0_0_15px_#D4AF37]">
+                        ZTO
+                    </div>
+                )}
                 <div className="flex flex-col">
-                    <span className="text-zto-gold font-bold tracking-[0.2em] text-sm">ARENA</span>
-                    <span className="text-white/60 text-[10px] uppercase tracking-widest leading-none">Official Timekeeper</span>
+                    <span className="text-zto-gold font-bold tracking-[0.2em] text-sm italic">ARENA</span>
+                    <span className="text-white/60 text-[10px] uppercase tracking-widest leading-none font-medium">Tournament Series</span>
                 </div>
             </div>
 

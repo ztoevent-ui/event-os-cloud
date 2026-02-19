@@ -9,6 +9,8 @@ export interface Tournament {
         categories?: CategoryConfig[];
         teams?: Team[]; // Roster of all teams/players
         courts?: string; // '1-10', '1-30', 'A-Z'
+        logo_url?: string; // Tournament Logo
+        bg_url?: string; // NEW
     };
     created_at: string;
     updated_at: string;
@@ -62,6 +64,7 @@ export interface Player {
     tournament_id: string;
     name: string;
     avatar_url?: string;
+    country_code?: string; // New: URL of the flag
     stats: {
         wins: number;
         losses: number;
@@ -94,6 +97,7 @@ export interface Match {
     is_paused?: boolean;
     current_period?: number;
     timer_last_updated?: string;
+    started_at?: string; // NEW: ISO Timestamp
 
     server_side: number;
     serving_player_id?: string;

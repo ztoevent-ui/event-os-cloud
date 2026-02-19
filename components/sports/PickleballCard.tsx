@@ -1,143 +1,228 @@
 import React from 'react';
 import { Player, Match, SponsorAd } from '@/lib/sports/types';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface PickleballCardProps {
     match: Match;
     p1: Player | undefined;
     p2: Player | undefined;
     activeAd?: SponsorAd;
+    logoUrl?: string; // NEW
+    bgUrl?: string; // NEW
+    now: Date;
 }
 
-export function PickleballCard({ match, p1, p2, activeAd }: PickleballCardProps) {
+export function PickleballCard({ match, p1, p2, activeAd, logoUrl, bgUrl, now }: PickleballCardProps) {
     const isServingP1 = match.serving_player_id === p1?.id;
     const isServingP2 = match.serving_player_id === p2?.id;
 
-    // Pickleball Specific: "Game" terminology, distinct visual style (Blue/Green accents)
-    // ZTO Branding remains but with a sport-specific flavor.
+    // Helper to format name as per screenshot (split rows)
+    const formatName = (name: string = 'TBD', alignment: 'left' | 'right' = 'left') => {
+        const parts = name.split(' ');
+        const lastName = parts[parts.length - 1];
+        const firstNames = parts.slice(0, -1).join(' ');
+
+        if (alignment === 'left') {
+            return (
+                <div className="flex flex-col items-center">
+                    <span className="text-4xl font-black uppercase tracking-widest leading-tight">{lastName}</span>
+                    <span className="text-2xl font-medium text-white/80 leading-tight">{firstNames}</span>
+                </div>
+            );
+        } else {
+            return (
+                <div className="flex flex-col items-center">
+                    <span className="text-2xl font-medium text-white/80 leading-tight">{firstNames}</span>
+                    <span className="text-4xl font-black uppercase tracking-widest leading-tight">{lastName}</span>
+                </div>
+            );
+        }
+    };
+
+    // Calculate historical set scores
+    const setHistory = match.periods_scores || [];
+    const currentSetNum = setHistory.length + 1;
 
     return (
         <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="relative w-full h-[85vh] bg-zinc-900 rounded-3xl overflow-hidden shadow-2xl border border-blue-500/20 flex flex-col font-sans"
+            className="relative w-full h-full bg-black overflow-hidden flex flex-col items-center justify-center text-white font-sans"
         >
-            {/* ---------------- ZONE A: VISUALS (Top 65%) ---------------- */}
-            <div className="h-[65%] flex relative">
-                {/* Divide Line - Animated */}
-                <div className="absolute left-1/2 top-0 bottom-0 w-1 bg-blue-500/50 blur-sm z-10 animate-pulse"></div>
+            {/* --- BACKGROUND LAYER --- */}
+            <div className="absolute inset-0 z-0">
+                <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-transparent to-black/80 z-10"></div>
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_0%,_black_90%)] z-10"></div>
+                <img
+                    src={bgUrl || "https://images.unsplash.com/photo-1593344484962-796055d4a3a4?q=80&w=2600&auto=format&fit=crop"}
+                    className="w-full h-full object-cover opacity-60 grayscale-[0.5]"
+                    alt="Background"
+                />
+            </div>
 
-                {/* Left: Player 1 */}
-                <div className="w-1/2 h-full relative overflow-hidden group">
-                    <img
-                        src={p1?.avatar_url || 'https://via.placeholder.com/400x800'}
-                        alt="P1"
-                        className="w-full h-full object-cover object-top filter contrast-125 brightness-75 group-hover:brightness-100 transition duration-700"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-tr from-blue-900/40 via-transparent to-transparent"></div>
-                    {/* Name overlay large */}
-                    <div className="absolute bottom-0 left-0 w-full p-8 bg-gradient-to-t from-black/90 to-transparent">
-                        <h2 className="text-5xl font-black text-white uppercase italic tracking-tighter drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]">
-                            {p1?.name}
-                        </h2>
-                        <div className="text-blue-400 font-bold tracking-widest text-sm mt-1 uppercase">USA / PHOENIX</div>
+            {/* --- ARENA CONTENT --- */}
+            <div className="relative z-20 w-full max-w-7xl flex items-center justify-between px-20">
+
+                {/* LEFT PLAYER */}
+                <div className="flex flex-col items-center w-1/3">
+                    <div className="relative mb-10">
+                        {/* Border Glow */}
+                        <div className="absolute inset-[-10px] rounded-full bg-blue-500/30 blur-2xl animate-pulse"></div>
+
+                        {/* Avatar Circle */}
+                        <div className="w-64 h-64 rounded-full border-[6px] border-blue-500 p-2 relative z-10 bg-slate-900 overflow-hidden shadow-[0_0_40px_rgba(59,130,246,0.4)]">
+                            <img
+                                src={p1?.avatar_url || 'https://via.placeholder.com/400x400?text=P1'}
+                                className="w-full h-full object-cover rounded-full"
+                                alt="P1"
+                            />
+                        </div>
+
+                        {/* Circular Flag Badge */}
+                        <div className="absolute bottom-2 left-2 w-16 h-16 rounded-full border-4 border-slate-950 bg-white overflow-hidden z-20 shadow-xl">
+                            <img src={p1?.country_code || "https://flagcdn.com/us.svg"} className="w-full h-full object-cover scale-110" alt="P1 Flag" />
+                        </div>
+
+                        {/* Serving Indicator */}
+                        <AnimatePresence>
+                            {isServingP1 && (
+                                <motion.div
+                                    initial={{ scale: 0, rotate: -45 }}
+                                    animate={{ scale: 1, rotate: 0 }}
+                                    className="absolute -top-4 -left-4 w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-2xl z-20 border-2 border-blue-500"
+                                >
+                                    <i className="fa-solid fa-table-tennis-paddle-ball text-slate-900 text-3xl"></i>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+                    {formatName(p1?.name || 'BEN JOHNS', 'left')}
+                </div>
+
+                {/* CENTER AREA: SCORES & TIMER */}
+                <div className="flex flex-col items-center flex-1">
+                    {/* Timer Area */}
+                    <div className="flex items-center gap-12 mb-16">
+                        <div className="flex items-center gap-4">
+                            <i className="fa-regular fa-clock text-blue-400 text-3xl"></i>
+                            <span className="text-4xl font-bold tabular-nums text-white">
+                                {(() => {
+                                    if (!match.started_at) return "00:00";
+                                    const diff = Math.floor((now.getTime() - new Date(match.started_at).getTime()) / 1000);
+                                    const m = Math.floor(diff / 60);
+                                    const s = diff % 60;
+                                    return `${m}:${s.toString().padStart(2, '0')}`;
+                                })()}
+                            </span>
+                            <span className="text-xs font-black uppercase tracking-widest text-white/40 ml-2">Match Duration</span>
+                        </div>
+                        <div className="w-[1px] h-8 bg-white/20"></div>
+                        <div className="flex items-center gap-4">
+                            <i className="fa-solid fa-earth-asia text-blue-400 text-3xl"></i>
+                            <span className="text-4xl font-bold tabular-nums text-blue-400">
+                                {now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
+                            </span>
+                            <span className="text-xs font-black uppercase tracking-widest text-blue-400/40 ml-2">Local Time</span>
+                        </div>
+                    </div>
+
+                    {/* CURRENT SCORE BAR */}
+                    <div className="flex flex-col items-center w-full max-w-md">
+                        <div className="text-xl font-black uppercase tracking-[0.3em] text-white/80 mb-6">GAME {currentSetNum}</div>
+
+                        <div className="flex items-center justify-between w-full mb-4 px-4">
+                            <span className="text-[10rem] leading-none font-black drop-shadow-2xl">{match.current_score_p1}</span>
+                            <div className="flex-1 px-8">
+                                <div className="h-6 w-full rounded-full bg-white/10 overflow-hidden flex shadow-inner border border-white/5">
+                                    <div
+                                        className="h-full bg-blue-600 transition-all duration-500"
+                                        style={{ width: `${(match.current_score_p1 / (Math.max(match.current_score_p1 + match.current_score_p2, 1))) * 100}%` }}
+                                    ></div>
+                                    <div
+                                        className="h-full bg-green-500 transition-all duration-500"
+                                        style={{ width: `${(match.current_score_p2 / (Math.max(match.current_score_p1 + match.current_score_p2, 1))) * 100}%` }}
+                                    ></div>
+                                </div>
+                            </div>
+                            <span className="text-[10rem] leading-none font-black drop-shadow-2xl">{match.current_score_p2}</span>
+                        </div>
+                    </div>
+
+                    {/* SET HISTORY PILLS */}
+                    <div className="flex gap-12 mt-12">
+                        {setHistory.map((set, idx) => (
+                            <div key={idx} className="flex gap-4">
+                                <div className={`w-20 h-20 rounded-full flex items-center justify-center text-4xl font-black border-2 ${set.p1 > set.p2 ? 'bg-blue-600 border-blue-400 text-white' : 'bg-slate-700/50 border-white/10 text-white/50'}`}>
+                                    {set.p1}
+                                </div>
+                                <div className={`w-20 h-20 rounded-full flex items-center justify-center text-4xl font-black border-2 ${set.p2 > set.p1 ? 'bg-green-600 border-green-400 text-white' : 'bg-slate-700/50 border-white/10 text-white/50'}`}>
+                                    {set.p2}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* H2H Badge */}
+                    <div className="mt-16 px-12 py-3 bg-blue-800 rounded-full font-black text-2xl tracking-widest shadow-xl cursor-default hover:scale-110 transition-transform uppercase">
+                        Pickleball Tour
                     </div>
                 </div>
 
-                {/* Right: Player 2 */}
-                <div className="w-1/2 h-full relative overflow-hidden group">
-                    <img
-                        src={p2?.avatar_url || 'https://via.placeholder.com/400x800'}
-                        alt="P2"
-                        className="w-full h-full object-cover object-top filter contrast-125 brightness-75 group-hover:brightness-100 transition duration-700"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-tl from-green-900/40 via-transparent to-transparent"></div>
-                    {/* Name overlay large */}
-                    <div className="absolute bottom-0 right-0 w-full p-8 bg-gradient-to-t from-black/90 to-transparent text-right">
-                        <h2 className="text-5xl font-black text-white uppercase italic tracking-tighter drop-shadow-[0_0_10px_rgba(34,197,94,0.5)]">
-                            {p2?.name}
-                        </h2>
-                        <div className="text-green-400 font-bold tracking-widest text-sm mt-1 uppercase">USA / AUSTIN</div>
-                    </div>
-                </div>
+                {/* RIGHT PLAYER */}
+                <div className="flex flex-col items-center w-1/3">
+                    <div className="relative mb-10">
+                        {/* Border Glow */}
+                        <div className="absolute inset-[-10px] rounded-full bg-green-500/30 blur-2xl animate-pulse"></div>
 
-                {/* Event Badge */}
-                <div className="absolute top-6 left-6 flex gap-2">
-                    <div className="bg-black/60 backdrop-blur border border-white/10 px-4 py-1.5 rounded-lg text-white font-bold text-xs uppercase tracking-widest">
-                        PPA TOUR
+                        {/* Avatar Circle */}
+                        <div className="w-64 h-64 rounded-full border-[6px] border-green-500 p-2 relative z-10 bg-slate-900 overflow-hidden shadow-[0_0_40px_rgba(34,197,94,0.4)]">
+                            <img
+                                src={p2?.avatar_url || 'https://via.placeholder.com/400x400?text=P2'}
+                                className="w-full h-full object-cover rounded-full"
+                                alt="P2"
+                            />
+                        </div>
+
+                        {/* Circular Flag Badge */}
+                        <div className="absolute bottom-2 left-2 w-16 h-16 rounded-full border-4 border-slate-950 bg-white overflow-hidden z-20 shadow-xl">
+                            <img src={p2?.country_code || "https://flagcdn.com/ca.svg"} className="w-full h-full object-cover scale-110" alt="P2 Flag" />
+                        </div>
+
+                        {/* Serving Indicator */}
+                        <AnimatePresence>
+                            {isServingP2 && (
+                                <motion.div
+                                    initial={{ scale: 0, rotate: 45 }}
+                                    animate={{ scale: 1, rotate: 0 }}
+                                    className="absolute -top-4 -left-4 w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-2xl z-20 border-2 border-green-500"
+                                >
+                                    <i className="fa-solid fa-table-tennis-paddle-ball text-slate-900 text-3xl"></i>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
-                    <div className="bg-blue-600 px-4 py-1.5 rounded-lg text-white font-black text-xs uppercase tracking-widest shadow-[0_0_15px_rgba(37,99,235,0.6)]">
-                        {match.round_name}
-                    </div>
+                    {formatName(p2?.name || 'TYSON MCGUFFIN', 'right')}
                 </div>
             </div>
 
-            {/* ---------------- ZONE B: DASHBOARD (Bottom 35%) ---------------- */}
-            <div className="h-[35%] bg-zinc-950 relative flex">
-
-                {/* Center Score Module */}
-                <div className="w-full h-full flex items-center justify-between px-12 relative z-20">
-
-                    {/* P1 Score */}
-                    <div className="flex flex-col items-center">
-                        {isServingP1 && (
-                            <div className="mb-2 bg-blue-500 text-white text-xs font-bold uppercase px-3 py-1 rounded-full animate-bounce">
-                                <i className="fa-solid fa-table-tennis-paddle-ball mr-2"></i>Serving
-                            </div>
-                        )}
-                        <div className={`text-[10rem] leading-none font-black tabular-nums tracking-tighter ${match.current_score_p1 > match.current_score_p2 ? 'text-blue-500 drop-shadow-[0_0_20px_rgba(59,130,246,0.6)]' : 'text-zinc-700'}`}>
-                            {match.current_score_p1}
-                        </div>
-                        <div className="flex gap-2 mt-2">
-                            {Array.from({ length: match.sets_p1 }).map((_, i) => (
-                                <div key={i} className="w-3 h-3 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"></div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Middle Info & Ad */}
-                    <div className="flex flex-col items-center gap-6">
-                        <div className="bg-zinc-900 border border-zinc-800 px-8 py-2 rounded-full">
-                            <span className="text-zinc-400 text-sm font-bold uppercase tracking-widest">GAME {match.sets_p1 + match.sets_p2 + 1}</span>
-                        </div>
-
-                        {/* --- AD SLOT --- */}
-                        <div className="w-[360px] h-[90px] bg-black rounded-xl border border-zinc-800 overflow-hidden relative shadow-inner">
-                            {activeAd ? (
-                                activeAd.type === 'video' ? (
-                                    <video src={activeAd.url} autoPlay muted loop className="w-full h-full object-cover" />
-                                ) : (
-                                    <img src={activeAd.url} className="w-full h-full object-contain p-2" alt="Sponsor" />
-                                )
-                            ) : (
-                                <div className="w-full h-full flex items-center justify-center bg-zinc-900">
-                                    <span className="text-zinc-600 font-bold italic">ZTO ADS</span>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* P2 Score */}
-                    <div className="flex flex-col items-center">
-                        {isServingP2 && (
-                            <div className="mb-2 bg-green-500 text-white text-xs font-bold uppercase px-3 py-1 rounded-full animate-bounce">
-                                <i className="fa-solid fa-table-tennis-paddle-ball mr-2"></i>Serving
-                            </div>
-                        )}
-                        <div className={`text-[10rem] leading-none font-black tabular-nums tracking-tighter ${match.current_score_p2 > match.current_score_p1 ? 'text-green-500 drop-shadow-[0_0_20px_rgba(34,197,94,0.6)]' : 'text-zinc-700'}`}>
-                            {match.current_score_p2}
-                        </div>
-                        <div className="flex gap-2 mt-2">
-                            {Array.from({ length: match.sets_p2 }).map((_, i) => (
-                                <div key={i} className="w-3 h-3 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]"></div>
-                            ))}
-                        </div>
-                    </div>
-
+            {/* --- AD BANNER / FOOTER (SUBTLE) --- */}
+            <div className="absolute bottom-8 left-0 right-0 px-20 flex justify-between items-end opacity-40">
+                <div className="flex items-center gap-4">
+                    <span className="font-bold text-xs">PPA OFFICIAL PARTNER</span>
                 </div>
-
-                {/* Background Grid */}
-                <div className="absolute inset-0 z-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle, #333 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+                <div className="text-right">
+                    {logoUrl ? (
+                        <div className="flex flex-col items-end">
+                            <img src={logoUrl} className="h-12 w-auto object-contain" alt="Tournament Logo" />
+                            <div className="text-[8px] tracking-[0.4em] uppercase opacity-50 mt-1">Tournament Series</div>
+                        </div>
+                    ) : (
+                        <>
+                            <div className="text-blue-400 font-black italic text-2xl">ZTO ARENA</div>
+                            <div className="text-[8px] tracking-[0.4em] uppercase opacity-50">Scoreboard System</div>
+                        </>
+                    )}
+                </div>
             </div>
         </motion.div>
     );

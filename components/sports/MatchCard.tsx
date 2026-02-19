@@ -12,6 +12,9 @@ interface MatchCardProps {
     p2: Player | undefined;
     activeAd?: SponsorAd;
     sportType?: string; // Made optional to support legacy calls, defaults to badminton
+    logoUrl?: string; // NEW
+    bgUrl?: string; // NEW
+    now: Date;
 }
 
 export function MatchCard(props: MatchCardProps) {

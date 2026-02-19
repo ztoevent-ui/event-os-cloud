@@ -13,7 +13,7 @@ function SportsDisplayContent() {
     const searchParams = useSearchParams();
     const tournamentId = searchParams.get('id');
 
-    const { matches, players, tournament, allTournaments, switchTournament, ads, loading } = useSportsState(tournamentId); // Pass ID to hook
+    const { now, matches, players, tournament, allTournaments, switchTournament, ads, loading } = useSportsState(tournamentId); // Pass ID to hook
     const [viewMode, setViewMode] = useState<'grid' | 'portrait'>('grid');
     const [currentAdIndex, setCurrentAdIndex] = useState(0);
     // No more local selector needed if we rely on URL, but we can keep a fallback if no ID provided.
@@ -71,16 +71,15 @@ function SportsDisplayContent() {
 
     // Also support manual override via 'B' key for local testing or emergency
     const [manualAdBreak, setManualAdBreak] = useState(false);
-    const [hiddenLocally, setHiddenLocally] = useState(false); // New: Force close state
+    const [dismissedLocally, setDismissedLocally] = useState(false); // Changed to 'dismissed' for clearer intent
 
-    const showAdOverlay = (activeFullscreenAds.length > 0 || manualAdBreak) && !hiddenLocally;
-    const adToDisplay = activeFullscreenAd || { type: 'video', url: 'https://www.youtube.com/watch?v=t7xDdQ0fxUI', duration: 30 }; // Fallback Demo Ad
+    const showAdOverlay = (manualAdBreak || (activeFullscreenAds.length > 0 && !dismissedLocally));
+    const adToDisplay = activeFullscreenAd;
 
+    // Reset dismissal when ad list changes (new commercial break starting)
     useEffect(() => {
-        // Reset local hide when admin status changes (new ad starts)
         if (activeFullscreenAds.length > 0) {
-            setHiddenLocally(false);
-            // Reset index if only 1 ad or new set
+            setDismissedLocally(false);
             if (activeFullscreenAds.length === 1) setCurrentPlaylistIndex(0);
         }
     }, [activeFullscreenAds.length]);
@@ -93,7 +92,7 @@ function SportsDisplayContent() {
                 console.log('User pressed B');
                 // Intelligent Toggle
                 if (showAdOverlay) {
-                    setHiddenLocally(true);
+                    setDismissedLocally(true);
                     setManualAdBreak(false);
                     // Advance playlist when manually closing so next time it's fresh
                     if (activeFullscreenAds.length > 1) {
@@ -101,7 +100,7 @@ function SportsDisplayContent() {
                     }
                 } else {
                     setManualAdBreak(true);
-                    setHiddenLocally(false);
+                    setDismissedLocally(false);
                 }
             }
 
@@ -125,7 +124,7 @@ function SportsDisplayContent() {
     // ... (Inside Return JSX) ...
     // Setup YouTube Player when overlay mounts
     useEffect(() => {
-        if (showAdOverlay && adToDisplay.type === 'video' && (adToDisplay.url.includes('youtu'))) {
+        if (showAdOverlay && adToDisplay?.type === 'video' && adToDisplay?.url?.includes('youtu')) {
 
             // EXTRACT VIDEO ID - Robust Logic
             let videoId = 't7xDdQ0fxUI';
@@ -163,8 +162,6 @@ function SportsDisplayContent() {
                     events: {
                         onReady: (event: any) => {
                             event.target.playVideo();
-                            // REMOVED auto-unmute: This trigger browser autoplay block policies which pause the video.
-                            // The video will play MUTED. To get sound, the user must interact with the page once.
                         },
                         onStateChange: (event: any) => {
                             const playerState = event.data;
@@ -207,7 +204,7 @@ function SportsDisplayContent() {
                 }
             };
         }
-    }, [showAdOverlay, adToDisplay.url]);
+    }, [showAdOverlay, adToDisplay?.url]);
 
     if (loading) {
         return (
@@ -261,13 +258,13 @@ function SportsDisplayContent() {
     }
 
     return (
-        <main className="min-h-screen bg-black text-white overflow-hidden relative selection:bg-zto-gold selection:text-black">
+        <main className="h-screen bg-black text-white overflow-hidden relative selection:bg-zto-gold selection:text-black">
             {/* Ambient Background - More Subtle */}
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-zto-gold/10 via-black to-black -z-10"></div>
 
-            <ZTOHeader tournamentName={tournament.name} />
+            <ZTOHeader tournamentName={tournament.name} logoUrl={tournament.config?.logo_url} />
 
-            <div className="container mx-auto px-4 pt-32 pb-12 flex flex-col items-center justify-center min-h-screen">
+            <div className="h-full flex flex-col items-center justify-center pt-16">
                 <AnimatePresence mode="wait">
                     {activeMatches.length === 0 ? (
                         <motion.div
@@ -290,6 +287,9 @@ function SportsDisplayContent() {
                                         p2={players[match.player2_id || '']}
                                         activeAd={ads[currentAdIndex]}
                                         sportType={tournament.type}
+                                        logoUrl={tournament.config?.logo_url}
+                                        bgUrl={tournament.config?.bg_url}
+                                        now={now}
                                     />
                                 </div>
                             ))}
@@ -304,8 +304,7 @@ function SportsDisplayContent() {
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] bg-black flex items-center justify-center cursor-pointer"
+                        className="fixed inset-0 z-[1000] bg-black overflow-hidden flex flex-col items-center justify-center text-white font-sans"
                         onClick={() => {
                             // User Interaction enables sound AND ensures focus for 'B' key
                             window.focus();
@@ -324,7 +323,7 @@ function SportsDisplayContent() {
                             onClick={(e) => {
                                 e.stopPropagation();
                                 // Force Close Logic
-                                setHiddenLocally(true);
+                                setDismissedLocally(true);
                                 setManualAdBreak(false);
                                 if (activeFullscreenAds.length > 1) {
                                     setCurrentPlaylistIndex(prev => (prev + 1) % activeFullscreenAds.length);
@@ -341,7 +340,9 @@ function SportsDisplayContent() {
                         </div>
 
                         {/* Dynamic Content: YouTube OR Image OR Direct Video */}
-                        {adToDisplay.type === 'video' ? (
+                        {!adToDisplay ? (
+                            <div className="text-xl font-bold text-white/50">Waiting for ad content...</div>
+                        ) : adToDisplay.type === 'video' ? (
                             adToDisplay.url.includes('youtu') ? (
                                 <div key={adToDisplay.url} className="relative w-full h-full max-w-none max-h-none bg-black overflow-hidden flex items-center justify-center">
                                     <div id="youtube-player" className="absolute top-1/2 left-1/2 w-[110vw] h-[110vh] -translate-x-1/2 -translate-y-1/2 pointer-events-none border-none scale-100" />
@@ -351,7 +352,8 @@ function SportsDisplayContent() {
                                     src={adToDisplay.url}
                                     autoPlay
                                     loop
-                                    muted={false}
+                                    muted={true}
+                                    playsInline
                                     className="w-full h-full object-cover"
                                 />
                             )

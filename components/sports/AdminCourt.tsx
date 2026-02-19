@@ -7,12 +7,14 @@ interface AdminCourtProps {
     p2: Player | undefined;
     onUpdateScore: (updates: Partial<Match>) => void;
     sportType?: string;
+    now: Date;
 }
 
-export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminton' }: AdminCourtProps) {
+export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminton', now }: AdminCourtProps) {
 
-    const isNetSport = ['badminton', 'pickleball', 'tennis', 'table_tennis', 'volleyball'].includes(sportType);
-    const isTimedSport = ['basketball', 'football'].includes(sportType);
+    const normalizedSport = sportType.toLowerCase();
+    const isNetSport = ['badminton', 'pickleball', 'tennis', 'table_tennis', 'volleyball'].includes(normalizedSport);
+    const isTimedSport = ['basketball', 'football'].includes(normalizedSport);
 
     // Labels based on sport
     const collectionName = sportType === 'pickleball' || sportType === 'basketball' || sportType === 'volleyball' ? 'Game' : 'Set';
@@ -20,9 +22,25 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
     const handleScore = (player: 1 | 2, delta: number) => {
         const current = player === 1 ? match.current_score_p1 : match.current_score_p2;
         const newScore = Math.max(0, current + delta);
-        onUpdateScore({
+
+        const updates: Partial<Match> = {
             [player === 1 ? 'current_score_p1' : 'current_score_p2']: newScore
-        });
+        };
+
+        // BWF Logic: Match starts when first point is awarded
+        if (delta > 0 && !match.started_at) {
+            updates.started_at = new Date().toISOString();
+        }
+
+        // Auto-serving logic for net sports: Point winner becomes the server
+        if (delta > 0 && isNetSport) {
+            const winnerId = player === 1 ? p1?.id : p2?.id;
+            if (winnerId) {
+                updates.serving_player_id = winnerId;
+            }
+        }
+
+        onUpdateScore(updates);
     };
 
     const toggleServer = () => {
@@ -32,14 +50,77 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
     // --- NET SPORT LAYOUT (Realistic Court) ---
     if (isNetSport) {
         return (
-            <div className="w-full bg-slate-900 p-8 rounded-3xl shadow-2xl border border-slate-800">
+            <div className="w-full h-[calc(100vh-140px)] bg-slate-900 p-6 rounded-3xl shadow-2xl border border-slate-800 flex flex-col">
                 {/* Header */}
                 <div className="flex justify-between items-center mb-8">
-                    <div>
-                        <div className="text-white/50 font-bold uppercase tracking-widest text-sm">{match.round_name}</div>
-                        <div className="text-4xl font-black text-white">{match.court_id || 'CENTER COURT'}</div>
+                    <div className="flex gap-8">
+                        <div>
+                            <div className="text-white/50 font-bold uppercase tracking-widest text-sm">{match.round_name}</div>
+                            <div className="text-4xl font-black text-white">{match.court_id || 'CENTER COURT'}</div>
+                        </div>
+                        <div className="h-16 w-[2px] bg-white/10"></div>
+                        <div>
+                            <div className="text-white/50 font-bold uppercase tracking-widest text-sm">Match Duration</div>
+                            <div className="text-4xl font-black text-indigo-400 font-mono">
+                                {(() => {
+                                    if (!match.started_at) return "00:00";
+                                    const diff = Math.floor((now.getTime() - new Date(match.started_at).getTime()) / 1000);
+                                    const m = Math.floor(diff / 60);
+                                    const s = diff % 60;
+                                    return `${m}:${s.toString().padStart(2, '0')}`;
+                                })()}
+                            </div>
+                        </div>
+                        <div className="h-16 w-[2px] bg-white/10"></div>
+                        <div>
+                            <div className="text-white/50 font-bold uppercase tracking-widest text-sm">Local Time</div>
+                            <div className="text-4xl font-black text-white/40 font-mono">
+                                {now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}
+                            </div>
+                        </div>
                     </div>
                     <div className="flex gap-4">
+                        {isNetSport && (
+                            <button
+                                onClick={() => {
+                                    if (confirm("Confirm end of this set? Current scores will be archived.")) {
+                                        const h1 = match.current_score_p1;
+                                        const h2 = match.current_score_p2;
+                                        const winner = h1 > h2 ? 1 : 2;
+
+                                        onUpdateScore({
+                                            sets_p1: winner === 1 ? match.sets_p1 + 1 : match.sets_p1,
+                                            sets_p2: winner === 2 ? match.sets_p2 + 1 : match.sets_p2,
+                                            current_score_p1: 0,
+                                            current_score_p2: 0,
+                                            periods_scores: [...(match.periods_scores || []), { p1: h1, p2: h2 }],
+                                            // Winner of previous set serves first in next set
+                                            serving_player_id: winner === 1 ? p1?.id : p2?.id
+                                        });
+                                    }
+                                }}
+                                className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase tracking-wider rounded-lg shadow-lg"
+                            >
+                                <i className="fa-solid fa-list-check mr-2"></i> Finish Set
+                            </button>
+                        )}
+                        <button
+                            onClick={() => {
+                                if (confirm("Finish this match and record result?")) {
+                                    const isSetBased = ['badminton', 'pickleball', 'tennis', 'table_tennis', 'volleyball'].includes(sportType);
+                                    let winnerId = null;
+                                    if (isSetBased) {
+                                        winnerId = match.sets_p1 > match.sets_p2 ? p1?.id : (match.sets_p2 > match.sets_p1 ? p2?.id : null);
+                                    } else {
+                                        winnerId = match.current_score_p1 > match.current_score_p2 ? p1?.id : (match.current_score_p2 > match.current_score_p1 ? p2?.id : null);
+                                    }
+                                    onUpdateScore({ status: 'completed', winner_id: winnerId || undefined });
+                                }
+                            }}
+                            className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-wider rounded-lg shadow-lg"
+                        >
+                            <i className="fa-solid fa-flag-checkered mr-2"></i> Finish Match
+                        </button>
                         <button onClick={toggleServer} className="px-6 py-2 bg-yellow-400 hover:bg-yellow-500 text-black font-black uppercase tracking-wider rounded-lg shadow-lg">
                             <i className="fa-solid fa-arrow-right-arrow-left mr-2"></i> Swap Server
                         </button>
@@ -47,7 +128,7 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
                 </div>
 
                 {/* VISUAL COURT */}
-                <div className="relative w-full aspect-[2/1] bg-green-700 rounded-lg border-4 border-white shadow-inner overflow-hidden flex">
+                <div className="relative w-full flex-1 bg-green-700 rounded-lg border-4 border-white shadow-inner overflow-hidden flex min-h-0">
                     {/* Court Lines Overlay (Simple CSS representation) */}
                     <div className="absolute inset-x-0 top-1/2 h-2 bg-white/40 -translate-y-1/2"></div>
                     <div className="absolute inset-y-0 left-1/2 w-2 bg-white z-10 -translate-x-1/2 shadow-lg"></div>
@@ -150,6 +231,23 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
                 <div className="flex flex-col items-end">
                     <span className="text-gray-400 font-bold text-xs uppercase tracking-[0.2em] mb-1">Period</span>
                     <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => {
+                                if (confirm("Finish this match and record result?")) {
+                                    const isSetBased = ['badminton', 'pickleball', 'tennis', 'table_tennis', 'volleyball'].includes(sportType);
+                                    let winnerId = null;
+                                    if (isSetBased) {
+                                        winnerId = match.sets_p1 > match.sets_p2 ? p1?.id : (match.sets_p2 > match.sets_p1 ? p2?.id : null);
+                                    } else {
+                                        winnerId = match.current_score_p1 > match.current_score_p2 ? p1?.id : (match.current_score_p2 > match.current_score_p1 ? p2?.id : null);
+                                    }
+                                    onUpdateScore({ status: 'completed', winner_id: winnerId || undefined });
+                                }
+                            }}
+                            className="px-4 py-2 bg-white/10 hover:bg-red-600 text-white font-bold text-xs uppercase tracking-widest rounded-lg transition border border-white/5 mr-4"
+                        >
+                            <i className="fa-solid fa-stop mr-2"></i> Finish
+                        </button>
                         <button onClick={() => onUpdateScore({ current_period: Math.max(1, (match.current_period || 1) - 1) })} className="text-white/20 hover:text-white transition"><i className="fa-solid fa-chevron-left"></i></button>
                         <span className="text-white font-black text-4xl">{match.current_period || 1}</span>
                         <button onClick={() => onUpdateScore({ current_period: (match.current_period || 1) + 1 })} className="text-white/20 hover:text-white transition"><i className="fa-solid fa-chevron-right"></i></button>

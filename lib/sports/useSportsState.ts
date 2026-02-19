@@ -12,6 +12,12 @@ export function useSportsState(targetTournamentId?: string | null) {
     const [loading, setLoading] = useState(true);
 
     const [ads, setAds] = useState<any[]>([]);
+    const [now, setNow] = useState(new Date());
+
+    useEffect(() => {
+        const interval = setInterval(() => setNow(new Date()), 1000);
+        return () => clearInterval(interval);
+    }, []);
 
     // Changes: Use a Ref to store the current tournament ID so subscriptions access the LATEST value
     const activeTournamentIdRef = useState<{ id: string | null }>({ id: null })[0];
@@ -42,9 +48,27 @@ export function useSportsState(targetTournamentId?: string | null) {
             })
             .subscribe();
 
+        const tourneyChannel = supabase
+            .channel('public:tournaments')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'tournaments' }, (payload) => {
+                console.log('Tournament update:', payload);
+                fetchData(true);
+            })
+            .subscribe();
+
+        const playerChannel = supabase
+            .channel('public:players')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'players' }, (payload) => {
+                console.log('Player update:', payload);
+                fetchData(true);
+            })
+            .subscribe();
+
         return () => {
             supabase.removeChannel(channel);
             supabase.removeChannel(adChannel);
+            supabase.removeChannel(tourneyChannel);
+            supabase.removeChannel(playerChannel);
         };
     }, []);
 
@@ -146,12 +170,19 @@ export function useSportsState(targetTournamentId?: string | null) {
     };
 
     const updateScore = async (matchId: string, updates: Partial<Match>) => {
+        // Optimistic Update
+        setMatches(prev => prev.map(m => m.id === matchId ? { ...m, ...updates } : m));
+
         const { error } = await supabase
             .from('matches')
             .update(updates)
             .eq('id', matchId);
 
-        if (error) console.error("Error updating score:", error);
+        if (error) {
+            console.error("Error updating score:", error);
+            // Revert on error? Optional, but fetchData will eventually fix it
+            fetchData(true);
+        }
     };
 
     const endCurrentTournament = async () => {
@@ -348,5 +379,21 @@ export function useSportsState(targetTournamentId?: string | null) {
         else fetchData();
     };
 
-    return { matches, players, tournament, allTournaments, switchTournament, ads, loading, updateScore, refresh: fetchData, createTournament, endCurrentTournament, addAd, deleteAd, toggleAd, createMatch, deleteMatch };
+    const updatePlayer = async (playerId: string, updates: Partial<Player>) => {
+        const { error } = await supabase.from('players').update(updates).eq('id', playerId);
+        if (error) {
+            console.error("Error updating player:", error.message, error.details, error.hint);
+        } else {
+            fetchData();
+        }
+    };
+
+    const updateTournament = async (updates: Partial<any>) => {
+        if (!tournament) return;
+        const { error } = await supabase.from('tournaments').update(updates).eq('id', tournament.id);
+        if (error) console.error("Error updating tournament", error);
+        else fetchData();
+    };
+
+    return { now, matches, players, tournament, allTournaments, switchTournament, ads, loading, updateScore, refresh: fetchData, createTournament, endCurrentTournament, addAd, deleteAd, toggleAd, createMatch, deleteMatch, updatePlayer, updateTournament };
 }
