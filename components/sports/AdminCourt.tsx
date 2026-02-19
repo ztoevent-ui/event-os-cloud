@@ -282,6 +282,28 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
                     }
                 `}
             >
+                {/* --- MATCH FINISHED OVERLAY (ADMIN VIEW) --- */}
+                {(match.status === 'completed' || match.status === 'retired' || match.status === 'walkover') && (
+                    <div className="absolute inset-0 z-[1000] bg-slate-950/95 backdrop-blur-xl flex flex-col items-center justify-center text-center p-8 animate-in fade-in zoom-in duration-500">
+                        <div className="w-24 h-24 bg-emerald-500 rounded-full flex items-center justify-center mb-8 shadow-2xl shadow-emerald-500/40">
+                            <i className="fa-solid fa-check text-5xl text-white"></i>
+                        </div>
+                        <h2 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter mb-4">Match Over</h2>
+                        <div className="text-6xl md:text-8xl font-black text-emerald-400 mb-2">
+                            {match.sets_p1} - {match.sets_p2}
+                        </div>
+                        <p className="text-slate-400 font-bold mb-10 uppercase tracking-widest text-sm">
+                            Status: {match.status.toUpperCase()}
+                        </p>
+
+                        <button
+                            onClick={onClose}
+                            className="px-12 py-4 bg-white text-slate-950 rounded-2xl font-black uppercase tracking-widest hover:bg-emerald-400 transition-all transform hover:scale-105 shadow-xl"
+                        >
+                            Return to Match List
+                        </button>
+                    </div>
+                )}
                 {/* GAME END MODAL */}
                 {showGameEndModal && (
                     <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md animate-fade-in">
@@ -350,10 +372,39 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
                 <div className="flex flex-col lg:flex-row justify-between items-center mb-4 md:mb-8 gap-4">
                     <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 md:gap-8 w-full lg:w-auto">
                         <div className="text-center lg:text-left">
-                            <div className="text-white/50 font-bold uppercase tracking-widest text-xs md:text-sm">
-                                {match.round_name} • GAME {currentGameNumber}
+                            <div className="flex flex-col gap-2">
+                                <div className="flex items-center gap-2">
+                                    <select
+                                        value={match.round_name}
+                                        onChange={(e) => onUpdateScore({ round_name: e.target.value })}
+                                        className="bg-black/20 text-white/70 border border-white/10 rounded px-2 py-1 text-[10px] font-black uppercase tracking-wider outline-none focus:border-indigo-500"
+                                    >
+                                        <option value="Round 32">R32</option>
+                                        <option value="Round 16">R16</option>
+                                        <option value="Quarter Final">QF</option>
+                                        <option value="Semi Final">SF</option>
+                                        <option value="Final">Final</option>
+                                    </select>
+                                    <span className="text-white/30 text-[10px]">•</span>
+                                    <span className="text-white/50 font-bold uppercase tracking-widest text-[10px]">GAME {currentGameNumber}</span>
+                                </div>
+
+                                <select
+                                    value={match.court_id || ''}
+                                    onChange={(e) => onUpdateScore({ court_id: e.target.value })}
+                                    className="bg-transparent text-2xl md:text-3xl font-black text-white outline-none cursor-pointer border-b border-transparent hover:border-white/20"
+                                >
+                                    {/* Courts 1-20 */}
+                                    {Array.from({ length: 20 }, (_, i) => i + 1).map(n => (
+                                        <option key={n} value={`Court ${n}`} className="bg-slate-900">Court {n}</option>
+                                    ))}
+                                    {/* Courts A-Z */}
+                                    {Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i)).map(alpha => (
+                                        <option key={alpha} value={`Court ${alpha}`} className="bg-slate-900">Court {alpha}</option>
+                                    ))}
+                                    <option value="Center Court" className="bg-slate-900">Center Court</option>
+                                </select>
                             </div>
-                            <div className="text-2xl md:text-4xl font-black text-white whitespace-nowrap">{match.court_id || 'CENTER COURT'}</div>
                             {isPickleball && (
                                 <div className="flex flex-col gap-1">
                                     <div className="text-indigo-300 text-base font-mono mt-1 font-black bg-black/20 px-2 rounded">
@@ -421,16 +472,27 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
                                 // Let's follow the standard: previous receiver.
                                 const nextServer = match.serving_player_id === p1?.id ? p2?.id : p1?.id;
 
+                                const s1 = winner === 1 ? (match.sets_p1 || 0) + 1 : (match.sets_p1 || 0);
+                                const s2 = winner === 2 ? (match.sets_p2 || 0) + 1 : (match.sets_p2 || 0);
+
+                                const isMatchOver = s1 >= 2 || s2 >= 2;
+
                                 onUpdateScore({
-                                    sets_p1: winner === 1 ? (match.sets_p1 || 0) + 1 : (match.sets_p1 || 0),
-                                    sets_p2: winner === 2 ? (match.sets_p2 || 0) + 1 : (match.sets_p2 || 0),
+                                    sets_p1: s1,
+                                    sets_p2: s2,
                                     current_score_p1: 0,
                                     current_score_p2: 0,
                                     periods_scores: [...(match.periods_scores || []), { p1: h1, p2: h2 }],
                                     serving_player_id: nextServer,
                                     current_period: pbSingles ? 1 : 2, // Reset server to 2 if Doubles
-                                    started_at: new Date().toISOString() // Refresh start time
+                                    started_at: new Date().toISOString(), // Refresh start time
+                                    status: isMatchOver ? 'completed' : 'ongoing',
+                                    winner_id: isMatchOver ? (s1 >= 2 ? p1?.id : p2?.id) : undefined
                                 });
+
+                                if (isMatchOver && onClose) {
+                                    setTimeout(onClose, 1500);
+                                }
                             }}
                             className="hidden lg:block flex-1 lg:flex-none px-3 md:px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs md:text-sm font-black uppercase tracking-wider rounded-lg shadow-lg whitespace-nowrap"
                         >
@@ -477,13 +539,35 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
                     {/* Right Side */}
                     {renderPlayer(false)}
                 </div>
-            </div>
+            </div >
         );
     }
 
     // --- TIMED SPORT LAYOUT (Field/Timed - Authentic) ---
     return (
-        <div className="w-full bg-slate-900 rounded-2xl overflow-hidden shadow-2xl border border-slate-800 flex flex-col min-h-screen md:min-h-0">
+        <div className="w-full bg-slate-900 rounded-2xl overflow-hidden shadow-2xl border border-slate-800 flex flex-col min-h-screen md:min-h-0 relative">
+            {/* --- MATCH FINISHED OVERLAY (ADMIN VIEW) --- */}
+            {(match.status === 'completed' || match.status === 'retired' || match.status === 'walkover') && (
+                <div className="absolute inset-0 z-[1000] bg-slate-950/95 backdrop-blur-xl flex flex-col items-center justify-center text-center p-8 animate-in fade-in zoom-in duration-500">
+                    <div className="w-24 h-24 bg-emerald-500 rounded-full flex items-center justify-center mb-8 shadow-2xl shadow-emerald-500/40">
+                        <i className="fa-solid fa-check text-5xl text-white"></i>
+                    </div>
+                    <h2 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter mb-4">Match Over</h2>
+                    <div className="text-6xl md:text-8xl font-black text-emerald-400 mb-2">
+                        {match.current_score_p1} - {match.current_score_p2}
+                    </div>
+                    <p className="text-slate-400 font-bold mb-10 uppercase tracking-widest text-sm">
+                        Winner: {match.winner_id === p1?.id ? p1?.name : (match.winner_id === p2?.id ? p2?.name : 'Draw')}
+                    </p>
+
+                    <button
+                        onClick={onClose}
+                        className="px-12 py-4 bg-white text-slate-950 rounded-2xl font-black uppercase tracking-widest hover:bg-emerald-400 transition-all transform hover:scale-105 shadow-xl"
+                    >
+                        Return to Match List
+                    </button>
+                </div>
+            )}
             {/* Scoreboard Header */}
             <div className="bg-slate-950 p-4 md:p-6 flex flex-col md:flex-row justify-between items-center border-b border-white/5 gap-4">
                 <div className="flex flex-col text-center md:text-left">
@@ -502,10 +586,9 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
                     <div className="flex justify-between w-full md:w-auto items-center gap-4">
                         <button
                             onClick={() => {
-                                if (confirm("Finish this match and record result?")) {
-                                    const winnerId = match.current_score_p1 > match.current_score_p2 ? p1?.id : (match.current_score_p2 > match.current_score_p1 ? p2?.id : null);
-                                    onUpdateScore({ status: 'completed', winner_id: winnerId || undefined });
-                                }
+                                const winnerId = match.current_score_p1 > match.current_score_p2 ? p1?.id : (match.current_score_p2 > match.current_score_p1 ? p2?.id : null);
+                                onUpdateScore({ status: 'completed', winner_id: winnerId || undefined });
+                                if (onClose) setTimeout(onClose, 1500);
                             }}
                             className="px-4 py-2 bg-white/10 hover:bg-red-600 text-white font-bold text-xs uppercase tracking-widest rounded-lg transition border border-white/5"
                         >

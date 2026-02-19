@@ -14,6 +14,89 @@ interface PickleballCardProps {
     isGrid?: boolean; // NEW
 }
 
+// Helper for Player Rendering - MOVED OUTSIDE to prevent re-mounting and flickering
+const PlayerDisplay = ({ player, color, align, match, isGrid, isSwapSides }: {
+    player: Player | undefined,
+    color: 'blue' | 'green',
+    align: 'left' | 'right',
+    match: Match,
+    isGrid: boolean,
+    isSwapSides: boolean
+}) => {
+    const isServing = match.serving_player_id === player?.id;
+    const borderColor = color === 'blue' ? 'border-blue-500' : 'border-green-500';
+    const shadowColor = color === 'blue' ? 'rgba(59,130,246,0.4)' : 'rgba(34,197,94,0.4)';
+    const glowColor = color === 'blue' ? 'bg-blue-500/30' : 'bg-green-500/30';
+
+    // Dynamic Sizes
+    const avatarStyle = isGrid ? 'w-24 h-24 lg:w-28 lg:h-28' : 'w-48 md:w-64 h-48 md:h-64';
+    const flagStyle = isGrid ? 'w-8 h-8 border-2' : 'w-12 h-12 md:w-16 md:h-16 border-2 md:border-4';
+    const paddleStyle = isGrid ? 'w-8 h-8' : 'w-12 h-12 md:w-16 md:h-16';
+    const paddleIconSize = isGrid ? 'text-sm' : 'text-xl md:text-3xl';
+
+    // Name Formatting
+    const parts = (player?.name || 'TBD').split(' ');
+    const lastName = parts[parts.length - 1];
+    const firstNames = parts.slice(0, -1).join(' ');
+
+    return (
+        <div className={`flex flex-col items-center w-1/3`}>
+            <div className={`relative ${isGrid ? 'mb-4' : 'mb-6 md:mb-10'}`}>
+                {/* Glow */}
+                <div className={`absolute inset-[-10px] rounded-full ${glowColor} blur-2xl animate-pulse`}></div>
+
+                {/* Avatar */}
+                <div className={`${avatarStyle} rounded-full border-[4px] md:border-[6px] ${borderColor} p-1 md:p-2 relative z-10 bg-slate-900 overflow-hidden shadow-[0_0_40px_${shadowColor}] transition-all duration-500`}>
+                    <img
+                        src={player?.avatar_url || `https://via.placeholder.com/400x400?text=${player?.name?.charAt(0) || 'P'}`}
+                        className="w-full h-full object-cover rounded-full"
+                        alt={player?.name}
+                    />
+                </div>
+
+                {/* Flag */}
+                <div className={`absolute bottom-0 ${align === 'left' ? 'left-0 md:left-2' : 'right-0 md:right-2'} md:bottom-2 ${flagStyle} rounded-full border-slate-950 bg-white overflow-hidden z-20 shadow-xl`}>
+                    <img src={player?.country_code || "https://flagcdn.com/us.svg"} className="w-full h-full object-cover scale-110" alt="Flag" />
+                </div>
+
+                {/* Serving Badge */}
+                <AnimatePresence mode="wait">
+                    {isServing && (
+                        <motion.div
+                            key="serve-icon"
+                            initial={{ scale: 0, rotate: align === 'left' ? -45 : 45 }}
+                            animate={{ scale: 1, rotate: 0 }}
+                            exit={{ scale: 0 }}
+                            className={`absolute -top-2 ${align === 'left' ? '-left-2 md:-left-4' : '-right-2 md:-right-4'} md:-top-4 ${paddleStyle} bg-white rounded-full flex items-center justify-center shadow-2xl z-20 border-2 ${borderColor}`}
+                        >
+                            <i className={`fa-solid fa-table-tennis-paddle-ball text-slate-900 ${paddleIconSize}`}></i>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </div>
+
+            {/* Name Block */}
+            <div className="flex flex-col items-center">
+                {align === 'left' ? (
+                    <>
+                        <span className={`${isGrid ? 'text-3xl' : 'text-4xl'} font-black uppercase tracking-widest leading-tight`}>{lastName}
+                            {isSwapSides && <span className="block text-[8px] opacity-50 tracking-normal">(SWAP)</span>}
+                        </span>
+                        <span className={`${isGrid ? 'text-xl' : 'text-2xl'} font-medium text-white/80 leading-tight`}>{firstNames}</span>
+                    </>
+                ) : (
+                    <>
+                        <span className={`${isGrid ? 'text-xl' : 'text-2xl'} font-medium text-white/80 leading-tight`}>{firstNames}</span>
+                        <span className={`${isGrid ? 'text-3xl' : 'text-4xl'} font-black uppercase tracking-widest leading-tight`}>{lastName}
+                            {isSwapSides && <span className="block text-[8px] opacity-50 tracking-normal">(SWAP)</span>}
+                        </span>
+                    </>
+                )}
+            </div>
+        </div>
+    );
+};
+
 export function PickleballCard({ match, p1, p2, activeAd, logoUrl, bgUrl, now, isGrid = false }: PickleballCardProps) {
     // --- Logic & State ---
     const setHistory = match.periods_scores || [];
@@ -36,81 +119,6 @@ export function PickleballCard({ match, p1, p2, activeAd, logoUrl, bgUrl, now, i
     // Derived Data for Transition
     const lastSet = setHistory.length > 0 ? setHistory[setHistory.length - 1] : null;
     const lastSetWinner = lastSet ? (lastSet.p1 > lastSet.p2 ? p1 : p2) : null;
-
-    // Helper for Player Rendering
-    const PlayerDisplay = ({ player, color, align }: { player: Player | undefined, color: 'blue' | 'green', align: 'left' | 'right' }) => {
-        const isServing = match.serving_player_id === player?.id;
-        const borderColor = color === 'blue' ? 'border-blue-500' : 'border-green-500';
-        const shadowColor = color === 'blue' ? 'rgba(59,130,246,0.4)' : 'rgba(34,197,94,0.4)';
-        const glowColor = color === 'blue' ? 'bg-blue-500/30' : 'bg-green-500/30';
-
-        // Dynamic Sizes
-        const avatarStyle = isGrid ? 'w-24 h-24 lg:w-28 lg:h-28' : 'w-48 md:w-64 h-48 md:h-64';
-        const flagStyle = isGrid ? 'w-8 h-8 border-2' : 'w-12 h-12 md:w-16 md:h-16 border-2 md:border-4';
-        const paddleStyle = isGrid ? 'w-8 h-8' : 'w-12 h-12 md:w-16 md:h-16';
-        const paddleIconSize = isGrid ? 'text-sm' : 'text-xl md:text-3xl';
-
-        // Name Formatting
-        const parts = (player?.name || 'TBD').split(' ');
-        const lastName = parts[parts.length - 1];
-        const firstNames = parts.slice(0, -1).join(' ');
-
-        return (
-            <div className={`flex flex-col items-center w-1/3`}>
-                <div className={`relative ${isGrid ? 'mb-4' : 'mb-6 md:mb-10'}`}>
-                    {/* Glow */}
-                    <div className={`absolute inset-[-10px] rounded-full ${glowColor} blur-2xl animate-pulse`}></div>
-
-                    {/* Avatar */}
-                    <div className={`${avatarStyle} rounded-full border-[4px] md:border-[6px] ${borderColor} p-1 md:p-2 relative z-10 bg-slate-900 overflow-hidden shadow-[0_0_40px_${shadowColor}] transition-all duration-500`}>
-                        <img
-                            src={player?.avatar_url || `https://via.placeholder.com/400x400?text=${player?.name?.charAt(0) || 'P'}`}
-                            className="w-full h-full object-cover rounded-full"
-                            alt={player?.name}
-                        />
-                    </div>
-
-                    {/* Flag */}
-                    <div className={`absolute bottom-0 ${align === 'left' ? 'left-0 md:left-2' : 'right-0 md:right-2'} md:bottom-2 ${flagStyle} rounded-full border-slate-950 bg-white overflow-hidden z-20 shadow-xl`}>
-                        <img src={player?.country_code || "https://flagcdn.com/us.svg"} className="w-full h-full object-cover scale-110" alt="Flag" />
-                    </div>
-
-                    {/* Serving Badge */}
-                    <AnimatePresence>
-                        {isServing && (
-                            <motion.div
-                                initial={{ scale: 0, rotate: align === 'left' ? -45 : 45 }}
-                                animate={{ scale: 1, rotate: 0 }}
-                                className={`absolute -top-2 ${align === 'left' ? '-left-2 md:-left-4' : '-right-2 md:-right-4'} md:-top-4 ${paddleStyle} bg-white rounded-full flex items-center justify-center shadow-2xl z-20 border-2 ${borderColor}`}
-                            >
-                                <i className={`fa-solid fa-table-tennis-paddle-ball text-slate-900 ${paddleIconSize}`}></i>
-                                {/* Optional: Show Server Number if we want on display? User didn't explicitly ask for it on Display, only Call. */}
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </div>
-
-                {/* Name Block */}
-                <div className="flex flex-col items-center">
-                    {align === 'left' ? (
-                        <>
-                            <span className={`${isGrid ? 'text-3xl' : 'text-4xl'} font-black uppercase tracking-widest leading-tight`}>{lastName}
-                                {isSwapSides && <span className="block text-[8px] opacity-50 tracking-normal">(SWAP)</span>}
-                            </span>
-                            <span className={`${isGrid ? 'text-xl' : 'text-2xl'} font-medium text-white/80 leading-tight`}>{firstNames}</span>
-                        </>
-                    ) : (
-                        <>
-                            <span className={`${isGrid ? 'text-xl' : 'text-2xl'} font-medium text-white/80 leading-tight`}>{firstNames}</span>
-                            <span className={`${isGrid ? 'text-3xl' : 'text-4xl'} font-black uppercase tracking-widest leading-tight`}>{lastName}
-                                {isSwapSides && <span className="block text-[8px] opacity-50 tracking-normal">(SWAP)</span>}
-                            </span>
-                        </>
-                    )}
-                </div>
-            </div>
-        );
-    };
 
     // Styling Constants
     const mainScoreSize = isGrid ? 'text-6xl lg:text-7xl' : 'text-8xl md:text-[10rem]';
@@ -186,11 +194,13 @@ export function PickleballCard({ match, p1, p2, activeAd, logoUrl, bgUrl, now, i
             <div className={`relative z-20 w-full max-w-7xl flex items-center justify-between ${containerPadding}`}>
 
                 {/* LEFT SLOT */}
-                {/* Normal: P1 (Blue). Swap: P2 (Green) */}
                 <PlayerDisplay
                     player={isSwapSides ? p2 : p1}
                     color={isSwapSides ? 'green' : 'blue'}
                     align="left"
+                    match={match}
+                    isGrid={isGrid}
+                    isSwapSides={isSwapSides}
                 />
 
                 {/* CENTER AREA: SCORES & TIMER */}
@@ -275,11 +285,13 @@ export function PickleballCard({ match, p1, p2, activeAd, logoUrl, bgUrl, now, i
                 </div>
 
                 {/* RIGHT SLOT */}
-                {/* Normal: P2 (Green). Swap: P1 (Blue) */}
                 <PlayerDisplay
                     player={isSwapSides ? p1 : p2}
                     color={isSwapSides ? 'blue' : 'green'}
                     align="right"
+                    match={match}
+                    isGrid={isGrid}
+                    isSwapSides={isSwapSides}
                 />
 
             </div>
