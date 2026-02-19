@@ -55,13 +55,17 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
     const isNetSport = ['badminton', 'pickleball', 'tennis', 'table_tennis', 'volleyball'].includes(normalizedSport);
     const isPickleball = normalizedSport === 'pickleball';
 
+    // --- Pickleball & Game Logic Settings ---
+    const [pbSingles, setPbSingles] = React.useState(false);
+    const [pbRally, setPbRally] = React.useState(false);
+
     // Get theme or default to badminton
     const theme = COURT_THEMES[normalizedSport] || COURT_THEMES['badminton'];
 
     // --- Pickleball & Game Logic ---
     // Server Number: Defaults to 2 if score is 0-0 (Start of Game Rule), else current_period, else 1
     const isStartOfGame = match.current_score_p1 === 0 && match.current_score_p2 === 0;
-    const serverNumber = isPickleball ? (match.current_period || (isStartOfGame ? 2 : 1)) : 0;
+    const serverNumber = (isPickleball && !pbSingles) ? (match.current_period || (isStartOfGame ? 2 : 1)) : 0;
 
     // Game/Set Calculation
     const setsWonP1 = match.sets_p1 || 0;
@@ -101,8 +105,8 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
             current_score_p2: 0,
             periods_scores: newHistory,
             serving_player_id: nextServer,
-            current_period: 2, // Game 2 starts with Server 2 (0-0-2)
-            started_at: new Date().toISOString() // Refresh start time for duration
+            current_period: pbSingles ? 1 : 2, // Game start: 0-0-2 for doubles, 1 for singles
+            started_at: new Date().toISOString()
         });
         setShowGameEndModal(false);
     };
@@ -141,28 +145,37 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
         if (delta > 0) {
             // --- POINT WON LOGIC ---
             if (isPickleball) {
-                // Pickleball "Serve to Win" Rules
-
-                // 1. If Server Won Rally -> Point
-                if (match.serving_player_id === winnerId) {
+                if (pbRally) {
+                    // Rally Scoring: Everyone scores on every point
                     updates[player === 1 ? 'current_score_p1' : 'current_score_p2'] = currentScore + 1;
-                    // Server Number stays same
-                } else {
-                    // 2. Receiver Won Rally -> Side Out or Second Serve
-                    if (serverNumber === 1) {
-                        // Move to Server 2
-                        updates.current_period = 2;
-                    } else {
-                        // Side Out (Was Server 2) -> Switch Team, Start at Server 1 (unless 0-0-2 logic forces 2, but standard sideout is 1)
+
+                    // Side switches on every loss? (Standard Rally logic)
+                    if (match.serving_player_id !== winnerId) {
                         updates.serving_player_id = winnerId;
-                        updates.current_period = 1;
+                    }
+                } else {
+                    // Side-Out Scoring (Standard "Serve to Win")
+                    if (match.serving_player_id === winnerId) {
+                        updates[player === 1 ? 'current_score_p1' : 'current_score_p2'] = currentScore + 1;
+                    } else {
+                        // Receiver won rally -> Side Out or Serve 2
+                        if (pbSingles) {
+                            // Singles: Direct Side Out
+                            updates.serving_player_id = winnerId;
+                        } else {
+                            // Doubles: Two servers
+                            if (serverNumber === 1) {
+                                updates.current_period = 2;
+                            } else {
+                                updates.serving_player_id = winnerId;
+                                updates.current_period = 1;
+                            }
+                        }
                     }
                 }
             } else {
-                // Rally Scoring (Badminton, Tennis, etc.): Point is awarded regardless
+                // Other Net Sports (Badminton, etc.) -> Always Rally Scoring
                 updates[player === 1 ? 'current_score_p1' : 'current_score_p2'] = currentScore + 1;
-
-                // Winner becomes server
                 if (isNetSport && winnerId) {
                     updates.serving_player_id = winnerId;
                 }
@@ -342,8 +355,24 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
                             </div>
                             <div className="text-2xl md:text-4xl font-black text-white whitespace-nowrap">{match.court_id || 'CENTER COURT'}</div>
                             {isPickleball && (
-                                <div className="text-indigo-300 text-base font-mono mt-1 font-black bg-black/20 px-2 rounded">
-                                    CALL: {match.current_score_p1}-{match.current_score_p2}-{serverNumber}
+                                <div className="flex flex-col gap-1">
+                                    <div className="text-indigo-300 text-base font-mono mt-1 font-black bg-black/20 px-2 rounded">
+                                        CALL: {match.current_score_p1}-{match.current_score_p2}{serverNumber > 0 ? `-${serverNumber}` : ''}
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => setPbSingles(!pbSingles)}
+                                            className={`text-[8px] px-2 py-0.5 rounded border font-black uppercase transition ${pbSingles ? 'bg-indigo-500 border-indigo-400 text-white' : 'bg-black/20 border-white/20 text-white/40'}`}
+                                        >
+                                            {pbSingles ? 'Singles' : 'Doubles'}
+                                        </button>
+                                        <button
+                                            onClick={() => setPbRally(!pbRally)}
+                                            className={`text-[8px] px-2 py-0.5 rounded border font-black uppercase transition ${pbRally ? 'bg-amber-500 border-amber-400 text-black' : 'bg-black/20 border-white/20 text-white/40'}`}
+                                        >
+                                            {pbRally ? 'Rally' : 'Side-Out'}
+                                        </button>
+                                    </div>
                                 </div>
                             )}
                         </div>
@@ -399,7 +428,7 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
                                     current_score_p2: 0,
                                     periods_scores: [...(match.periods_scores || []), { p1: h1, p2: h2 }],
                                     serving_player_id: nextServer,
-                                    current_period: isPickleball ? 2 : (match.current_period || 1), // Reset server to 2 if Pickleball
+                                    current_period: pbSingles ? 1 : 2, // Reset server to 2 if Doubles
                                     started_at: new Date().toISOString() // Refresh start time
                                 });
                             }}
