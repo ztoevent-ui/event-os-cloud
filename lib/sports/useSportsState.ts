@@ -290,7 +290,8 @@ export function useSportsState(targetTournamentId?: string | null) {
                 current_score_p2: 0,
                 sets_p1: 0,
                 sets_p2: 0,
-                serving_player_id: p1.id
+                serving_player_id: p1.id,
+                current_period: type === 'pickleball' ? 2 : 1
             };
 
             // Defaults based on type
@@ -361,7 +362,7 @@ export function useSportsState(targetTournamentId?: string | null) {
             sets_p2: 0,
             is_paused: false,
             timer_seconds: tournament.type === 'basketball' ? 720 : (tournament.type === 'football' ? 0 : undefined),
-            current_period: 1
+            current_period: tournament.type === 'pickleball' ? 2 : 1
         };
 
         const { error } = await supabase.from('matches').insert(newMatch);

@@ -73,49 +73,57 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
     const currentGameNumber = setsWonP1 + setsWonP2 + 1;
     const isSwapSides = (setsWonP1 + setsWonP2) % 2 === 1;
 
-    // Check Win Condition (Standard: 11 pts, Win by 2)
-    const WIN_PTS = 11;
-    const isGameFinished = (match.current_score_p1 >= WIN_PTS || match.current_score_p2 >= WIN_PTS) &&
-        Math.abs(match.current_score_p1 - match.current_score_p2) >= 2;
+    // Check Win Condition (Standard: 21 pts, Win by 2)
+    const WIN_PTS = 21;
+    const is20Tie = match.current_score_p1 >= 20 && match.current_score_p2 >= 20;
+    const isGameFinished = (isPickleball && !is20Tie)
+        ? (match.current_score_p1 >= WIN_PTS || match.current_score_p2 >= WIN_PTS) // First to 21 wins
+        : ((match.current_score_p1 >= WIN_PTS || match.current_score_p2 >= WIN_PTS) && Math.abs(match.current_score_p1 - match.current_score_p2) >= 2); // Win by 2
 
     const [showGameEndModal, setShowGameEndModal] = React.useState(false);
 
     // Auto-trigger modal if condition met and not already showing
     React.useEffect(() => {
-        if (isGameFinished && !showGameEndModal) {
+        if (isGameFinished && !showGameEndModal && match.status === 'ongoing') {
             setShowGameEndModal(true);
         }
-    }, [match.current_score_p1, match.current_score_p2, isGameFinished]);
+    }, [match.current_score_p1, match.current_score_p2, isGameFinished, match.status]);
 
     const handleGameEnd = () => {
-        const winner = match.current_score_p1 > match.current_score_p2 ? 1 : 2;
-        const newHistory = [...(match.periods_scores || []), { p1: match.current_score_p1, p2: match.current_score_p2 }];
+        const h1 = match.current_score_p1;
+        const h2 = match.current_score_p2;
+        const winner = h1 > h2 ? 1 : 2;
+        const newHistory = [...(match.periods_scores || []), { p1: h1, p2: h2 }];
 
-        // Determine first server for next game: The team that received first in previous game?
-        // Or simple rule: "Side Out" relative to previous game end?
-        // Let's assume standard: Serving Player ID is initialized to the loser of the previous game start coin toss?
-        // Simpler: Just swap serving side from who served last?
-        // User Request: "Initialize to previous receiver".
         const nextServer = match.serving_player_id === p1?.id ? p2?.id : p1?.id;
 
+        const s1 = winner === 1 ? setsWonP1 + 1 : setsWonP1;
+        const s2 = winner === 2 ? setsWonP2 + 1 : setsWonP2;
+        const isMatchOver = s1 >= 2 || s2 >= 2;
+
         onUpdateScore({
-            sets_p1: winner === 1 ? setsWonP1 + 1 : setsWonP1,
-            sets_p2: winner === 2 ? setsWonP2 + 1 : setsWonP2,
+            sets_p1: s1,
+            sets_p2: s2,
             current_score_p1: 0,
             current_score_p2: 0,
             periods_scores: newHistory,
             serving_player_id: nextServer,
             current_period: pbSingles ? 1 : 2, // Game start: 0-0-2 for doubles, 1 for singles
-            started_at: new Date().toISOString()
+            started_at: new Date().toISOString(),
+            status: isMatchOver ? 'completed' : 'ongoing',
+            winner_id: isMatchOver ? (s1 >= 2 ? p1?.id : p2?.id) : undefined
         });
+
         setShowGameEndModal(false);
+        if (isMatchOver && onClose) {
+            onClose();
+        }
     };
 
     // --- Retirement Logic ---
     const [showRetireModal, setShowRetireModal] = React.useState(false);
 
     const handleRetire = (retiringPlayer: 1 | 2) => {
-        // Opponent wins
         const winnerId = retiringPlayer === 1 ? p2?.id : p1?.id;
 
         onUpdateScore({
@@ -125,9 +133,8 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
         });
         setShowRetireModal(false);
 
-        // Return to match list after a short delay
         if (onClose) {
-            setTimeout(onClose, 800);
+            onClose();
         }
     };
 
@@ -137,7 +144,6 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
 
         const updates: Partial<Match> = {};
 
-        // BWF/General Logic: Match starts when first point/rally touches
         if (delta > 0 && !match.started_at) {
             updates.started_at = new Date().toISOString();
         }
@@ -145,25 +151,29 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
         if (delta > 0) {
             // --- POINT WON LOGIC ---
             if (isPickleball) {
-                if (pbRally) {
+                // Rule: "只有20平分的时候才需要serve to win 不然就是哪一方先21分赢"
+                // Only at 20-20 deuce switch to Side-out scoring. Otherwise Rally scoring.
+                const is20Tie = match.current_score_p1 >= 20 && match.current_score_p2 >= 20;
+
+                // Use side out ONLY if forced by toggle OR if it's 20-20 deuce and we didn't force rally.
+                const effectiveSideOut = pbRally ? false : is20Tie;
+
+                if (!effectiveSideOut) {
                     // Rally Scoring: Everyone scores on every point
                     updates[player === 1 ? 'current_score_p1' : 'current_score_p2'] = currentScore + 1;
 
-                    // Side switches on every loss? (Standard Rally logic)
-                    if (match.serving_player_id !== winnerId) {
-                        updates.serving_player_id = winnerId;
-                    }
+                    // Side switches on rally loss
+                    updates.serving_player_id = winnerId;
+                    updates.current_period = 1;
                 } else {
-                    // Side-Out Scoring (Standard "Serve to Win")
+                    // Side-Out Scoring (Serve to Win) - Triggered at 20-20
                     if (match.serving_player_id === winnerId) {
                         updates[player === 1 ? 'current_score_p1' : 'current_score_p2'] = currentScore + 1;
                     } else {
-                        // Receiver won rally -> Side Out or Serve 2
+                        // Receiver won rally -> Switch Server
                         if (pbSingles) {
-                            // Singles: Direct Side Out
                             updates.serving_player_id = winnerId;
                         } else {
-                            // Doubles: Two servers
                             if (serverNumber === 1) {
                                 updates.current_period = 2;
                             } else {
@@ -472,8 +482,8 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
                                 // Let's follow the standard: previous receiver.
                                 const nextServer = match.serving_player_id === p1?.id ? p2?.id : p1?.id;
 
-                                const s1 = winner === 1 ? (match.sets_p1 || 0) + 1 : (match.sets_p1 || 0);
-                                const s2 = winner === 2 ? (match.sets_p2 || 0) + 1 : (match.sets_p2 || 0);
+                                const s1 = winner === 1 ? setsWonP1 + 1 : setsWonP1;
+                                const s2 = winner === 2 ? setsWonP2 + 1 : setsWonP2;
 
                                 const isMatchOver = s1 >= 2 || s2 >= 2;
 
@@ -484,14 +494,14 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
                                     current_score_p2: 0,
                                     periods_scores: [...(match.periods_scores || []), { p1: h1, p2: h2 }],
                                     serving_player_id: nextServer,
-                                    current_period: pbSingles ? 1 : 2, // Reset server to 2 if Doubles
-                                    started_at: new Date().toISOString(), // Refresh start time
+                                    current_period: pbSingles ? 1 : 2,
+                                    started_at: new Date().toISOString(),
                                     status: isMatchOver ? 'completed' : 'ongoing',
                                     winner_id: isMatchOver ? (s1 >= 2 ? p1?.id : p2?.id) : undefined
                                 });
 
                                 if (isMatchOver && onClose) {
-                                    setTimeout(onClose, 1500);
+                                    setTimeout(onClose, 1000);
                                 }
                             }}
                             className="hidden lg:block flex-1 lg:flex-none px-3 md:px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs md:text-sm font-black uppercase tracking-wider rounded-lg shadow-lg whitespace-nowrap"
