@@ -387,7 +387,7 @@ export default function SportsAdminPage() {
                 )
             }
 
-            <header className="bg-white border-b border-gray-200 px-4 md:px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4 sticky top-0 z-10 shadow-sm">
+            <header className="bg-white border-b border-gray-200 px-4 md:px-6 pl-16 md:pl-24 py-4 flex flex-col md:flex-row justify-between items-center gap-4 sticky top-0 z-10 shadow-sm">
                 <div className="flex items-center justify-between w-full md:w-auto gap-4">
                     <h1 className="text-xl font-bold text-gray-800 whitespace-nowrap">ZTO Arena</h1>
 

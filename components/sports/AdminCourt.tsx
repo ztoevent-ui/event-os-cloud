@@ -192,11 +192,28 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
                 <div className={`relative w-full flex-1 ${theme.ground} rounded-lg border-4 border-white/80 shadow-inner overflow-hidden flex flex-col lg:flex-row min-h-[400px]`}>
 
                     {/* Court Lines Overlay */}
-                    <div className="absolute inset-x-0 top-1/2 h-1 md:h-2 bg-white/40 -translate-y-1/2 hidden lg:block"></div> {/* Horizontal Line (Desktop only) */}
-                    <div className="absolute inset-y-0 left-1/2 w-1 md:w-2 bg-white z-10 -translate-x-1/2 shadow-lg hidden lg:block"></div> {/* Vertical Net (Desktop only) */}
+                    <div className="absolute inset-x-0 top-1/2 h-1 md:h-2 bg-white/40 -translate-y-1/2 hidden lg:block"></div> {/* Horizontal Line (Desktop only - Center Divider?) No, actually this is confusing in code. */}
+                    {/* The existing code had horizontal line (desktop) and vertical net (desktop).
+                        Let's clarify:
+                        LG (Desktop/Landscape): Court is Left-Right. Vertical Net at center.
+                        Mobile (Portrait): Court is Top-Bottom. Horizontal Net at center.
+                    */}
+                    {/* Center Net (Desktop: Vertical, Mobile: Horizontal) */}
+                    <div className="absolute inset-y-0 left-1/2 w-1 md:w-2 bg-white z-10 -translate-x-1/2 shadow-lg hidden lg:block"></div> {/* Vertical Net (Desktop) */}
+                    <div className="absolute top-1/2 left-0 right-0 h-2 bg-white/50 z-10 -translate-y-1/2 lg:hidden"></div> {/* Horizontal Net (Mobile) */}
 
-                    {/* Mobile Divider */}
-                    <div className="absolute top-1/2 left-0 right-0 h-2 bg-white/50 z-10 -translate-y-1/2 lg:hidden"></div>
+                    {/* PICKLEBALL KITCHEN LINES (Non-Volley Zone) */}
+                    {normalizedSport === 'pickleball' && (
+                        <>
+                            {/* Desktop (Landscape): Vertical Lines for Kitchen */}
+                            <div className="absolute inset-y-0 left-[34%] w-1 bg-white/30 hidden lg:block"></div>
+                            <div className="absolute inset-y-0 left-[66%] w-1 bg-white/30 hidden lg:block"></div>
+
+                            {/* Mobile (Portrait): Horizontal Lines for Kitchen */}
+                            <div className="absolute inset-x-0 top-[34%] h-1 bg-white/30 lg:hidden"></div>
+                            <div className="absolute inset-x-0 top-[66%] h-1 bg-white/30 lg:hidden"></div>
+                        </>
+                    )}
 
                     {/* PLAYER 1 SIDE (Left/Top) */}
                     <div className={`flex-1 relative flex flex-col items-center justify-center p-4 md:p-8 transition-colors ${match.serving_player_id === p1?.id ? 'bg-black/20' : ''}`}>
