@@ -23,6 +23,36 @@ function SportsDisplayContent() {
     const activeMatches = matches.filter(m => m.status === 'ongoing' || m.status === 'scheduled');
     const isTop4 = activeMatches.some(m => ['sf', 'final'].includes(m.round_name.toLowerCase()));
 
+    // --- Court Selection Logic (Per Device) ---
+    const [selectedCourts, setSelectedCourts] = useState<string[]>([]);
+    const [showCourtSelector, setShowCourtSelector] = useState(false);
+
+    // Load from local storage on mount
+    useEffect(() => {
+        const saved = localStorage.getItem('zto_selected_courts');
+        if (saved) {
+            try {
+                setSelectedCourts(JSON.parse(saved));
+            } catch (e) { console.error("Failed to parse saved courts", e); }
+        }
+    }, []);
+
+    // Save to local storage on change
+    useEffect(() => {
+        if (selectedCourts.length > 0) {
+            localStorage.setItem('zto_selected_courts', JSON.stringify(selectedCourts));
+        }
+    }, [selectedCourts]);
+
+    // Apply Filter: If selected courts exist, show only them. Else show all.
+    const filteredMatches = selectedCourts.length > 0
+        ? activeMatches.filter(m => selectedCourts.includes(m.id))
+        : activeMatches;
+
+    // Ensure we don't end up with 0 matches if selection is invalid/outdated
+    // (Optional: clear selection if no matches match? keeping it simple for now)
+
+
     // Cycle Ads
     useEffect(() => {
         if (ads && ads.length > 1) {
@@ -262,9 +292,20 @@ function SportsDisplayContent() {
             {/* Ambient Background - More Subtle */}
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-zto-gold/10 via-black to-black -z-10"></div>
 
+            {/* Court Selector Button (Floating Bottom Right) */}
+            <div className="fixed bottom-6 right-6 z-50">
+                <button
+                    onClick={() => setShowCourtSelector(true)}
+                    className="w-12 h-12 bg-zinc-800 hover:bg-zinc-700 text-white rounded-full flex items-center justify-center shadow-lg border border-white/10 transition-transform hover:scale-110"
+                    title="Select Courts"
+                >
+                    <i className="fa-solid fa-table-cells"></i>
+                </button>
+            </div>
+
             <ZTOHeader tournamentName={tournament.name} logoUrl={tournament.config?.logo_url} />
 
-            <div className="h-full flex flex-col items-center justify-center pt-16">
+            <div className={`w-full h-full flex flex-col items-center pt-24 pb-8 px-4 overflow-y-auto ${activeMatches.length === 0 ? 'justify-center' : ''}`}>
                 <AnimatePresence mode="wait">
                     {activeMatches.length === 0 ? (
                         <motion.div
@@ -278,9 +319,15 @@ function SportsDisplayContent() {
                             <p className="mt-4 text-zto-gold animate-pulse text-sm uppercase tracking-widest">Commercial Break in Progress...</p>
                         </motion.div>
                     ) : (
-                        <div className="w-full max-w-[1600px] mx-auto relative z-10">
-                            {activeMatches.map((match) => (
-                                <div key={match.id} className="relative w-full">
+                        <div className={`w-full max-w-[2400px] mx-auto relative z-10 grid gap-6
+                            ${filteredMatches.length === 1 ? 'grid-cols-1 h-[80vh]' : ''}
+                            ${filteredMatches.length === 2 ? 'grid-cols-1 xl:grid-cols-2 h-auto xl:h-[80vh]' : ''}
+                            ${filteredMatches.length >= 3 && filteredMatches.length <= 4 ? 'grid-cols-1 lg:grid-cols-2 h-auto' : ''}
+                            ${filteredMatches.length >= 5 && filteredMatches.length <= 6 ? 'grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 h-auto' : ''}
+                            ${filteredMatches.length >= 7 ? 'grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 h-auto' : ''}
+                        `}>
+                            {filteredMatches.map((match) => (
+                                <div key={match.id} className={`relative w-full rounded-3xl overflow-hidden shadow-2xl border border-white/5 ${filteredMatches.length > 2 ? 'aspect-[16/9]' : 'h-full min-h-[500px]'}`}>
                                     <MatchCard
                                         match={match}
                                         p1={players[match.player1_id || '']}
@@ -297,6 +344,87 @@ function SportsDisplayContent() {
                     )}
                 </AnimatePresence>
             </div>
+
+            {/* --- COURT SELECTOR MODAL --- */}
+            <AnimatePresence>
+                {showCourtSelector && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+                        onClick={() => setShowCourtSelector(false)}
+                    >
+                        <div
+                            className="bg-zinc-900 border border-white/10 rounded-2xl w-full max-w-2xl p-6 shadow-2xl"
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className="text-xl font-bold text-white uppercase tracking-wider">Select Courts to Display</h3>
+                                <button onClick={() => setShowCourtSelector(false)} className="text-white/50 hover:text-white transition">
+                                    <i className="fa-solid fa-xmark text-2xl"></i>
+                                </button>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto mb-6">
+                                {activeMatches.map(match => {
+                                    const isSelected = selectedCourts.includes(match.id);
+                                    return (
+                                        <button
+                                            key={match.id}
+                                            onClick={() => {
+                                                if (isSelected) {
+                                                    setSelectedCourts(prev => prev.filter(id => id !== match.id));
+                                                } else {
+                                                    if (selectedCourts.length >= 6 && !isSelected) {
+                                                        alert("Maximum 6 courts can be displayed at once.");
+                                                        return;
+                                                    }
+                                                    setSelectedCourts(prev => [...prev, match.id]);
+                                                }
+                                            }}
+                                            className={`flex items-center gap-4 p-4 rounded-xl border transition-all ${isSelected ? 'bg-indigo-600/20 border-indigo-500' : 'bg-zinc-800/50 border-white/5 hover:bg-zinc-800'}`}
+                                        >
+                                            <div className={`w-6 h-6 rounded border flex items-center justify-center transition ${isSelected ? 'bg-indigo-500 border-indigo-500' : 'border-white/20'}`}>
+                                                {isSelected && <i className="fa-solid fa-check text-white text-xs"></i>}
+                                            </div>
+                                            <div className="text-left">
+                                                <div className="text-xs font-bold text-white/50 uppercase tracking-wider">{match.court_id || 'Main Court'}</div>
+                                                <div className="text-sm font-bold text-white">
+                                                    {players[match.player1_id || '']?.name || 'Home'} vs {players[match.player2_id || '']?.name || 'Away'}
+                                                </div>
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            <div className="flex justify-end gap-3 pt-6 border-t border-white/10">
+                                <button
+                                    onClick={() => setSelectedCourts([])}
+                                    className="px-4 py-2 text-white/50 hover:text-white font-bold text-sm uppercase transition"
+                                >
+                                    Clear All
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setSelectedCourts(activeMatches.map(m => m.id).slice(0, 6));
+                                    }}
+                                    className="px-4 py-2 text-white/50 hover:text-white font-bold text-sm uppercase transition"
+                                >
+                                    Select All (Max 6)
+                                </button>
+                                <button
+                                    onClick={() => setShowCourtSelector(false)}
+                                    className="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold uppercase tracking-wider rounded-lg shadow-lg"
+                                >
+                                    Done
+                                </button>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* --- FULL SCREEN COMMERCIAL BREAK OVERLAY --- */}
             <AnimatePresence>

@@ -88,16 +88,16 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
     // --- NET SPORT LAYOUT (Responsive Court) ---
     if (isNetSport) {
         return (
-            <div className={`w-full min-h-[calc(100vh-140px)] ${theme.bg} p-4 md:p-6 rounded-xl md:rounded-3xl shadow-2xl border border-white/10 flex flex-col`}>
+            <div id="admin-court-container" className={`w-full min-h-[calc(100vh-140px)] ${theme.bg} p-4 md:p-6 rounded-xl md:rounded-3xl shadow-2xl border border-white/10 flex flex-col transition-all duration-300`}>
                 {/* Header (Responsive Grid) */}
-                <div className="flex flex-col md:flex-row justify-between items-center mb-4 md:mb-8 gap-4">
-                    <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 md:gap-8 w-full md:w-auto">
-                        <div className="text-center md:text-left">
+                <div className="flex flex-col lg:flex-row justify-between items-center mb-4 md:mb-8 gap-4">
+                    <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 md:gap-8 w-full lg:w-auto">
+                        <div className="text-center lg:text-left">
                             <div className="text-white/50 font-bold uppercase tracking-widest text-xs md:text-sm">{match.round_name}</div>
                             <div className="text-2xl md:text-4xl font-black text-white whitespace-nowrap">{match.court_id || 'CENTER COURT'}</div>
                         </div>
-                        <div className="hidden md:block h-12 md:h-16 w-[2px] bg-white/10"></div>
-                        <div className="text-center md:text-left">
+                        <div className="hidden lg:block h-12 md:h-16 w-[2px] bg-white/10"></div>
+                        <div className="text-center lg:text-left">
                             <div className="text-white/50 font-bold uppercase tracking-widest text-xs md:text-sm">Duration</div>
                             <div className="text-2xl md:text-4xl font-black text-indigo-400 font-mono">
                                 {(() => {
@@ -111,7 +111,23 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
                         </div>
                     </div>
 
-                    <div className="flex flex-wrap justify-center gap-2 md:gap-4 w-full md:w-auto">
+                    <div className="flex flex-wrap justify-center gap-2 md:gap-4 w-full lg:w-auto">
+                        <button
+                            onClick={() => {
+                                const elem = document.getElementById('admin-court-container');
+                                if (!document.fullscreenElement) {
+                                    elem?.requestFullscreen().catch(err => {
+                                        console.error(`Error attempting to enable fullscreen: ${err.message}`);
+                                    });
+                                } else {
+                                    document.exitFullscreen();
+                                }
+                            }}
+                            className="w-10 h-10 flex items-center justify-center rounded-lg bg-white/10 text-white hover:bg-white/20 transition"
+                            title="Toggle Fullscreen"
+                        >
+                            <i className="fa-solid fa-expand"></i>
+                        </button>
                         <button
                             onClick={() => {
                                 if (confirm("Confirm end of this set? Current scores will be archived.")) {
@@ -129,26 +145,26 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
                                     });
                                 }
                             }}
-                            className="flex-1 md:flex-none px-3 md:px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs md:text-sm font-black uppercase tracking-wider rounded-lg shadow-lg whitespace-nowrap"
+                            className="flex-1 lg:flex-none px-3 md:px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs md:text-sm font-black uppercase tracking-wider rounded-lg shadow-lg whitespace-nowrap"
                         >
-                            Set Finish
+                            End Set
                         </button>
-                        <button onClick={toggleServer} className="flex-1 md:flex-none px-3 md:px-6 py-2 bg-yellow-400 hover:bg-yellow-500 text-black text-xs md:text-sm font-black uppercase tracking-wider rounded-lg shadow-lg whitespace-nowrap">
-                            Swap Sylvan
+                        <button onClick={toggleServer} className="flex-1 lg:flex-none px-3 md:px-6 py-2 bg-yellow-400 hover:bg-yellow-500 text-black text-xs md:text-sm font-black uppercase tracking-wider rounded-lg shadow-lg whitespace-nowrap">
+                            Swap Server
                         </button>
                     </div>
                 </div>
 
                 {/* VISUAL COURT */}
-                {/* Responsive container: Vertical on mobile, Horizontal on desktop */}
-                <div className={`relative w-full flex-1 ${theme.ground} rounded-lg border-4 border-white/80 shadow-inner overflow-hidden flex flex-col md:flex-row min-h-[400px]`}>
+                {/* Responsive container: Vertical on mobile/iPad Portrait, Horizontal on Desktop/iPad Landscape */}
+                <div className={`relative w-full flex-1 ${theme.ground} rounded-lg border-4 border-white/80 shadow-inner overflow-hidden flex flex-col lg:flex-row min-h-[400px]`}>
 
                     {/* Court Lines Overlay */}
-                    <div className="absolute inset-x-0 top-1/2 h-1 md:h-2 bg-white/40 -translate-y-1/2 hidden md:block"></div> {/* Horizontal Line (Desktop only) */}
-                    <div className="absolute inset-y-0 left-1/2 w-1 md:w-2 bg-white z-10 -translate-x-1/2 shadow-lg hidden md:block"></div> {/* Vertical Net (Desktop only) */}
+                    <div className="absolute inset-x-0 top-1/2 h-1 md:h-2 bg-white/40 -translate-y-1/2 hidden lg:block"></div> {/* Horizontal Line (Desktop only) */}
+                    <div className="absolute inset-y-0 left-1/2 w-1 md:w-2 bg-white z-10 -translate-x-1/2 shadow-lg hidden lg:block"></div> {/* Vertical Net (Desktop only) */}
 
                     {/* Mobile Divider */}
-                    <div className="absolute top-1/2 left-0 right-0 h-2 bg-white/50 z-10 -translate-y-1/2 md:hidden"></div>
+                    <div className="absolute top-1/2 left-0 right-0 h-2 bg-white/50 z-10 -translate-y-1/2 lg:hidden"></div>
 
                     {/* PLAYER 1 SIDE (Left/Top) */}
                     <div className={`flex-1 relative flex flex-col items-center justify-center p-4 md:p-8 transition-colors ${match.serving_player_id === p1?.id ? 'bg-black/20' : ''}`}>
