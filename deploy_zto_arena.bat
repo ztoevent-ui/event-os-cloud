@@ -10,15 +10,18 @@ git commit -m "Release: ZTO Arena Sports Module (Commercial Edition)"
 if %ERRORLEVEL% NEQ 0 echo (No new changes to commit or git not found)
 
 echo.
-echo [2/3] Deploying to Vercel Production...
+echo [2/3] pushing to GitHub (Backup)...
+git push origin main
+if %ERRORLEVEL% NEQ 0 (
+    echo [!] GitHub Push Failed. Please check your internet connection or credentials.
+    pause
+    exit /b
+)
+
+echo.
+echo [3/3] Deploying to Vercel Production...
 echo    target: ztoevent.com
 call npx vercel --prod
-if %ERRORLEVEL% NEQ 0 (
-    echo.
-    echo [!] Vercel CLI failed or not installed.
-    echo     Attempting fallback via Git Push to origin/main...
-    git push origin main
-)
 
 echo.
 echo [3/3] FINAL STEP: Database Migration
