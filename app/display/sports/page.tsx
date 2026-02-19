@@ -41,17 +41,28 @@ function SportsDisplayContent() {
     useEffect(() => {
         if (selectedCourts.length > 0) {
             localStorage.setItem('zto_selected_courts', JSON.stringify(selectedCourts));
+        } else {
+            // If empty, remove to revert to 'Show All' default behavior
+            localStorage.removeItem('zto_selected_courts');
         }
     }, [selectedCourts]);
+
+    // Auto-Show Court Selector if Multiple Matches on Load (Once per session/refresh)
+    const hasAutoOpenedRef = React.useRef(false);
+    useEffect(() => {
+        if (!loading && activeMatches.length > 1 && !hasAutoOpenedRef.current) {
+            // Check if we have a specific *valid* selection in local storage?
+            // User feedback suggests they want to choose every time they enter a specialized display view.
+            // So we force open it once per page load.
+            setShowCourtSelector(true);
+            hasAutoOpenedRef.current = true;
+        }
+    }, [loading, activeMatches.length]);
 
     // Apply Filter: If selected courts exist, show only them. Else show all.
     const filteredMatches = selectedCourts.length > 0
         ? activeMatches.filter(m => selectedCourts.includes(m.id))
         : activeMatches;
-
-    // Ensure we don't end up with 0 matches if selection is invalid/outdated
-    // (Optional: clear selection if no matches match? keeping it simple for now)
-
 
     // Cycle Ads
     useEffect(() => {
