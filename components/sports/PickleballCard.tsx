@@ -141,7 +141,9 @@ export function PickleballCard({ match, p1, p2, activeAd, logoUrl, bgUrl, now, i
 
                     {/* CURRENT SCORE BAR */}
                     <div className="flex flex-col items-center w-full max-w-md">
-                        <div className={`${isGrid ? 'text-sm mb-2' : 'text-xl mb-6'} font-black uppercase tracking-[0.3em] text-white/80`}>GAME {currentSetNum}</div>
+                        <div className={`${isGrid ? 'text-sm mb-2' : 'text-xl mb-6'} font-black uppercase tracking-[0.3em] text-white/80`}>
+                            {match.court_id || 'CENTER COURT'} • GAME {currentSetNum}
+                        </div>
 
                         <div className="flex items-center justify-between w-full mb-2 md:mb-4 px-2 md:px-4 gap-2 md:gap-4">
                             <span className={`${mainScoreSize} leading-none font-black drop-shadow-2xl transition-all duration-300`}>{match.current_score_p1}</span>

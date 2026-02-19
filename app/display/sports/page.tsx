@@ -118,9 +118,17 @@ function SportsDisplayContent() {
     const adToDisplay = activeFullscreenAd;
 
     // Reset dismissal when ad list changes (new commercial break starting)
+    const isFirstAdLoad = React.useRef(true);
     useEffect(() => {
         if (activeFullscreenAds.length > 0) {
-            setDismissedLocally(false);
+            if (isFirstAdLoad.current) {
+                // Suppress ad on initial load/refresh as per user request
+                setDismissedLocally(true);
+                isFirstAdLoad.current = false;
+            } else {
+                // New ad break started while already viewing
+                setDismissedLocally(false);
+            }
             if (activeFullscreenAds.length === 1) setCurrentPlaylistIndex(0);
         }
     }, [activeFullscreenAds.length]);
