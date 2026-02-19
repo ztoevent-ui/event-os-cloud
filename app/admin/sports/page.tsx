@@ -387,14 +387,14 @@ export default function SportsAdminPage() {
                 )
             }
 
-            <header className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center sticky top-0 z-10">
-                <div className="flex items-center gap-4">
-                    <h1 className="text-xl font-bold text-gray-800">ZTO Arena Admin</h1>
+            <header className="bg-white border-b border-gray-200 px-4 md:px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4 sticky top-0 z-10 shadow-sm">
+                <div className="flex items-center justify-between w-full md:w-auto gap-4">
+                    <h1 className="text-xl font-bold text-gray-800 whitespace-nowrap">ZTO Arena</h1>
 
                     {/* TOURNAMENT SELECTOR */}
                     <div className="relative group">
                         <button className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-lg text-sm font-bold text-indigo-600 hover:bg-gray-200 transition">
-                            <span className="truncate max-w-[200px]">{tournament.name}</span>
+                            <span className="truncate max-w-[150px] md:max-w-[200px]">{tournament.name}</span>
                             <i className="fa-solid fa-chevron-down text-xs"></i>
                         </button>
 
@@ -422,49 +422,49 @@ export default function SportsAdminPage() {
                     </div>
                 </div>
 
-                <div className="flex gap-4">
+                <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 w-full md:w-auto">
                     <button
                         onClick={() => setShowMatchMaker(true)}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2 shadow-sm"
+                        className="flex-1 md:flex-none bg-indigo-600 hover:bg-indigo-700 text-white px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-bold transition flex items-center justify-center gap-2 shadow-sm whitespace-nowrap"
                     >
-                        <i className="fa-solid fa-plus"></i> New Match
+                        <i className="fa-solid fa-plus"></i> <span className="hidden sm:inline">New Match</span><span className="sm:hidden">Match</span>
                     </button>
 
                     <button
                         onClick={() => setShowAdManager(true)}
-                        className="bg-purple-100 hover:bg-purple-200 text-purple-800 px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2"
+                        className="flex-1 md:flex-none bg-purple-100 hover:bg-purple-200 text-purple-800 px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-bold transition flex items-center justify-center gap-2 whitespace-nowrap"
                     >
-                        <i className="fa-solid fa-rectangle-ad"></i> Sponsors
+                        <i className="fa-solid fa-rectangle-ad"></i> <span className="hidden sm:inline">Sponsors</span><span className="sm:hidden">Ads</span>
                     </button>
 
                     <button
                         onClick={() => setShowPlayerManager(true)}
-                        className="bg-orange-100 hover:bg-orange-200 text-orange-800 px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2"
+                        className="flex-1 md:flex-none bg-orange-100 hover:bg-orange-200 text-orange-800 px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-bold transition flex items-center justify-center gap-2 whitespace-nowrap"
                     >
-                        <i className="fa-solid fa-users"></i> Players
+                        <i className="fa-solid fa-users"></i> <span className="hidden sm:inline">Players</span>
                     </button>
 
                     <button
                         onClick={() => setShowSettings(true)}
-                        className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2"
+                        className="flex-1 md:flex-none bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-bold transition flex items-center justify-center gap-2 whitespace-nowrap"
                     >
-                        <i className="fa-solid fa-gear"></i> Settings
+                        <i className="fa-solid fa-gear"></i>
                     </button>
 
                     {selectedMatchId && (
                         <button
                             onClick={() => setSelectedMatchId(null)}
-                            className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition"
+                            className="flex-1 md:flex-none bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium transition whitespace-nowrap"
                         >
-                            Back to List
+                            Back
                         </button>
                     )}
-                    <div className="w-8 h-8 rounded-full bg-yellow-400 text-yellow-900 border border-yellow-500 flex items-center justify-center font-bold" title="Reset/End">!</div>
+
                     <button
                         onClick={() => {
                             if (confirm('Are you sure you want to end this tournament?')) endCurrentTournament();
                         }}
-                        className="text-red-500 hover:text-red-700 text-xs font-bold uppercase"
+                        className="ml-2 text-red-500 hover:text-red-700 text-[10px] md:text-xs font-bold uppercase whitespace-nowrap"
                     >
                         End Event
                     </button>

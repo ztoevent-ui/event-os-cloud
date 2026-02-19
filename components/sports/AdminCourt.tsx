@@ -10,14 +10,52 @@ interface AdminCourtProps {
     now: Date;
 }
 
+// Configuration for Sport Themes
+const COURT_THEMES: Record<string, { bg: string, accent: string, text: string, line: string, ground: string }> = {
+    badminton: {
+        bg: 'bg-green-800',
+        ground: 'bg-green-700',
+        accent: 'bg-green-600',
+        text: 'text-white',
+        line: 'bg-white'
+    },
+    pickleball: {
+        bg: 'bg-blue-900',
+        ground: 'bg-blue-600',
+        accent: 'bg-blue-500',
+        text: 'text-white',
+        line: 'bg-white'
+    },
+    tennis: {
+        bg: 'bg-emerald-800', // Distinct from badminton
+        ground: 'bg-emerald-600',
+        accent: 'bg-emerald-500',
+        text: 'text-white',
+        line: 'bg-white'
+    },
+    basketball: {
+        bg: 'bg-slate-900',
+        ground: 'bg-orange-100', // Wood floor approx
+        accent: 'bg-orange-600',
+        text: 'text-slate-900',
+        line: 'bg-orange-800'
+    },
+    football: {
+        bg: 'bg-slate-900',
+        ground: 'bg-emerald-600', // Grass
+        accent: 'bg-emerald-500',
+        text: 'text-white',
+        line: 'bg-white/80'
+    }
+};
+
 export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminton', now }: AdminCourtProps) {
 
     const normalizedSport = sportType.toLowerCase();
     const isNetSport = ['badminton', 'pickleball', 'tennis', 'table_tennis', 'volleyball'].includes(normalizedSport);
-    const isTimedSport = ['basketball', 'football'].includes(normalizedSport);
 
-    // Labels based on sport
-    const collectionName = sportType === 'pickleball' || sportType === 'basketball' || sportType === 'volleyball' ? 'Game' : 'Set';
+    // Get theme or default to badminton
+    const theme = COURT_THEMES[normalizedSport] || COURT_THEMES['badminton'];
 
     const handleScore = (player: 1 | 2, delta: number) => {
         const current = player === 1 ? match.current_score_p1 : match.current_score_p2;
@@ -47,21 +85,21 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
         onUpdateScore({ serving_player_id: match.serving_player_id === p1?.id ? p2?.id : p1?.id });
     };
 
-    // --- NET SPORT LAYOUT (Realistic Court) ---
+    // --- NET SPORT LAYOUT (Responsive Court) ---
     if (isNetSport) {
         return (
-            <div className="w-full h-[calc(100vh-140px)] bg-slate-900 p-6 rounded-3xl shadow-2xl border border-slate-800 flex flex-col">
-                {/* Header */}
-                <div className="flex justify-between items-center mb-8">
-                    <div className="flex gap-8">
-                        <div>
-                            <div className="text-white/50 font-bold uppercase tracking-widest text-sm">{match.round_name}</div>
-                            <div className="text-4xl font-black text-white">{match.court_id || 'CENTER COURT'}</div>
+            <div className={`w-full min-h-[calc(100vh-140px)] ${theme.bg} p-4 md:p-6 rounded-xl md:rounded-3xl shadow-2xl border border-white/10 flex flex-col`}>
+                {/* Header (Responsive Grid) */}
+                <div className="flex flex-col md:flex-row justify-between items-center mb-4 md:mb-8 gap-4">
+                    <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 md:gap-8 w-full md:w-auto">
+                        <div className="text-center md:text-left">
+                            <div className="text-white/50 font-bold uppercase tracking-widest text-xs md:text-sm">{match.round_name}</div>
+                            <div className="text-2xl md:text-4xl font-black text-white whitespace-nowrap">{match.court_id || 'CENTER COURT'}</div>
                         </div>
-                        <div className="h-16 w-[2px] bg-white/10"></div>
-                        <div>
-                            <div className="text-white/50 font-bold uppercase tracking-widest text-sm">Match Duration</div>
-                            <div className="text-4xl font-black text-indigo-400 font-mono">
+                        <div className="hidden md:block h-12 md:h-16 w-[2px] bg-white/10"></div>
+                        <div className="text-center md:text-left">
+                            <div className="text-white/50 font-bold uppercase tracking-widest text-xs md:text-sm">Duration</div>
+                            <div className="text-2xl md:text-4xl font-black text-indigo-400 font-mono">
                                 {(() => {
                                     if (!match.started_at) return "00:00";
                                     const diff = Math.floor((now.getTime() - new Date(match.started_at).getTime()) / 1000);
@@ -71,138 +109,116 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
                                 })()}
                             </div>
                         </div>
-                        <div className="h-16 w-[2px] bg-white/10"></div>
-                        <div>
-                            <div className="text-white/50 font-bold uppercase tracking-widest text-sm">Local Time</div>
-                            <div className="text-4xl font-black text-white/40 font-mono">
-                                {now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}
-                            </div>
-                        </div>
                     </div>
-                    <div className="flex gap-4">
-                        {isNetSport && (
-                            <button
-                                onClick={() => {
-                                    if (confirm("Confirm end of this set? Current scores will be archived.")) {
-                                        const h1 = match.current_score_p1;
-                                        const h2 = match.current_score_p2;
-                                        const winner = h1 > h2 ? 1 : 2;
 
-                                        onUpdateScore({
-                                            sets_p1: winner === 1 ? match.sets_p1 + 1 : match.sets_p1,
-                                            sets_p2: winner === 2 ? match.sets_p2 + 1 : match.sets_p2,
-                                            current_score_p1: 0,
-                                            current_score_p2: 0,
-                                            periods_scores: [...(match.periods_scores || []), { p1: h1, p2: h2 }],
-                                            // Winner of previous set serves first in next set
-                                            serving_player_id: winner === 1 ? p1?.id : p2?.id
-                                        });
-                                    }
-                                }}
-                                className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase tracking-wider rounded-lg shadow-lg"
-                            >
-                                <i className="fa-solid fa-list-check mr-2"></i> Finish Set
-                            </button>
-                        )}
+                    <div className="flex flex-wrap justify-center gap-2 md:gap-4 w-full md:w-auto">
                         <button
                             onClick={() => {
-                                if (confirm("Finish this match and record result?")) {
-                                    const isSetBased = ['badminton', 'pickleball', 'tennis', 'table_tennis', 'volleyball'].includes(sportType);
-                                    let winnerId = null;
-                                    if (isSetBased) {
-                                        winnerId = match.sets_p1 > match.sets_p2 ? p1?.id : (match.sets_p2 > match.sets_p1 ? p2?.id : null);
-                                    } else {
-                                        winnerId = match.current_score_p1 > match.current_score_p2 ? p1?.id : (match.current_score_p2 > match.current_score_p1 ? p2?.id : null);
-                                    }
-                                    onUpdateScore({ status: 'completed', winner_id: winnerId || undefined });
+                                if (confirm("Confirm end of this set? Current scores will be archived.")) {
+                                    const h1 = match.current_score_p1;
+                                    const h2 = match.current_score_p2;
+                                    const winner = h1 > h2 ? 1 : 2;
+
+                                    onUpdateScore({
+                                        sets_p1: winner === 1 ? match.sets_p1 + 1 : match.sets_p1,
+                                        sets_p2: winner === 2 ? match.sets_p2 + 1 : match.sets_p2,
+                                        current_score_p1: 0,
+                                        current_score_p2: 0,
+                                        periods_scores: [...(match.periods_scores || []), { p1: h1, p2: h2 }],
+                                        serving_player_id: winner === 1 ? p1?.id : p2?.id
+                                    });
                                 }
                             }}
-                            className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-wider rounded-lg shadow-lg"
+                            className="flex-1 md:flex-none px-3 md:px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs md:text-sm font-black uppercase tracking-wider rounded-lg shadow-lg whitespace-nowrap"
                         >
-                            <i className="fa-solid fa-flag-checkered mr-2"></i> Finish Match
+                            Set Finish
                         </button>
-                        <button onClick={toggleServer} className="px-6 py-2 bg-yellow-400 hover:bg-yellow-500 text-black font-black uppercase tracking-wider rounded-lg shadow-lg">
-                            <i className="fa-solid fa-arrow-right-arrow-left mr-2"></i> Swap Server
+                        <button onClick={toggleServer} className="flex-1 md:flex-none px-3 md:px-6 py-2 bg-yellow-400 hover:bg-yellow-500 text-black text-xs md:text-sm font-black uppercase tracking-wider rounded-lg shadow-lg whitespace-nowrap">
+                            Swap Sylvan
                         </button>
                     </div>
                 </div>
 
                 {/* VISUAL COURT */}
-                <div className="relative w-full flex-1 bg-green-700 rounded-lg border-4 border-white shadow-inner overflow-hidden flex min-h-0">
-                    {/* Court Lines Overlay (Simple CSS representation) */}
-                    <div className="absolute inset-x-0 top-1/2 h-2 bg-white/40 -translate-y-1/2"></div>
-                    <div className="absolute inset-y-0 left-1/2 w-2 bg-white z-10 -translate-x-1/2 shadow-lg"></div>
-                    <div className="absolute inset-8 border-2 border-white/50"></div>
+                {/* Responsive container: Vertical on mobile, Horizontal on desktop */}
+                <div className={`relative w-full flex-1 ${theme.ground} rounded-lg border-4 border-white/80 shadow-inner overflow-hidden flex flex-col md:flex-row min-h-[400px]`}>
 
-                    {/* PLAYER 1 SIDE (Left) */}
-                    <div className={`flex-1 relative flex flex-col items-center justify-center p-8 transition-colors ${match.serving_player_id === p1?.id ? 'bg-green-600/50' : ''}`}>
+                    {/* Court Lines Overlay */}
+                    <div className="absolute inset-x-0 top-1/2 h-1 md:h-2 bg-white/40 -translate-y-1/2 hidden md:block"></div> {/* Horizontal Line (Desktop only) */}
+                    <div className="absolute inset-y-0 left-1/2 w-1 md:w-2 bg-white z-10 -translate-x-1/2 shadow-lg hidden md:block"></div> {/* Vertical Net (Desktop only) */}
+
+                    {/* Mobile Divider */}
+                    <div className="absolute top-1/2 left-0 right-0 h-2 bg-white/50 z-10 -translate-y-1/2 md:hidden"></div>
+
+                    {/* PLAYER 1 SIDE (Left/Top) */}
+                    <div className={`flex-1 relative flex flex-col items-center justify-center p-4 md:p-8 transition-colors ${match.serving_player_id === p1?.id ? 'bg-black/20' : ''}`}>
                         {match.serving_player_id === p1?.id && (
-                            <div className="absolute top-4 left-4 bg-yellow-400 text-black text-xs font-bold px-3 py-1 rounded-full shadow animate-bounce">
-                                <i className="fa-solid fa-shuttlecock mr-1"></i> SERVING
+                            <div className="absolute top-4 left-4 md:left-4 bg-yellow-400 text-black text-[10px] md:text-xs font-bold px-2 md:px-3 py-1 rounded-full shadow animate-bounce z-20">
+                                <i className="fa-solid fa-shuttlecock mr-1"></i> SERVE
                             </div>
                         )}
 
-                        <h2 className="text-3xl md:text-5xl font-black text-white text-center drop-shadow-md mb-4">{p1?.name || 'Player 1'}</h2>
+                        <h2 className="text-2xl md:text-5xl font-black text-white text-center drop-shadow-md mb-2 md:mb-4 truncate max-w-full px-2">{p1?.name || 'Player 1'}</h2>
 
-                        <div className="flex items-center gap-8">
+                        <div className="flex items-center gap-4 md:gap-8">
                             <button
                                 onClick={() => handleScore(1, -1)}
-                                className="w-16 h-16 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold text-2xl flex items-center justify-center backdrop-blur-sm transition"
+                                className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-black/20 hover:bg-black/30 text-white font-bold text-xl md:text-2xl flex items-center justify-center backdrop-blur-sm transition"
                             >
-                                -1
+                                -
                             </button>
-                            <div className="text-[8rem] leading-none font-black text-white drop-shadow-2xl font-mono tabular-nums">
+                            <div className="text-6xl md:text-[8rem] leading-none font-black text-white drop-shadow-2xl font-mono tabular-nums">
                                 {match.current_score_p1}
                             </div>
                             <button
                                 onClick={() => handleScore(1, 1)}
-                                className="w-20 h-20 rounded-full bg-white hover:bg-gray-100 text-green-800 font-bold text-4xl flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition"
+                                className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white hover:bg-gray-100 text-green-900 font-bold text-3xl md:text-4xl flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition"
                             >
-                                +1
+                                +
                             </button>
                         </div>
 
-                        <div className="mt-8 flex items-center gap-4 bg-black/30 p-2 rounded-xl backdrop-blur-md">
-                            <span className="text-white/60 font-bold uppercase text-xs px-2">Sets</span>
-                            <button onClick={() => onUpdateScore({ sets_p1: Math.max(0, match.sets_p1 - 1) })} className="w-8 h-8 rounded bg-white/10 text-white hover:bg-white/20">-</button>
-                            <span className="text-2xl font-bold text-white w-8 text-center">{match.sets_p1}</span>
-                            <button onClick={() => onUpdateScore({ sets_p1: match.sets_p1 + 1 })} className="w-8 h-8 rounded bg-white/10 text-white hover:bg-white/20">+</button>
+                        <div className="mt-4 md:mt-8 flex items-center gap-2 md:gap-4 bg-black/30 p-2 rounded-xl backdrop-blur-md">
+                            <span className="text-white/60 font-bold uppercase text-[10px] md:text-xs px-2">Sets</span>
+                            <button onClick={() => onUpdateScore({ sets_p1: Math.max(0, match.sets_p1 - 1) })} className="w-6 h-6 md:w-8 md:h-8 rounded bg-white/10 text-white hover:bg-white/20 flex items-center justify-center">-</button>
+                            <span className="text-xl md:text-2xl font-bold text-white w-6 md:w-8 text-center">{match.sets_p1}</span>
+                            <button onClick={() => onUpdateScore({ sets_p1: match.sets_p1 + 1 })} className="w-6 h-6 md:w-8 md:h-8 rounded bg-white/10 text-white hover:bg-white/20 flex items-center justify-center">+</button>
                         </div>
                     </div>
 
-                    {/* PLAYER 2 SIDE (Right) */}
-                    <div className={`flex-1 relative flex flex-col items-center justify-center p-8 transition-colors ${match.serving_player_id === p2?.id ? 'bg-green-600/50' : ''}`}>
+                    {/* PLAYER 2 SIDE (Right/Bottom) */}
+                    <div className={`flex-1 relative flex flex-col items-center justify-center p-4 md:p-8 transition-colors ${match.serving_player_id === p2?.id ? 'bg-black/20' : ''}`}>
                         {match.serving_player_id === p2?.id && (
-                            <div className="absolute top-4 right-4 bg-yellow-400 text-black text-xs font-bold px-3 py-1 rounded-full shadow animate-bounce">
-                                <i className="fa-solid fa-shuttlecock mr-1"></i> SERVING
+                            <div className="absolute top-4 right-4 md:right-4 bg-yellow-400 text-black text-[10px] md:text-xs font-bold px-2 md:px-3 py-1 rounded-full shadow animate-bounce z-20">
+                                <i className="fa-solid fa-shuttlecock mr-1"></i> SERVE
                             </div>
                         )}
 
-                        <h2 className="text-3xl md:text-5xl font-black text-white text-center drop-shadow-md mb-4">{p2?.name || 'Player 2'}</h2>
+                        <h2 className="text-2xl md:text-5xl font-black text-white text-center drop-shadow-md mb-2 md:mb-4 truncate max-w-full px-2">{p2?.name || 'Player 2'}</h2>
 
-                        <div className="flex items-center gap-8">
+                        <div className="flex items-center gap-4 md:gap-8">
                             <button
                                 onClick={() => handleScore(2, -1)}
-                                className="w-16 h-16 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold text-2xl flex items-center justify-center backdrop-blur-sm transition"
+                                className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-black/20 hover:bg-black/30 text-white font-bold text-xl md:text-2xl flex items-center justify-center backdrop-blur-sm transition"
                             >
-                                -1
+                                -
                             </button>
-                            <div className="text-[8rem] leading-none font-black text-white drop-shadow-2xl font-mono tabular-nums">
+                            <div className="text-6xl md:text-[8rem] leading-none font-black text-white drop-shadow-2xl font-mono tabular-nums">
                                 {match.current_score_p2}
                             </div>
                             <button
                                 onClick={() => handleScore(2, 1)}
-                                className="w-20 h-20 rounded-full bg-white hover:bg-gray-100 text-green-800 font-bold text-4xl flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition"
+                                className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white hover:bg-gray-100 text-green-900 font-bold text-3xl md:text-4xl flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition"
                             >
-                                +1
+                                +
                             </button>
                         </div>
 
-                        <div className="mt-8 flex items-center gap-4 bg-black/30 p-2 rounded-xl backdrop-blur-md">
-                            <span className="text-white/60 font-bold uppercase text-xs px-2">Sets</span>
-                            <button onClick={() => onUpdateScore({ sets_p2: Math.max(0, match.sets_p2 - 1) })} className="w-8 h-8 rounded bg-white/10 text-white hover:bg-white/20">-</button>
-                            <span className="text-2xl font-bold text-white w-8 text-center">{match.sets_p2}</span>
-                            <button onClick={() => onUpdateScore({ sets_p2: match.sets_p2 + 1 })} className="w-8 h-8 rounded bg-white/10 text-white hover:bg-white/20">+</button>
+                        <div className="mt-4 md:mt-8 flex items-center gap-2 md:gap-4 bg-black/30 p-2 rounded-xl backdrop-blur-md">
+                            <span className="text-white/60 font-bold uppercase text-[10px] md:text-xs px-2">Sets</span>
+                            <button onClick={() => onUpdateScore({ sets_p2: Math.max(0, match.sets_p2 - 1) })} className="w-6 h-6 md:w-8 md:h-8 rounded bg-white/10 text-white hover:bg-white/20 flex items-center justify-center">-</button>
+                            <span className="text-xl md:text-2xl font-bold text-white w-6 md:w-8 text-center">{match.sets_p2}</span>
+                            <button onClick={() => onUpdateScore({ sets_p2: match.sets_p2 + 1 })} className="w-6 h-6 md:w-8 md:h-8 rounded bg-white/10 text-white hover:bg-white/20 flex items-center justify-center">+</button>
                         </div>
                     </div>
                 </div>
@@ -210,97 +226,95 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
         );
     }
 
-    // --- TIMED SPORT LAYOUT (Field/Timed) ---
     // --- TIMED SPORT LAYOUT (Field/Timed - Authentic) ---
     return (
-        <div className="w-full bg-slate-900 rounded-2xl overflow-hidden shadow-2xl border border-slate-800">
+        <div className="w-full bg-slate-900 rounded-2xl overflow-hidden shadow-2xl border border-slate-800 flex flex-col min-h-screen md:min-h-0">
             {/* Scoreboard Header */}
-            <div className="bg-slate-950 p-6 flex justify-between items-center border-b border-white/5">
-                <div className="flex flex-col">
-                    <span className="text-gray-400 font-bold text-xs uppercase tracking-[0.2em] mb-1">{match.round_name}</span>
-                    <span className="text-white font-black text-2xl uppercase tracking-wider">{match.court_id || 'MAIN STADIUM'}</span>
+            <div className="bg-slate-950 p-4 md:p-6 flex flex-col md:flex-row justify-between items-center border-b border-white/5 gap-4">
+                <div className="flex flex-col text-center md:text-left">
+                    <span className="text-gray-400 font-bold text-[10px] md:text-xs uppercase tracking-[0.2em] mb-1">{match.round_name}</span>
+                    <span className="text-white font-black text-xl md:text-2xl uppercase tracking-wider">{match.court_id || 'MAIN STADIUM'}</span>
                 </div>
 
                 {/* Main Clock */}
-                <div className="flex flex-col items-center bg-black rounded-lg px-8 py-2 border-2 border-slate-800/50 shadow-inner">
-                    <div className={`font-mono text-6xl font-black tabular-nums tracking-widest ${match.is_paused ? 'text-red-500' : 'text-green-500'}`}>
+                <div className="flex flex-col items-center bg-black rounded-lg px-4 md:px-8 py-2 border-2 border-slate-800/50 shadow-inner">
+                    <div className={`font-mono text-4xl md:text-6xl font-black tabular-nums tracking-widest ${match.is_paused ? 'text-red-500' : 'text-green-500'}`}>
                         {Math.floor((match.timer_seconds || 0) / 60).toString().padStart(2, '0')}:{(match.timer_seconds || 0) % 60 < 10 ? '0' : ''}{(match.timer_seconds || 0) % 60}
                     </div>
                 </div>
 
-                <div className="flex flex-col items-end">
-                    <span className="text-gray-400 font-bold text-xs uppercase tracking-[0.2em] mb-1">Period</span>
-                    <div className="flex items-center gap-4">
+                <div className="flex flex-col items-end w-full md:w-auto">
+                    <div className="flex justify-between w-full md:w-auto items-center gap-4">
                         <button
                             onClick={() => {
                                 if (confirm("Finish this match and record result?")) {
-                                    const isSetBased = ['badminton', 'pickleball', 'tennis', 'table_tennis', 'volleyball'].includes(sportType);
-                                    let winnerId = null;
-                                    if (isSetBased) {
-                                        winnerId = match.sets_p1 > match.sets_p2 ? p1?.id : (match.sets_p2 > match.sets_p1 ? p2?.id : null);
-                                    } else {
-                                        winnerId = match.current_score_p1 > match.current_score_p2 ? p1?.id : (match.current_score_p2 > match.current_score_p1 ? p2?.id : null);
-                                    }
+                                    const winnerId = match.current_score_p1 > match.current_score_p2 ? p1?.id : (match.current_score_p2 > match.current_score_p1 ? p2?.id : null);
                                     onUpdateScore({ status: 'completed', winner_id: winnerId || undefined });
                                 }
                             }}
-                            className="px-4 py-2 bg-white/10 hover:bg-red-600 text-white font-bold text-xs uppercase tracking-widest rounded-lg transition border border-white/5 mr-4"
+                            className="px-4 py-2 bg-white/10 hover:bg-red-600 text-white font-bold text-xs uppercase tracking-widest rounded-lg transition border border-white/5"
                         >
-                            <i className="fa-solid fa-stop mr-2"></i> Finish
+                            End Game
                         </button>
-                        <button onClick={() => onUpdateScore({ current_period: Math.max(1, (match.current_period || 1) - 1) })} className="text-white/20 hover:text-white transition"><i className="fa-solid fa-chevron-left"></i></button>
-                        <span className="text-white font-black text-4xl">{match.current_period || 1}</span>
-                        <button onClick={() => onUpdateScore({ current_period: (match.current_period || 1) + 1 })} className="text-white/20 hover:text-white transition"><i className="fa-solid fa-chevron-right"></i></button>
+
+                        <div className="flex items-center gap-2">
+                            <button onClick={() => onUpdateScore({ current_period: Math.max(1, (match.current_period || 1) - 1) })} className="text-white/20 hover:text-white transition w-8 h-8 flex items-center justify-center bg-white/5 rounded"><i className="fa-solid fa-chevron-left"></i></button>
+                            <div className="flex flex-col items-center">
+                                <span className="text-[8px] uppercase font-bold text-gray-500">Period</span>
+                                <span className="text-white font-black text-2xl">{match.current_period || 1}</span>
+                            </div>
+                            <button onClick={() => onUpdateScore({ current_period: (match.current_period || 1) + 1 })} className="text-white/20 hover:text-white transition w-8 h-8 flex items-center justify-center bg-white/5 rounded"><i className="fa-solid fa-chevron-right"></i></button>
+                        </div>
                     </div>
                 </div>
             </div>
 
             {/* Field Area */}
-            <div className="relative w-full aspect-[21/9] bg-emerald-800 overflow-hidden">
-                {/* Field Patterns */}
-                <div className="absolute inset-0 opacity-20 bg-[linear-gradient(90deg,transparent_50%,rgba(0,0,0,0.2)_50%)] bg-[length:10%_100%]"></div>
+            {/* Aspect ratio tricks for responsive field */}
+            <div className={`relative w-full flex-1 md:aspect-[21/9] ${theme.ground} overflow-hidden flex flex-col md:flex-row`}>
+                {/* Field Patterns (Desktop only) */}
+                <div className="absolute inset-0 opacity-20 bg-[linear-gradient(90deg,transparent_50%,rgba(0,0,0,0.2)_50%)] bg-[length:10%_100%] pointer-events-none hidden md:block"></div>
 
-                {/* Center Circle */}
-                <div className="absolute top-1/2 left-1/2 w-[20%] aspect-square border-4 border-white/30 rounded-full -translate-x-1/2 -translate-y-1/2"></div>
-                <div className="absolute top-1/2 left-1/2 w-full h-[2px] bg-white/30 -translate-x-1/2 -translate-y-1/2"></div>
+                {/* Center Circle (Desktop only) */}
+                <div className="absolute top-1/2 left-1/2 w-[20%] aspect-square border-4 border-white/30 rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none hidden md:block"></div>
+                <div className="absolute top-1/2 left-1/2 w-full h-[2px] bg-white/30 -translate-x-1/2 -translate-y-1/2 pointer-events-none hidden md:block"></div>
 
                 {/* TEAMS LAYOUT */}
-                <div className="absolute inset-0 flex">
-                    {/* HOME (Left) */}
-                    <div className="flex-1 flex flex-col items-center justify-center p-8 relative hover:bg-white/5 transition duration-500">
-                        <div className="text-center z-10">
-                            <h2 className="text-4xl md:text-6xl font-black text-white drop-shadow-lg mb-2 truncate max-w-md">{p1?.name || 'Home'}</h2>
 
-                            <div className="flex items-center gap-6 justify-center my-6">
-                                <button onClick={() => handleScore(1, -1)} className="w-16 h-16 rounded-xl bg-black/40 text-white hover:bg-black/60 font-bold text-2xl backdrop-blur transition">-1</button>
-                                <div className="text-[10rem] leading-none font-black text-white drop-shadow-2xl tabular-nums">{match.current_score_p1}</div>
-                                <button onClick={() => handleScore(1, 1)} className="w-20 h-20 rounded-xl bg-white text-emerald-900 hover:bg-gray-200 font-bold text-4xl shadow-xl transition">+1</button>
-                            </div>
-                        </div>
-                    </div>
+                {/* HOME (Left/Top) */}
+                <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 relative hover:bg-white/5 transition duration-500 border-b md:border-b-0 border-white/10 md:border-r">
+                    <div className="text-center z-10 w-full">
+                        <h2 className="text-3xl md:text-6xl font-black text-slate-900 drop-shadow-sm mb-2 truncate px-2">{p1?.name || 'Home'}</h2>
 
-                    {/* AWAY (Right) */}
-                    <div className="flex-1 flex flex-col items-center justify-center p-8 relative hover:bg-white/5 transition duration-500">
-                        <div className="text-center z-10">
-                            <h2 className="text-4xl md:text-6xl font-black text-white drop-shadow-lg mb-2 truncate max-w-md">{p2?.name || 'Away'}</h2>
-
-                            <div className="flex items-center gap-6 justify-center my-6">
-                                <button onClick={() => handleScore(2, -1)} className="w-16 h-16 rounded-xl bg-black/40 text-white hover:bg-black/60 font-bold text-2xl backdrop-blur transition">-1</button>
-                                <div className="text-[10rem] leading-none font-black text-white drop-shadow-2xl tabular-nums">{match.current_score_p2}</div>
-                                <button onClick={() => handleScore(2, 1)} className="w-20 h-20 rounded-xl bg-white text-emerald-900 hover:bg-gray-200 font-bold text-4xl shadow-xl transition">+1</button>
-                            </div>
+                        <div className="flex items-center gap-4 md:gap-6 justify-center my-4 md:my-6">
+                            <button onClick={() => handleScore(1, -1)} className="w-12 h-12 md:w-16 md:h-16 rounded-xl bg-black/20 text-white hover:bg-black/40 font-bold text-xl md:text-2xl backdrop-blur transition">-</button>
+                            <div className="text-7xl md:text-[10rem] leading-none font-black text-slate-900/80 drop-shadow-sm tabular-nums">{match.current_score_p1}</div>
+                            <button onClick={() => handleScore(1, 1)} className="w-16 h-16 md:w-20 md:h-20 rounded-xl bg-white text-emerald-900 hover:bg-gray-200 font-bold text-3xl md:text-4xl shadow-xl transition">+</button>
                         </div>
                     </div>
                 </div>
 
-                {/* Clock Controls Overlay (Bottom Center) */}
-                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-4 bg-black/80 p-2 rounded-2xl backdrop-blur border border-white/10 z-20">
-                    <button onClick={() => onUpdateScore({ is_paused: !match.is_paused })} className={`px-8 py-3 rounded-xl font-bold uppercase tracking-wider text-lg shadow-lg transition ${match.is_paused ? 'bg-green-600 hover:bg-green-500 text-white' : 'bg-red-600 hover:bg-red-500 text-white'}`}>
-                        {match.is_paused ? 'START GAME' : 'STOP GAME'}
+                {/* AWAY (Right/Bottom) */}
+                <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 relative hover:bg-white/5 transition duration-500">
+                    <div className="text-center z-10 w-full">
+                        <h2 className="text-3xl md:text-6xl font-black text-slate-900 drop-shadow-sm mb-2 truncate px-2">{p2?.name || 'Away'}</h2>
+
+                        <div className="flex items-center gap-4 md:gap-6 justify-center my-4 md:my-6">
+                            <button onClick={() => handleScore(2, -1)} className="w-12 h-12 md:w-16 md:h-16 rounded-xl bg-black/20 text-white hover:bg-black/40 font-bold text-xl md:text-2xl backdrop-blur transition">-</button>
+                            <div className="text-7xl md:text-[10rem] leading-none font-black text-slate-900/80 drop-shadow-sm tabular-nums">{match.current_score_p2}</div>
+                            <button onClick={() => handleScore(2, 1)} className="w-16 h-16 md:w-20 md:h-20 rounded-xl bg-white text-emerald-900 hover:bg-gray-200 font-bold text-3xl md:text-4xl shadow-xl transition">+</button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Clock Controls Overlay (Sticky Bottom-Center) */}
+                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 md:gap-4 bg-black/90 p-2 rounded-2xl backdrop-blur border border-white/10 z-20 shadow-2xl w-[90%] md:w-auto justify-center">
+                    <button onClick={() => onUpdateScore({ is_paused: !match.is_paused })} className={`flex-1 md:flex-none px-4 md:px-8 py-3 rounded-xl font-bold uppercase tracking-wider text-sm md:text-lg shadow-lg transition whitespace-nowrap ${match.is_paused ? 'bg-green-600 hover:bg-green-500 text-white' : 'bg-red-600 hover:bg-red-500 text-white'}`}>
+                        {match.is_paused ? 'START' : 'STOP'}
                     </button>
-                    <div className="w-[1px] bg-white/20 mx-2 h-full"></div>
-                    <button onClick={() => onUpdateScore({ timer_seconds: (match.timer_seconds || 0) + 60 })} className="px-4 py-3 bg-white/10 hover:bg-white/20 rounded-lg text-white font-bold">+1m</button>
-                    <button onClick={() => onUpdateScore({ timer_seconds: Math.max(0, (match.timer_seconds || 0) - 60) })} className="px-4 py-3 bg-white/10 hover:bg-white/20 rounded-lg text-white font-bold">-1m</button>
+                    <div className="w-[1px] bg-white/20 mx-1 h-full hidden md:block"></div>
+                    <button onClick={() => onUpdateScore({ timer_seconds: (match.timer_seconds || 0) + 60 })} className="px-3 md:px-4 py-3 bg-white/10 hover:bg-white/20 rounded-lg text-white font-bold text-xs md:text-base">+1m</button>
+                    <button onClick={() => onUpdateScore({ timer_seconds: Math.max(0, (match.timer_seconds || 0) - 60) })} className="px-3 md:px-4 py-3 bg-white/10 hover:bg-white/20 rounded-lg text-white font-bold text-xs md:text-base">-1m</button>
                 </div>
             </div>
         </div>
