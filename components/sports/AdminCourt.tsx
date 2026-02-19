@@ -110,17 +110,13 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
     const [showRetireModal, setShowRetireModal] = React.useState(false);
 
     const handleRetire = (retiringPlayer: 1 | 2) => {
-        if (!confirm(`Are you sure ${retiringPlayer === 1 ? p1?.name : p2?.name} is retiring? This will end the match immediately.`)) return;
-
         // Opponent wins
         const winnerId = retiringPlayer === 1 ? p2?.id : p1?.id;
 
         onUpdateScore({
             status: 'retired',
             winner_id: winnerId,
-            // We do NOT reset scores or add sets technically, as the match is over by RET.
-            // But we might want to capture the final partial score in periods_scores if not already?
-            // Usually RET status is enough. The current score stays as the score at moment of retirement.
+            is_paused: true
         });
         setShowRetireModal(false);
     };

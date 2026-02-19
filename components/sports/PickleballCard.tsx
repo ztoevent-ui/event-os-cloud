@@ -146,24 +146,26 @@ export function PickleballCard({ match, p1, p2, activeAd, logoUrl, bgUrl, now, i
                 )}
             </AnimatePresence>
 
-            {/* --- MATCH RETIRED OVERLAY --- */}
+            {/* --- MATCH END OVERLAY (Retire, Walkover, or Complete) --- */}
             <AnimatePresence>
-                {(match.status === 'retired' || match.status === 'walkover') && (
+                {(match.status === 'retired' || match.status === 'walkover' || match.status === 'completed') && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        className="absolute inset-0 z-[110] bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center text-center p-8"
+                        className="absolute inset-0 z-[110] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center text-center p-8"
                     >
-                        <h2 className="text-5xl md:text-7xl font-black text-red-500 uppercase tracking-widest mb-8 animate-pulse">
-                            {match.status === 'retired' ? 'MATCH RETIRED' : 'WALKOVER'}
+                        <h2 className={`text-5xl md:text-7xl font-black uppercase tracking-widest mb-8 animate-pulse ${match.status === 'completed' ? 'text-indigo-400' : 'text-red-500'}`}>
+                            {match.status === 'retired' ? 'MATCH RETIRED' : (match.status === 'walkover' ? 'WALKOVER' : 'MATCH COMPLETE')}
                         </h2>
 
-                        <div className="text-6xl md:text-9xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 mb-4">
+                        <div className="text-6xl md:text-9xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 mb-4 uppercase">
                             {(match.winner_id === p1?.id ? p1?.name : p2?.name) || 'WINNER'} WINS
                         </div>
 
                         <div className="text-3xl md:text-5xl font-bold text-white/60 uppercase tracking-widest">
-                            (Won by {match.status === 'retired' ? 'RET' : 'WO'})
+                            {match.status === 'retired' && '(Won by RET)'}
+                            {match.status === 'walkover' && '(Won by WO)'}
+                            {match.status === 'completed' && `${match.sets_p1} - ${match.sets_p2}`}
                         </div>
                     </motion.div>
                 )}

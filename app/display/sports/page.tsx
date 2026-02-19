@@ -19,8 +19,13 @@ function SportsDisplayContent() {
     // No more local selector needed if we rely on URL, but we can keep a fallback if no ID provided.
     const [showSelector, setShowSelector] = useState(!tournamentId);
 
-    // Filter active matches
-    const activeMatches = matches.filter(m => m.status === 'ongoing' || m.status === 'scheduled');
+    // Filter active matches (including recently retired/walkover for transition)
+    const activeMatches = matches.filter(m =>
+        m.status === 'ongoing' ||
+        m.status === 'scheduled' ||
+        m.status === 'retired' ||
+        m.status === 'walkover'
+    );
     const isTop4 = activeMatches.some(m => ['sf', 'final'].includes(m.round_name.toLowerCase()));
 
     // --- Court Selection Logic (Per Device) ---
