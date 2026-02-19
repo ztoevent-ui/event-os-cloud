@@ -8,6 +8,7 @@ interface AdminCourtProps {
     onUpdateScore: (updates: Partial<Match>) => void;
     sportType?: string;
     now: Date;
+    onClose?: () => void;
 }
 
 // Configuration for Sport Themes
@@ -49,7 +50,7 @@ const COURT_THEMES: Record<string, { bg: string, accent: string, text: string, l
     }
 };
 
-export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminton', now }: AdminCourtProps) {
+export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminton', now, onClose }: AdminCourtProps) {
     const normalizedSport = sportType.toLowerCase();
     const isNetSport = ['badminton', 'pickleball', 'tennis', 'table_tennis', 'volleyball'].includes(normalizedSport);
     const isPickleball = normalizedSport === 'pickleball';
@@ -119,6 +120,11 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
             is_paused: true
         });
         setShowRetireModal(false);
+
+        // Return to match list after a short delay
+        if (onClose) {
+            setTimeout(onClose, 800);
+        }
     };
 
     const handleScore = (player: 1 | 2, delta: number) => {
@@ -376,20 +382,26 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
 
                         <button
                             onClick={() => {
-                                if (confirm("Confirm end of this set? Current scores will be archived.")) {
-                                    const h1 = match.current_score_p1;
-                                    const h2 = match.current_score_p2;
-                                    const winner = h1 > h2 ? 1 : 2;
+                                // Remove confirm() to fix INP issue
+                                const h1 = match.current_score_p1;
+                                const h2 = match.current_score_p2;
+                                if (h1 === 0 && h2 === 0) return; // Prevent accidentally ending an empty set
 
-                                    onUpdateScore({
-                                        sets_p1: winner === 1 ? match.sets_p1 + 1 : match.sets_p1,
-                                        sets_p2: winner === 2 ? match.sets_p2 + 1 : match.sets_p2,
-                                        current_score_p1: 0,
-                                        current_score_p2: 0,
-                                        periods_scores: [...(match.periods_scores || []), { p1: h1, p2: h2 }],
-                                        serving_player_id: winner === 1 ? p1?.id : p2?.id
-                                    });
-                                }
+                                const winner = h1 > h2 ? 1 : 2;
+                                // Simple rule: Next serve starts with the previous receiver or the loser?
+                                // Let's follow the standard: previous receiver.
+                                const nextServer = match.serving_player_id === p1?.id ? p2?.id : p1?.id;
+
+                                onUpdateScore({
+                                    sets_p1: winner === 1 ? (match.sets_p1 || 0) + 1 : (match.sets_p1 || 0),
+                                    sets_p2: winner === 2 ? (match.sets_p2 || 0) + 1 : (match.sets_p2 || 0),
+                                    current_score_p1: 0,
+                                    current_score_p2: 0,
+                                    periods_scores: [...(match.periods_scores || []), { p1: h1, p2: h2 }],
+                                    serving_player_id: nextServer,
+                                    current_period: isPickleball ? 2 : (match.current_period || 1), // Reset server to 2 if Pickleball
+                                    started_at: new Date().toISOString() // Refresh start time
+                                });
                             }}
                             className="hidden lg:block flex-1 lg:flex-none px-3 md:px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs md:text-sm font-black uppercase tracking-wider rounded-lg shadow-lg whitespace-nowrap"
                         >

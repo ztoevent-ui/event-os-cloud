@@ -481,6 +481,7 @@ export default function SportsAdminPage() {
                             onUpdateScore={handleUpdate}
                             sportType={tournament.type}
                             now={now}
+                            onClose={() => setSelectedMatchId(null)}
                         />
                     </div>
                 ) : (
