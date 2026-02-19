@@ -468,21 +468,7 @@ function SportsDisplayContent() {
 
 
 
-                        {/* UNIVERSAL CLOSE BUTTON */}
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                // Force Close Logic
-                                setDismissedLocally(true);
-                                setManualAdBreak(false);
-                                if (activeFullscreenAds.length > 1) {
-                                    setCurrentPlaylistIndex(prev => (prev + 1) % activeFullscreenAds.length);
-                                }
-                            }}
-                            className="absolute top-8 left-8 z-[1001] bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-full font-bold uppercase text-sm shadow-lg hover:scale-105 transition flex items-center gap-2"
-                        >
-                            <i className="fa-solid fa-xmark"></i> Close (Press B)
-                        </button>
+
 
                         {/* Sound Hint */}
                         <div className="absolute bottom-12 left-1/2 -translate-x-1/2 text-white/50 text-sm animate-pulse pointer-events-none z-[1001] bg-black/30 px-4 py-2 rounded-full backdrop-blur-sm">

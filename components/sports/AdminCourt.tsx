@@ -53,29 +53,49 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
 
     const normalizedSport = sportType.toLowerCase();
     const isNetSport = ['badminton', 'pickleball', 'tennis', 'table_tennis', 'volleyball'].includes(normalizedSport);
+    const isPickleball = normalizedSport === 'pickleball';
 
     // Get theme or default to badminton
     const theme = COURT_THEMES[normalizedSport] || COURT_THEMES['badminton'];
 
     const handleScore = (player: 1 | 2, delta: number) => {
-        const current = player === 1 ? match.current_score_p1 : match.current_score_p2;
-        const newScore = Math.max(0, current + delta);
+        const currentScore = player === 1 ? match.current_score_p1 : match.current_score_p2;
+        const winnerId = player === 1 ? p1?.id : p2?.id;
 
-        const updates: Partial<Match> = {
-            [player === 1 ? 'current_score_p1' : 'current_score_p2']: newScore
-        };
+        const updates: Partial<Match> = {};
 
-        // BWF Logic: Match starts when first point is awarded
+        // BWF/General Logic: Match starts when first point/rally touches
         if (delta > 0 && !match.started_at) {
             updates.started_at = new Date().toISOString();
         }
 
-        // Auto-serving logic for net sports: Point winner becomes the server
-        if (delta > 0 && isNetSport) {
-            const winnerId = player === 1 ? p1?.id : p2?.id;
-            if (winnerId) {
-                updates.serving_player_id = winnerId;
+        if (delta > 0) {
+            // --- POINT WON LOGIC ---
+            if (isPickleball) {
+                // Side-Out Scoring Rule: Only server receives points
+                // If Server wins rally -> Point.
+                // If Receiver wins rally -> Side Out (Serve Switch).
+
+                // If no server set, assume this first winning rally sets the server (Side Out logic effectively)
+                if (match.serving_player_id && match.serving_player_id === winnerId) {
+                    updates[player === 1 ? 'current_score_p1' : 'current_score_p2'] = currentScore + 1;
+                } else {
+                    // Side Out - Switch Server, No Point Change
+                    updates.serving_player_id = winnerId;
+                }
+            } else {
+                // Rally Scoring (Badminton, Tennis, etc.): Point is awarded regardless
+                updates[player === 1 ? 'current_score_p1' : 'current_score_p2'] = currentScore + 1;
+
+                // Winner becomes server
+                if (isNetSport && winnerId) {
+                    updates.serving_player_id = winnerId;
+                }
             }
+        } else {
+            // --- UNDO / DECREMENT LOGIC ---
+            // Simply reduce score
+            updates[player === 1 ? 'current_score_p1' : 'current_score_p2'] = Math.max(0, currentScore + delta);
         }
 
         onUpdateScore(updates);

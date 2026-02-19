@@ -7,8 +7,8 @@ export function GlobalNavigation() {
     const pathname = usePathname();
     const router = useRouter();
 
-    // Don't show navigation on homepage
-    if (pathname === '/') return null;
+    // Don't show navigation on homepage or admin pages (which have their own headers)
+    if (pathname === '/' || pathname.startsWith('/admin')) return null;
 
     return (
         <div className="fixed top-4 left-4 z-[9999] flex items-center gap-3 transition-opacity duration-300 opacity-60 hover:opacity-100 group">
