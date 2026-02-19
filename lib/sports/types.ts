@@ -82,7 +82,7 @@ export interface Match {
     player2_id: string | null;
     round_name: string;
     court_id?: string;
-    status: 'scheduled' | 'ongoing' | 'completed';
+    status: 'scheduled' | 'ongoing' | 'completed' | 'retired' | 'walkover';
 
     current_score_p1: number;
     current_score_p2: number;

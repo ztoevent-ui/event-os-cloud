@@ -154,12 +154,21 @@ function SportsDisplayContent() {
             }
 
             if (key === 'm') {
-                console.log('User pressed M');
-                if (playerRef.current && typeof playerRef.current.isMuted === 'function') {
-                    if (playerRef.current.isMuted()) {
-                        playerRef.current.unMute();
-                    } else {
-                        playerRef.current.mute();
+                if (playerRef.current && typeof playerRef.current.mute === 'function') {
+                    // Simple toggle if API allows, but YT API is simpler:
+                    if (playerRef.current.isMuted()) playerRef.current.unMute();
+                    else playerRef.current.mute();
+                }
+            }
+
+            if (key === 'v') {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().catch((err: any) => {
+                        console.error(`Error attempting to enable fullscreen: ${err.message}`);
+                    });
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
                     }
                 }
             }

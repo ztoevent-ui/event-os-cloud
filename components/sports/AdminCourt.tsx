@@ -50,13 +50,80 @@ const COURT_THEMES: Record<string, { bg: string, accent: string, text: string, l
 };
 
 export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminton', now }: AdminCourtProps) {
-
     const normalizedSport = sportType.toLowerCase();
     const isNetSport = ['badminton', 'pickleball', 'tennis', 'table_tennis', 'volleyball'].includes(normalizedSport);
     const isPickleball = normalizedSport === 'pickleball';
 
     // Get theme or default to badminton
     const theme = COURT_THEMES[normalizedSport] || COURT_THEMES['badminton'];
+
+    // --- Pickleball & Game Logic ---
+    // Server Number: Defaults to 2 if score is 0-0 (Start of Game Rule), else current_period, else 1
+    const isStartOfGame = match.current_score_p1 === 0 && match.current_score_p2 === 0;
+    const serverNumber = isPickleball ? (match.current_period || (isStartOfGame ? 2 : 1)) : 0;
+
+    // Game/Set Calculation
+    const setsWonP1 = match.sets_p1 || 0;
+    const setsWonP2 = match.sets_p2 || 0;
+    const currentGameNumber = setsWonP1 + setsWonP2 + 1;
+    const isSwapSides = (setsWonP1 + setsWonP2) % 2 === 1;
+
+    // Check Win Condition (Standard: 11 pts, Win by 2)
+    const WIN_PTS = 11;
+    const isGameFinished = (match.current_score_p1 >= WIN_PTS || match.current_score_p2 >= WIN_PTS) &&
+        Math.abs(match.current_score_p1 - match.current_score_p2) >= 2;
+
+    const [showGameEndModal, setShowGameEndModal] = React.useState(false);
+
+    // Auto-trigger modal if condition met and not already showing
+    React.useEffect(() => {
+        if (isGameFinished && !showGameEndModal) {
+            setShowGameEndModal(true);
+        }
+    }, [match.current_score_p1, match.current_score_p2, isGameFinished]);
+
+    const handleGameEnd = () => {
+        const winner = match.current_score_p1 > match.current_score_p2 ? 1 : 2;
+        const newHistory = [...(match.periods_scores || []), { p1: match.current_score_p1, p2: match.current_score_p2 }];
+
+        // Determine first server for next game: The team that received first in previous game?
+        // Or simple rule: "Side Out" relative to previous game end?
+        // Let's assume standard: Serving Player ID is initialized to the loser of the previous game start coin toss?
+        // Simpler: Just swap serving side from who served last?
+        // User Request: "Initialize to previous receiver".
+        const nextServer = match.serving_player_id === p1?.id ? p2?.id : p1?.id;
+
+        onUpdateScore({
+            sets_p1: winner === 1 ? setsWonP1 + 1 : setsWonP1,
+            sets_p2: winner === 2 ? setsWonP2 + 1 : setsWonP2,
+            current_score_p1: 0,
+            current_score_p2: 0,
+            periods_scores: newHistory,
+            serving_player_id: nextServer,
+            current_period: 2, // Game 2 starts with Server 2 (0-0-2)
+            started_at: new Date().toISOString() // Refresh start time for duration
+        });
+        setShowGameEndModal(false);
+    };
+
+    // --- Retirement Logic ---
+    const [showRetireModal, setShowRetireModal] = React.useState(false);
+
+    const handleRetire = (retiringPlayer: 1 | 2) => {
+        if (!confirm(`Are you sure ${retiringPlayer === 1 ? p1?.name : p2?.name} is retiring? This will end the match immediately.`)) return;
+
+        // Opponent wins
+        const winnerId = retiringPlayer === 1 ? p2?.id : p1?.id;
+
+        onUpdateScore({
+            status: 'retired',
+            winner_id: winnerId,
+            // We do NOT reset scores or add sets technically, as the match is over by RET.
+            // But we might want to capture the final partial score in periods_scores if not already?
+            // Usually RET status is enough. The current score stays as the score at moment of retirement.
+        });
+        setShowRetireModal(false);
+    };
 
     const handleScore = (player: 1 | 2, delta: number) => {
         const currentScore = player === 1 ? match.current_score_p1 : match.current_score_p2;
@@ -72,16 +139,22 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
         if (delta > 0) {
             // --- POINT WON LOGIC ---
             if (isPickleball) {
-                // Side-Out Scoring Rule: Only server receives points
-                // If Server wins rally -> Point.
-                // If Receiver wins rally -> Side Out (Serve Switch).
+                // Pickleball "Serve to Win" Rules
 
-                // If no server set, assume this first winning rally sets the server (Side Out logic effectively)
-                if (match.serving_player_id && match.serving_player_id === winnerId) {
+                // 1. If Server Won Rally -> Point
+                if (match.serving_player_id === winnerId) {
                     updates[player === 1 ? 'current_score_p1' : 'current_score_p2'] = currentScore + 1;
+                    // Server Number stays same
                 } else {
-                    // Side Out - Switch Server, No Point Change
-                    updates.serving_player_id = winnerId;
+                    // 2. Receiver Won Rally -> Side Out or Second Serve
+                    if (serverNumber === 1) {
+                        // Move to Server 2
+                        updates.current_period = 2;
+                    } else {
+                        // Side Out (Was Server 2) -> Switch Team, Start at Server 1 (unless 0-0-2 logic forces 2, but standard sideout is 1)
+                        updates.serving_player_id = winnerId;
+                        updates.current_period = 1;
+                    }
                 }
             } else {
                 // Rally Scoring (Badminton, Tennis, etc.): Point is awarded regardless
@@ -137,25 +210,140 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
     // Auto-serving logic for net sports: Point winner becomes the server
     // (Ensure this logic remains if it was outside)
 
+    // --- Player Render Helper (Supports Side Swapping) ---
+    const renderPlayer = (isLeft: boolean) => {
+        // Determine which player is on this side
+        // Default: Left=P1, Right=P2
+        // IF Swapped: Left=P2, Right=P1
+
+        const playerNum = isLeft ? (isSwapSides ? 2 : 1) : (isSwapSides ? 1 : 2);
+        const player = playerNum === 1 ? p1 : p2;
+        const score = playerNum === 1 ? match.current_score_p1 : match.current_score_p2;
+        const sets = playerNum === 1 ? match.sets_p1 : match.sets_p2;
+        const isServer = match.serving_player_id === player?.id;
+
+        return (
+            <div className={`flex-1 relative flex flex-col items-center justify-center p-4 md:p-8 transition-colors ${isServer ? 'bg-black/20' : ''}`}>
+                {isServer && (
+                    <div className={`absolute top-4 ${isLeft ? 'left-4 md:left-4' : 'right-4 md:right-4'} bg-yellow-400 text-black text-[10px] md:text-xs font-bold px-2 md:px-3 py-1 rounded-full shadow animate-bounce z-20`}>
+                        <i className="fa-solid fa-shuttlecock mr-1"></i> SERVE
+                        {isPickleball && <span className="ml-1 bg-black text-white px-1.5 rounded-full">{serverNumber}</span>}
+                    </div>
+                )}
+
+                <h2 className="text-2xl md:text-5xl font-black text-white text-center drop-shadow-md mb-2 md:mb-4 truncate max-w-full px-2">
+                    {player?.name || `Player ${playerNum}`}
+                </h2>
+
+                <div className="flex items-center gap-4 md:gap-8">
+                    <button onClick={() => handleScore(playerNum, -1)} className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-black/20 hover:bg-black/30 text-white font-bold text-xl md:text-2xl flex items-center justify-center backdrop-blur-sm transition">-</button>
+                    <div className="text-6xl md:text-[8rem] leading-none font-black text-white drop-shadow-2xl font-mono tabular-nums">
+                        {score}
+                    </div>
+                    <button onClick={() => handleScore(playerNum, 1)} className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white hover:bg-gray-100 text-green-900 font-bold text-3xl md:text-4xl flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition">+</button>
+                </div>
+
+                <div className="mt-4 md:mt-8 flex items-center gap-2 md:gap-4 bg-black/30 p-2 rounded-xl backdrop-blur-md">
+                    <span className="text-white/60 font-bold uppercase text-[10px] md:text-xs px-2">Sets</span>
+                    {/* Note: Updateing sets manually should update the specific player's stat */}
+                    <button onClick={() => onUpdateScore({ [playerNum === 1 ? 'sets_p1' : 'sets_p2']: Math.max(0, sets - 1) })} className="w-6 h-6 md:w-8 md:h-8 rounded bg-white/10 text-white hover:bg-white/20 flex items-center justify-center">-</button>
+                    <span className="text-xl md:text-2xl font-bold text-white w-6 md:w-8 text-center">{sets}</span>
+                    <button onClick={() => onUpdateScore({ [playerNum === 1 ? 'sets_p1' : 'sets_p2']: sets + 1 })} className="w-6 h-6 md:w-8 md:h-8 rounded bg-white/10 text-white hover:bg-white/20 flex items-center justify-center">+</button>
+                </div>
+            </div>
+        );
+    };
+
     // --- NET SPORT LAYOUT (Responsive Court) ---
     if (isNetSport) {
         return (
             <div
                 id="admin-court-container"
                 className={`
-                    w-full ${theme.bg} p-4 md:p-6 shadow-2xl border border-white/10 flex flex-col transition-all duration-300
+                    w-full ${theme.bg} p-4 md:p-6 shadow-2xl border border-white/10 flex flex-col transition-all duration-300 relative
                     ${isFullscreen
                         ? 'fixed inset-0 z-[9999] h-screen rounded-none'
                         : 'min-h-[calc(100vh-140px)] rounded-xl md:rounded-3xl'
                     }
                 `}
             >
+                {/* GAME END MODAL */}
+                {showGameEndModal && (
+                    <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md animate-fade-in">
+                        <div className="bg-white p-8 rounded-3xl text-center shadow-2xl max-w-sm mx-4 transform scale-110">
+                            <h3 className="text-2xl font-black text-slate-900 uppercase mb-2">Game {currentGameNumber} Potential End</h3>
+                            <div className="text-4xl font-black text-indigo-600 mb-6">
+                                {match.current_score_p1} - {match.current_score_p2}
+                            </div>
+                            <p className="text-gray-500 font-bold mb-8 uppercase text-xs tracking-wider">
+                                {match.current_score_p1 > match.current_score_p2 ? p1?.name : p2?.name} Winning
+                            </p>
+                            <div className="flex gap-4">
+                                <button
+                                    onClick={() => setShowGameEndModal(false)}
+                                    className="flex-1 py-3 bg-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-300"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleGameEnd}
+                                    className="flex-1 py-3 bg-indigo-600 text-white font-bold rounded-xl shadow-lg hover:bg-indigo-700 animate-pulse"
+                                >
+                                    Confirm End
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* RETIREMENT MODAL */}
+                {showRetireModal && (
+                    <div className="absolute inset-0 z-50 flex items-center justify-center bg-red-900/90 backdrop-blur-md animate-fade-in">
+                        <div className="bg-white p-8 rounded-3xl text-center shadow-2xl max-w-sm mx-4 transform scale-110 border-4 border-red-500">
+                            <h3 className="text-2xl font-black text-red-600 uppercase mb-2">Confirm Retirement</h3>
+                            <p className="text-gray-600 font-bold mb-6 text-sm">Which player is retiring? This cannot be undone.</p>
+
+                            <div className="flex flex-col gap-4">
+                                <button
+                                    onClick={() => handleRetire(1)}
+                                    className="w-full py-4 bg-slate-100 hover:bg-red-100 border-2 border-slate-200 hover:border-red-500 rounded-xl transition group relative overflow-hidden"
+                                >
+                                    <div className="text-lg font-black text-slate-900 group-hover:text-red-700">{p1?.name || 'Player 1'}</div>
+                                    <div className="text-xs uppercase font-bold text-gray-400 group-hover:text-red-400">Retires from Match</div>
+                                </button>
+
+                                <button
+                                    onClick={() => handleRetire(2)}
+                                    className="w-full py-4 bg-slate-100 hover:bg-red-100 border-2 border-slate-200 hover:border-red-500 rounded-xl transition group relative overflow-hidden"
+                                >
+                                    <div className="text-lg font-black text-slate-900 group-hover:text-red-700">{p2?.name || 'Player 2'}</div>
+                                    <div className="text-xs uppercase font-bold text-gray-400 group-hover:text-red-400">Retires from Match</div>
+                                </button>
+
+                                <button
+                                    onClick={() => setShowRetireModal(false)}
+                                    className="mt-4 text-gray-400 font-bold uppercase text-xs hover:text-gray-600 tracking-wider"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Header (Responsive Grid) */}
                 <div className="flex flex-col lg:flex-row justify-between items-center mb-4 md:mb-8 gap-4">
                     <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 md:gap-8 w-full lg:w-auto">
                         <div className="text-center lg:text-left">
-                            <div className="text-white/50 font-bold uppercase tracking-widest text-xs md:text-sm">{match.round_name}</div>
+                            <div className="text-white/50 font-bold uppercase tracking-widest text-xs md:text-sm">
+                                {match.round_name} • GAME {currentGameNumber}
+                            </div>
                             <div className="text-2xl md:text-4xl font-black text-white whitespace-nowrap">{match.court_id || 'CENTER COURT'}</div>
+                            {isPickleball && (
+                                <div className="text-indigo-300 text-base font-mono mt-1 font-black bg-black/20 px-2 rounded">
+                                    CALL: {match.current_score_p1}-{match.current_score_p2}-{serverNumber}
+                                </div>
+                            )}
                         </div>
                         <div className="hidden lg:block h-12 md:h-16 w-[2px] bg-white/10"></div>
                         <div className="text-center lg:text-left">
@@ -180,6 +368,16 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
                         >
                             <i className={`fa-solid ${isFullscreen ? 'fa-compress' : 'fa-expand'}`}></i>
                         </button>
+
+                        {/* More / Correction Menu Trigger - For now just direct buttons as requested space permits */}
+                        <button
+                            onClick={() => setShowRetireModal(true)}
+                            className="w-10 h-10 flex items-center justify-center rounded-lg bg-red-900/50 hover:bg-red-700 text-red-200 hover:text-white border border-red-800 transition relative group"
+                            title="Player Retire (RET)"
+                        >
+                            <i className="fa-solid fa-user-injured"></i>
+                        </button>
+
                         <button
                             onClick={() => {
                                 if (confirm("Confirm end of this set? Current scores will be archived.")) {
@@ -197,7 +395,7 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
                                     });
                                 }
                             }}
-                            className="flex-1 lg:flex-none px-3 md:px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs md:text-sm font-black uppercase tracking-wider rounded-lg shadow-lg whitespace-nowrap"
+                            className="hidden lg:block flex-1 lg:flex-none px-3 md:px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs md:text-sm font-black uppercase tracking-wider rounded-lg shadow-lg whitespace-nowrap"
                         >
                             End Set
                         </button>
@@ -235,77 +433,12 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
                         </>
                     )}
 
-                    {/* PLAYER 1 SIDE (Left/Top) */}
-                    <div className={`flex-1 relative flex flex-col items-center justify-center p-4 md:p-8 transition-colors ${match.serving_player_id === p1?.id ? 'bg-black/20' : ''}`}>
-                        {match.serving_player_id === p1?.id && (
-                            <div className="absolute top-4 left-4 md:left-4 bg-yellow-400 text-black text-[10px] md:text-xs font-bold px-2 md:px-3 py-1 rounded-full shadow animate-bounce z-20">
-                                <i className="fa-solid fa-shuttlecock mr-1"></i> SERVE
-                            </div>
-                        )}
+                    {/* RENDER PLAYERS WITH SWAP LOGIC */}
+                    {/* Left Side */}
+                    {renderPlayer(true)}
 
-                        <h2 className="text-2xl md:text-5xl font-black text-white text-center drop-shadow-md mb-2 md:mb-4 truncate max-w-full px-2">{p1?.name || 'Player 1'}</h2>
-
-                        <div className="flex items-center gap-4 md:gap-8">
-                            <button
-                                onClick={() => handleScore(1, -1)}
-                                className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-black/20 hover:bg-black/30 text-white font-bold text-xl md:text-2xl flex items-center justify-center backdrop-blur-sm transition"
-                            >
-                                -
-                            </button>
-                            <div className="text-6xl md:text-[8rem] leading-none font-black text-white drop-shadow-2xl font-mono tabular-nums">
-                                {match.current_score_p1}
-                            </div>
-                            <button
-                                onClick={() => handleScore(1, 1)}
-                                className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white hover:bg-gray-100 text-green-900 font-bold text-3xl md:text-4xl flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition"
-                            >
-                                +
-                            </button>
-                        </div>
-
-                        <div className="mt-4 md:mt-8 flex items-center gap-2 md:gap-4 bg-black/30 p-2 rounded-xl backdrop-blur-md">
-                            <span className="text-white/60 font-bold uppercase text-[10px] md:text-xs px-2">Sets</span>
-                            <button onClick={() => onUpdateScore({ sets_p1: Math.max(0, match.sets_p1 - 1) })} className="w-6 h-6 md:w-8 md:h-8 rounded bg-white/10 text-white hover:bg-white/20 flex items-center justify-center">-</button>
-                            <span className="text-xl md:text-2xl font-bold text-white w-6 md:w-8 text-center">{match.sets_p1}</span>
-                            <button onClick={() => onUpdateScore({ sets_p1: match.sets_p1 + 1 })} className="w-6 h-6 md:w-8 md:h-8 rounded bg-white/10 text-white hover:bg-white/20 flex items-center justify-center">+</button>
-                        </div>
-                    </div>
-
-                    {/* PLAYER 2 SIDE (Right/Bottom) */}
-                    <div className={`flex-1 relative flex flex-col items-center justify-center p-4 md:p-8 transition-colors ${match.serving_player_id === p2?.id ? 'bg-black/20' : ''}`}>
-                        {match.serving_player_id === p2?.id && (
-                            <div className="absolute top-4 right-4 md:right-4 bg-yellow-400 text-black text-[10px] md:text-xs font-bold px-2 md:px-3 py-1 rounded-full shadow animate-bounce z-20">
-                                <i className="fa-solid fa-shuttlecock mr-1"></i> SERVE
-                            </div>
-                        )}
-
-                        <h2 className="text-2xl md:text-5xl font-black text-white text-center drop-shadow-md mb-2 md:mb-4 truncate max-w-full px-2">{p2?.name || 'Player 2'}</h2>
-
-                        <div className="flex items-center gap-4 md:gap-8">
-                            <button
-                                onClick={() => handleScore(2, -1)}
-                                className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-black/20 hover:bg-black/30 text-white font-bold text-xl md:text-2xl flex items-center justify-center backdrop-blur-sm transition"
-                            >
-                                -
-                            </button>
-                            <div className="text-6xl md:text-[8rem] leading-none font-black text-white drop-shadow-2xl font-mono tabular-nums">
-                                {match.current_score_p2}
-                            </div>
-                            <button
-                                onClick={() => handleScore(2, 1)}
-                                className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white hover:bg-gray-100 text-green-900 font-bold text-3xl md:text-4xl flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition"
-                            >
-                                +
-                            </button>
-                        </div>
-
-                        <div className="mt-4 md:mt-8 flex items-center gap-2 md:gap-4 bg-black/30 p-2 rounded-xl backdrop-blur-md">
-                            <span className="text-white/60 font-bold uppercase text-[10px] md:text-xs px-2">Sets</span>
-                            <button onClick={() => onUpdateScore({ sets_p2: Math.max(0, match.sets_p2 - 1) })} className="w-6 h-6 md:w-8 md:h-8 rounded bg-white/10 text-white hover:bg-white/20 flex items-center justify-center">-</button>
-                            <span className="text-xl md:text-2xl font-bold text-white w-6 md:w-8 text-center">{match.sets_p2}</span>
-                            <button onClick={() => onUpdateScore({ sets_p2: match.sets_p2 + 1 })} className="w-6 h-6 md:w-8 md:h-8 rounded bg-white/10 text-white hover:bg-white/20 flex items-center justify-center">+</button>
-                        </div>
-                    </div>
+                    {/* Right Side */}
+                    {renderPlayer(false)}
                 </div>
             </div>
         );
