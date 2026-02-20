@@ -329,17 +329,22 @@ function SportsDisplayContent() {
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-zto-gold/10 via-black to-black -z-10"></div>
 
             {/* Display Mode Selector (Floating Top Left) */}
-            <div className="fixed top-6 left-6 z-50 group">
-                <select
-                    value={displayMode}
-                    onChange={(e) => setDisplayMode(e.target.value as any)}
-                    className="bg-black/40 border border-white/20 text-white/50 text-sm font-bold uppercase tracking-widest px-4 py-2 rounded-xl backdrop-blur-md outline-none hover:border-zto-gold transition-colors focus:text-white cursor-pointer appearance-none opacity-20 group-hover:opacity-100"
-                >
-                    <option value="current_matches">Live Courts</option>
-                    <option value="match_list">Match List</option>
-                    <option value="tournament_bracket">Bracket</option>
-                </select>
-                <i className="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-white/50 text-xs pointer-events-none opacity-20 group-hover:opacity-100"></i>
+            <div className="fixed top-6 left-6 z-50 flex flex-col gap-2">
+                <label className="text-white/50 text-xs font-bold uppercase tracking-widest pl-1">
+                    Display Layout
+                </label>
+                <div className="relative group">
+                    <select
+                        value={displayMode}
+                        onChange={(e) => setDisplayMode(e.target.value as any)}
+                        className="bg-zinc-900 border border-white/20 text-white text-sm font-bold uppercase tracking-widest px-4 py-3 pr-10 rounded-xl shadow-lg outline-none hover:border-zto-gold transition-colors focus:border-indigo-500 cursor-pointer appearance-none"
+                    >
+                        <option value="current_matches">🎾 Live Courts</option>
+                        <option value="match_list">📋 Match List</option>
+                        <option value="tournament_bracket">🏆 Bracket View</option>
+                    </select>
+                    <i className="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-white/50 text-xs pointer-events-none"></i>
+                </div>
             </div>
 
             {/* Court Selector Button (Floating Bottom Right) */}
