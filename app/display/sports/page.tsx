@@ -5,6 +5,8 @@ import { ZTOHeader } from '@/components/sports/ZTOHeader';
 import { MatchCard } from '@/components/sports/MatchCard';
 import { useSportsState } from '@/lib/sports/useSportsState';
 import { WinnerReveal } from '@/components/sports/WinnerReveal';
+import { MatchListDisplay } from '@/components/sports/MatchListDisplay';
+import { TournamentBracket } from '@/components/sports/TournamentBracket';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { useSearchParams } from 'next/navigation';
@@ -15,6 +17,7 @@ function SportsDisplayContent() {
 
     const { now, matches, players, tournament, allTournaments, switchTournament, ads, loading } = useSportsState(tournamentId); // Pass ID to hook
     const [viewMode, setViewMode] = useState<'grid' | 'portrait'>('grid');
+    const [displayMode, setDisplayMode] = useState<'current_matches' | 'match_list' | 'tournament_bracket'>('current_matches');
     const [currentAdIndex, setCurrentAdIndex] = useState(0);
     // No more local selector needed if we rely on URL, but we can keep a fallback if no ID provided.
     const [showSelector, setShowSelector] = useState(!tournamentId);
@@ -325,6 +328,20 @@ function SportsDisplayContent() {
             {/* Ambient Background - More Subtle */}
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-zto-gold/10 via-black to-black -z-10"></div>
 
+            {/* Display Mode Selector (Floating Top Left) */}
+            <div className="fixed top-6 left-6 z-50 group">
+                <select
+                    value={displayMode}
+                    onChange={(e) => setDisplayMode(e.target.value as any)}
+                    className="bg-black/40 border border-white/20 text-white/50 text-sm font-bold uppercase tracking-widest px-4 py-2 rounded-xl backdrop-blur-md outline-none hover:border-zto-gold transition-colors focus:text-white cursor-pointer appearance-none opacity-20 group-hover:opacity-100"
+                >
+                    <option value="current_matches">Live Courts</option>
+                    <option value="match_list">Match List</option>
+                    <option value="tournament_bracket">Bracket</option>
+                </select>
+                <i className="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-white/50 text-xs pointer-events-none opacity-20 group-hover:opacity-100"></i>
+            </div>
+
             {/* Court Selector Button (Floating Bottom Right) */}
             <div className="fixed bottom-6 right-6 z-50">
                 <button
@@ -340,7 +357,27 @@ function SportsDisplayContent() {
 
             <div className={`w-full h-full flex flex-col items-center pt-24 pb-8 px-4 overflow-y-auto ${activeMatches.length === 0 ? 'justify-center' : ''}`}>
                 <AnimatePresence mode="wait">
-                    {activeMatches.length === 0 ? (
+                    {displayMode === 'match_list' ? (
+                        <motion.div
+                            key="list"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="w-full max-w-6xl mx-auto h-[80vh]"
+                        >
+                            <MatchListDisplay matches={matches} players={players} tournament={tournament} />
+                        </motion.div>
+                    ) : displayMode === 'tournament_bracket' ? (
+                        <motion.div
+                            key="bracket"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="w-full max-w-[1600px] mx-auto h-[85vh]"
+                        >
+                            <TournamentBracket matches={matches} players={players} tournament={tournament} />
+                        </motion.div>
+                    ) : activeMatches.length === 0 ? (
                         <motion.div
                             key="waiting"
                             initial={{ opacity: 0 }}
