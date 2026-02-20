@@ -2,10 +2,27 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useEffect } from 'react';
 
 export function GlobalNavigation() {
     const pathname = usePathname();
     const router = useRouter();
+
+    // Global 'fn+backspace' (Delete) or Backspace to go back, ignoring inputs.
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Backspace' || e.key === 'Delete') {
+                const tag = document.activeElement?.tagName.toLowerCase();
+                const isEditable = document.activeElement?.getAttribute('contenteditable') === 'true';
+                if (tag !== 'input' && tag !== 'textarea' && !isEditable) {
+                    e.preventDefault();
+                    router.back();
+                }
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [router]);
 
     // Don't show navigation on homepage or admin pages (which have their own headers)
     if (pathname === '/' || pathname.startsWith('/admin')) return null;
@@ -24,16 +41,6 @@ export function GlobalNavigation() {
                     className="w-full h-full object-cover"
                 />
             </Link>
-
-            {/* Back Button */}
-            <button
-                onClick={() => router.back()}
-                title="Go Back"
-                className="px-4 py-2 bg-black/40 backdrop-blur-md rounded-full text-white font-bold text-xs uppercase hover:bg-black/80 hover:scale-105 transition border border-white/10 shadow-lg flex items-center gap-2"
-            >
-                <i className="fa-solid fa-chevron-left"></i>
-                <span>Back</span>
-            </button>
         </div>
     );
 }

@@ -22,7 +22,6 @@ export function ZTOHeader({ tournamentName, logoUrl }: HeaderProps) {
                 )}
                 <div className="flex flex-col">
                     <span className="text-zto-gold font-bold tracking-[0.2em] text-sm italic">ARENA</span>
-                    <span className="text-white/60 text-[10px] uppercase tracking-widest leading-none font-medium">Tournament Series</span>
                 </div>
             </div>
 
