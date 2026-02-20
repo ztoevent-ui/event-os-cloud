@@ -328,8 +328,8 @@ function SportsDisplayContent() {
             {/* Ambient Background - More Subtle */}
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-zto-gold/10 via-black to-black -z-10"></div>
 
-            {/* Display Mode Selector (Floating Top Left) */}
-            <div className="fixed top-6 left-6 z-50 flex flex-col gap-2">
+            {/* Display Mode Selector (Floating Bottom Left) */}
+            <div className="fixed bottom-6 left-6 z-50 flex flex-col gap-2">
                 <label className="text-white/50 text-xs font-bold uppercase tracking-widest pl-1">
                     Display Layout
                 </label>
