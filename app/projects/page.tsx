@@ -36,6 +36,28 @@ export default function ProjectsPage() {
         }
     };
 
+    const handleCreateEvent = async () => {
+        const name = prompt("Enter the new event name:");
+        if (!name) return;
+
+        setLoading(true);
+        const { data, error } = await supabase.from('projects').insert([{
+            name: name,
+            type: 'corporate',
+            status: 'planning',
+            start_date: new Date().toISOString()
+        }]).select();
+
+        if (error || !data) {
+            console.error('Error creating project:', error);
+            alert('Failed to create event.');
+            setLoading(false);
+        } else {
+            setProjects([data[0], ...projects]);
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gray-50 p-8 font-sans">
             {/* Header */}
@@ -48,7 +70,7 @@ export default function ProjectsPage() {
                     <Link href="/" className="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 bg-white border border-gray-200 shadow-sm hover:bg-gray-50 transition">
                         <i className="fa-solid fa-arrow-left mr-2"></i> Back Home
                     </Link>
-                    <button className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-gray-900 shadow-lg shadow-gray-200 hover:bg-gray-800 transition transform hover:-translate-y-0.5">
+                    <button onClick={handleCreateEvent} className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-gray-900 shadow-lg shadow-gray-200 hover:bg-gray-800 transition transform hover:-translate-y-0.5">
                         <i className="fa-solid fa-plus mr-2"></i> Create Event
                     </button>
                 </div>
@@ -68,7 +90,7 @@ export default function ProjectsPage() {
                         </div>
                         <h3 className="text-lg font-bold text-gray-900">No events found</h3>
                         <p className="text-gray-500 mb-6 max-w-sm">Get started by creating your first event project to track tasks, vendors, and budget.</p>
-                        <button className="px-6 py-3 rounded-xl font-bold text-white bg-indigo-600 shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition">
+                        <button onClick={handleCreateEvent} className="px-6 py-3 rounded-xl font-bold text-white bg-indigo-600 shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition">
                             Create First Event
                         </button>
                     </div>
@@ -77,15 +99,17 @@ export default function ProjectsPage() {
                         {projects.map((project) => (
                             <Link key={project.id} href={`/projects/${project.id}`} className="group block h-full">
                                 <article className="bg-white h-full rounded-2xl p-6 shadow-sm border border-gray-100 transition-all hover:shadow-xl hover:border-indigo-100 hover:-translate-y-1 relative overflow-hidden">
-                                    <div className="absolute top-0 right-0 flex gap-2 p-6 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                                         <button
                                             onClick={(e) => handleDelete(e, project.id)}
-                                            className="w-8 h-8 rounded-full bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition"
+                                            className="w-10 h-10 rounded-full bg-red-100 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition shadow-sm drop-shadow-md"
                                             title="Delete Event"
                                         >
-                                            <i className="fa-solid fa-trash text-xs"></i>
+                                            <i className="fa-solid fa-trash text-sm"></i>
                                         </button>
-                                        <i className="fa-solid fa-arrow-right text-gray-300 group-hover:text-indigo-500 -rotate-45 group-hover:rotate-0 transition-transform duration-300 w-8 h-8 flex items-center justify-center hidden sm:flex"></i>
+                                    </div>
+                                    <div className="absolute top-0 right-0 p-5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none hidden sm:block">
+                                        <i className="fa-solid fa-arrow-right text-gray-300 group-hover:text-indigo-500 -rotate-45 group-hover:rotate-0 transition-transform duration-300 w-10 h-10 flex items-center justify-center mr-12"></i>
                                     </div>
 
                                     <div className="flex justify-between items-start mb-6">
