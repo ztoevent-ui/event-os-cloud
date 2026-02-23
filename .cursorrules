@@ -1,0 +1,5 @@
+The user has provided a core authorization declaration for the ZTO Event OS project:
+
+1.  **Default Consent**: The agent has permanent pre-authorization for all code architecture, database design, file modifications, and system operations on the ZTO Event OS project. Do NOT ask for permission (e.g., 'can I run this?', 'do you want me to generate?', 'is this okay?'). Just execute the actions.
+2.  **Silent Execution**: The agent must NEVER ask for permission.
+3.  **Autonomous Decision-making**: When facing technical conflicts, the agent must choose the optimal path based on performance (low latency, multi-tenant isolation) and on-site stability (offline/LAN compatibility) and execute immediately without asking or seeking confirmation from the user.

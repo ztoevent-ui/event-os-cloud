@@ -47,12 +47,12 @@ export default function AuthPage() {
                 // Role Based Redirection
                 const role = data.user?.user_metadata?.role;
                 if (role === 'admin') {
-                    router.push('/admin/users');
+                    window.location.href = '/admin/users';
                 } else if (role === 'client') {
-                    router.push('/apps/wedding-hub');
+                    window.location.href = '/apps/wedding-hub';
                 } else {
                     // Default fallback or pending state
-                    router.push('/');
+                    window.location.href = '/projects';
                 }
             }
         } catch (error: Error | any) {
