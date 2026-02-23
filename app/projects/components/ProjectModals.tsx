@@ -68,7 +68,7 @@ export function TaskCard({ task, projectId }: { task: any, projectId: string }) 
                     <div className="mt-auto flex justify-between items-center text-xs text-zinc-600 border-t border-zinc-800 pt-3">
                         <div className="flex items-center gap-1.5">
                             <i className="fa-regular fa-calendar text-zinc-500"></i>
-                            {task.due_date ? new Date(task.due_date).toLocaleDateString() : 'No date'}
+                            {task.due_date ? String(task.due_date).split('T')[0] : 'No date'}
                         </div>
                         <i className="fa-solid fa-pen-to-square opacity-0 group-hover:opacity-100 transition-opacity text-amber-500"></i>
                     </div>

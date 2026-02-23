@@ -134,7 +134,7 @@ export default function ProjectsPage() {
                                     <div className="space-y-3 mt-6">
                                         <div className="flex items-center text-sm text-gray-500">
                                             <i className="fa-regular fa-calendar w-6 text-center text-gray-300"></i>
-                                            <span>{project.start_date ? new Date(project.start_date).toLocaleDateString() : 'Date TBD'}</span>
+                                            <span>{project.start_date ? String(project.start_date).split('T')[0] : 'Date TBD'}</span>
                                         </div>
                                         {project.manager_id && (
                                             <div className="flex items-center text-sm text-gray-500">

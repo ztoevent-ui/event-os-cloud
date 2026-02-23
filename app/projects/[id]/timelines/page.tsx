@@ -52,11 +52,11 @@ export default async function TimelinesPage({ params }: { params: Promise<{ id: 
                             <div className="flex flex-col sm:flex-row gap-4 text-sm text-zinc-400 mb-4">
                                 <div className="flex items-center gap-2 bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-800">
                                     <i className="fa-regular fa-calendar-plus text-green-500"></i>
-                                    <span>Start: {phase.start_date ? new Date(phase.start_date).toLocaleDateString() : 'TBD'}</span>
+                                    <span>Start: {phase.start_date ? String(phase.start_date).split('T')[0] : 'TBD'}</span>
                                 </div>
                                 <div className="flex items-center gap-2 bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-800">
                                     <i className="fa-regular fa-calendar-check text-red-500"></i>
-                                    <span>End: {phase.end_date ? new Date(phase.end_date).toLocaleDateString() : 'TBD'}</span>
+                                    <span>End: {phase.end_date ? String(phase.end_date).split('T')[0] : 'TBD'}</span>
                                 </div>
                             </div>
 
