@@ -49,27 +49,32 @@ export async function middleware(request: NextRequest) {
 
     const path = request.nextUrl.pathname;
 
-    // 1. Admin Routes (/admin/*): Authentication Required
-    // 1. Admin Routes (/admin/*): Authentication Required
-    // if (path.startsWith('/admin')) {
-    //    if (!user) {
-    //        return NextResponse.redirect(new URL('/auth', request.url));
-    //    }
-    //    // Future: Check user role here
-    // }
+    // Define routes that DO NOT require login
+    const publicPrefixes = [
+        '/auth',
+        '/public',
+        '/display',
+        '/apps',
+        '/api' // Keep API open, protect inner logic if needed
+    ];
 
-    // 2. Display Routes (/display/*): Public but separate logic (could be IP locked later, open for now)
-    if (path.startsWith('/display')) {
-        // Allow access without login
+    const isPublic = publicPrefixes.some(prefix => path.startsWith(prefix));
+
+    // If user is NOT logged in and attempting to access a PRIVATE route (including root '/')
+    if (!user && !isPublic) {
+        // Redirect to Login Page
+        return NextResponse.redirect(new URL('/auth', request.url));
     }
 
-    // 3. Public Routes (/public/*): Open to all
-    if (path.startsWith('/public')) {
-        // Allow access
+    // If user IS logged in and tries to access /auth, maybe redirect to root/projects (optional, but good UX)
+    if (user && path === '/auth') {
+        const role = user.user_metadata?.role;
+        if (role === 'admin') {
+            return NextResponse.redirect(new URL('/admin/users', request.url));
+        } else {
+            return NextResponse.redirect(new URL('/projects', request.url));
+        }
     }
-
-    // 4. Default: Redirect root authenticated users to /admin or home?
-    // Current behavior: / stays public home.
 
     return response;
 }
