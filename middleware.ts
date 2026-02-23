@@ -58,7 +58,7 @@ export async function middleware(request: NextRequest) {
         '/api' // Keep API open, protect inner logic if needed
     ];
 
-    const isPublic = path === '/' || publicPrefixes.some(prefix => path.startsWith(prefix));
+    const isPublic = publicPrefixes.some(prefix => path.startsWith(prefix));
 
     // If user is NOT logged in and attempting to access a PRIVATE route (including root '/')
     if (!user && !isPublic) {
