@@ -38,7 +38,6 @@ export default async function ProjectLayout({
                             <NavLink href={`/projects/${projectId}/timelines`}>Timeline</NavLink>
                             <NavLink href={`/projects/${projectId}/budget`}>Budget</NavLink>
                             <NavLink href={`/projects/${projectId}/vendors`}>Vendors</NavLink>
-                            <NavLink href={`/projects/${projectId}/consultation`}>Consultation</NavLink>
                             <NavLink href={`/projects/${projectId}/team`}>Team</NavLink>
                         </div>
                         <div className="flex items-center gap-4">

@@ -40,8 +40,7 @@ export default async function ProjectDashboard({ params }: { params: Promise<{ i
         daysLeft = diffDays > 0 ? diffDays.toString() : 'Ended';
     }
 
-    // Fetch Consultations
-    const { count: consultationCount } = await supabase.from('consulting_forms').select('*', { count: 'exact', head: true }).eq('project_id', id);
+
 
     return (
         <div className="space-y-8 animate-in fade-in duration-700">
@@ -114,18 +113,6 @@ export default async function ProjectDashboard({ params }: { params: Promise<{ i
                     </div>
                 </Link>
 
-                <Link href={`/projects/${id}/consultation`} className="block">
-                    <div className="h-full bg-zinc-900/50 backdrop-blur-sm border border-zinc-800 p-6 rounded-2xl hover:border-amber-500/50 hover:bg-zinc-800/50 transition-all group cursor-pointer">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-bold text-zinc-200">Reports</h3>
-                            <i className="fa-solid fa-clipboard-question text-amber-500/50 group-hover:text-amber-500 transition-colors"></i>
-                        </div>
-                        <div className="text-3xl font-mono text-white mb-1">{consultationCount || 0} <span className="text-sm text-zinc-500 font-sans">Total</span></div>
-                        <p className="text-xs text-green-500 flex items-center gap-1">
-                            <i className="fa-solid fa-wand-magic-sparkles"></i> AI summaries ready
-                        </p>
-                    </div>
-                </Link>
 
                 <Link href={`/projects/${id}/guests`} className="block">
                     <div className="h-full bg-zinc-900/50 backdrop-blur-sm border border-zinc-800 p-6 rounded-2xl hover:border-amber-500/50 hover:bg-zinc-800/50 transition-all group cursor-pointer">
