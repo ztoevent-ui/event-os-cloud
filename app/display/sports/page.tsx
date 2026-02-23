@@ -8,6 +8,8 @@ import { WinnerReveal } from '@/components/sports/WinnerReveal';
 import { MatchListDisplay } from '@/components/sports/MatchListDisplay';
 import { TournamentBracket } from '@/components/sports/TournamentBracket';
 import { motion, AnimatePresence } from 'framer-motion';
+import confetti from 'canvas-confetti';
+import { useMasterControl } from '@/lib/sports/useMasterControl';
 
 import { useSearchParams } from 'next/navigation';
 
@@ -57,15 +59,27 @@ function SportsDisplayContent() {
 
     // Auto-Show Court Selector if Multiple Matches on Load (Once per session/refresh)
     const hasAutoOpenedRef = React.useRef(false);
+    // Auto-Full Screen and Selector Logic
     useEffect(() => {
-        if (!loading && activeMatches.length > 1 && !hasAutoOpenedRef.current) {
-            // Check if we have a specific *valid* selection in local storage?
-            // User feedback suggests they want to choose every time they enter a specialized display view.
-            // So we force open it once per page load.
-            setShowCourtSelector(true);
+        if (!loading && !hasAutoOpenedRef.current) {
+            // Attempt auto full screen (requires user interaction record if first time, 
+            // but for a dedicated display machine, it should work once the user clicks anywhere)
+            const enterFS = () => {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().catch(e => {
+                        console.log("Full screen request deferred until first click", e);
+                    });
+                }
+            };
+
+            // Try immediately
+            enterFS();
+            // Also try on first click to ensure it passes browser policy
+            window.addEventListener('click', enterFS, { once: true });
+
             hasAutoOpenedRef.current = true;
         }
-    }, [loading, activeMatches.length]);
+    }, [loading]);
 
     // Apply Filter: If selected courts exist, show only them. Else show all.
     const filteredMatches = selectedCourts.length > 0
@@ -95,35 +109,118 @@ function SportsDisplayContent() {
         }
     }, [activeMatches.length, isTop4]);
 
+    // --- Master Console Display Hook ---
+    const { masterCommands, clearLatestCommand, gameState } = useMasterControl(tournamentId || null, 'display');
+
+    useEffect(() => {
+        if (masterCommands.length > 0) {
+            const cmd = masterCommands[0];
+            if (cmd.command === 'PLAY_FX') {
+                if (cmd.data.pattern === 'FIREWORKS' || cmd.data.pattern === 'VICTORY') {
+                    const duration = 5 * 1000;
+                    const end = Date.now() + duration;
+
+                    (function frame() {
+                        confetti({
+                            particleCount: 10,
+                            angle: 60,
+                            spread: 55,
+                            origin: { x: 0 },
+                            colors: ['#d4f933', '#ffffff', '#4f46e5', '#ff0000']
+                        });
+                        confetti({
+                            particleCount: 10,
+                            angle: 120,
+                            spread: 55,
+                            origin: { x: 1 },
+                            colors: ['#d4f933', '#ffffff', '#4f46e5', '#ff0000']
+                        });
+
+                        if (Date.now() < end) {
+                            requestAnimationFrame(frame);
+                        }
+                    }());
+                } else if (cmd.data.pattern === 'MATCH_POINT') {
+                    // Subtle UI effect on match point
+                    const container = document.getElementById('main-bg-gradient');
+                    if (container) {
+                        container.classList.add('animate-pulse', 'bg-red-900/40');
+                        setTimeout(() => container.classList.remove('animate-pulse', 'bg-red-900/40'), 8000);
+                    }
+                }
+            } else if (cmd.command === 'SWITCH_VIEW') {
+                if (cmd.data.mode === 'court') {
+                    setDisplayMode('current_matches');
+                    setManualAdBreak(false);
+                    setDismissedLocally(true);
+                    if (cmd.data.court_id) {
+                        const matchId = matches.find(m => m.court_id === cmd.data.court_id)?.id;
+                        if (matchId) setSelectedCourts([matchId]);
+                    } else {
+                        setSelectedCourts([]);
+                    }
+                } else if (cmd.data.mode === 'ads') {
+                    setManualAdBreak(true);
+                    setDismissedLocally(false);
+                    if (cmd.data.ad_url) {
+                        setOverrideAdUrl(cmd.data.ad_url);
+                    } else {
+                        setOverrideAdUrl(null);
+                    }
+                } else if (cmd.data.mode === 'list') {
+                    setDisplayMode('match_list');
+                    setManualAdBreak(false);
+                    setDismissedLocally(true);
+                    setOverrideAdUrl(null);
+                } else if (cmd.data.mode === 'bracket') {
+                    setDisplayMode('tournament_bracket');
+                    setManualAdBreak(false);
+                    setDismissedLocally(true);
+                    setOverrideAdUrl(null);
+                }
+            } else if (cmd.command === 'AD_CONTROL') {
+                // Legacy YouTube unmute stripped. Audio is fully dependent on useEffect hook below.
+            }
+            clearLatestCommand();
+        }
+    }, [masterCommands, clearLatestCommand, matches]);
+
     // Commercial Break Logic derived from Active Ads
-    // Commercial Break Logic
     // Support Playlist: Multiple active ads rotate
     const activeFullscreenAds = ads.filter(a => a.is_active && a.display_location === 'fullscreen');
     const [currentPlaylistIndex, setCurrentPlaylistIndex] = useState(0);
+    const [overrideAdUrl, setOverrideAdUrl] = useState<string | null>(null);
 
     // Derived current ad (preserves existing variable name for compatibility)
     const activeFullscreenAd = activeFullscreenAds.length > 0
         ? activeFullscreenAds[currentPlaylistIndex % activeFullscreenAds.length]
         : undefined;
 
-    const playerRef = React.useRef<any>(null);
-
-    // Initialize YouTube API always
-    useEffect(() => {
-        if (!(window as any).YT) {
-            const tag = document.createElement('script');
-            tag.src = "https://www.youtube.com/iframe_api";
-            const firstScriptTag = document.getElementsByTagName('script')[0];
-            firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
-        }
-    }, []);
-
     // Also support manual override via 'B' key for local testing or emergency
     const [manualAdBreak, setManualAdBreak] = useState(false);
     const [dismissedLocally, setDismissedLocally] = useState(false); // Changed to 'dismissed' for clearer intent
 
-    const showAdOverlay = (manualAdBreak || (activeFullscreenAds.length > 0 && !dismissedLocally));
-    const adToDisplay = activeFullscreenAd;
+    const showAdOverlay = (manualAdBreak || (activeFullscreenAds.length > 0 && !dismissedLocally) || !!overrideAdUrl);
+
+    // If master console sent a direct override MP4 URL, use it immediately
+    const adToDisplay = overrideAdUrl
+        ? { type: 'video', url: overrideAdUrl, duration: 999, is_active: true }
+        : activeFullscreenAd;
+
+    // Independent Audio Sync Effect (React render decoupled)
+    useEffect(() => {
+        const isMuted = gameState?.ad_muted !== false;
+
+        // Sync HTML5 Video only (Removed Youtube sync)
+        const videoEl = document.querySelector('video');
+        if (videoEl) {
+            if (videoEl.muted !== isMuted) {
+                videoEl.muted = isMuted;
+                if (!isMuted) videoEl.volume = 1;
+                videoEl.play().catch(e => console.log("HTML5 Video Play deferred:", e));
+            }
+        }
+    }, [gameState?.ad_muted, adToDisplay]);
 
     // Reset dismissal when ad list changes (new commercial break starting)
     const isFirstAdLoad = React.useRef(true);
@@ -161,14 +258,6 @@ function SportsDisplayContent() {
                 }
             }
 
-            if (key === 'm') {
-                if (playerRef.current && typeof playerRef.current.mute === 'function') {
-                    // Simple toggle if API allows, but YT API is simpler:
-                    if (playerRef.current.isMuted()) playerRef.current.unMute();
-                    else playerRef.current.mute();
-                }
-            }
-
             if (key === 'v') {
                 if (!document.fullscreenElement) {
                     document.documentElement.requestFullscreen().catch((err: any) => {
@@ -185,93 +274,7 @@ function SportsDisplayContent() {
         return () => window.removeEventListener('keydown', handleKeyPress);
     }, [showAdOverlay]); // Depend on current state
 
-    // ... (rest of Youtube logic uses showAdOverlay) ...
-
     // ... (Inside Return JSX) ...
-    // Setup YouTube Player when overlay mounts
-    useEffect(() => {
-        if (showAdOverlay && adToDisplay?.type === 'video' && adToDisplay?.url?.includes('youtu')) {
-
-            // EXTRACT VIDEO ID - Robust Logic
-            let videoId = 't7xDdQ0fxUI';
-            const url = adToDisplay.url;
-
-            if (url.includes('youtu.be/')) {
-                videoId = url.split('youtu.be/')[1]?.split('?')[0];
-            } else if (url.includes('v=')) {
-                videoId = url.split('v=')[1]?.split('&')[0];
-            } else if (url.includes('/embed/')) {
-                videoId = url.split('/embed/')[1]?.split('?')[0];
-            }
-
-            // Fallback for clean ID
-            if (!videoId || videoId.length < 5) videoId = 't7xDdQ0fxUI';
-
-            const initPlayer = () => {
-                if (!(window as any).YT) return; // Wait for API
-
-                if (playerRef.current) {
-                    try { playerRef.current.destroy(); } catch (e) { /* ignore */ }
-                }
-
-                playerRef.current = new (window as any).YT.Player('youtube-player', {
-                    videoId: videoId,
-                    playerVars: {
-                        autoplay: 1,
-                        controls: 0,
-                        mute: 1, // Start muted to allow autoplay
-                        showinfo: 0,
-                        rel: 0,
-                        iv_load_policy: 3,
-                        modestbranding: 1
-                    },
-                    events: {
-                        onReady: (event: any) => {
-                            event.target.playVideo();
-                        },
-                        onStateChange: (event: any) => {
-                            const playerState = event.data;
-                            const YT = (window as any).YT;
-
-                            // ENDED -> Playlist Increment or Loop
-                            if (playerState === YT.PlayerState.ENDED) {
-                                if (activeFullscreenAds.length > 1) {
-                                    // Move to next ad in playlist
-                                    setCurrentPlaylistIndex(prev => (prev + 1) % activeFullscreenAds.length);
-                                } else {
-                                    // Only 1 ad? Loop it.
-                                    event.target.seekTo(0);
-                                    event.target.playVideo();
-                                }
-                            }
-
-                            // PAUSED -> Force Play (Fix for unexpected pausing)
-                            if (playerState === YT.PlayerState.PAUSED) {
-                                console.log('Video paused unexpectedly - forcing play');
-                                event.target.playVideo();
-                            }
-                        }
-                    }
-                });
-            };
-
-            // Poll for API ready
-            const checkAPI = setInterval(() => {
-                if ((window as any).YT && (window as any).YT.Player) {
-                    clearInterval(checkAPI);
-                    initPlayer();
-                }
-            }, 100);
-
-            return () => {
-                clearInterval(checkAPI);
-                if (playerRef.current) {
-                    try { playerRef.current.destroy(); } catch (e) { /* ignore */ }
-                }
-            };
-        }
-    }, [showAdOverlay, adToDisplay?.url]);
-
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen bg-zto-dark text-zto-gold animate-pulse">
@@ -326,39 +329,11 @@ function SportsDisplayContent() {
     return (
         <main className="h-screen bg-black text-white overflow-hidden relative selection:bg-zto-gold selection:text-black">
             {/* Ambient Background - More Subtle */}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-zto-gold/10 via-black to-black -z-10"></div>
+            <div id="main-bg-gradient" className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-zto-gold/10 via-black to-black -z-10 transition-all duration-1000"></div>
 
-            {/* Display Mode Selector (Floating Bottom Left) */}
-            <div className="fixed bottom-6 left-6 z-50 flex flex-col gap-2">
-                <label className="text-white/50 text-xs font-bold uppercase tracking-widest pl-1">
-                    Display Layout
-                </label>
-                <div className="relative group">
-                    <select
-                        value={displayMode}
-                        onChange={(e) => setDisplayMode(e.target.value as any)}
-                        className="bg-zinc-900 border border-white/20 text-white text-sm font-bold uppercase tracking-widest px-4 py-3 pr-10 rounded-xl shadow-lg outline-none hover:border-zto-gold transition-colors focus:border-indigo-500 cursor-pointer appearance-none"
-                    >
-                        <option value="current_matches">🎾 Live Courts</option>
-                        <option value="match_list">📋 Match List</option>
-                        <option value="tournament_bracket">🏆 Bracket View</option>
-                    </select>
-                    <i className="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-white/50 text-xs pointer-events-none"></i>
-                </div>
-            </div>
+            {/* Remove Dropdown and Selector per user request */}
 
-            {/* Court Selector Button (Floating Bottom Right) */}
-            <div className="fixed bottom-6 right-6 z-50">
-                <button
-                    onClick={() => setShowCourtSelector(true)}
-                    className="w-12 h-12 bg-zinc-800 hover:bg-zinc-700 text-white rounded-full flex items-center justify-center shadow-lg border border-white/10 transition-transform hover:scale-110"
-                    title="Select Courts"
-                >
-                    <i className="fa-solid fa-table-cells"></i>
-                </button>
-            </div>
-
-            <ZTOHeader tournamentName={tournament.name} logoUrl={tournament.config?.logo_url} />
+            {!showAdOverlay && <ZTOHeader tournamentName={tournament.name} logoUrl={tournament.config?.logo_url} />}
 
             <div className={`w-full h-full flex flex-col items-center pt-24 pb-8 px-4 overflow-y-auto ${activeMatches.length === 0 ? 'justify-center' : ''}`}>
                 <AnimatePresence mode="wait">
@@ -512,13 +487,8 @@ function SportsDisplayContent() {
                         transition={{ duration: 0.6 }}
                         className="fixed inset-0 z-[1000] bg-black overflow-hidden flex flex-col items-center justify-center text-white font-sans"
                         onClick={() => {
-                            // User Interaction enables sound AND ensures focus for 'B' key
                             window.focus();
-                            if (playerRef.current && typeof playerRef.current.unMute === 'function') {
-                                playerRef.current.unMute();
-                                playerRef.current.setVolume(100);
-                                console.log('User clicked - Unmuting');
-                            }
+                            // Only decouple sound hook triggers volume. No playerRef manually interacted here.
                         }}
                     >
 
@@ -526,29 +496,23 @@ function SportsDisplayContent() {
 
 
 
-                        {/* Sound Hint */}
-                        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 text-white/50 text-sm animate-pulse pointer-events-none z-[1001] bg-black/30 px-4 py-2 rounded-full backdrop-blur-sm">
-                            Click or press 'M' to toggle sound
-                        </div>
-
-                        {/* Dynamic Content: YouTube OR Image OR Direct Video */}
+                        {/* Dynamic Content: Direct Video OR Image */}
                         {!adToDisplay ? (
                             <div className="text-xl font-bold text-white/50">Waiting for ad content...</div>
                         ) : adToDisplay.type === 'video' ? (
-                            adToDisplay.url.includes('youtu') ? (
-                                <div key={adToDisplay.url} className="relative w-full h-full max-w-none max-h-none bg-black overflow-hidden flex items-center justify-center">
-                                    <div id="youtube-player" className="absolute top-1/2 left-1/2 w-[110vw] h-[110vh] -translate-x-1/2 -translate-y-1/2 pointer-events-none border-none scale-100" />
-                                </div>
-                            ) : (
-                                <video
-                                    src={adToDisplay.url}
-                                    autoPlay
-                                    loop
-                                    muted={true}
-                                    playsInline
-                                    className="w-full h-full object-cover"
-                                />
-                            )
+                            <video
+                                src={adToDisplay.url}
+                                autoPlay
+                                loop
+                                muted={true}
+                                playsInline
+                                onEnded={() => {
+                                    if (activeFullscreenAds.length > 1 && !overrideAdUrl) {
+                                        setCurrentPlaylistIndex(prev => (prev + 1) % activeFullscreenAds.length);
+                                    }
+                                }}
+                                className="w-full h-full object-cover"
+                            />
                         ) : (
                             <img
                                 src={adToDisplay.url}
@@ -557,10 +521,7 @@ function SportsDisplayContent() {
                             />
                         )}
 
-                        {/* Overlay Label */}
-                        <div className="absolute top-8 right-8 bg-black/50 backdrop-blur text-white px-4 py-2 rounded-full text-xs font-bold border border-white/10 uppercase tracking-widest">
-                            Ad Break • {adToDisplay.duration}s
-                        </div>
+                        {/* Overlay Label Removed per user request */}
                     </motion.div>
                 )}
             </AnimatePresence>

@@ -24,8 +24,8 @@ export function GlobalNavigation() {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [router]);
 
-    // Don't show navigation on homepage or admin pages (which have their own headers)
-    if (pathname === '/' || pathname.startsWith('/admin')) return null;
+    // Don't show navigation on homepage, admin pages (their own headers), or display pages (big screens)
+    if (pathname === '/' || pathname.startsWith('/admin') || pathname.startsWith('/display')) return null;
 
     return (
         <div className="fixed top-4 left-4 z-[9999] flex items-center gap-3 transition-opacity duration-300 opacity-60 hover:opacity-100 group">

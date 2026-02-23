@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useSportsState } from '@/lib/sports/useSportsState';
 import { AdminCourt } from '@/components/sports/AdminCourt';
 import { Match, CategoryConfig, Team } from '@/lib/sports/types';
@@ -10,6 +11,43 @@ import { SPORTS_ASSETS } from '@/lib/sports/assets';
 function AssetPicker({ onSelect, onClose }: { onSelect: (url: string) => void, onClose: () => void }) {
     const [tab, setTab] = useState<'states' | 'football_clubs' | 'countries' | 'upload'>('states');
     const [manualUrl, setManualUrl] = useState('');
+    const [uploading, setUploading] = useState(false);
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setUploading(true);
+        try {
+            const res = await fetch('/api/upload-local', {
+                method: 'POST',
+                headers: {
+                    'x-file-name': encodeURIComponent(file.name),
+                    'content-type': file.type || 'application/octet-stream'
+                },
+                body: file
+            });
+
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(text || 'Upload failed');
+            }
+
+            const data = await res.json();
+            if (data.url) {
+                setManualUrl(data.url);
+                onSelect(data.url);
+                onClose();
+            }
+        } catch (error: any) {
+            console.error('Upload Error:', error);
+            alert('Failed to upload file. ' + error.message);
+        } finally {
+            setUploading(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+    };
 
     return (
         <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
@@ -38,25 +76,50 @@ function AssetPicker({ onSelect, onClose }: { onSelect: (url: string) => void, o
 
                 <div className="flex-1 overflow-y-auto p-6 bg-gray-50/50">
                     {tab === 'upload' ? (
-                        <div className="flex flex-col items-center justify-center h-64 gap-6">
+                        <div className="flex flex-col items-center justify-center p-4 h-full min-h-[300px] gap-6">
                             <i className="fa-solid fa-cloud-arrow-up text-5xl text-gray-200"></i>
                             <div className="w-full max-w-md space-y-4">
-                                <div className="text-center">
-                                    <p className="text-sm font-bold text-gray-500 uppercase">Paste Custom Image URL</p>
-                                    <p className="text-[10px] text-gray-400">Upload to Imgur/Cloud then paste link here</p>
+
+                                {/* Local Upload Zone */}
+                                <div className="text-center p-6 border-2 border-dashed border-indigo-200 bg-indigo-50/50 rounded-2xl hover:bg-indigo-50 hover:border-indigo-400 transition cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                                    <input
+                                        type="file"
+                                        className="hidden"
+                                        ref={fileInputRef}
+                                        onChange={handleFileUpload}
+                                        accept="image/*,video/mp4,video/webm"
+                                    />
+                                    <div className="flex flex-col items-center gap-2">
+                                        {uploading ? (
+                                            <i className="fa-solid fa-spinner fa-spin text-3xl text-indigo-500"></i>
+                                        ) : (
+                                            <i className="fa-solid fa-arrow-up-from-bracket text-3xl text-indigo-500"></i>
+                                        )}
+                                        <h4 className="font-bold text-gray-800 uppercase tracking-widest text-sm mt-2">{uploading ? 'Uploading...' : 'Click to Upload Local File'}</h4>
+                                        <p className="text-[10px] text-gray-500 uppercase">.MP4, .JPG, .PNG fully supported</p>
+                                    </div>
                                 </div>
-                                <input
-                                    className="w-full border-2 border-dashed border-gray-300 rounded-xl p-4 text-sm font-medium focus:border-indigo-500 outline-none"
-                                    placeholder="https://example.com/my-photo.png"
-                                    value={manualUrl}
-                                    onChange={e => setManualUrl(e.target.value)}
-                                />
-                                <button
-                                    onClick={() => { if (manualUrl) { onSelect(manualUrl); onClose(); } }}
-                                    className="w-full bg-indigo-600 text-white py-3 rounded-xl font-black uppercase tracking-widest shadow-lg shadow-indigo-600/20"
-                                >
-                                    Use This Image
-                                </button>
+
+                                <div className="relative flex items-center py-2">
+                                    <div className="flex-grow border-t border-gray-200"></div>
+                                    <span className="flex-shrink-0 mx-4 text-gray-400 text-xs font-bold uppercase">Or Paste Link</span>
+                                    <div className="flex-grow border-t border-gray-200"></div>
+                                </div>
+
+                                <div className="flex gap-2">
+                                    <input
+                                        className="flex-1 border border-gray-300 rounded-xl p-3 text-sm font-medium focus:border-indigo-500 outline-none"
+                                        placeholder="https://example.com/file.mp4"
+                                        value={manualUrl}
+                                        onChange={e => setManualUrl(e.target.value)}
+                                    />
+                                    <button
+                                        onClick={() => { if (manualUrl) { onSelect(manualUrl); onClose(); } }}
+                                        className="bg-indigo-600 hover:bg-indigo-700 transition text-white px-6 rounded-xl font-black uppercase tracking-widest shadow-lg shadow-indigo-600/20"
+                                    >
+                                        Use
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     ) : (
@@ -107,6 +170,8 @@ export default function SportsAdminPage() {
     const [showMatchMaker, setShowMatchMaker] = useState(false);
     const [showPlayerManager, setShowPlayerManager] = useState(false);
     const [showSettings, setShowSettings] = useState(false); // NEW STATE
+    const [showRefereeSelector, setShowRefereeSelector] = useState(false);
+    const [editingMatch, setEditingMatch] = useState<Match | null>(null);
 
     // Wizard State
     const [configResult, setConfigResult] = useState<{ sport: string } | null>(null);
@@ -389,7 +454,14 @@ export default function SportsAdminPage() {
 
             <header className="bg-white border-b border-gray-200 px-4 md:px-6 pl-16 md:pl-24 py-4 flex flex-col md:flex-row justify-between items-center gap-4 sticky top-0 z-10 shadow-sm">
                 <div className="flex items-center justify-between w-full md:w-auto gap-4">
-                    <h1 className="text-xl font-bold text-gray-800 whitespace-nowrap">ZTO Arena</h1>
+                    <Link href="/" className="flex items-center gap-3 group hover:opacity-80 transition-all active:scale-95">
+                        <img
+                            src="https://zihjzbweasaqqbwilshx.supabase.co/storage/v1/object/public/logo/icon.png.JPG"
+                            alt="ZTO Logo"
+                            className="w-10 h-10 object-contain rounded-lg shadow-sm"
+                        />
+                        <h1 className="text-xl font-bold text-gray-800 whitespace-nowrap">ZTO Arena</h1>
+                    </Link>
 
                     {/* TOURNAMENT SELECTOR */}
                     <div className="relative group">
@@ -444,6 +516,15 @@ export default function SportsAdminPage() {
                         <i className="fa-solid fa-users"></i> <span className="hidden sm:inline">Players</span>
                     </button>
 
+                    <a
+                        href={`/arena/${tournament.id}/admin`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex-1 md:flex-none bg-red-600 hover:bg-red-700 text-white px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-bold transition flex items-center justify-center gap-2 shadow-sm whitespace-nowrap border border-red-500 animate-pulse"
+                    >
+                        <i className="fa-solid fa-satellite-dish"></i> Master Console
+                    </a>
+
                     <button
                         onClick={() => setShowSettings(true)}
                         className="flex-1 md:flex-none bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-bold transition flex items-center justify-center gap-2 whitespace-nowrap"
@@ -486,59 +567,178 @@ export default function SportsAdminPage() {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {matches.map(m => (
-                            <div
-                                key={m.id}
-                                className="bg-white p-6 rounded-xl border border-gray-200 hover:shadow-lg transition group relative"
-                            >
-                                <div onClick={() => setSelectedMatchId(m.id)} className="cursor-pointer">
-                                    <div className="flex justify-between items-center mb-4">
-                                        <span className="font-bold text-gray-500 uppercase text-xs tracking-wider">{m.court_id}</span>
-                                        <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${m.status === 'ongoing' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                                            {m.status}
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between items-center">
-                                        <div className="flex flex-col gap-1">
-                                            <div className="font-bold text-gray-800">{players[m.player1_id || '']?.name || 'TBD'}</div>
-                                            <div className="font-bold text-gray-800">{players[m.player2_id || '']?.name || 'TBD'}</div>
-                                        </div>
-                                        <div className="flex flex-col gap-1 text-right">
-                                            <div className="font-mono font-bold text-2xl text-blue-600">{m.current_score_p1}</div>
-                                            <div className="font-mono font-bold text-2xl text-red-600">{m.current_score_p2}</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (confirm('Delete this match?')) deleteMatch(m.id);
-                                    }}
-                                    className="absolute top-4 right-4 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"
-                                >
-                                    <i className="fa-solid fa-trash"></i>
-                                </button>
-                            </div>
-                        ))}
 
-                        {matches.length === 0 && (
-                            <div className="col-span-full py-12 text-center text-gray-400 bg-white rounded-xl border border-dashed border-gray-300">
-                                <div className="mb-4 text-4xl text-gray-200"><i className="fa-solid fa-clipboard-list"></i></div>
-                                <h3 className="text-lg font-bold text-gray-600">No Matches Scheduled</h3>
-                                <p className="text-gray-400 max-w-sm mx-auto mt-2">
-                                    Use the 'Match Maker' to create matchups from your registered roster of {tournament.config.teams?.length || 0} teams.
-                                </p>
-                                <button
-                                    onClick={() => setShowMatchMaker(true)}
-                                    className="mt-6 px-6 py-2 bg-indigo-600 text-white rounded-lg font-bold shadow hover:bg-indigo-700"
-                                >
-                                    Open Match Maker
-                                </button>
+                        {/* THE MASTER CONSOLE CARD */}
+                        <a
+                            href={`/arena/${tournament.id}/admin`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="bg-zinc-900 overflow-hidden rounded-xl border border-red-500/30 hover:shadow-[0_0_30px_rgba(239,68,68,0.2)] hover:border-red-500 transition-all group flex flex-col justify-between"
+                        >
+                            <div className="p-6 relative z-10">
+                                <h3 className="font-black text-xl text-white uppercase tracking-wider flex items-center gap-2 mb-2">
+                                    <i className="fa-solid fa-tower-broadcast text-red-500 animate-pulse"></i>
+                                    Master Console <span className="text-[10px] ml-1 bg-red-600 text-white px-2 py-0.5 rounded-full">中控室</span>
+                                </h3>
+                                <p className="text-gray-400 text-sm mb-4">Live broadcast control center. Select what displays on the big screen, trigger specific court cameras, and force UI locks.</p>
+
+                                <div className="text-xs font-bold text-red-400 mt-auto uppercase tracking-widest flex items-center gap-2 group-hover:text-red-300">
+                                    Launch Sandbox <i className="fa-solid fa-arrow-right"></i>
+                                </div>
                             </div>
-                        )}
+                            <div className="h-1.5 w-full bg-gradient-to-r from-red-600 to-red-900 mt-auto"></div>
+                        </a>
+
+                        {/* THE REFEREE CONSOLE CARD */}
+                        <button
+                            onClick={() => setShowRefereeSelector(true)}
+                            className="bg-white overflow-hidden rounded-xl border border-zinc-200 hover:shadow-lg hover:border-green-400 transition-all group flex flex-col justify-between text-left"
+                        >
+                            <div className="p-6 relative z-10 w-full">
+                                <h3 className="font-black text-xl text-gray-800 uppercase tracking-wider flex items-center gap-2 mb-2">
+                                    <i className="fa-solid fa-clipboard-user text-green-500 group-hover:animate-bounce"></i>
+                                    Referee Admin <span className="text-[10px] ml-1 bg-green-100 text-green-700 px-2 py-0.5 rounded-full">裁判入口</span>
+                                </h3>
+                                <p className="text-gray-500 text-sm mb-4">Select a match to start umpiring. Update scores, modify info, and manage match state.</p>
+
+                                <div className="text-xs font-bold text-green-600 mt-auto uppercase tracking-widest flex items-center gap-2 group-hover:text-green-500 cursor-pointer">
+                                    Open Match List <i className="fa-solid fa-arrow-right"></i>
+                                </div>
+                            </div>
+                            <div className="h-1.5 w-full bg-gradient-to-r from-green-400 to-green-600 mt-auto"></div>
+                        </button>
+
                     </div>
                 )}
             </main>
+
+            {/* REFEREE MATCH SELECTOR MODAL */}
+            {
+                showRefereeSelector && (
+                    <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+                        <div className="bg-gray-50 w-full max-w-5xl rounded-3xl shadow-2xl flex flex-col max-h-[85vh] animate-fade-in-up">
+                            <div className="p-6 border-b border-gray-200 flex justify-between items-center bg-white rounded-t-3xl pb-4">
+                                <h3 className="font-black text-2xl text-gray-900 flex items-center gap-3 uppercase tracking-tighter">
+                                    <div className="w-10 h-10 bg-green-100 text-green-600 rounded-xl flex items-center justify-center text-xl">
+                                        <i className="fa-solid fa-table-tennis-paddle-ball"></i>
+                                    </div>
+                                    Select Match to Umpire
+                                </h3>
+                                <button onClick={() => setShowRefereeSelector(false)} className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition">
+                                    <i className="fa-solid fa-xmark text-lg"></i>
+                                </button>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto p-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {matches.length === 0 && (
+                                        <div className="col-span-full py-16 flex flex-col items-center justify-center text-center bg-white rounded-2xl border border-dashed border-gray-300">
+                                            <div className="w-16 h-16 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center text-3xl mb-4"><i className="fa-solid fa-clipboard-list"></i></div>
+                                            <h3 className="text-lg font-bold text-gray-800">No Matches Scheduled</h3>
+                                            <p className="text-gray-500 max-w-sm mt-2 text-sm">
+                                                Use the 'Match Maker' on to schedule games before umpiring.
+                                            </p>
+                                        </div>
+                                    )}
+                                    {matches.map(m => (
+                                        <div key={m.id} className="bg-white p-5 rounded-2xl border border-gray-200 hover:border-green-400 hover:shadow-xl transition-all relative group flex flex-col text-left">
+                                            <div className="flex-1 cursor-pointer" onClick={() => { setSelectedMatchId(m.id); setShowRefereeSelector(false); }}>
+                                                <div className="flex justify-between items-start mb-4">
+                                                    <div className="flex flex-col items-start gap-1">
+                                                        <span className="font-bold text-indigo-700 uppercase text-[10px] tracking-widest bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded shadow-sm">{m.court_id}</span>
+                                                        {m.round_name && <span className="font-bold text-gray-400 uppercase text-[9px] tracking-wider">{m.round_name}</span>}
+                                                    </div>
+                                                    <span className={`px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-widest ${m.status === 'ongoing' ? 'bg-green-500 text-white shadow-sm' : 'bg-gray-100 text-gray-500'}`}>
+                                                        {m.status}
+                                                    </span>
+                                                </div>
+                                                <div className="flex justify-between items-center mt-2 group-hover:-translate-y-1 transition-transform">
+                                                    <div className="flex flex-col gap-1.5 w-3/4 pr-2">
+                                                        <div className="font-bold text-sm text-gray-800 truncate">{players[m.player1_id || '']?.name || 'Player 1 TBA'}</div>
+                                                        <div className="font-bold text-sm text-gray-800 truncate">{players[m.player2_id || '']?.name || 'Player 2 TBA'}</div>
+                                                    </div>
+                                                    <div className="flex flex-col gap-1.5 text-right w-1/4">
+                                                        <div className="font-mono font-black text-xl text-blue-600 bg-blue-50 px-2 rounded">{m.current_score_p1}</div>
+                                                        <div className="font-mono font-black text-xl text-red-600 bg-red-50 px-2 rounded">{m.current_score_p2}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="absolute -top-3 -right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition shadow-lg rounded-lg bg-white border border-gray-100 p-1">
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); setEditingMatch(m); }}
+                                                    className="w-8 h-8 bg-gray-50 hover:bg-blue-50 hover:text-blue-600 rounded flex items-center justify-center text-gray-500 transition"
+                                                    title="Edit Match Info"
+                                                >
+                                                    <i className="fa-solid fa-pen text-xs"></i>
+                                                </button>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        if (confirm('Delete this match permanently?')) deleteMatch(m.id);
+                                                    }}
+                                                    className="w-8 h-8 bg-gray-50 hover:bg-red-50 hover:text-red-600 rounded flex items-center justify-center text-gray-500 transition"
+                                                    title="Delete Match"
+                                                >
+                                                    <i className="fa-solid fa-trash text-xs"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+
+            {/* EDIT MATCH MODAL */}
+            {
+                editingMatch && (
+                    <div className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+                        <div className="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden p-6 animate-fade-in-up border border-white/20">
+                            <h3 className="font-black text-xl text-gray-900 mb-6 uppercase tracking-tight flex items-center gap-2">
+                                <i className="fa-solid fa-pen-to-square text-blue-500"></i> Edit Match Info
+                            </h3>
+
+                            <div className="space-y-4 mb-8">
+                                <div>
+                                    <label className="block text-[10px] font-black tracking-widest text-gray-400 mb-1.5 uppercase ml-1">Court / Table / Location</label>
+                                    <input
+                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 px-4 font-bold text-sm text-gray-800 outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition"
+                                        defaultValue={editingMatch.court_id || ''}
+                                        id="edit-match-court"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-black tracking-widest text-gray-400 mb-1.5 uppercase ml-1">Round Name</label>
+                                    <input
+                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 px-4 font-bold text-sm text-gray-800 outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition"
+                                        defaultValue={editingMatch.round_name || ''}
+                                        id="edit-match-round"
+                                        placeholder="e.g. Final, Semi-Final"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3 justify-end">
+                                <button onClick={() => setEditingMatch(null)} className="px-5 py-3 font-bold text-gray-500 hover:bg-gray-100 rounded-xl text-sm transition">Cancel</button>
+                                <button
+                                    onClick={() => {
+                                        const courtValue = (document.getElementById('edit-match-court') as HTMLInputElement).value;
+                                        const roundValue = (document.getElementById('edit-match-round') as HTMLInputElement).value;
+                                        updateScore(editingMatch.id, { court_id: courtValue, round_name: roundValue });
+                                        setEditingMatch(null);
+                                    }}
+                                    className="px-6 py-3 font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl text-sm shadow-lg shadow-blue-500/30 transition shadow-sm active:scale-95 flex items-center gap-2"
+                                >
+                                    <i className="fa-solid fa-check"></i> Save Details
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
 
             {/* AD MANAGER MODAL */}
             {
@@ -634,9 +834,16 @@ function MatchMaker({ players, tournament, onClose, onCreate }: any) {
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
             <div className="bg-white w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden animate-fade-in-up flex flex-col max-h-[90vh]">
                 <div className="bg-indigo-900 p-8 flex justify-between items-center text-white">
-                    <div>
-                        <h3 className="font-black text-2xl uppercase tracking-tighter">Match Maker</h3>
-                        <p className="text-white/50 text-xs font-bold uppercase tracking-widest mt-1">Schedule New Matchup</p>
+                    <div className="flex items-center gap-4">
+                        <img
+                            src="https://zihjzbweasaqqbwilshx.supabase.co/storage/v1/object/public/logo/icon.png.JPG"
+                            alt="ZTO Logo"
+                            className="w-12 h-12 object-contain rounded-xl shadow-2xl border border-white/10"
+                        />
+                        <div>
+                            <h3 className="font-black text-2xl uppercase tracking-tighter">Match Maker</h3>
+                            <p className="text-white/50 text-xs font-bold uppercase tracking-widest mt-1">Schedule New Matchup</p>
+                        </div>
                     </div>
                     <button onClick={onClose} className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition">
                         <i className="fa-solid fa-xmark text-xl"></i>
@@ -809,11 +1016,46 @@ function RosterInput({ categories, rosters, setRosters }: any) {
 function AdManager({ ads, onAdd, onDelete, onToggle }: { ads: any[], onAdd: (ad: any) => void, onDelete: (id: string) => void, onToggle: (id: string, s: boolean) => void }) {
     const [newAd, setNewAd] = useState({ type: 'image', url: '', duration: 10, display_location: 'fullscreen' });
     const [showPicker, setShowPicker] = useState(false);
+    const [uploading, setUploading] = useState(false);
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
 
     const handleAdd = () => {
         if (!newAd.url) return;
         onAdd(newAd);
         setNewAd({ ...newAd, url: '' }); // Reset URL
+    };
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setUploading(true);
+        try {
+            const res = await fetch('/api/upload-local', {
+                method: 'POST',
+                headers: {
+                    'x-file-name': encodeURIComponent(file.name),
+                    'content-type': file.type || 'application/octet-stream'
+                },
+                body: file
+            });
+
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(text || 'Upload failed');
+            }
+
+            const data = await res.json();
+            if (data.url) {
+                setNewAd(prev => ({ ...prev, url: data.url }));
+            }
+        } catch (error: any) {
+            console.error('Upload Error:', error);
+            alert('Failed to upload file. ' + error.message);
+        } finally {
+            setUploading(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        }
     };
 
     return (
@@ -888,10 +1130,27 @@ function AdManager({ ads, onAdd, onDelete, onToggle }: { ads: any[], onAdd: (ad:
                         <div className="flex gap-2">
                             <input
                                 className="flex-1 border border-gray-300 rounded-lg p-3 text-sm outline-none focus:ring-2 focus:ring-purple-500"
-                                placeholder="https://example.com/ad.mp4"
+                                placeholder="Paste link or upload below..."
                                 value={newAd.url}
                                 onChange={e => setNewAd({ ...newAd, url: e.target.value })}
                             />
+                            {/* Hidden file input */}
+                            <input
+                                type="file"
+                                className="hidden"
+                                ref={fileInputRef}
+                                onChange={handleFileUpload}
+                                accept={newAd.type === 'video' ? 'video/mp4,video/webm' : 'image/*'}
+                            />
+                            <button
+                                onClick={() => fileInputRef.current?.click()}
+                                disabled={uploading}
+                                className="bg-purple-100 hover:bg-purple-200 border border-purple-200 text-purple-700 px-4 font-bold text-[10px] uppercase rounded-lg transition flex items-center gap-1.5"
+                                title="Upload Local File"
+                            >
+                                {uploading ? <i className="fa-solid fa-spinner fa-spin text-sm"></i> : <i className="fa-solid fa-arrow-up-from-bracket text-sm"></i>}
+                                <span className="hidden lg:inline">Upload</span>
+                            </button>
                             <button
                                 onClick={() => setShowPicker(true)}
                                 className="bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-700 px-3 rounded-lg transition"

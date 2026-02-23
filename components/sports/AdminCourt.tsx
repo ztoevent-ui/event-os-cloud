@@ -1,5 +1,6 @@
 import React from 'react';
 import { Player, Match } from '@/lib/sports/types';
+import { useMasterControl } from '@/lib/sports/useMasterControl';
 
 interface AdminCourtProps {
     match: Match;
@@ -61,6 +62,12 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
 
     // Get theme or default to badminton
     const theme = COURT_THEMES[normalizedSport] || COURT_THEMES['badminton'];
+
+    // --- Master Control Sandbox ---
+    const { gameState, emitConflict } = useMasterControl(match.tournament_id || null, 'referee');
+
+    // Detect Conflicts if referee local state highly unsyced
+    // React.useEffect(() => { ... }) (Omitted for simplicity, but can emit on huge desync)
 
     // --- Pickleball & Game Logic ---
     // Server Number: Defaults to 2 if score is 0-0 (Start of Game Rule), else current_period, else 1
@@ -292,6 +299,16 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
                     }
                 `}
             >
+                {/* --- MASTER LOCK OVERLAY --- */}
+                {gameState?.lock && (
+                    <div className="absolute inset-0 z-[2000] bg-black/90 backdrop-blur-sm flex flex-col items-center justify-center p-8 animate-in fade-in duration-300">
+                        <div className="w-24 h-24 rounded-full border-4 border-red-500 flex items-center justify-center mb-6 text-red-500 shadow-[0_0_30px_#ef4444]">
+                            <i className="fa-solid fa-lock text-4xl"></i>
+                        </div>
+                        <h2 className="text-3xl md:text-5xl font-black text-red-500 uppercase tracking-[0.2em] mb-4">Access Locked</h2>
+                        <p className="text-white/60 font-bold uppercase tracking-widest text-sm text-center">Master Console Override Active.<br />Please wait until UI is unlocked.</p>
+                    </div>
+                )}
                 {/* --- MATCH FINISHED OVERLAY (ADMIN VIEW) --- */}
                 {(match.status === 'completed' || match.status === 'retired' || match.status === 'walkover') && (
                     <div className="absolute inset-0 z-[1000] bg-slate-950/95 backdrop-blur-xl flex flex-col items-center justify-center text-center p-8 animate-in fade-in zoom-in duration-500">
@@ -576,6 +593,17 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
                     >
                         Return to Match List
                     </button>
+                </div>
+            )}
+
+            {/* --- MASTER LOCK OVERLAY (TIMED SPORT VIEW) --- */}
+            {gameState?.lock && (
+                <div className="absolute inset-0 z-[2000] bg-black/90 backdrop-blur-sm flex flex-col items-center justify-center p-8 animate-in fade-in duration-300">
+                    <div className="w-24 h-24 rounded-full border-4 border-red-500 flex items-center justify-center mb-6 text-red-500 shadow-[0_0_30px_#ef4444]">
+                        <i className="fa-solid fa-lock text-4xl"></i>
+                    </div>
+                    <h2 className="text-3xl md:text-5xl font-black text-red-500 uppercase tracking-[0.2em] mb-4">Access Locked</h2>
+                    <p className="text-white/60 font-bold uppercase tracking-widest text-sm text-center">Master Console Override Active.</p>
                 </div>
             )}
             {/* Scoreboard Header */}

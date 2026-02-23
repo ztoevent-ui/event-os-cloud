@@ -348,6 +348,16 @@ export function useSportsState(targetTournamentId?: string | null) {
         fetchData();
     };
 
+    const updateAd = async (adId: string, newName: string) => {
+        const ad = ads.find(a => a.id === adId);
+        if (!ad) return;
+        const baseUrl = ad.url.split('?')[0];
+        const newUrl = `${baseUrl}?name=${encodeURIComponent(newName)}`;
+        const { error } = await supabase.from('sponsor_ads').update({ url: newUrl }).eq('id', adId);
+        if (error) console.error("Error updating ad name", error);
+        fetchData();
+    };
+
     const createMatch = async (matchData: Partial<Match>) => {
         if (!tournament) return;
 
@@ -396,5 +406,5 @@ export function useSportsState(targetTournamentId?: string | null) {
         else fetchData();
     };
 
-    return { now, matches, players, tournament, allTournaments, switchTournament, ads, loading, updateScore, refresh: fetchData, createTournament, endCurrentTournament, addAd, deleteAd, toggleAd, createMatch, deleteMatch, updatePlayer, updateTournament };
+    return { now, matches, players, tournament, allTournaments, switchTournament, ads, loading, updateScore, refresh: fetchData, createTournament, endCurrentTournament, addAd, deleteAd, toggleAd, updateAd, createMatch, deleteMatch, updatePlayer, updateTournament };
 }
