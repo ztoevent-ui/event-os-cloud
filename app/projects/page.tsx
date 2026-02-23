@@ -58,6 +58,11 @@ export default function ProjectsPage() {
         }
     };
 
+    const handleSignOut = async () => {
+        await supabase.auth.signOut();
+        window.location.href = '/';
+    };
+
     return (
         <div className="min-h-screen bg-gray-50 p-8 font-sans">
             {/* Header */}
@@ -67,6 +72,9 @@ export default function ProjectsPage() {
                     <p className="text-gray-500 mt-1">Oversee and coordinate all your active events.</p>
                 </div>
                 <div className="flex gap-3">
+                    <button onClick={handleSignOut} className="px-5 py-2.5 rounded-xl text-sm font-bold text-red-600 bg-red-50 border border-red-100 shadow-sm hover:bg-red-100 transition">
+                        <i className="fa-solid fa-arrow-right-from-bracket mr-2"></i> Sign Out
+                    </button>
                     <Link href="/" className="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 bg-white border border-gray-200 shadow-sm hover:bg-gray-50 transition">
                         <i className="fa-solid fa-arrow-left mr-2"></i> Back Home
                     </Link>
