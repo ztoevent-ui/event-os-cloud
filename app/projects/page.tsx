@@ -23,6 +23,19 @@ export default function ProjectsPage() {
         setLoading(false);
     };
 
+    const handleDelete = async (e: React.MouseEvent, id: string) => {
+        e.preventDefault();
+        if (!confirm('Are you sure you want to delete this event? This action cannot be undone.')) return;
+
+        const { error } = await supabase.from('projects').delete().eq('id', id);
+        if (error) {
+            console.error('Error deleting project:', error);
+            alert('Failed to delete event.');
+        } else {
+            setProjects(projects.filter(p => p.id !== id));
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gray-50 p-8 font-sans">
             {/* Header */}
@@ -64,20 +77,27 @@ export default function ProjectsPage() {
                         {projects.map((project) => (
                             <Link key={project.id} href={`/projects/${project.id}`} className="group block h-full">
                                 <article className="bg-white h-full rounded-2xl p-6 shadow-sm border border-gray-100 transition-all hover:shadow-xl hover:border-indigo-100 hover:-translate-y-1 relative overflow-hidden">
-                                    <div className="absolute top-0 right-0 p-6 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <i className="fa-solid fa-arrow-right text-gray-300 group-hover:text-indigo-500 -rotate-45 group-hover:rotate-0 transition-transform duration-300"></i>
+                                    <div className="absolute top-0 right-0 flex gap-2 p-6 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button
+                                            onClick={(e) => handleDelete(e, project.id)}
+                                            className="w-8 h-8 rounded-full bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition"
+                                            title="Delete Event"
+                                        >
+                                            <i className="fa-solid fa-trash text-xs"></i>
+                                        </button>
+                                        <i className="fa-solid fa-arrow-right text-gray-300 group-hover:text-indigo-500 -rotate-45 group-hover:rotate-0 transition-transform duration-300 w-8 h-8 flex items-center justify-center hidden sm:flex"></i>
                                     </div>
 
                                     <div className="flex justify-between items-start mb-6">
                                         <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl shadow-inner ${project.type === 'wedding_fair' ? 'bg-pink-50 text-pink-500' :
-                                                project.type === 'corporate' ? 'bg-blue-50 text-blue-500' : 'bg-purple-50 text-purple-500'
+                                            project.type === 'corporate' ? 'bg-blue-50 text-blue-500' : 'bg-purple-50 text-purple-500'
                                             }`}>
                                             <i className={`fa-solid ${project.type === 'wedding_fair' ? 'fa-heart' :
-                                                    project.type === 'corporate' ? 'fa-building' : 'fa-calendar-check'
+                                                project.type === 'corporate' ? 'fa-building' : 'fa-calendar-check'
                                                 }`}></i>
                                         </div>
                                         <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${project.status === 'active' ? 'bg-green-100 text-green-700' :
-                                                project.status === 'completed' ? 'bg-gray-100 text-gray-600' : 'bg-amber-100 text-amber-700'
+                                            project.status === 'completed' ? 'bg-gray-100 text-gray-600' : 'bg-amber-100 text-amber-700'
                                             }`}>
                                             {project.status || 'Planning'}
                                         </span>
