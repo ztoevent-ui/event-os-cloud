@@ -90,7 +90,7 @@ function AudioDeck({ name, deckId, isAdPlaying }: { name: string, deckId: string
                 </button>
             </div>
 
-            <div className="hidden">
+            <div className="absolute top-0 left-0 w-[1px] h-[1px] opacity-0 pointer-events-none overflow-hidden" aria-hidden="true">
                 {/* @ts-ignore */}
                 <ReactPlayer
                     url={url}
@@ -98,9 +98,6 @@ function AudioDeck({ name, deckId, isAdPlaying }: { name: string, deckId: string
                     volume={actualVolume}
                     muted={muted}
                     loop={true}
-                    width="0"
-                    height="0"
-                    playsinline
                 />
             </div>
         </div>

@@ -10,6 +10,7 @@ import { TournamentBracket } from '@/components/sports/TournamentBracket';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { useMasterControl } from '@/lib/sports/useMasterControl';
+import ReactPlayer from 'react-player';
 
 import { useSearchParams } from 'next/navigation';
 
@@ -208,18 +209,9 @@ function SportsDisplayContent() {
         : activeFullscreenAd;
 
     // Independent Audio Sync Effect (React render decoupled)
+    // NOTE: HTML5 Video removed in favor of ReactPlayer prop `muted`.
     useEffect(() => {
-        const isMuted = gameState?.ad_muted !== false;
-
-        // Sync HTML5 Video only (Removed Youtube sync)
-        const videoEl = document.querySelector('video');
-        if (videoEl) {
-            if (videoEl.muted !== isMuted) {
-                videoEl.muted = isMuted;
-                if (!isMuted) videoEl.volume = 1;
-                videoEl.play().catch(e => console.log("HTML5 Video Play deferred:", e));
-            }
-        }
+        // We solely rely on ReactPlayer's muted prop now.
     }, [gameState?.ad_muted, adToDisplay]);
 
     // Reset dismissal when ad list changes (new commercial break starting)
@@ -500,19 +492,24 @@ function SportsDisplayContent() {
                         {!adToDisplay ? (
                             <div className="text-xl font-bold text-white/50">Waiting for ad content...</div>
                         ) : adToDisplay.type === 'video' ? (
-                            <video
-                                src={adToDisplay.url}
-                                autoPlay
-                                loop
-                                muted={true}
-                                playsInline
-                                onEnded={() => {
-                                    if (activeFullscreenAds.length > 1 && !overrideAdUrl) {
-                                        setCurrentPlaylistIndex(prev => (prev + 1) % activeFullscreenAds.length);
-                                    }
-                                }}
-                                className="w-full h-full object-cover"
-                            />
+                            <div className="w-full h-full pointer-events-none">
+                                {/* @ts-ignore */}
+                                <ReactPlayer
+                                    url={adToDisplay.url}
+                                    playing={true}
+                                    loop={true}
+                                    muted={gameState?.ad_muted !== false}
+                                    width="100%"
+                                    height="100%"
+                                    style={{ objectFit: 'cover' }}
+                                    onEnded={() => {
+                                        if (activeFullscreenAds.length > 1 && !overrideAdUrl) {
+                                            setCurrentPlaylistIndex(prev => (prev + 1) % activeFullscreenAds.length);
+                                        }
+                                    }}
+                                    playsinline
+                                />
+                            </div>
                         ) : (
                             <img
                                 src={adToDisplay.url}
