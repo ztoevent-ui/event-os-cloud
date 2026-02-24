@@ -96,7 +96,8 @@ function AudioDeck({ name, deckId, isAdPlaying }: { name: string, deckId: string
                 </button>
             </div>
 
-            <div className="fixed top-[-5000px] left-[-5000px] w-[500px] h-[500px] pointer-events-none z-[-10]" aria-hidden="true">
+            {/* Render visibly but small to prevent Chromium blocking offscreen iframes */}
+            <div className={`mt-2 h-2 w-full mx-auto rounded overflow-hidden pointer-events-none transition ${playing ? 'opacity-30 border border-green-500/50 shadow-[0_0_10px_rgba(34,197,94,0.3)]' : 'opacity-0'}`} title="Engine Runtime">
                 <Player
                     url={url}
                     playing={playing}
@@ -106,11 +107,7 @@ function AudioDeck({ name, deckId, isAdPlaying }: { name: string, deckId: string
                     width="100%"
                     height="100%"
                     playsinline
-                    config={{
-                        youtube: {
-                            playerVars: { autoplay: 1 } as any
-                        }
-                    }}
+                    config={({ youtube: { playerVars: { autoplay: 1 } } } as any)}
                 />
             </div>
         </div>

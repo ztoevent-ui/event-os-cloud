@@ -1029,6 +1029,15 @@ function AdManager({ ads, onAdd, onDelete, onToggle }: { ads: any[], onAdd: (ad:
         const file = e.target.files?.[0];
         if (!file) return;
 
+        // Vercel Serverless Platform Size Limit Check
+        const MAX_SIZE = 4.5 * 1024 * 1024; // 4.5MB
+        if (file.size > MAX_SIZE) {
+            alert("⚠️ CLOUD CAPACITY LIMIT EXCEEDED ⚠️\n\nThe selected file (" + (file.size / 1024 / 1024).toFixed(2) + " MB) is too large for direct cloud upload (Limit: 4.5MB).\n\n► Vercel Solution:\nPlease upload this large video to YouTube (as 'Unlisted') or Google Drive, then copy-paste the URL directly into the text box above.\n\nThe ZTO Event OS Engine fully supports and optimizes ultra-HD 4K streaming directly from YouTube/Drive URLs!");
+            // Reset input
+            if (fileInputRef.current) fileInputRef.current.value = '';
+            return;
+        }
+
         setUploading(true);
         try {
             const res = await fetch('/api/upload-local', {
