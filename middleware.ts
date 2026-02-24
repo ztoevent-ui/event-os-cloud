@@ -72,7 +72,7 @@ export async function middleware(request: NextRequest) {
         if (role === 'admin') {
             return NextResponse.redirect(new URL('/admin/users', request.url));
         } else {
-            return NextResponse.redirect(new URL('/projects', request.url));
+            return NextResponse.redirect(new URL('/', request.url));
         }
     }
 

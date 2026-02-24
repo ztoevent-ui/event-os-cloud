@@ -52,7 +52,7 @@ export default function AuthPage() {
                     window.location.href = '/apps/wedding-hub';
                 } else {
                     // Default fallback or pending state
-                    window.location.href = '/projects';
+                    window.location.href = '/';
                 }
             }
         } catch (error: Error | any) {
