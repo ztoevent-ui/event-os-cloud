@@ -10,14 +10,19 @@ import { TournamentBracket } from '@/components/sports/TournamentBracket';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { useMasterControl } from '@/lib/sports/useMasterControl';
-import dynamic from 'next/dynamic';
-const ReactPlayer = dynamic(() => import('react-player'), { ssr: false });
+import ReactPlayer from 'react-player';
+const Player: any = ReactPlayer;
 
 import { useSearchParams } from 'next/navigation';
 
 function SportsDisplayContent() {
     const searchParams = useSearchParams();
     const tournamentId = searchParams.get('id');
+
+    const [isMounted, setIsMounted] = useState(false);
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
     const { now, matches, players, tournament, allTournaments, switchTournament, ads, loading } = useSportsState(tournamentId); // Pass ID to hook
     const [viewMode, setViewMode] = useState<'grid' | 'portrait'>('grid');
@@ -209,10 +214,20 @@ function SportsDisplayContent() {
         ? { type: 'video', url: overrideAdUrl, duration: 999, is_active: true }
         : activeFullscreenAd;
 
-    // Independent Audio Sync Effect (React render decoupled)
-    // NOTE: HTML5 Video removed in favor of ReactPlayer prop `muted`.
+    // We use ReactPlayer for YouTube and Native Video for regular MP4 files.
+    // Audio sync for Native Video requires an explicit DOM hook because React's `muted` prop can sometimes fall out of sync with browser policies.
     useEffect(() => {
-        // We solely rely on ReactPlayer's muted prop now.
+        const isMuted = gameState?.ad_muted !== false;
+
+        // Sync HTML5 Video (non-youtube)
+        const videoEl = document.querySelector('video');
+        if (videoEl) {
+            if (videoEl.muted !== isMuted) {
+                videoEl.muted = isMuted;
+                if (!isMuted) videoEl.volume = 1;
+                videoEl.play().catch(e => console.log("HTML5 Video Play deferred:", e));
+            }
+        }
     }, [gameState?.ad_muted, adToDisplay]);
 
     // Reset dismissal when ad list changes (new commercial break starting)
@@ -493,23 +508,42 @@ function SportsDisplayContent() {
                         {!adToDisplay ? (
                             <div className="text-xl font-bold text-white/50">Waiting for ad content...</div>
                         ) : adToDisplay.type === 'video' ? (
-                            <div className="w-full h-full pointer-events-none">
-                                {/* @ts-ignore */}
-                                <ReactPlayer
-                                    url={adToDisplay.url}
-                                    playing={true}
-                                    loop={true}
-                                    muted={gameState?.ad_muted !== false}
-                                    width="100%"
-                                    height="100%"
-                                    style={{ objectFit: 'cover' }}
-                                    onEnded={() => {
-                                        if (activeFullscreenAds.length > 1 && !overrideAdUrl) {
-                                            setCurrentPlaylistIndex(prev => (prev + 1) % activeFullscreenAds.length);
-                                        }
-                                    }}
-                                    playsinline
-                                />
+                            <div className="w-full h-full pointer-events-auto bg-black">
+                                {typeof adToDisplay.url === 'string' && (adToDisplay.url.includes('youtube.com') || adToDisplay.url.includes('youtu.be')) ? (
+                                    isMounted ? (
+                                        // @ts-ignore - React 19 type incompatibility
+                                        <Player
+                                            url={adToDisplay.url}
+                                            playing={true}
+                                            loop={true}
+                                            muted={gameState?.ad_muted !== false}
+                                            width="100%"
+                                            height="100%"
+                                            style={{ pointerEvents: 'none' }}
+                                            onEnded={() => {
+                                                if (activeFullscreenAds.length > 1 && !overrideAdUrl) {
+                                                    setCurrentPlaylistIndex(prev => (prev + 1) % activeFullscreenAds.length);
+                                                }
+                                            }}
+                                            playsinline
+                                            config={({ youtube: { playerVars: { autoplay: 1, controls: 0, modestbranding: 1 } } } as any)}
+                                        />
+                                    ) : null
+                                ) : (
+                                    <video
+                                        src={adToDisplay.url}
+                                        autoPlay
+                                        loop
+                                        muted={gameState?.ad_muted !== false}
+                                        playsInline
+                                        onEnded={() => {
+                                            if (activeFullscreenAds.length > 1 && !overrideAdUrl) {
+                                                setCurrentPlaylistIndex(prev => (prev + 1) % activeFullscreenAds.length);
+                                            }
+                                        }}
+                                        className="w-full h-full object-cover"
+                                    />
+                                )}
                             </div>
                         ) : (
                             <img

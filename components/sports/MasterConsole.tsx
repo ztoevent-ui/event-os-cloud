@@ -5,6 +5,7 @@ import { useMasterControl } from '@/lib/sports/useMasterControl';
 import { useSportsState } from '@/lib/sports/useSportsState';
 import dynamic from 'next/dynamic';
 const ReactPlayer = dynamic(() => import('react-player'), { ssr: false });
+const Player: any = ReactPlayer;
 
 function AudioDeck({ name, deckId, isAdPlaying }: { name: string, deckId: string, isAdPlaying: boolean }) {
     const [url, setUrl] = useState('');
@@ -37,7 +38,11 @@ function AudioDeck({ name, deckId, isAdPlaying }: { name: string, deckId: string
     }, [isAdPlaying]);
 
     const handleLoad = () => {
-        setUrl(inputUrl);
+        let finalUrl = inputUrl.trim();
+        if (finalUrl && !finalUrl.startsWith('http') && !finalUrl.startsWith('/')) {
+            finalUrl = 'https://' + finalUrl;
+        }
+        setUrl(finalUrl);
         setPlaying(true);
     };
 
@@ -91,14 +96,21 @@ function AudioDeck({ name, deckId, isAdPlaying }: { name: string, deckId: string
                 </button>
             </div>
 
-            <div className="absolute top-0 left-0 w-[1px] h-[1px] opacity-0 pointer-events-none overflow-hidden" aria-hidden="true">
-                {/* @ts-ignore */}
-                <ReactPlayer
+            <div className="fixed top-[-5000px] left-[-5000px] w-[500px] h-[500px] pointer-events-none z-[-10]" aria-hidden="true">
+                <Player
                     url={url}
                     playing={playing}
                     volume={actualVolume}
                     muted={muted}
                     loop={true}
+                    width="100%"
+                    height="100%"
+                    playsinline
+                    config={{
+                        youtube: {
+                            playerVars: { autoplay: 1 } as any
+                        }
+                    }}
                 />
             </div>
         </div>
