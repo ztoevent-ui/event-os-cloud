@@ -3,7 +3,8 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { useMasterControl } from '@/lib/sports/useMasterControl';
 import { useSportsState } from '@/lib/sports/useSportsState';
-import ReactPlayer from 'react-player';
+import dynamic from 'next/dynamic';
+const ReactPlayer = dynamic(() => import('react-player'), { ssr: false });
 
 function AudioDeck({ name, deckId, isAdPlaying }: { name: string, deckId: string, isAdPlaying: boolean }) {
     const [url, setUrl] = useState('');

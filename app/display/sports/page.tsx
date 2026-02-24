@@ -10,7 +10,8 @@ import { TournamentBracket } from '@/components/sports/TournamentBracket';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { useMasterControl } from '@/lib/sports/useMasterControl';
-import ReactPlayer from 'react-player';
+import dynamic from 'next/dynamic';
+const ReactPlayer = dynamic(() => import('react-player'), { ssr: false });
 
 import { useSearchParams } from 'next/navigation';
 
