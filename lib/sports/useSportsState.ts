@@ -291,7 +291,6 @@ export function useSportsState(targetTournamentId?: string | null) {
                 sets_p1: 0,
                 sets_p2: 0,
                 serving_player_id: p1.id,
-                server_number: type === 'pickleball' ? 2 : 1
             };
 
             // Defaults based on type
@@ -372,7 +371,6 @@ export function useSportsState(targetTournamentId?: string | null) {
             sets_p2: 0,
             is_paused: false,
             timer_seconds: tournament.type === 'basketball' ? 720 : (tournament.type === 'football' ? 0 : undefined),
-            ...(tournament.type === 'pickleball' ? { server_number: 2 } : {})
         };
 
         const { error } = await supabase.from('matches').insert(newMatch);

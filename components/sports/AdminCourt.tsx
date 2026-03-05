@@ -103,6 +103,7 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
     }, [match.current_score_p1, match.current_score_p2, isGameFinished]);
 
     const handleGameEnd = () => {
+        console.log("handleGameEnd triggered for match:", match.id);
         const h1 = match.current_score_p1;
         const h2 = match.current_score_p2;
         const winner = h1 > h2 ? 1 : 2;
@@ -124,10 +125,7 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
             status: isMatchOver ? 'completed' : 'ongoing'
         };
 
-        // Defensive: Only send server_number if Pickleball (prevents schema errors for other sports)
-        if (isPickleball) {
-            updates.server_number = pbSingles ? 1 : 2;
-        }
+        // server_number update removed to prevent DB failure until column is added
 
         if (isMatchOver) {
             updates.winner_id = s1 >= 2 ? p1?.id : p2?.id;
@@ -189,11 +187,10 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
                     } else {
                         // Doubles: Server 1 -> Server 2 -> Side Out
                         if (serverNumber === 1) {
-                            if (isPickleball) updates.server_number = 2;
+                            // server_number update removed locally
                         } else {
                             // Side Out
                             updates.serving_player_id = winnerId;
-                            if (isPickleball) updates.server_number = 1;
                         }
                     }
                 }
@@ -201,7 +198,6 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
                 // OPTIONAL: Rally Scoring
                 updates[player === 1 ? 'current_score_p1' : 'current_score_p2'] = currentScore + 1;
                 updates.serving_player_id = winnerId;
-                updates.server_number = 1;
             } else {
                 // Other Net Sports (Badminton, etc.) -> Always Rally Scoring
                 updates[player === 1 ? 'current_score_p1' : 'current_score_p2'] = currentScore + 1;
@@ -222,9 +218,7 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
         const updates: Partial<Match> = {
             serving_player_id: match.serving_player_id === p1?.id ? p2?.id : p1?.id
         };
-        if (isPickleball) {
-            updates.server_number = serverNumber === 1 ? 2 : 1;
-        }
+        // server_number update removed
         onUpdateScore(updates);
     };
 

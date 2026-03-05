@@ -66,3 +66,7 @@ CREATE TABLE IF NOT EXISTS sponsor_ads (
 -- 5. Realtime Subscription
 -- Enable Realtime for these tables
 ALTER PUBLICATION supabase_realtime ADD TABLE tournaments, players, matches, sponsor_ads;
+
+-- 6. MIGRATION COMMANDS (Run these in SQL Editor if columns are missing)
+-- ALTER TABLE matches ADD COLUMN IF NOT EXISTS server_number INTEGER DEFAULT 1;
+-- ALTER TABLE matches RENAME COLUMN periods_scores TO match_history;
