@@ -6,6 +6,7 @@ import { useSportsState } from '@/lib/sports/useSportsState';
 import { AdminCourt } from '@/components/sports/AdminCourt';
 import { Match, CategoryConfig, Team } from '@/lib/sports/types';
 import { SPORTS_ASSETS } from '@/lib/sports/assets';
+import { supabase } from '@/lib/supabaseClient';
 
 // Asset Picker Component (Same as before)
 function AssetPicker({ onSelect, onClose }: { onSelect: (url: string) => void, onClose: () => void }) {
@@ -20,24 +21,28 @@ function AssetPicker({ onSelect, onClose }: { onSelect: (url: string) => void, o
 
         setUploading(true);
         try {
-            const res = await fetch('/api/upload-local', {
-                method: 'POST',
-                headers: {
-                    'x-file-name': encodeURIComponent(file.name),
-                    'content-type': file.type || 'application/octet-stream'
-                },
-                body: file
-            });
+            const cleanName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+            const filename = `${Date.now()}-${cleanName}`;
 
-            if (!res.ok) {
-                const text = await res.text();
-                throw new Error(text || 'Upload failed');
+            const { data, error } = await supabase.storage
+                .from('public_assets')
+                .upload(filename, file, {
+                    cacheControl: '3600',
+                    upsert: false
+                });
+
+            if (error) {
+                throw error;
             }
 
-            const data = await res.json();
-            if (data.url) {
-                setManualUrl(data.url);
-                onSelect(data.url);
+            // Get public URL
+            const { data: urlData } = supabase.storage
+                .from('public_assets')
+                .getPublicUrl(filename);
+
+            if (urlData?.publicUrl) {
+                setManualUrl(urlData.publicUrl);
+                onSelect(urlData.publicUrl);
                 onClose();
             }
         } catch (error: any) {
@@ -608,6 +613,27 @@ export default function SportsAdminPage() {
                             <div className="h-1.5 w-full bg-gradient-to-r from-green-400 to-green-600 mt-auto"></div>
                         </button>
 
+                        {/* THE LIVE OVERLAY CARD */}
+                        <a
+                            href={`/broadcast/live-overlay`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="bg-zinc-900 overflow-hidden rounded-xl border border-yellow-500/30 hover:shadow-[0_0_30px_rgba(234,179,8,0.2)] hover:border-yellow-500 transition-all group flex flex-col justify-between"
+                        >
+                            <div className="p-6 relative z-10">
+                                <h3 className="font-black text-xl text-white uppercase tracking-wider flex items-center gap-2 mb-2">
+                                    <i className="fa-solid fa-camera text-yellow-500 group-hover:scale-110 transition-transform"></i>
+                                    Live Overlay <span className="text-[10px] ml-1 bg-yellow-600 text-black font-black px-2 py-0.5 rounded-full">OBS / vMix</span>
+                                </h3>
+                                <p className="text-gray-400 text-sm mb-4">Transparent web overlay for broadcast software. Auto-syncs with the active match score in &lt;200ms.</p>
+
+                                <div className="text-xs font-bold text-yellow-400 mt-auto uppercase tracking-widest flex items-center gap-2 group-hover:text-yellow-300">
+                                    Copy Link <i className="fa-solid fa-link"></i>
+                                </div>
+                            </div>
+                            <div className="h-1.5 w-full bg-gradient-to-r from-yellow-500 to-yellow-700 mt-auto"></div>
+                        </a>
+
                     </div>
                 )}
             </main>
@@ -1040,23 +1066,27 @@ function AdManager({ ads, onAdd, onDelete, onToggle }: { ads: any[], onAdd: (ad:
 
         setUploading(true);
         try {
-            const res = await fetch('/api/upload-local', {
-                method: 'POST',
-                headers: {
-                    'x-file-name': encodeURIComponent(file.name),
-                    'content-type': file.type || 'application/octet-stream'
-                },
-                body: file
-            });
+            const cleanName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+            const filename = `${Date.now()}-${cleanName}`;
 
-            if (!res.ok) {
-                const text = await res.text();
-                throw new Error(text || 'Upload failed');
+            const { data, error } = await supabase.storage
+                .from('public_assets')
+                .upload(filename, file, {
+                    cacheControl: '3600',
+                    upsert: false
+                });
+
+            if (error) {
+                throw error;
             }
 
-            const data = await res.json();
-            if (data.url) {
-                setNewAd(prev => ({ ...prev, url: data.url }));
+            // Get public URL
+            const { data: urlData } = supabase.storage
+                .from('public_assets')
+                .getPublicUrl(filename);
+
+            if (urlData?.publicUrl) {
+                setNewAd(prev => ({ ...prev, url: urlData.publicUrl }));
             }
         } catch (error: any) {
             console.error('Upload Error:', error);
@@ -1351,7 +1381,10 @@ function SettingsManager({ tournament, onUpdate, onClose }: { tournament: any, o
     const [name, setName] = useState(tournament.name);
     const [logoUrl, setLogoUrl] = useState(tournament.config?.logo_url || '');
     const [bgUrl, setBgUrl] = useState(tournament.config?.bg_url || '');
-    const [activePicker, setActivePicker] = useState<'logo' | 'bg' | null>(null);
+    const [broadcastSponsorUrl, setBroadcastSponsorUrl] = useState(tournament.config?.broadcast_sponsor_url || '');
+    const [broadcastTopText, setBroadcastTopText] = useState(tournament.config?.broadcast_top_text || '');
+    const [broadcastBottomText, setBroadcastBottomText] = useState(tournament.config?.broadcast_bottom_text || '');
+    const [activePicker, setActivePicker] = useState<'logo' | 'bg' | 'broadcast' | null>(null);
 
     const handleSave = () => {
         onUpdate({
@@ -1359,7 +1392,10 @@ function SettingsManager({ tournament, onUpdate, onClose }: { tournament: any, o
             config: {
                 ...tournament.config,
                 logo_url: logoUrl,
-                bg_url: bgUrl
+                bg_url: bgUrl,
+                broadcast_sponsor_url: broadcastSponsorUrl,
+                broadcast_top_text: broadcastTopText,
+                broadcast_bottom_text: broadcastBottomText
             }
         });
         onClose();
@@ -1446,6 +1482,63 @@ function SettingsManager({ tournament, onUpdate, onClose }: { tournament: any, o
                             </div>
                         </div>
                     </div>
+
+                    <div className="pt-4 border-t border-gray-100">
+                        <h4 className="font-bold text-gray-800 uppercase tracking-tight mb-4 flex items-center gap-2">
+                            <i className="fa-solid fa-tv text-[#F28C38]"></i> Broadcast Overlay Config
+                        </h4>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-[10px] font-black text-gray-500 uppercase mb-1">Top Bar Text (Overrides Event Name)</label>
+                                <input
+                                    className="w-full border border-gray-300 rounded-lg p-3 text-sm font-bold"
+                                    placeholder="e.g. SAKURA BINTULU PICKLEBALL OPEN"
+                                    value={broadcastTopText}
+                                    onChange={e => setBroadcastTopText(e.target.value)}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-[10px] font-black text-gray-500 uppercase mb-1">Bottom Bar Text (Overrides Match Details)</label>
+                                <input
+                                    className="w-full border border-gray-300 rounded-lg p-3 text-sm font-bold"
+                                    placeholder="e.g. MEN DOUBLES - SEMIFINALS"
+                                    value={broadcastBottomText}
+                                    onChange={e => setBroadcastBottomText(e.target.value)}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-[10px] font-black text-gray-500 uppercase mb-1">Overlay Sponsor Logo</label>
+                                <div className="flex gap-4 items-center mb-4">
+                                    <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300 overflow-hidden">
+                                        {broadcastSponsorUrl ? (
+                                            <img src={broadcastSponsorUrl} className="w-full h-full object-contain" />
+                                        ) : (
+                                            <i className="fa-solid fa-tv text-gray-300 text-xl"></i>
+                                        )}
+                                    </div>
+                                    <div className="flex-1 space-y-2">
+                                        <div className="flex gap-2">
+                                            <input
+                                                className="flex-1 border border-gray-300 rounded-lg p-3 text-sm"
+                                                placeholder="Sponsor Logo URL..."
+                                                value={broadcastSponsorUrl}
+                                                onChange={e => setBroadcastSponsorUrl(e.target.value)}
+                                            />
+                                            <button
+                                                onClick={() => setActivePicker('broadcast')}
+                                                className="bg-emerald-600 text-white px-4 rounded-lg hover:bg-emerald-700 transition"
+                                            >
+                                                <i className="fa-solid fa-image"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
@@ -1455,7 +1548,11 @@ function SettingsManager({ tournament, onUpdate, onClose }: { tournament: any, o
 
                 {activePicker && (
                     <AssetPicker
-                        onSelect={(url) => activePicker === 'logo' ? setLogoUrl(url) : setBgUrl(url)}
+                        onSelect={(url) => {
+                            if (activePicker === 'logo') setLogoUrl(url);
+                            else if (activePicker === 'bg') setBgUrl(url);
+                            else if (activePicker === 'broadcast') setBroadcastSponsorUrl(url);
+                        }}
                         onClose={() => setActivePicker(null)}
                     />
                 )}

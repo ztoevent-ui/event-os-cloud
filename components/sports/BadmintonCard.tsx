@@ -40,7 +40,7 @@ export function BadmintonCard({ match, p1, p2, activeAd, logoUrl, bgUrl, now }: 
     };
 
     // Calculate historical set scores
-    const setHistory = match.periods_scores || [];
+    const setHistory = match.match_history || [];
     const currentSetNum = setHistory.length + 1;
 
     return (

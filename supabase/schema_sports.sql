@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS matches (
     serving_player_id UUID,
     
     match_history JSONB DEFAULT '[]', -- Log of points for undo/replay
+    server_number INTEGER DEFAULT 1, -- For Pickleball/Tennis server tracking
     winner_id UUID REFERENCES players(id),
     
     next_match_id UUID, -- For bracket progression

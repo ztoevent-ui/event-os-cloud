@@ -99,7 +99,7 @@ const PlayerDisplay = ({ player, color, align, match, isGrid, isSwapSides }: {
 
 export function PickleballCard({ match, p1, p2, activeAd, logoUrl, bgUrl, now, isGrid = false }: PickleballCardProps) {
     // --- Logic & State ---
-    const setHistory = match.periods_scores || [];
+    const setHistory = match.match_history || [];
     const currentSetNum = setHistory.length + 1;
     const isSwapSides = (match.sets_p1 + match.sets_p2) % 2 === 1;
 

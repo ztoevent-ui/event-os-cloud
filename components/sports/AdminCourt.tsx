@@ -70,9 +70,9 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
     // React.useEffect(() => { ... }) (Omitted for simplicity, but can emit on huge desync)
 
     // --- Pickleball & Game Logic ---
-    // Server Number: Defaults to 2 if score is 0-0 (Start of Game Rule), else current_period, else 1
-    const isStartOfGame = match.current_score_p1 === 0 && match.current_score_p2 === 0;
-    const serverNumber = (isPickleball && !pbSingles) ? (match.current_period || (isStartOfGame ? 2 : 1)) : 0;
+    // Server Number: 1 or 2
+    const isStartOfGame = match.current_score_p1 === 0 && match.current_score_p2 === 0 && (match.match_history?.length === 0 || !match.match_history);
+    const serverNumber = isPickleball ? (match.server_number || (isStartOfGame ? 2 : 1)) : 0;
 
     // Game/Set Calculation
     const setsWonP1 = match.sets_p1 || 0;
@@ -80,27 +80,33 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
     const currentGameNumber = setsWonP1 + setsWonP2 + 1;
     const isSwapSides = (setsWonP1 + setsWonP2) % 2 === 1;
 
-    // Check Win Condition (Standard: 21 pts, Win by 2)
-    const WIN_PTS = 21;
-    const is20Tie = match.current_score_p1 >= 20 && match.current_score_p2 >= 20;
-    const isGameFinished = (isPickleball && !is20Tie)
-        ? (match.current_score_p1 >= WIN_PTS || match.current_score_p2 >= WIN_PTS) // First to 21 wins
-        : ((match.current_score_p1 >= WIN_PTS || match.current_score_p2 >= WIN_PTS) && Math.abs(match.current_score_p1 - match.current_score_p2) >= 2); // Win by 2
+    // Check Win Condition (Pickleball: 11 pts, WIN BY 2 ALWAYS)
+    const WIN_PTS = isPickleball ? 11 : 21;
+    const isGameFinished = (match.current_score_p1 >= WIN_PTS || match.current_score_p2 >= WIN_PTS) &&
+        (Math.abs(match.current_score_p1 - match.current_score_p2) >= 2);
 
     const [showGameEndModal, setShowGameEndModal] = React.useState(false);
+    const [dismissedGameEnd, setDismissedGameEnd] = React.useState(false);
 
-    // Auto-trigger modal if condition met and not already showing
+    // Auto-trigger modal if condition met and not already showing/dismissed
     React.useEffect(() => {
-        if (isGameFinished && !showGameEndModal && match.status === 'ongoing') {
+        if (isGameFinished && !showGameEndModal && !dismissedGameEnd && match.status === 'ongoing') {
             setShowGameEndModal(true);
         }
-    }, [match.current_score_p1, match.current_score_p2, isGameFinished, match.status]);
+    }, [match.current_score_p1, match.current_score_p2, isGameFinished, match.status, dismissedGameEnd, showGameEndModal]);
+
+    // Reset dismissed state if score changes (allows modal to pop up again if they score another point after cancelling)
+    React.useEffect(() => {
+        if (!isGameFinished) {
+            setDismissedGameEnd(false);
+        }
+    }, [match.current_score_p1, match.current_score_p2, isGameFinished]);
 
     const handleGameEnd = () => {
         const h1 = match.current_score_p1;
         const h2 = match.current_score_p2;
         const winner = h1 > h2 ? 1 : 2;
-        const newHistory = [...(match.periods_scores || []), { p1: h1, p2: h2 }];
+        const newHistory = [...(match.match_history || []), { p1: h1, p2: h2 }];
 
         const nextServer = match.serving_player_id === p1?.id ? p2?.id : p1?.id;
 
@@ -108,20 +114,29 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
         const s2 = winner === 2 ? setsWonP2 + 1 : setsWonP2;
         const isMatchOver = s1 >= 2 || s2 >= 2;
 
-        onUpdateScore({
+        const updates: Partial<Match> = {
             sets_p1: s1,
             sets_p2: s2,
             current_score_p1: 0,
             current_score_p2: 0,
-            periods_scores: newHistory,
+            match_history: newHistory,
             serving_player_id: nextServer,
-            current_period: pbSingles ? 1 : 2, // Game start: 0-0-2 for doubles, 1 for singles
-            started_at: new Date().toISOString(),
-            status: isMatchOver ? 'completed' : 'ongoing',
-            winner_id: isMatchOver ? (s1 >= 2 ? p1?.id : p2?.id) : undefined
-        });
+            status: isMatchOver ? 'completed' : 'ongoing'
+        };
+
+        // Defensive: Only send server_number if Pickleball (prevents schema errors for other sports)
+        if (isPickleball) {
+            updates.server_number = pbSingles ? 1 : 2;
+        }
+
+        if (isMatchOver) {
+            updates.winner_id = s1 >= 2 ? p1?.id : p2?.id;
+        }
+
+        onUpdateScore(updates);
 
         setShowGameEndModal(false);
+        setDismissedGameEnd(false);
         if (isMatchOver && onClose) {
             onClose();
         }
@@ -157,39 +172,36 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
 
         if (delta > 0) {
             // --- POINT WON LOGIC ---
-            if (isPickleball) {
-                // Rule: "只有20平分的时候才需要serve to win 不然就是哪一方先21分赢"
-                // Only at 20-20 deuce switch to Side-out scoring. Otherwise Rally scoring.
-                const is20Tie = match.current_score_p1 >= 20 && match.current_score_p2 >= 20;
-
-                // Use side out ONLY if forced by toggle OR if it's 20-20 deuce and we didn't force rally.
-                const effectiveSideOut = pbRally ? false : is20Tie;
-
-                if (!effectiveSideOut) {
-                    // Rally Scoring: Everyone scores on every point
+            if (isPickleball && !pbRally) {
+                // DEFAULT: Side-Out Scoring (Standard PPA/Pickleball)
+                // Only the serving team can score.
+                if (match.serving_player_id === winnerId) {
+                    // SERVER WON -> Score Point
                     updates[player === 1 ? 'current_score_p1' : 'current_score_p2'] = currentScore + 1;
 
-                    // Side switches on rally loss
-                    updates.serving_player_id = winnerId;
-                    updates.current_period = 1;
+                    // In doubles, partners switch sides (L/R) after scoring a point.
+                    // We don't have explicit L/R tracking in the UI here yet, but the server stays the same player.
                 } else {
-                    // Side-Out Scoring (Serve to Win) - Triggered at 20-20
-                    if (match.serving_player_id === winnerId) {
-                        updates[player === 1 ? 'current_score_p1' : 'current_score_p2'] = currentScore + 1;
+                    // RECEIVER WON -> Rally lost for server.
+                    if (pbSingles) {
+                        // Singles: Side-out immediately
+                        updates.serving_player_id = winnerId;
                     } else {
-                        // Receiver won rally -> Switch Server
-                        if (pbSingles) {
-                            updates.serving_player_id = winnerId;
+                        // Doubles: Server 1 -> Server 2 -> Side Out
+                        if (serverNumber === 1) {
+                            if (isPickleball) updates.server_number = 2;
                         } else {
-                            if (serverNumber === 1) {
-                                updates.current_period = 2;
-                            } else {
-                                updates.serving_player_id = winnerId;
-                                updates.current_period = 1;
-                            }
+                            // Side Out
+                            updates.serving_player_id = winnerId;
+                            if (isPickleball) updates.server_number = 1;
                         }
                     }
                 }
+            } else if (isPickleball && pbRally) {
+                // OPTIONAL: Rally Scoring
+                updates[player === 1 ? 'current_score_p1' : 'current_score_p2'] = currentScore + 1;
+                updates.serving_player_id = winnerId;
+                updates.server_number = 1;
             } else {
                 // Other Net Sports (Badminton, etc.) -> Always Rally Scoring
                 updates[player === 1 ? 'current_score_p1' : 'current_score_p2'] = currentScore + 1;
@@ -207,7 +219,13 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
     };
 
     const toggleServer = () => {
-        onUpdateScore({ serving_player_id: match.serving_player_id === p1?.id ? p2?.id : p1?.id });
+        const updates: Partial<Match> = {
+            serving_player_id: match.serving_player_id === p1?.id ? p2?.id : p1?.id
+        };
+        if (isPickleball) {
+            updates.server_number = serverNumber === 1 ? 2 : 1;
+        }
+        onUpdateScore(updates);
     };
 
     // --- Fullscreen Logic ---
@@ -257,9 +275,14 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
         return (
             <div className={`flex-1 relative flex flex-col items-center justify-center p-4 md:p-8 transition-colors ${isServer ? 'bg-black/20' : ''}`}>
                 {isServer && (
-                    <div className={`absolute top-4 ${isLeft ? 'left-4 md:left-4' : 'right-4 md:right-4'} bg-yellow-400 text-black text-[10px] md:text-xs font-bold px-2 md:px-3 py-1 rounded-full shadow animate-bounce z-20`}>
-                        <i className="fa-solid fa-shuttlecock mr-1"></i> SERVE
-                        {isPickleball && <span className="ml-1 bg-black text-white px-1.5 rounded-full">{serverNumber}</span>}
+                    <div className={`absolute top-4 ${isLeft ? 'left-4 md:left-4' : 'right-4 md:right-4'} bg-yellow-400 text-black text-[10px] md:text-xs font-bold px-2 md:px-3 py-1 rounded-full shadow animate-bounce z-20 flex items-center gap-1`}>
+                        <i className="fa-solid fa-shuttlecock"></i> SERVE
+                        {isPickleball && (
+                            <div className="flex gap-1 ml-1 bg-black/10 px-1 rounded">
+                                <div className="w-1.5 h-1.5 rounded-full bg-black"></div>
+                                {serverNumber === 2 && <div className="w-1.5 h-1.5 rounded-full bg-black"></div>}
+                            </div>
+                        )}
                     </div>
                 )}
 
@@ -344,7 +367,10 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
                             </p>
                             <div className="flex gap-4">
                                 <button
-                                    onClick={() => setShowGameEndModal(false)}
+                                    onClick={() => {
+                                        setShowGameEndModal(false);
+                                        setDismissedGameEnd(true);
+                                    }}
                                     className="flex-1 py-3 bg-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-300"
                                 >
                                     Cancel
@@ -504,18 +530,25 @@ export function AdminCourt({ match, p1, p2, onUpdateScore, sportType = 'badminto
 
                                 const isMatchOver = s1 >= 2 || s2 >= 2;
 
-                                onUpdateScore({
+                                const updates: Partial<Match> = {
                                     sets_p1: s1,
                                     sets_p2: s2,
                                     current_score_p1: 0,
                                     current_score_p2: 0,
-                                    periods_scores: [...(match.periods_scores || []), { p1: h1, p2: h2 }],
+                                    match_history: [...(match.match_history || []), { p1: h1, p2: h2 }],
                                     serving_player_id: nextServer,
-                                    current_period: pbSingles ? 1 : 2,
-                                    started_at: new Date().toISOString(),
-                                    status: isMatchOver ? 'completed' : 'ongoing',
-                                    winner_id: isMatchOver ? (s1 >= 2 ? p1?.id : p2?.id) : undefined
-                                });
+                                    status: isMatchOver ? 'completed' : 'ongoing'
+                                };
+
+                                if (isPickleball) {
+                                    updates.server_number = pbSingles ? 1 : 2;
+                                }
+
+                                if (isMatchOver) {
+                                    updates.winner_id = s1 >= 2 ? p1?.id : p2?.id;
+                                }
+
+                                onUpdateScore(updates);
 
                                 if (isMatchOver && onClose) {
                                     setTimeout(onClose, 1000);

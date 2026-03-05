@@ -92,7 +92,7 @@ export interface Match {
     sets_p2: number;
 
     // Detailed Stats for specific sports
-    periods_scores?: { p1: number, p2: number }[]; // For Basketball/Volleyball sets
+    match_history?: { p1: number, p2: number }[]; // For Basketball/Volleyball sets
     timer_seconds?: number; // For timed sports (Basketball/Football)
     is_paused?: boolean;
     current_period?: number;
@@ -101,6 +101,8 @@ export interface Match {
 
     server_side: number;
     serving_player_id?: string;
+    server_number?: 1 | 2; // For Pickleball: 1st or 2nd server
+    serving_position?: 'left' | 'right'; // For Pickleball: track which side the server is on
 
     winner_id?: string;
     next_match_id?: string;
