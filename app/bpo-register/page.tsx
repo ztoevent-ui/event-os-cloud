@@ -19,11 +19,11 @@ export default function BpoRegisterPage() {
         p2_ic_no: '',
         p2_hp: '',
         p2_email: '',
-        group_name: "Men's Open",
+        group_name: "Men's Doubles",
         dupr_rating: 0.00,
     });
 
-    const groups = ["Men's Open", "Women's Open", "Mixed Open", "Veteran 50+", "Youth 18-"];
+    const groups = ["Men's Doubles", "Women's Doubles", "Mixed Doubles"];
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
