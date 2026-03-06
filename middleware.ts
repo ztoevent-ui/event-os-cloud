@@ -55,7 +55,8 @@ export async function middleware(request: NextRequest) {
         '/public',
         '/display',
         '/apps',
-        '/api' // Keep API open, protect inner logic if needed
+        '/api', // Keep API open, protect inner logic if needed
+        '/bpo-register'
     ];
 
     const isPublic = publicPrefixes.some(prefix => path.startsWith(prefix));
