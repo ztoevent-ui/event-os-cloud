@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect, useRef } from 'react';
 import { AdminTable } from '@/components/bpo/admin-table';
 import { MasterListPrint } from '@/components/bpo/master-list-print';
