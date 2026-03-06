@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS matches (
     winner_id UUID REFERENCES players(id),
     
     next_match_id UUID, -- For bracket progression
+    next_match_slot TEXT, -- 'player1' or 'player2'
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );

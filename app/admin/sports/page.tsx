@@ -745,6 +745,32 @@ export default function SportsAdminPage() {
                                         placeholder="e.g. Final, Semi-Final"
                                     />
                                 </div>
+                                <div>
+                                    <label className="block text-[10px] font-black tracking-widest text-gray-400 mb-1.5 uppercase ml-1">Next Match (Progression)</label>
+                                    <select
+                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 px-4 font-bold text-sm text-gray-800 outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition"
+                                        defaultValue={editingMatch.next_match_id || ''}
+                                        id="edit-match-next-id"
+                                    >
+                                        <option value="">-- No Progression --</option>
+                                        {matches.filter(m => m.id !== editingMatch.id).map(m => (
+                                            <option key={m.id} value={m.id}>
+                                                {m.round_name} - {m.court_id} ({players[m.player1_id || '']?.name || 'TBD'} vs {players[m.player2_id || '']?.name || 'TBD'})
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-black tracking-widest text-gray-400 mb-1.5 uppercase ml-1">Slot in Next Match</label>
+                                    <select
+                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 px-4 font-bold text-sm text-gray-800 outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition"
+                                        defaultValue={editingMatch.next_match_slot || 'player1'}
+                                        id="edit-match-next-slot"
+                                    >
+                                        <option value="player1">Player 1 Slot</option>
+                                        <option value="player2">Player 2 Slot</option>
+                                    </select>
+                                </div>
                             </div>
 
                             <div className="flex gap-3 justify-end">
@@ -753,7 +779,14 @@ export default function SportsAdminPage() {
                                     onClick={() => {
                                         const courtValue = (document.getElementById('edit-match-court') as HTMLInputElement).value;
                                         const roundValue = (document.getElementById('edit-match-round') as HTMLInputElement).value;
-                                        updateScore(editingMatch.id, { court_id: courtValue, round_name: roundValue });
+                                        const nextIdValue = (document.getElementById('edit-match-next-id') as HTMLSelectElement).value;
+                                        const nextSlotValue = (document.getElementById('edit-match-next-slot') as HTMLSelectElement).value;
+                                        updateScore(editingMatch.id, {
+                                            court_id: courtValue,
+                                            round_name: roundValue,
+                                            next_match_id: nextIdValue || undefined,
+                                            next_match_slot: nextIdValue ? (nextSlotValue as any) : undefined
+                                        });
                                         setEditingMatch(null);
                                     }}
                                     className="px-6 py-3 font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl text-sm shadow-lg shadow-blue-500/30 transition shadow-sm active:scale-95 flex items-center gap-2"
@@ -798,6 +831,7 @@ export default function SportsAdminPage() {
                     <MatchMaker
                         players={players}
                         tournament={tournament}
+                        matches={matches}
                         onClose={() => setShowMatchMaker(false)}
                         onCreate={createMatch}
                     />
@@ -820,12 +854,14 @@ export default function SportsAdminPage() {
 }
 
 // MATCH MAKER COMPONENT
-function MatchMaker({ players, tournament, onClose, onCreate }: any) {
+function MatchMaker({ players, tournament, matches, onClose, onCreate }: any) {
     const playerList = Object.values(players) as any[];
     const [p1, setP1] = useState('');
     const [p2, setP2] = useState('');
     const [court, setCourt] = useState('Court 1');
     const [round, setRound] = useState('Round 1');
+    const [nextMatchId, setNextMatchId] = useState('');
+    const [nextMatchSlot, setNextMatchSlot] = useState<'player1' | 'player2'>('player1');
 
     // Filtering
     const [searchTerm, setSearchTerm] = useState('');
@@ -851,7 +887,9 @@ function MatchMaker({ players, tournament, onClose, onCreate }: any) {
             player2_id: p2,
             court_id: court,
             round_name: round,
-            tournament_id: tournament.id
+            tournament_id: tournament.id,
+            next_match_id: nextMatchId || undefined,
+            next_match_slot: nextMatchId ? nextMatchSlot : undefined
         });
         onClose();
     };
@@ -958,6 +996,45 @@ function MatchMaker({ players, tournament, onClose, onCreate }: any) {
                                         onChange={e => setRound(e.target.value)}
                                         placeholder="e.g. Final"
                                     />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 3. Bracket Progression */}
+                        <div className="space-y-4">
+                            <h4 className="text-sm font-black text-gray-400 uppercase tracking-widest">3. Bracket Progression (Optional)</h4>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-[10px] font-black text-gray-500 uppercase mb-1 ml-1">Next Match (Winner Moves To)</label>
+                                    <select
+                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 px-4 text-sm font-bold focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition outline-none"
+                                        value={nextMatchId}
+                                        onChange={e => setNextMatchId(e.target.value)}
+                                    >
+                                        <option value="">-- No Progression --</option>
+                                        {matches.map((m: any) => (
+                                            <option key={m.id} value={m.id}>
+                                                {m.round_name} - {m.court_id} ({players[m.player1_id || '']?.name || 'TBD'} vs {players[m.player2_id || '']?.name || 'TBD'})
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-black text-gray-500 uppercase mb-1 ml-1">Slot in Next Match</label>
+                                    <div className="flex gap-2 h-[46px]">
+                                        <button
+                                            onClick={() => setNextMatchSlot('player1')}
+                                            className={`flex-1 rounded-xl font-bold text-xs uppercase transition-all ${nextMatchSlot === 'player1' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-gray-100 text-gray-500'}`}
+                                        >
+                                            Player 1
+                                        </button>
+                                        <button
+                                            onClick={() => setNextMatchSlot('player2')}
+                                            className={`flex-1 rounded-xl font-bold text-xs uppercase transition-all ${nextMatchSlot === 'player2' ? 'bg-indigo-600 text-white shadow-lg' : 'bg-gray-100 text-gray-500'}`}
+                                        >
+                                            Player 2
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>

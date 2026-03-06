@@ -106,6 +106,7 @@ export interface Match {
 
     winner_id?: string;
     next_match_id?: string;
+    next_match_slot?: 'player1' | 'player2';
 
     created_at: string;
     updated_at: string;

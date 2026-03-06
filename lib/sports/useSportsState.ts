@@ -180,8 +180,34 @@ export function useSportsState(targetTournamentId?: string | null) {
 
         if (error) {
             console.error("Error updating score:", error);
-            // Revert on error? Optional, but fetchData will eventually fix it
             fetchData(true);
+            return;
+        }
+
+        // --- Automatic Bracket Progression ---
+        // If match is completed and has a winner, check if it should progress
+        if (updates.status === 'completed' && updates.winner_id) {
+            const currentMatch = matches.find(m => m.id === matchId);
+            if (currentMatch && currentMatch.next_match_id) {
+                const nextMatch = matches.find(m => m.id === currentMatch.next_match_id);
+                if (nextMatch) {
+                    const slot = currentMatch.next_match_slot || 'player1';
+                    const nextUpdate: any = {};
+                    if (slot === 'player1') nextUpdate.player1_id = updates.winner_id;
+                    else nextUpdate.player2_id = updates.winner_id;
+
+                    console.log(`Progressing winner ${updates.winner_id} to match ${nextMatch.id} slot ${slot}`);
+
+                    const { error: nextError } = await supabase
+                        .from('matches')
+                        .update(nextUpdate)
+                        .eq('id', nextMatch.id);
+
+                    if (nextError) {
+                        console.error("Error progressing winner to next match:", nextError);
+                    }
+                }
+            }
         }
     };
 
