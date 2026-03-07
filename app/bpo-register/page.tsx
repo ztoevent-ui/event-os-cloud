@@ -11,14 +11,15 @@ export default function BpoRegisterPage() {
     const [submitted, setSubmitted] = useState(false);
     const [formData, setFormData] = useState({
         team_id: `TEAM-${Math.floor(Math.random() * 9000) + 1000}`,
+        p1_dupr_id: '',
         p1_name: '',
         p1_ic_no: '',
         p1_hp: '',
         p1_email: '',
+        p2_dupr_id: '',
         p2_name: '',
         p2_ic_no: '',
         p2_hp: '',
-        p2_email: '',
         group_name: "Men's Doubles",
         dupr_rating: 0.00,
     });
@@ -35,9 +36,26 @@ export default function BpoRegisterPage() {
         setLoading(true);
 
         try {
+            const payload = {
+                team_id: formData.team_id,
+                p1_name: formData.p1_name,
+                p1_ic_no: formData.p1_ic_no,
+                p1_hp: formData.p1_hp,
+                p1_email: formData.p1_email,
+                p2_name: formData.p2_name,
+                p2_ic_no: formData.p2_ic_no,
+                p2_hp: formData.p2_hp,
+                group_name: formData.group_name,
+                dupr_rating: formData.dupr_rating,
+                data: {
+                    p1_dupr_id: formData.p1_dupr_id,
+                    p2_dupr_id: formData.p2_dupr_id
+                }
+            };
+
             const { error } = await supabase
                 .from('bpo_registrations')
-                .insert([formData]);
+                .insert([payload]);
 
             if (error) throw error;
 
@@ -129,6 +147,7 @@ export default function BpoRegisterPage() {
                                     type="number"
                                     step="0.01"
                                     name="dupr_rating"
+                                    required
                                     value={formData.dupr_rating}
                                     onChange={handleChange}
                                     className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition text-right font-mono"
@@ -147,6 +166,16 @@ export default function BpoRegisterPage() {
                                 CAPTAIN (P1)
                             </h2>
                             <div className="space-y-6">
+                                <div className="space-y-1.5">
+                                    <div className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1">
+                                        <Award size={10} /> DUPR ID
+                                    </div>
+                                    <input
+                                        type="text" name="p1_dupr_id" required value={formData.p1_dupr_id} onChange={handleChange}
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
+                                        placeholder="Enter DUPR ID"
+                                    />
+                                </div>
                                 <div className="space-y-1.5">
                                     <div className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1">
                                         <User size={10} /> Full Name
@@ -180,7 +209,7 @@ export default function BpoRegisterPage() {
                                     </div>
                                     <div className="space-y-1.5">
                                         <div className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1">
-                                            <Mail size={10} /> Email
+                                            <Mail size={10} /> Team Contact Email
                                         </div>
                                         <input
                                             type="email" name="p1_email" required value={formData.p1_email} onChange={handleChange}
@@ -199,6 +228,16 @@ export default function BpoRegisterPage() {
                                 PARTNER (P2)
                             </h2>
                             <div className="space-y-6">
+                                <div className="space-y-1.5">
+                                    <div className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1">
+                                        <Award size={10} /> DUPR ID
+                                    </div>
+                                    <input
+                                        type="text" name="p2_dupr_id" required value={formData.p2_dupr_id} onChange={handleChange}
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
+                                        placeholder="Enter DUPR ID"
+                                    />
+                                </div>
                                 <div className="space-y-1.5">
                                     <div className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1">
                                         <User size={10} /> Full Name
@@ -228,16 +267,6 @@ export default function BpoRegisterPage() {
                                             type="tel" name="p2_hp" required value={formData.p2_hp} onChange={handleChange}
                                             className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
                                             placeholder="+60..."
-                                        />
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <div className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1">
-                                            <Mail size={10} /> Email
-                                        </div>
-                                        <input
-                                            type="email" name="p2_email" required value={formData.p2_email} onChange={handleChange}
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
-                                            placeholder="example@mail.com"
                                         />
                                     </div>
                                 </div>

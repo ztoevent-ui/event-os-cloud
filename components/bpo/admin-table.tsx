@@ -107,7 +107,23 @@ export function AdminTable({ data, onRowClick }: { data: Registration[], onRowCl
     });
 
     const exportToCSV = () => {
-        const csv = Papa.unparse(data);
+        const flattenData = data.map((d: any) => ({
+            team_id: d.team_id,
+            p1_dupr_id: d.data?.p1_dupr_id || '',
+            p1_name: d.p1_name,
+            p1_ic_no: d.p1_ic_no,
+            p1_hp: d.p1_hp,
+            team_email: d.p1_email,
+            p2_dupr_id: d.data?.p2_dupr_id || '',
+            p2_name: d.p2_name,
+            p2_ic_no: d.p2_ic_no,
+            p2_hp: d.p2_hp,
+            group_name: d.group_name,
+            dupr_rating: d.dupr_rating,
+            payment_status: d.payment_status,
+            created_at: d.created_at
+        }));
+        const csv = Papa.unparse(flattenData);
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);

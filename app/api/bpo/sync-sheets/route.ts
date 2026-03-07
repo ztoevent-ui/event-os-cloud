@@ -40,17 +40,18 @@ export async function POST(request: Request) {
 
         // Prepare headers and data
         const rows = [
-            ['Team ID', 'P1 Name', 'P1 IC', 'P1 HP', 'P1 Email', 'P2 Name', 'P2 IC', 'P2 HP', 'P2 Email', 'Group', 'DUPR', 'Status', 'Timestamp'],
+            ['Team ID', 'P1 DUPR', 'P1 Name', 'P1 IC', 'P1 HP', 'Team Email', 'P2 DUPR', 'P2 Name', 'P2 IC', 'P2 HP', 'Group', 'Avg DUPR', 'Status', 'Timestamp'],
             ...registrations.map((r: any) => [
                 r.team_id,
+                r.data?.p1_dupr_id || '',
                 r.p1_name,
                 r.p1_ic_no,
                 r.p1_hp,
                 r.p1_email,
+                r.data?.p2_dupr_id || '',
                 r.p2_name,
                 r.p2_ic_no,
                 r.p2_hp,
-                r.p2_email,
                 r.group_name,
                 r.dupr_rating,
                 r.payment_status,

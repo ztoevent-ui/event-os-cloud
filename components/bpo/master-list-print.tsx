@@ -38,8 +38,14 @@ export const MasterListPrint = React.forwardRef<HTMLDivElement, { data: Registra
                     {data.map((row, i) => (
                         <tr key={i}>
                             <td className="border border-black p-2 font-mono font-bold">{row.team_id}</td>
-                            <td className="border border-black p-2">{row.p1_name}</td>
-                            <td className="border border-black p-2">{row.p2_name}</td>
+                            <td className="border border-black p-2">
+                                {(row as any).data?.p1_dupr_id && <span className="text-gray-500 font-mono text-xs mr-1">{(row as any).data.p1_dupr_id}</span>}
+                                {row.p1_name}
+                            </td>
+                            <td className="border border-black p-2">
+                                {(row as any).data?.p2_dupr_id && <span className="text-gray-500 font-mono text-xs mr-1">{(row as any).data.p2_dupr_id}</span>}
+                                {row.p2_name}
+                            </td>
                             <td className="border border-black p-2">{row.group_name}</td>
                             <td className="border border-black p-2 text-center">{Number(row.dupr_rating).toFixed(2)}</td>
                             <td className="border border-black p-2 text-center uppercase font-bold text-xs">{row.payment_status}</td>

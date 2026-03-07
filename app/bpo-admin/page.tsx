@@ -262,7 +262,8 @@ export default function BpoAdminPage() {
                                 )}
                                 <div className="space-y-4">
                                     <div>
-                                        <p className="text-xs text-gray-500 uppercase">Full Name</p>
+                                        <p className="text-xs text-gray-500 uppercase">DUPR ID & Full Name</p>
+                                        <p className="text-blue-400 font-mono text-sm">{selectedRegistration.data?.p1_dupr_id || 'N/A'}</p>
                                         <p className="text-lg font-medium">{selectedRegistration.p1_name}</p>
                                     </div>
                                     <div>
@@ -270,7 +271,7 @@ export default function BpoAdminPage() {
                                         <p className="font-medium">{selectedRegistration.p1_ic_no || 'N/A'}</p>
                                     </div>
                                     <div>
-                                        <p className="text-xs text-gray-500 uppercase">Phone & Email</p>
+                                        <p className="text-xs text-gray-500 uppercase">Phone & Team Email</p>
                                         <p className="font-medium">{selectedRegistration.p1_hp}</p>
                                         <p className="text-blue-400">{selectedRegistration.p1_email}</p>
                                     </div>
@@ -285,7 +286,8 @@ export default function BpoAdminPage() {
                                 )}
                                 <div className="space-y-4">
                                     <div>
-                                        <p className="text-xs text-gray-500 uppercase">Full Name</p>
+                                        <p className="text-xs text-gray-500 uppercase">DUPR ID & Full Name</p>
+                                        <p className="text-blue-400 font-mono text-sm">{selectedRegistration.data?.p2_dupr_id || 'N/A'}</p>
                                         <p className="text-lg font-medium">{selectedRegistration.p2_name}</p>
                                     </div>
                                     <div>
@@ -293,9 +295,8 @@ export default function BpoAdminPage() {
                                         <p className="font-medium">{selectedRegistration.p2_ic_no || 'N/A'}</p>
                                     </div>
                                     <div>
-                                        <p className="text-xs text-gray-500 uppercase">Phone & Email</p>
+                                        <p className="text-xs text-gray-500 uppercase">Phone</p>
                                         <p className="font-medium">{selectedRegistration.p2_hp}</p>
-                                        <p className="text-blue-400">{selectedRegistration.p2_email}</p>
                                     </div>
                                 </div>
                             </div>
