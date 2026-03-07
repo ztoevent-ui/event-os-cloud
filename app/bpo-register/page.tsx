@@ -83,7 +83,7 @@ export default function BpoRegisterPage() {
 
     if (submitted) {
         return (
-            <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4">
+            <div className="min-h-screen bg-[#040B16] flex items-center justify-center p-4">
                 <div className="w-full max-w-lg text-center space-y-8 animate-in fade-in zoom-in duration-500">
                     <div className="mx-auto w-24 h-24 bg-green-500/20 rounded-full flex items-center justify-center text-green-500 ring-4 ring-green-500/10">
                         <CheckCircle size={48} />
@@ -93,7 +93,7 @@ export default function BpoRegisterPage() {
                         <p className="mt-4 text-gray-400">You are officially registered for the BPO Pickleball Open 2026. See you on the court!</p>
                     </div>
                     <div className="bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl">
-                        <p className="text-xs text-blue-400 uppercase tracking-widest font-bold">Your Unique ID</p>
+                        <p className="text-xs text-green-400 uppercase tracking-widest font-bold">Your Unique ID</p>
                         <p className="mt-2 text-4xl font-black text-white font-mono tracking-tighter">{formData.team_id}</p>
                     </div>
                     <Link
@@ -109,11 +109,13 @@ export default function BpoRegisterPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#0a0a0a] text-white py-12 px-4 sm:px-6 lg:px-8 font-sans selection:bg-blue-500 selection:text-white">
+        <div className="min-h-screen bg-[#040B16] text-white py-12 px-4 sm:px-6 lg:px-8 font-sans selection:bg-orange-500 selection:text-white">
             <div className="max-w-4xl mx-auto">
                 {/* Header */}
-                <div className="text-center mb-16">
-                    <span className="inline-block px-4 py-1.5 rounded-full bg-blue-500/10 text-blue-400 text-xs font-bold uppercase tracking-widest border border-blue-500/20 mb-6 animate-in slide-in-from-top duration-700">
+                <div className="text-center mb-16 relative">
+                    {/* Optional glow effect behind text */}
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-pink-500/20 blur-[100px] rounded-full pointer-events-none" />
+                    <span className="inline-block px-4 py-1.5 rounded-full bg-white/5 text-gray-300 text-xs font-bold uppercase tracking-widest border border-white/20 shadow-[0_0_15px_rgba(255,255,255,0.05)] mb-6 animate-in slide-in-from-top duration-700 relative z-10">
                         BPO Pickleball Open 2026
                     </span>
                     <h1 className="text-5xl sm:text-7xl font-black italic tracking-tighter uppercase whitespace-pre-line leading-[0.9] text-transparent bg-clip-text bg-gradient-to-br from-white via-white to-white/20 animate-in fade-in duration-1000">
@@ -123,10 +125,10 @@ export default function BpoRegisterPage() {
 
                 <form onSubmit={handleSubmit} className="space-y-12 animate-in fade-in slide-in-from-bottom duration-1000">
                     {/* Step 1: Group & Rating */}
-                    <section className="bg-white/[0.03] border border-white/10 rounded-[2.5rem] p-8 sm:p-12 backdrop-blur-3xl shadow-2xl relative overflow-hidden group hover:border-blue-500/30 transition-all duration-500">
+                    <section className="bg-white/[0.03] border border-white/10 rounded-[2.5rem] p-8 sm:p-12 backdrop-blur-3xl shadow-2xl relative overflow-hidden group hover:border-orange-500/40 transition-all duration-500">
                         <Award className="absolute -right-4 -top-4 w-32 h-32 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity rotate-12" />
-                        <h2 className="text-2xl font-black italic uppercase tracking-tighter mb-8 flex items-center gap-3">
-                            <span className="w-8 h-8 rounded-lg bg-blue-600 text-sm italic flex items-center justify-center not-italic">01</span>
+                        <h2 className="text-2xl font-black italic uppercase tracking-tighter mb-8 flex items-center gap-3 relative z-10">
+                            <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-400 to-orange-600 shadow-[0_0_10px_rgba(249,115,22,0.4)] text-sm italic flex items-center justify-center not-italic">01</span>
                             CATEGORY & LEVEL
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
@@ -136,7 +138,7 @@ export default function BpoRegisterPage() {
                                     name="group_name"
                                     value={formData.group_name}
                                     onChange={handleChange}
-                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition appearance-none cursor-pointer"
+                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 outline-none focus:border-green-400/50 focus:ring-1 focus:ring-green-400/50 transition appearance-none cursor-pointer"
                                 >
                                     {groups.map(g => <option key={g} value={g} className="bg-[#1a1a1a]">{g}</option>)}
                                 </select>
@@ -150,7 +152,7 @@ export default function BpoRegisterPage() {
                                     required
                                     value={formData.dupr_rating}
                                     onChange={handleChange}
-                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition text-right font-mono"
+                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 outline-none focus:border-green-400/50 focus:ring-1 focus:ring-green-400/50 transition text-right font-mono"
                                     placeholder="0.00"
                                 />
                             </div>
@@ -160,9 +162,9 @@ export default function BpoRegisterPage() {
                     {/* Step 2: Player Details */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {/* Player 1 Card */}
-                        <section className="bg-white/[0.03] border border-white/10 rounded-[2.5rem] p-8 sm:p-10 backdrop-blur-3xl shadow-2xl group hover:border-blue-500/30 transition-all duration-500">
+                        <section className="bg-white/[0.03] border border-white/10 rounded-[2.5rem] p-8 sm:p-10 backdrop-blur-3xl shadow-2xl group hover:border-orange-500/40 transition-all duration-500">
                             <h2 className="text-xl font-black italic uppercase tracking-tighter mb-8 flex items-center gap-3">
-                                <span className="w-8 h-8 rounded-lg bg-blue-600 text-sm flex items-center justify-center not-italic">02</span>
+                                <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-400 to-orange-600 shadow-[0_0_10px_rgba(249,115,22,0.4)] text-sm flex items-center justify-center not-italic">02</span>
                                 CAPTAIN (P1)
                             </h2>
                             <div className="space-y-6">
@@ -172,7 +174,7 @@ export default function BpoRegisterPage() {
                                     </div>
                                     <input
                                         type="text" name="p1_dupr_id" required value={formData.p1_dupr_id} onChange={handleChange}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400 transition"
                                         placeholder="Enter DUPR ID"
                                     />
                                 </div>
@@ -182,7 +184,7 @@ export default function BpoRegisterPage() {
                                     </div>
                                     <input
                                         type="text" name="p1_name" required value={formData.p1_name} onChange={handleChange}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400 transition"
                                         placeholder="Enter name"
                                     />
                                 </div>
@@ -192,7 +194,7 @@ export default function BpoRegisterPage() {
                                     </div>
                                     <input
                                         type="text" name="p1_ic_no" required value={formData.p1_ic_no} onChange={handleChange}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400 transition"
                                         placeholder="000000-00-0000"
                                     />
                                 </div>
@@ -203,7 +205,7 @@ export default function BpoRegisterPage() {
                                         </div>
                                         <input
                                             type="tel" name="p1_hp" required value={formData.p1_hp} onChange={handleChange}
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400 transition"
                                             placeholder="+60..."
                                         />
                                     </div>
@@ -213,7 +215,7 @@ export default function BpoRegisterPage() {
                                         </div>
                                         <input
                                             type="email" name="p1_email" required value={formData.p1_email} onChange={handleChange}
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400 transition"
                                             placeholder="example@mail.com"
                                         />
                                     </div>
@@ -222,9 +224,9 @@ export default function BpoRegisterPage() {
                         </section>
 
                         {/* Player 2 Card */}
-                        <section className="bg-white/[0.03] border border-white/10 rounded-[2.5rem] p-8 sm:p-10 backdrop-blur-3xl shadow-2xl group hover:border-blue-500/30 transition-all duration-500">
+                        <section className="bg-white/[0.03] border border-white/10 rounded-[2.5rem] p-8 sm:p-10 backdrop-blur-3xl shadow-2xl group hover:border-orange-500/40 transition-all duration-500">
                             <h2 className="text-xl font-black italic uppercase tracking-tighter mb-8 flex items-center gap-3">
-                                <span className="w-8 h-8 rounded-lg bg-gray-700 text-sm flex items-center justify-center not-italic">03</span>
+                                <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-pink-500 to-pink-700 shadow-[0_0_10px_rgba(236,72,153,0.4)] text-sm flex items-center justify-center not-italic">03</span>
                                 PARTNER (P2)
                             </h2>
                             <div className="space-y-6">
@@ -234,7 +236,7 @@ export default function BpoRegisterPage() {
                                     </div>
                                     <input
                                         type="text" name="p2_dupr_id" required value={formData.p2_dupr_id} onChange={handleChange}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400 transition"
                                         placeholder="Enter DUPR ID"
                                     />
                                 </div>
@@ -244,7 +246,7 @@ export default function BpoRegisterPage() {
                                     </div>
                                     <input
                                         type="text" name="p2_name" required value={formData.p2_name} onChange={handleChange}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400 transition"
                                         placeholder="Enter name"
                                     />
                                 </div>
@@ -254,7 +256,7 @@ export default function BpoRegisterPage() {
                                     </div>
                                     <input
                                         type="text" name="p2_ic_no" required value={formData.p2_ic_no} onChange={handleChange}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400 transition"
                                         placeholder="000000-00-0000"
                                     />
                                 </div>
@@ -265,7 +267,7 @@ export default function BpoRegisterPage() {
                                         </div>
                                         <input
                                             type="tel" name="p2_hp" required value={formData.p2_hp} onChange={handleChange}
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400 transition"
                                             placeholder="+60..."
                                         />
                                     </div>
@@ -282,9 +284,9 @@ export default function BpoRegisterPage() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="group relative w-full sm:w-80 h-16 rounded-2xl bg-blue-600 overflow-hidden shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_0_40px_rgba(37,99,235,0.5)] transition-all duration-300 active:scale-95 disabled:opacity-50"
+                            className="group relative w-full sm:w-80 h-16 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 overflow-hidden shadow-[0_0_20px_rgba(249,115,22,0.4)] hover:shadow-[0_0_40px_rgba(249,115,22,0.6)] hover:from-orange-400 hover:to-orange-500 transition-all duration-300 active:scale-95 disabled:opacity-50"
                         >
-                            <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                            <div className="absolute inset-0 bg-gradient-to-r from-white/30 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
                             <span className="relative flex items-center justify-center gap-3 text-lg font-black tracking-tighter italic uppercase">
                                 {loading ? 'Processing...' : 'Complete Entry'}
                                 <ChevronRight size={20} className="not-italic transition-transform group-hover:translate-x-1" />
