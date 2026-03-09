@@ -199,12 +199,23 @@ export default function BpoRegisterPage() {
 
                     {/* Typography */}
                     <div className="space-y-4">
+                        <div className="flex justify-center mb-6">
+                            <img
+                                src="https://zihjzbweasaqqbwilshx.supabase.co/storage/v1/object/public/public_assets/bpo_2026/logo.png"
+                                alt="Sakura BPO 2026"
+                                className="h-32 object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.2)] animate-pulse"
+                                onError={(e) => {
+                                    // Fallback if logo doesn't exist
+                                    (e.target as HTMLImageElement).style.display = 'none';
+                                }}
+                            />
+                        </div>
                         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-bold text-gray-300 uppercase tracking-widest backdrop-blur-md">
                             <Ticket size={14} className="text-blue-400" />
                             Application Received
                         </div>
-                        <h1 className="text-5xl md:text-7xl font-black italic tracking-tighter uppercase whitespace-pre-line leading-[0.9] text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-400 drop-shadow-2xl">
-                            YOU'RE IN <br /> THE SYSTEM.
+                        <h1 className="text-4xl md:text-5xl font-black italic tracking-tighter uppercase whitespace-pre-line leading-[1.1] text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-400 drop-shadow-2xl">
+                            YOU'RE 1 STEP CLOSER <br /> TO THE CHAMPION.
                         </h1>
                         <p className="mt-4 text-lg text-gray-400 max-w-lg mx-auto leading-relaxed">
                             Your payment has been securely processed. <strong className="text-white font-semibold">Status: Pending Confirmation.</strong> Final entry results and brackets will be announced starting <span className="text-blue-400 font-bold">May 22, 2026</span>.
