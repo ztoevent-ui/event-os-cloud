@@ -34,6 +34,7 @@
     "framer-motion": "^11.3.19",
     "googleapis": "^171.4.0",
     "lucide-react": "^0.309.0",
+    "math-intrinsics": "^1.1.0",
     "nanoid": "^5.1.6",
     "next": "^16.1.1",
     "papaparse": "^5.5.3",
