@@ -136,18 +136,29 @@ export default function Home() {
                             </div>
                         </Link>
 
-                        <Link href="/bpo-register" className="flex items-center gap-4 bg-blue-600 p-6 rounded-2xl shadow-lg border border-blue-500 hover:shadow-blue-500/20 transition group">
-                            <div className="w-10 h-10 bg-white/20 text-white rounded-full flex items-center justify-center group-hover:scale-110 transition">
-                                <i className="fa-solid fa-medal"></i>
-                            </div>
-                            <div>
-                                <h3 className="font-bold text-white flex items-center gap-2">
-                                    BPO Registration
-                                    <span className="text-[10px] bg-white text-blue-600 px-1.5 py-0.5 rounded font-black">ACTIVE</span>
-                                </h3>
-                                <p className="text-xs text-blue-100/70">Register for BPO Pickleball Open 2026.</p>
-                            </div>
-                        </Link>
+                        <div className="flex bg-blue-600 rounded-2xl shadow-lg border border-blue-500 hover:shadow-blue-500/20 transition overflow-hidden group">
+                            <Link href="/bpo-register" className="flex items-center gap-4 p-6 flex-1">
+                                <div className="w-10 h-10 bg-white/20 text-white rounded-full flex items-center justify-center group-hover:scale-110 transition">
+                                    <i className="fa-solid fa-medal"></i>
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-white flex items-center gap-2">
+                                        BPO Registration
+                                        <span className="text-[10px] bg-white text-blue-600 px-1.5 py-0.5 rounded font-black">ACTIVE</span>
+                                    </h3>
+                                    <p className="text-xs text-blue-100/70">Register for BPO Pickleball Open 2026.</p>
+                                </div>
+                            </Link>
+                            <a
+                                href="/bpo_register_qr.png"
+                                download="BPO_Register_QR.png"
+                                className="flex flex-col items-center justify-center px-5 bg-blue-700/50 hover:bg-blue-700 text-white transition border-l border-blue-500/50"
+                                title="Download QR Code"
+                            >
+                                <i className="fa-solid fa-qrcode text-2xl"></i>
+                                <span className="text-[10px] font-bold mt-1 uppercase tracking-widest text-blue-200">QR</span>
+                            </a>
+                        </div>
                     </div>
                 </section>
 
