@@ -201,13 +201,9 @@ export default function BpoRegisterPage() {
                     <div className="space-y-4">
                         <div className="flex justify-center mb-6">
                             <img
-                                src="https://zihjzbweasaqqbwilshx.supabase.co/storage/v1/object/public/public_assets/bpo_2026/logo.png"
+                                src="/bpo_logo.png"
                                 alt="Sakura BPO 2026"
-                                className="h-32 object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.2)] animate-pulse"
-                                onError={(e) => {
-                                    // Fallback if logo doesn't exist
-                                    (e.target as HTMLImageElement).style.display = 'none';
-                                }}
+                                className="h-40 object-contain drop-shadow-[0_0_20px_rgba(255,255,255,0.15)] animate-pulse"
                             />
                         </div>
                         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-bold text-gray-300 uppercase tracking-widest backdrop-blur-md">
