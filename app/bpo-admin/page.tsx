@@ -62,6 +62,22 @@ export default function BpoAdminPage() {
         localStorage.removeItem('bpo_admin_token');
     };
 
+    const handleBatchRefund = () => {
+        const unsuccessfulCount = data.filter((r: any) => r.registration_status === 'Unsuccessful').length;
+        Swal.fire({
+            title: 'Batch Refund Interface',
+            text: `Found ${unsuccessfulCount} unsuccessful registrations. API Integration for refund gateway is pending.`,
+            icon: 'info',
+            background: '#1a1a1a',
+            color: '#fff',
+        });
+    };
+
+    const handleSortByDUPR = () => {
+        const sorted = [...data].sort((a: any, b: any) => (b.dupr_rating || 0) - (a.dupr_rating || 0));
+        setData(sorted);
+    };
+
     if (!isAuthenticated) {
         return (
             <div className="flex min-h-screen items-center justify-center bg-[#0a0a0a] p-4 text-white">
@@ -168,6 +184,18 @@ export default function BpoAdminPage() {
                             </div>
                         </div>
                         <div className="flex items-center gap-3">
+                            <button
+                                onClick={handleSortByDUPR}
+                                className="flex h-10 items-center justify-center rounded-xl bg-orange-500/10 px-4 text-sm font-medium text-orange-400 hover:bg-orange-500/20"
+                            >
+                                Sort DUPR
+                            </button>
+                            <button
+                                onClick={handleBatchRefund}
+                                className="flex h-10 items-center justify-center rounded-xl bg-pink-500/10 px-4 text-sm font-medium text-pink-400 hover:bg-pink-500/20"
+                            >
+                                Refund Flow
+                            </button>
                             <button
                                 onClick={() => fetchData(password)}
                                 disabled={loading}

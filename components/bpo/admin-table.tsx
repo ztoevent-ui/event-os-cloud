@@ -28,6 +28,7 @@ interface Registration {
     group_name: string;
     dupr_rating: number;
     payment_status: string;
+    registration_status?: string;
     created_at: string;
 }
 
@@ -77,6 +78,19 @@ export function AdminTable({ data, onRowClick }: { data: Registration[], onRowCl
                 );
             },
         }),
+        columnHelper.accessor('registration_status', {
+            header: 'Status',
+            cell: info => {
+                const val = info.getValue() || 'Pending_Verification';
+                const isConfirmed = val === 'Confirmed';
+                const isUnsuccessful = val === 'Unsuccessful';
+                return (
+                    <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset ${isConfirmed ? 'bg-green-500/10 text-green-400 ring-green-500/20' : isUnsuccessful ? 'bg-red-500/10 text-red-400 ring-red-500/20' : 'bg-gray-500/10 text-gray-400 ring-gray-500/20'}`}>
+                        {val.replace('_', ' ')}
+                    </span>
+                );
+            },
+        }),
         columnHelper.accessor('created_at', {
             header: 'Date',
             cell: info => <span className="text-gray-400">{new Date(info.getValue()).toLocaleDateString()}</span>,
@@ -121,6 +135,7 @@ export function AdminTable({ data, onRowClick }: { data: Registration[], onRowCl
             group_name: d.group_name,
             dupr_rating: d.dupr_rating,
             payment_status: d.payment_status,
+            registration_status: d.registration_status || 'Pending_Verification',
             created_at: d.created_at
         }));
         const csv = Papa.unparse(flattenData);
