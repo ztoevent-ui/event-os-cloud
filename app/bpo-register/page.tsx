@@ -242,17 +242,6 @@ export default function BpoRegisterPage() {
                             </div>
                         </div>
                     </div>
-
-                    {/* Actions */}
-                    <div className="pt-8 flex justify-center">
-                        <Link
-                            href="/"
-                            className="inline-flex items-center gap-3 px-8 py-4 rounded-2xl bg-white/5 border border-white/10 text-sm font-bold text-gray-300 hover:bg-white/10 hover:text-white transition-all hover:scale-105 active:scale-95 group"
-                        >
-                            <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-                            Return to Homepage
-                        </Link>
-                    </div>
                 </div>
             </div>
         );
