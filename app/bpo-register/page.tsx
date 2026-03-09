@@ -187,25 +187,28 @@ export default function BpoRegisterPage() {
 
                 <div className="w-full max-w-2xl text-center space-y-10 relative z-10 animate-in fade-in slide-in-from-bottom-8 duration-1000">
 
-                    {/* Success Icon */}
-                    <div className="relative mx-auto w-32 h-32 flex items-center justify-center group">
-                        <div className="absolute inset-0 bg-green-500/20 rounded-full blur-xl group-hover:bg-green-500/30 transition-all duration-700" />
-                        <div className="absolute inset-0 bg-gradient-to-tr from-green-500 to-emerald-400 rounded-full opacity-20 animate-pulse" />
-                        <div className="relative bg-white/[0.05] border border-white/10 w-full h-full rounded-full flex items-center justify-center backdrop-blur-md shadow-[0_0_40px_rgba(34,197,94,0.3)]">
-                            <Sparkles className="absolute top-2 right-2 text-yellow-400 w-6 h-6 animate-bounce" />
-                            <CheckCircle size={64} className="text-green-400 drop-shadow-[0_0_15px_rgba(34,197,94,0.5)]" />
+                    {/* Logo & Small Success Icon */}
+                    <div className="space-y-6 flex flex-col items-center">
+                        <div className="flex justify-center">
+                            <img
+                                src="/bpo_logo.png"
+                                alt="Sakura BPO 2026"
+                                className="h-48 object-contain drop-shadow-[0_0_20px_rgba(255,255,255,0.15)] animate-pulse"
+                            />
+                        </div>
+
+                        <div className="relative mx-auto w-16 h-16 flex items-center justify-center group">
+                            <div className="absolute inset-0 bg-green-500/20 rounded-full blur-md group-hover:bg-green-500/30 transition-all duration-700" />
+                            <div className="absolute inset-0 bg-gradient-to-tr from-green-500 to-emerald-400 rounded-full opacity-20 animate-pulse" />
+                            <div className="relative bg-white/[0.05] border border-white/10 w-full h-full rounded-full flex items-center justify-center backdrop-blur-md shadow-[0_0_20px_rgba(34,197,94,0.3)]">
+                                <Sparkles className="absolute -top-1 -right-1 text-yellow-400 w-4 h-4 animate-bounce" />
+                                <CheckCircle size={32} className="text-green-400 drop-shadow-[0_0_10px_rgba(34,197,94,0.5)]" />
+                            </div>
                         </div>
                     </div>
 
                     {/* Typography */}
-                    <div className="space-y-4">
-                        <div className="flex justify-center mb-6">
-                            <img
-                                src="/bpo_logo.png"
-                                alt="Sakura BPO 2026"
-                                className="h-40 object-contain drop-shadow-[0_0_20px_rgba(255,255,255,0.15)] animate-pulse"
-                            />
-                        </div>
+                    <div className="space-y-4 mt-6">
                         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-bold text-gray-300 uppercase tracking-widest backdrop-blur-md">
                             <Ticket size={14} className="text-blue-400" />
                             Application Received
