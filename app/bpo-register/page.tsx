@@ -50,6 +50,7 @@ export default function BpoRegisterPage() {
         'Vertigo / Dizziness', 'None'
     ];
     const BLOOD_TYPES = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Unknown'];
+    const RELATIONSHIP_OPTIONS = ['Spouse', 'Parent', 'Sibling', 'Child', 'Relative', 'Friend', 'Coach', 'Manager', 'Other'];
 
     const [formData, setFormData] = useState({
         team_id: `TEAM-${Math.floor(Math.random() * 9000) + 1000}`,
@@ -60,6 +61,7 @@ export default function BpoRegisterPage() {
         p1_email: '',
         p1_emergency_name: '',
         p1_emergency_phone: '',
+        p1_emergency_relationship: 'Spouse',
         p1_blood_type: 'Unknown',
         p1_hometown: '',
         p2_dupr_id: '',
@@ -68,6 +70,7 @@ export default function BpoRegisterPage() {
         p2_hp: '',
         p2_emergency_name: '',
         p2_emergency_phone: '',
+        p2_emergency_relationship: 'Spouse',
         p2_blood_type: 'Unknown',
         p2_hometown: '',
         group_name: "Men's Doubles",
@@ -180,11 +183,13 @@ export default function BpoRegisterPage() {
                     p2_dupr_id: formData.p2_dupr_id,
                     p1_emergency_name: formData.p1_emergency_name,
                     p1_emergency_phone: formData.p1_emergency_phone,
+                    p1_emergency_relationship: formData.p1_emergency_relationship,
                     p1_blood_type: formData.p1_blood_type,
                     p1_hometown: formData.p1_hometown,
                     p1_medical_history: p1Medical,
                     p2_emergency_name: formData.p2_emergency_name,
                     p2_emergency_phone: formData.p2_emergency_phone,
+                    p2_emergency_relationship: formData.p2_emergency_relationship,
                     p2_blood_type: formData.p2_blood_type,
                     p2_hometown: formData.p2_hometown,
                     p2_medical_history: p2Medical,
@@ -433,6 +438,13 @@ export default function BpoRegisterPage() {
                                                 placeholder="+60..." />
                                         </div>
                                     </div>
+                                    <div className="mt-3 space-y-1.5">
+                                        <div className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1">👥 Relationship to Player</div>
+                                        <select name="p1_emergency_relationship" value={formData.p1_emergency_relationship} onChange={handleChange}
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400 transition">
+                                            {RELATIONSHIP_OPTIONS.map(r => <option key={r} value={r} className="bg-[#1a1a1a]">{r}</option>)}
+                                        </select>
+                                    </div>
                                 </div>
 
                                 {/* Blood Type & Hometown */}
@@ -544,6 +556,13 @@ export default function BpoRegisterPage() {
                                                 className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400 transition"
                                                 placeholder="+60..." />
                                         </div>
+                                    </div>
+                                    <div className="mt-3 space-y-1.5">
+                                        <div className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1">👥 Relationship to Player</div>
+                                        <select name="p2_emergency_relationship" value={formData.p2_emergency_relationship} onChange={handleChange}
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400 transition">
+                                            {RELATIONSHIP_OPTIONS.map(r => <option key={r} value={r} className="bg-[#1a1a1a]">{r}</option>)}
+                                        </select>
                                     </div>
                                 </div>
 

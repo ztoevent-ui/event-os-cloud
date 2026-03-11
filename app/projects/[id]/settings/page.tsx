@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 
 const EVENT_TYPES = [
     { value: 'corporate', label: '🏢 Corporate Event', desc: 'General corporate functions & meetings' },
@@ -15,8 +15,9 @@ const EVENT_TYPES = [
 
 const STATUS_OPTIONS = ['planning', 'active', 'completed', 'on_hold'];
 
-export default function ProjectSettingsPage({ params }: { params: { id: string } }) {
-    const { id } = params;
+export default function ProjectSettingsPage() {
+    const params = useParams();
+    const id = (params?.id as string) ?? '';
     const router = useRouter();
 
     const [project, setProject] = useState<any>(null);
