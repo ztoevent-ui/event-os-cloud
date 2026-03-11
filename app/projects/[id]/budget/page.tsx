@@ -5,7 +5,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://zihjzbweasa
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppaGp6YndlYXNhcXFid2lsc2h4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4OTQ5MTYsImV4cCI6MjA4MTQ3MDkxNn0.ilHqOs75eUA6p2n-h1rgfulwNwq_hPQyptFg-kcjbv4';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-import { AddBudgetButton, DeleteBudgetButton } from '../../components/ProjectModals';
+import { AddBudgetButton, BudgetCard } from '../../components/ProjectModals';
 
 export default async function BudgetPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
@@ -81,23 +81,7 @@ export default async function BudgetPage({ params }: { params: Promise<{ id: str
                     </div>
                     <div className="divide-y divide-zinc-800 flex-1">
                         {income.map((item) => (
-                            <div key={item.id} className="p-4 flex items-center justify-between hover:bg-zinc-800/50 transition-colors group">
-                                <div>
-                                    <h4 className="font-bold text-zinc-200 group-hover:text-amber-400 transition-colors">{item.item}</h4>
-                                    <p className="text-xs text-zinc-500 uppercase tracking-wide mt-0.5">{item.category}</p>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                    <div className="text-right">
-                                        <div className="font-mono font-bold text-green-400">
-                                            + RM {Number(item.amount).toFixed(2)}
-                                        </div>
-                                        <span className={`text-[10px] px-2 py-0.5 rounded-full mt-1 inline-block ${item.status === 'actual' ? 'bg-green-900/30 text-green-500' : 'bg-zinc-800 text-zinc-500'}`}>
-                                            {item.status}
-                                        </span>
-                                    </div>
-                                    <DeleteBudgetButton id={item.id} projectId={id} />
-                                </div>
-                            </div>
+                            <BudgetCard key={item.id} item={item} projectId={id} existingCategories={existingCategories as string[]} />
                         ))}
                         {income.length === 0 && (
                             <div className="p-8 text-center text-zinc-500 italic">No income records.</div>
@@ -117,23 +101,7 @@ export default async function BudgetPage({ params }: { params: Promise<{ id: str
                     </div>
                     <div className="divide-y divide-zinc-800 flex-1">
                         {expenses.map((item) => (
-                            <div key={item.id} className="p-4 flex items-center justify-between hover:bg-zinc-800/50 transition-colors group">
-                                <div>
-                                    <h4 className="font-bold text-zinc-200 group-hover:text-amber-400 transition-colors">{item.item}</h4>
-                                    <p className="text-xs text-zinc-500 uppercase tracking-wide mt-0.5">{item.category}</p>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                    <div className="text-right">
-                                        <div className="font-mono font-bold text-zinc-200">
-                                            - RM {Number(item.amount).toFixed(2)}
-                                        </div>
-                                        <span className={`text-[10px] px-2 py-0.5 rounded-full mt-1 inline-block ${item.status === 'actual' ? 'bg-green-900/30 text-green-500' : 'bg-zinc-800 text-zinc-500'}`}>
-                                            {item.status}
-                                        </span>
-                                    </div>
-                                    <DeleteBudgetButton id={item.id} projectId={id} />
-                                </div>
-                            </div>
+                            <BudgetCard key={item.id} item={item} projectId={id} existingCategories={existingCategories as string[]} />
                         ))}
                         {expenses.length === 0 && (
                             <div className="p-8 text-center text-zinc-500 italic">No expense records.</div>

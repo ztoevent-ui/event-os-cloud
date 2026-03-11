@@ -2,7 +2,7 @@
 'use client'
 
 import React, { useState } from 'react';
-import { createTask, updateTask, deleteTask, createTimeline, deleteTimeline, createBudget, deleteBudget, createVendor, deleteVendor } from '../actions';
+import { createTask, updateTask, deleteTask, createTimeline, updateTimeline, deleteTimeline, createBudget, updateBudget, deleteBudget, createVendor, updateVendor, deleteVendor } from '../actions';
 import { useRouter } from 'next/navigation';
 
 // --- SHARED UI COMPONENTS ---
@@ -195,6 +195,81 @@ export function AddTimelineButton({ projectId }: { projectId: string }) {
     );
 }
 
+export function TimelineCard({ phase, projectId }: { phase: any, projectId: string }) {
+    const [isEditOpen, setIsEditOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    return (
+        <>
+            <div onClick={() => setIsEditOpen(true)} className="relative border-l-2 border-amber-500 ml-4 md:ml-6 group cursor-pointer hover:bg-zinc-800/20 p-4 -ml-4 rounded-xl transition-all">
+                <div className="absolute w-3 h-3 bg-black border-2 border-amber-500 rounded-full -left-[23px] md:-left-[27px] top-1.5 group-hover:scale-125 transition-transform group-hover:bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]"></div>
+                <div className="pl-6 md:pl-8">
+                    <div className="flex justify-between items-start mb-1">
+                        <h3 className="text-xl font-bold text-white group-hover:text-amber-400 transition-colors flex items-center gap-2">
+                            {phase.name}
+                            <i className="fa-solid fa-pen-to-square opacity-0 group-hover:opacity-100 transition-opacity text-amber-500 text-sm"></i>
+                        </h3>
+                    </div>
+                    <div className="flex items-center gap-4 text-sm text-zinc-500 font-medium">
+                        <span className="flex items-center gap-1.5 object-contain">
+                            <i className="fa-regular fa-calendar-check text-amber-500/70"></i>
+                            {phase.start_date ? String(phase.start_date).split('T')[0] : 'TBD'} 
+                            <i className="fa-solid fa-arrow-right text-[10px] mx-1"></i> 
+                            {phase.end_date ? String(phase.end_date).split('T')[0] : 'TBD'}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <Modal isOpen={isEditOpen} onClose={() => setIsEditOpen(false)} title="Edit Phase">
+                <form action={async (formData) => {
+                    formData.append('id', phase.id);
+                    await updateTimeline(formData);
+                    setIsEditOpen(false);
+                }} className="space-y-4">
+                    <input type="hidden" name="project_id" value={projectId} />
+                    <div>
+                        <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Phase Name</label>
+                        <input name="name" defaultValue={phase.name} required className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500" placeholder="e.g. Phase 1: Planning" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Start Date</label>
+                            <input type="date" name="start_date" defaultValue={phase.start_date?.split('T')[0]} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500" />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">End Date</label>
+                            <input type="date" name="end_date" defaultValue={phase.end_date?.split('T')[0]} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500" />
+                        </div>
+                    </div>
+                    <button type="submit" className="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold py-3 rounded-xl transition-colors mt-4">Save Changes</button>
+                    
+                    <div className="mt-4 pt-4 border-t border-zinc-800 flex justify-between items-center">
+                        <span className="text-xs text-zinc-500">Danger Zone</span>
+                        <button
+                            type="button"
+                            onClick={async () => {
+                                if (confirm('Are you sure you want to delete this phase?')) {
+                                    setIsDeleting(true);
+                                    const delData = new FormData();
+                                    delData.append('id', phase.id);
+                                    delData.append('project_id', projectId);
+                                    await deleteTimeline(delData);
+                                    setIsEditOpen(false);
+                                }
+                            }}
+                            disabled={isDeleting}
+                            className="text-xs text-red-500 hover:text-red-400 hover:underline flex items-center gap-1"
+                        >
+                            {isDeleting ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-trash"></i>} Delete Phase
+                        </button>
+                    </div>
+                </form>
+            </Modal>
+        </>
+    );
+}
+
 export function DeleteTimelineButton({ id, projectId }: { id: string, projectId: string }) {
     return (
         <form action={deleteTimeline}>
@@ -258,6 +333,107 @@ export function AddBudgetButton({ projectId, existingCategories = [] }: { projec
                         </div>
                     </div>
                     <button type="submit" className="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold py-3 rounded-xl transition-colors mt-4">Add Transaction</button>
+                </form>
+            </Modal>
+        </>
+    );
+}
+
+export function BudgetCard({ item, projectId, existingCategories = [] }: { item: any, projectId: string, existingCategories?: string[] }) {
+    const [isEditOpen, setIsEditOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+    
+    const defaultCategories = [
+        "Venue", "Decor", "Marketing", "Staff", "Sponsorship",
+        "Live Streaming", "Media Team (Photo/Video)", "Prize Pool", 
+        "Equipment", "F&B (Catering)", "Logistics"
+    ];
+    const combinedCategories = Array.from(new Set([...defaultCategories, ...existingCategories]));
+
+    return (
+        <>
+            <div onClick={() => setIsEditOpen(true)} className="p-4 flex items-center justify-between hover:bg-zinc-800/50 transition-colors group cursor-pointer">
+                <div>
+                    <h4 className="font-bold text-zinc-200 group-hover:text-amber-400 transition-colors flex items-center gap-2">
+                        {item.item}
+                        <i className="fa-solid fa-pen-to-square opacity-0 group-hover:opacity-100 transition-opacity text-amber-500 text-xs"></i>
+                    </h4>
+                    <p className="text-xs text-zinc-500 uppercase tracking-wide mt-0.5">{item.category}</p>
+                </div>
+                <div className="flex items-center gap-4">
+                    <div className="text-right">
+                        <div className={`font-mono font-bold ${item.type === 'expense' ? 'text-zinc-200' : 'text-green-400'}`}>
+                            {item.type === 'expense' ? '-' : '+'} RM {Number(item.amount).toFixed(2)}
+                        </div>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full mt-1 inline-block ${item.status === 'actual' ? 'bg-green-900/30 text-green-500' : 'bg-zinc-800 text-zinc-500'}`}>
+                            {item.status}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <Modal isOpen={isEditOpen} onClose={() => setIsEditOpen(false)} title="Edit Transaction">
+                <form action={async (formData) => {
+                    formData.append('id', item.id);
+                    await updateBudget(formData);
+                    setIsEditOpen(false);
+                }} className="space-y-4">
+                    <input type="hidden" name="project_id" value={projectId} />
+                    <div>
+                        <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Item Name</label>
+                        <input name="item" defaultValue={item.item} required className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500" placeholder="e.g. Venue Deposit" />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Amount (RM)</label>
+                        <input name="amount" defaultValue={item.amount} type="number" step="0.01" required className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500" placeholder="0.00" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Type</label>
+                            <select name="type" defaultValue={item.type} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500">
+                                <option value="expense">Expense</option>
+                                <option value="income">Income</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Status</label>
+                            <select name="status" defaultValue={item.status || 'planned'} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500">
+                                <option value="planned">Planned</option>
+                                <option value="actual">Actual</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Category</label>
+                        <input name="category" defaultValue={item.category} list="categories" className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500" placeholder="Select or type..." />
+                        <datalist id="categories">
+                            {combinedCategories.map((cat, i) => (
+                                <option key={i} value={cat} />
+                            ))}
+                        </datalist>
+                    </div>
+                    <button type="submit" className="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold py-3 rounded-xl transition-colors mt-4">Save Changes</button>
+                    
+                    <div className="mt-4 pt-4 border-t border-zinc-800 flex justify-between items-center">
+                        <span className="text-xs text-zinc-500">Danger Zone</span>
+                        <button
+                            type="button"
+                            onClick={async () => {
+                                if (confirm('Are you sure you want to delete this transaction?')) {
+                                    setIsDeleting(true);
+                                    const delData = new FormData();
+                                    delData.append('id', item.id);
+                                    delData.append('project_id', projectId);
+                                    await deleteBudget(delData);
+                                    setIsEditOpen(false);
+                                }
+                            }}
+                            disabled={isDeleting}
+                            className="text-xs text-red-500 hover:text-red-400 hover:underline flex items-center gap-1"
+                        >
+                            {isDeleting ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-trash"></i>} Delete Transaction
+                        </button>
+                    </div>
                 </form>
             </Modal>
         </>
@@ -332,6 +508,126 @@ export function AddVendorButton({ projectId }: { projectId: string }) {
                         </div>
                     </div>
                     <button type="submit" className="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold py-3 rounded-xl transition-colors mt-4">Add Vendor</button>
+                </form>
+            </Modal>
+        </>
+    );
+}
+
+export function VendorCard({ vendor, projectId }: { vendor: any, projectId: string }) {
+    const [isEditOpen, setIsEditOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const statusStyle = vendor.status === 'confirmed' ? 'bg-green-500/20 text-green-500 border-green-500/30' :
+                        vendor.status === 'contacted' ? 'bg-blue-500/20 text-blue-500 border-blue-500/30' :
+                        'bg-zinc-800 text-zinc-400 border-zinc-700';
+
+    return (
+        <>
+            <div onClick={() => setIsEditOpen(true)} className="bg-zinc-900 border border-zinc-800 hover:border-amber-500/50 p-6 rounded-2xl relative group cursor-pointer shadow-sm hover:shadow-md transition-all h-full flex flex-col">
+                <div className="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 className="font-bold text-white text-lg group-hover:text-amber-400 transition-colors flex items-center gap-2">
+                            {vendor.name}
+                            <i className="fa-solid fa-pen-to-square opacity-0 group-hover:opacity-100 transition-opacity text-amber-500 text-xs"></i>
+                        </h3>
+                        <p className="text-zinc-500 text-sm">{vendor.category}</p>
+                    </div>
+                    <span className={`text-xs px-2.5 py-1 rounded-full border ${statusStyle} uppercase font-bold tracking-wider`}>
+                        {vendor.status}
+                    </span>
+                </div>
+
+                <div className="space-y-3 mt-auto">
+                    {vendor.contact_person && (
+                        <div className="flex items-center gap-3 text-sm text-zinc-300">
+                            <i className="fa-regular fa-user text-zinc-500 w-4 text-center"></i>
+                            {vendor.contact_person}
+                        </div>
+                    )}
+                    {vendor.phone && (
+                        <div className="flex items-center gap-3 text-sm text-zinc-300 pointer-events-auto">
+                            <i className="fa-solid fa-phone text-zinc-500 w-4 text-center"></i>
+                            <a href={`tel:${vendor.phone}`} className="hover:text-amber-400 transition block" onClick={(e) => e.stopPropagation()}>{vendor.phone}</a>
+                        </div>
+                    )}
+                    {vendor.email && (
+                        <div className="flex items-center gap-3 text-sm text-zinc-300 pointer-events-auto">
+                            <i className="fa-regular fa-envelope text-zinc-500 w-4 text-center"></i>
+                            <a href={`mailto:${vendor.email}`} className="hover:text-amber-400 transition block truncate" onClick={(e) => e.stopPropagation()}>{vendor.email}</a>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            <Modal isOpen={isEditOpen} onClose={() => setIsEditOpen(false)} title="Edit Vendor">
+                <form action={async (formData) => {
+                    formData.append('id', vendor.id);
+                    await updateVendor(formData);
+                    setIsEditOpen(false);
+                }} className="space-y-4">
+                    <input type="hidden" name="project_id" value={projectId} />
+                    <div>
+                        <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Vendor Name</label>
+                        <input name="name" defaultValue={vendor.name} required className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500" placeholder="Company Name" />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Category</label>
+                        <input name="category" defaultValue={vendor.category} list="vendor-categories" className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500" placeholder="e.g. Catering" />
+                        <datalist id="vendor-categories">
+                            <option value="Venue" />
+                            <option value="Catering" />
+                            <option value="Photography" />
+                            <option value="AV & Sound" />
+                            <option value="Decor" />
+                        </datalist>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Status</label>
+                            <select name="status" defaultValue={vendor.status} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500">
+                                <option value="potential">Potential</option>
+                                <option value="contacted">Contacted</option>
+                                <option value="confirmed">Confirmed</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Contact Person</label>
+                            <input name="contact_person" defaultValue={vendor.contact_person} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500" placeholder="Name" />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Phone</label>
+                            <input name="phone" defaultValue={vendor.phone} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500" placeholder="+60..." />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Email</label>
+                            <input name="email" defaultValue={vendor.email} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500" placeholder="email@example.com" />
+                        </div>
+                    </div>
+                    <button type="submit" className="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold py-3 rounded-xl transition-colors mt-4">Save Changes</button>
+                    
+                    <div className="mt-4 pt-4 border-t border-zinc-800 flex justify-between items-center">
+                        <span className="text-xs text-zinc-500">Danger Zone</span>
+                        <button
+                            type="button"
+                            onClick={async () => {
+                                if (confirm('Are you sure you want to delete this vendor?')) {
+                                    setIsDeleting(true);
+                                    const delData = new FormData();
+                                    delData.append('id', vendor.id);
+                                    delData.append('project_id', projectId);
+                                    await deleteVendor(delData);
+                                    setIsEditOpen(false);
+                                }
+                            }}
+                            disabled={isDeleting}
+                            className="text-xs text-red-500 hover:text-red-400 hover:underline flex items-center gap-1"
+                        >
+                            {isDeleting ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-trash"></i>} Delete Vendor
+                        </button>
+                    </div>
                 </form>
             </Modal>
         </>
