@@ -5,7 +5,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://zihjzbweasa
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppaGp6YndlYXNhcXFid2lsc2h4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4OTQ5MTYsImV4cCI6MjA4MTQ3MDkxNn0.ilHqOs75eUA6p2n-h1rgfulwNwq_hPQyptFg-kcjbv4';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-import { AddBudgetButton, BudgetCard } from '../../components/ProjectModals';
+import { AddBudgetButton, BudgetCard, ReportButton } from '../../components/ProjectModals';
 
 export default async function BudgetPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
@@ -36,9 +36,7 @@ export default async function BudgetPage({ params }: { params: Promise<{ id: str
                     <p className="text-zinc-400">Monitor expenses and adhere to financial goals.</p>
                 </div>
                 <div className="flex gap-4">
-                    <button className="px-6 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-full transition-all flex items-center gap-2 border border-zinc-700">
-                        <i className="fa-solid fa-file-invoice-dollar"></i> Report
-                    </button>
+                    <ReportButton budgetItems={budgetItems as any[]} totalSpends={totalSpends} totalIncome={totalIncome} />
                     <AddBudgetButton projectId={id} existingCategories={existingCategories as string[]} />
                 </div>
             </div>

@@ -645,3 +645,198 @@ export function DeleteVendorButton({ id, projectId }: { id: string, projectId: s
         </form>
     );
 }
+
+export function ReportButton({ budgetItems, totalSpends, totalIncome }: { budgetItems: any[], totalSpends: number, totalIncome: number }) {
+    const [isOpen, setIsOpen] = useState(false);
+    
+    return (
+        <>
+            <button onClick={() => setIsOpen(true)} className="px-6 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-full transition-all flex items-center gap-2 border border-zinc-700">
+                <i className="fa-solid fa-file-invoice-dollar"></i> Report
+            </button>
+            <ReportModal isOpen={isOpen} onClose={() => setIsOpen(false)} budgetItems={budgetItems} totalSpends={totalSpends} totalIncome={totalIncome} />
+        </>
+    );
+}
+
+export function ReportModal({ isOpen, onClose, budgetItems, totalSpends, totalIncome }: { 
+    isOpen: boolean; 
+    onClose: () => void; 
+    budgetItems: any[];
+    totalSpends: number;
+    totalIncome: number;
+}) {
+    const [reportTitle, setReportTitle] = useState("Budget Summary Report");
+    const [preparedBy, setPreparedBy] = useState("Tony Wong");
+    const today = new Date().toLocaleDateString('en-MY', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    if (!isOpen) return null;
+
+    const handlePrint = () => {
+        window.print();
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in report-modal-container">
+            <div className="bg-white text-black w-full max-w-4xl max-h-[90vh] overflow-y-auto relative animate-in zoom-in-95 shadow-2xl flex flex-col print:max-h-none print:w-full print:bg-white print:p-0">
+                {/* Non-printable header controls */}
+                <div className="bg-zinc-900 border-b border-zinc-800 p-4 sticky top-0 z-10 flex justify-between items-center print:hidden">
+                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                        <i className="fa-solid fa-print text-amber-500"></i> Report Configuration
+                    </h3>
+                    <div className="flex items-center gap-3">
+                        <button onClick={handlePrint} className="px-5 py-2 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-lg transition-colors flex items-center gap-2">
+                            <i className="fa-solid fa-file-pdf"></i> Print / Save PDF
+                        </button>
+                        <button onClick={onClose} className="w-10 h-10 bg-zinc-800 hover:bg-red-500/20 text-zinc-400 hover:text-red-400 rounded-lg transition-colors flex items-center justify-center">
+                            <i className="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div className="bg-zinc-800/50 p-6 border-b border-zinc-800 print:hidden grid grid-cols-2 gap-6">
+                    <div>
+                        <label className="block text-xs font-bold text-zinc-400 uppercase mb-2">Report Title</label>
+                        <input 
+                            value={reportTitle} 
+                            onChange={(e) => setReportTitle(e.target.value)}
+                            className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500" 
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-zinc-400 uppercase mb-2">Prepared By</label>
+                        <input 
+                            value={preparedBy} 
+                            onChange={(e) => setPreparedBy(e.target.value)}
+                            className="w-full bg-zinc-900 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500" 
+                        />
+                    </div>
+                </div>
+
+                {/* Printable Area (`print:block` logic applied globally through CSS or just layout) */}
+                <div className="p-12 print:p-8 flex-1 bg-white print:bg-white text-black print-area" id="printable-report">
+                    
+                    {/* Visual styles for print are injected directly inline to ensure they render when printing */}
+                    <div className="border-b-[3px] border-black pb-6 mb-8 flex justify-between items-end">
+                        <div>
+                            <h1 className="text-4xl font-serif font-black mb-2 uppercase tracking-tight">{reportTitle}</h1>
+                            <p className="text-zinc-500 font-mono text-sm uppercase tracking-widest">Project Financials Overview</p>
+                        </div>
+                        <div className="text-right">
+                            <div className="font-bold text-lg">{today}</div>
+                            <div className="text-zinc-500 mt-1">Prepared by: <span className="text-black font-bold">{preparedBy}</span></div>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-6 mb-12">
+                        <div className="border border-black p-6 rounded-xl text-center bg-zinc-50">
+                            <div className="text-zinc-500 text-sm font-bold uppercase tracking-widest mb-2">Total Income</div>
+                            <div className="text-3xl font-mono font-bold text-green-700">RM {totalIncome.toFixed(2)}</div>
+                        </div>
+                        <div className="border border-black p-6 rounded-xl text-center bg-zinc-50">
+                            <div className="text-zinc-500 text-sm font-bold uppercase tracking-widest mb-2">Total Expenses</div>
+                            <div className="text-3xl font-mono font-bold text-red-700">RM {totalSpends.toFixed(2)}</div>
+                        </div>
+                        <div className={`border-[3px] p-6 rounded-xl text-center ${totalIncome - totalSpends >= 0 ? 'border-green-600 bg-green-50' : 'border-red-600 bg-red-50'}`}>
+                            <div className={`text-sm font-black uppercase tracking-widest mb-2 ${totalIncome - totalSpends >= 0 ? 'text-green-800' : 'text-red-800'}`}>Net Balance</div>
+                            <div className={`text-4xl font-mono font-black ${totalIncome - totalSpends >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                                RM {(totalIncome - totalSpends).toFixed(2)}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mb-10">
+                        <h2 className="text-2xl font-bold border-b border-black pb-2 mb-4">Income Tracking</h2>
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="border-b-2 border-black">
+                                    <th className="py-3 px-2 font-bold uppercase text-xs tracking-wider">Date</th>
+                                    <th className="py-3 px-2 font-bold uppercase text-xs tracking-wider">Item</th>
+                                    <th className="py-3 px-2 font-bold uppercase text-xs tracking-wider">Category</th>
+                                    <th className="py-3 px-2 font-bold uppercase text-xs tracking-wider">Status</th>
+                                    <th className="py-3 px-2 font-bold uppercase text-xs tracking-wider text-right">Amount (RM)</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-zinc-200">
+                                {budgetItems?.filter(i => i.type === 'income').map((item, idx) => (
+                                    <tr key={idx} className="hover:bg-zinc-50">
+                                        <td className="py-3 px-2 text-sm text-zinc-500">{new Date(item.created_at).toLocaleDateString()}</td>
+                                        <td className="py-3 px-2 font-medium">{item.item}</td>
+                                        <td className="py-3 px-2 text-sm uppercase">{item.category}</td>
+                                        <td className="py-3 px-2 text-sm uppercase font-bold">{item.status}</td>
+                                        <td className="py-3 px-2 font-mono font-bold text-right text-green-700">+{Number(item.amount).toFixed(2)}</td>
+                                    </tr>
+                                ))}
+                                {(!budgetItems?.filter(i => i.type === 'income').length) && (
+                                    <tr><td colSpan={5} className="py-4 text-center text-zinc-500 italic">No income records available.</td></tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div>
+                        <h2 className="text-2xl font-bold border-b border-black pb-2 mb-4">Expense Breakdown</h2>
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="border-b-2 border-black">
+                                    <th className="py-3 px-2 font-bold uppercase text-xs tracking-wider">Date</th>
+                                    <th className="py-3 px-2 font-bold uppercase text-xs tracking-wider">Item</th>
+                                    <th className="py-3 px-2 font-bold uppercase text-xs tracking-wider">Category</th>
+                                    <th className="py-3 px-2 font-bold uppercase text-xs tracking-wider">Status</th>
+                                    <th className="py-3 px-2 font-bold uppercase text-xs tracking-wider text-right">Amount (RM)</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-zinc-200">
+                                {budgetItems?.filter(i => i.type === 'expense').map((item, idx) => (
+                                    <tr key={idx} className="hover:bg-zinc-50">
+                                        <td className="py-3 px-2 text-sm text-zinc-500">{new Date(item.created_at).toLocaleDateString()}</td>
+                                        <td className="py-3 px-2 font-medium">{item.item}</td>
+                                        <td className="py-3 px-2 text-sm uppercase">{item.category}</td>
+                                        <td className="py-3 px-2 text-sm uppercase font-bold">{item.status}</td>
+                                        <td className="py-3 px-2 font-mono font-bold text-right text-red-700">-{Number(item.amount).toFixed(2)}</td>
+                                    </tr>
+                                ))}
+                                {(!budgetItems?.filter(i => i.type === 'expense').length) && (
+                                    <tr><td colSpan={5} className="py-4 text-center text-zinc-500 italic">No expense records available.</td></tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div className="mt-16 pt-8 border-t border-black grid grid-cols-2 gap-12 print:break-inside-avoid">
+                        <div>
+                            <p className="text-zinc-500 text-sm mb-12">Prepared By:</p>
+                            <div className="border-b border-black w-full mb-2"></div>
+                            <p className="font-bold">{preparedBy}</p>
+                            <p className="text-xs text-zinc-500 uppercase tracking-widest mt-1">Tournament Director</p>
+                        </div>
+                        <div>
+                            <p className="text-zinc-500 text-sm mb-12">Approved By / Client Acknowledgment:</p>
+                            <div className="border-b border-black w-full mb-2"></div>
+                            <p className="font-bold">&nbsp;</p>
+                            <p className="text-xs text-zinc-500 uppercase tracking-widest mt-1">Signature & Date</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            {/* Custom print styles scoped to this modal action */}
+            <style dangerouslySetInnerHTML={{__html: `
+                @media print {
+                    body > *:not(.report-modal-container) { display: none !important; }
+                    .report-modal-container { 
+                        position: absolute; 
+                        left: 0; 
+                        top: 0; 
+                        width: 100%; 
+                        height: 100%; 
+                        background: white; 
+                        margin: 0; 
+                        padding: 0; 
+                    }
+                    @page { margin: 1cm; size: auto; }
+                }
+            `}} />
+        </div>
+    );
+}
