@@ -247,6 +247,12 @@ export function AddBudgetButton({ projectId }: { projectId: string }) {
                                 <option value="Marketing" />
                                 <option value="Staff" />
                                 <option value="Sponsorship" />
+                                <option value="Live Streaming" />
+                                <option value="Media Team (Photo/Video)" />
+                                <option value="Prize Pool" />
+                                <option value="Equipment" />
+                                <option value="F&B (Catering)" />
+                                <option value="Logistics" />
                             </datalist>
                         </div>
                     </div>
