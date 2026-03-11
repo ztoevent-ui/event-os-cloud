@@ -1,6 +1,12 @@
 
 import { ReactNode } from 'react';
 import Link from 'next/link';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://zihjzbweasaqqbwilshx.supabase.co';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''; // Use the actual key if needed, or import from lib
+// We will import it from lib to avoid duplicate env setup issues:
+import { supabase } from '@/lib/supabaseClient';
 
 export default async function ProjectLayout({
     children,
@@ -9,10 +15,11 @@ export default async function ProjectLayout({
     children: ReactNode;
     params: Promise<{ id: string }>;
 }) {
-    // In a real app, fetch project details by params.id here to get name/theme
-    // For demo, we assume the Bintulu Theme (Black/Gold)
     const { id } = await params;
     const projectId = id || '1';
+
+    const { data: project } = await supabase.from('projects').select('type').eq('id', projectId).single();
+    const isTournament = project?.type === 'tournament';
 
     return (
         <div className="min-h-screen bg-black text-amber-500 font-sans selection:bg-amber-500 selection:text-black">
@@ -34,6 +41,7 @@ export default async function ProjectLayout({
                         </div>
                         <div className="hidden md:flex space-x-8">
                             <NavLink href={`/projects/${projectId}`}>Dashboard</NavLink>
+                            {isTournament && <NavLink href={`/projects/${projectId}/tournament`}>Tournament</NavLink>}
                             <NavLink href={`/projects/${projectId}/tasks`}>Tasks</NavLink>
                             <NavLink href={`/projects/${projectId}/timelines`}>Timeline</NavLink>
                             <NavLink href={`/projects/${projectId}/budget`}>Budget</NavLink>
