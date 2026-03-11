@@ -67,39 +67,78 @@ export default async function BudgetPage({ params }: { params: Promise<{ id: str
                 </div>
             </div>
 
-            {/* List */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
-                <div className="p-6 border-b border-zinc-800">
-                    <h3 className="text-xl font-bold text-white">Transactions</h3>
-                </div>
-                <div className="divide-y divide-zinc-800">
-                    {budgetItems?.map((item) => (
-                        <div key={item.id} className="p-4 flex items-center justify-between hover:bg-zinc-800/50 transition-colors group">
-                            <div className="flex items-center gap-4">
-                                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${item.type === 'expense' ? 'bg-red-500/20 text-red-500' : 'bg-green-500/20 text-green-500'}`}>
-                                    <i className={`fa-solid ${item.type === 'expense' ? 'fa-arrow-trend-down' : 'fa-arrow-trend-up'}`}></i>
-                                </div>
+            {/* Split Layout: Income vs Expense */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Income (Credit) Column */}
+                <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden flex flex-col shadow-sm">
+                    <div className="p-6 border-b border-zinc-800 bg-zinc-900">
+                        <h3 className="text-xl font-bold text-green-400 flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-sm">
+                                <i className="fa-solid fa-arrow-trend-up"></i>
+                            </div>
+                            Income (Credit)
+                        </h3>
+                    </div>
+                    <div className="divide-y divide-zinc-800 flex-1">
+                        {income.map((item) => (
+                            <div key={item.id} className="p-4 flex items-center justify-between hover:bg-zinc-800/50 transition-colors group">
                                 <div>
                                     <h4 className="font-bold text-zinc-200 group-hover:text-amber-400 transition-colors">{item.item}</h4>
-                                    <p className="text-xs text-zinc-500 uppercase tracking-wide">{item.category}</p>
+                                    <p className="text-xs text-zinc-500 uppercase tracking-wide mt-0.5">{item.category}</p>
                                 </div>
-                            </div>
-                            <div className="flex items-center gap-4">
-                                <div className="text-right">
-                                    <div className={`font-mono font-bold ${item.type === 'expense' ? 'text-zinc-200' : 'text-green-400'}`}>
-                                        {item.type === 'expense' ? '-' : '+'} RM {Number(item.amount).toFixed(2)}
+                                <div className="flex items-center gap-4">
+                                    <div className="text-right">
+                                        <div className="font-mono font-bold text-green-400">
+                                            + RM {Number(item.amount).toFixed(2)}
+                                        </div>
+                                        <span className={`text-[10px] px-2 py-0.5 rounded-full mt-1 inline-block ${item.status === 'actual' ? 'bg-green-900/30 text-green-500' : 'bg-zinc-800 text-zinc-500'}`}>
+                                            {item.status}
+                                        </span>
                                     </div>
-                                    <span className={`text-xs px-2 py-0.5 rounded-full ${item.status === 'actual' ? 'bg-green-900/30 text-green-500' : 'bg-zinc-800 text-zinc-500'}`}>
-                                        {item.status}
-                                    </span>
+                                    <DeleteBudgetButton id={item.id} projectId={id} />
                                 </div>
-                                <DeleteBudgetButton id={item.id} projectId={id} />
                             </div>
-                        </div>
-                    ))}
-                    {(!budgetItems || budgetItems.length === 0) && (
-                        <div className="p-8 text-center text-zinc-500">No budget items found.</div>
-                    )}
+                        ))}
+                        {income.length === 0 && (
+                            <div className="p-8 text-center text-zinc-500 italic">No income records.</div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Expenses (Debit) Column */}
+                <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden flex flex-col shadow-sm">
+                    <div className="p-6 border-b border-zinc-800 bg-zinc-900">
+                        <h3 className="text-xl font-bold text-red-500 flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center text-sm">
+                                <i className="fa-solid fa-arrow-trend-down"></i>
+                            </div>
+                            Expenses (Debit)
+                        </h3>
+                    </div>
+                    <div className="divide-y divide-zinc-800 flex-1">
+                        {expenses.map((item) => (
+                            <div key={item.id} className="p-4 flex items-center justify-between hover:bg-zinc-800/50 transition-colors group">
+                                <div>
+                                    <h4 className="font-bold text-zinc-200 group-hover:text-amber-400 transition-colors">{item.item}</h4>
+                                    <p className="text-xs text-zinc-500 uppercase tracking-wide mt-0.5">{item.category}</p>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    <div className="text-right">
+                                        <div className="font-mono font-bold text-zinc-200">
+                                            - RM {Number(item.amount).toFixed(2)}
+                                        </div>
+                                        <span className={`text-[10px] px-2 py-0.5 rounded-full mt-1 inline-block ${item.status === 'actual' ? 'bg-green-900/30 text-green-500' : 'bg-zinc-800 text-zinc-500'}`}>
+                                            {item.status}
+                                        </span>
+                                    </div>
+                                    <DeleteBudgetButton id={item.id} projectId={id} />
+                                </div>
+                            </div>
+                        ))}
+                        {expenses.length === 0 && (
+                            <div className="p-8 text-center text-zinc-500 italic">No expense records.</div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
