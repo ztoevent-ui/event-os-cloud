@@ -43,6 +43,14 @@ export default function BpoRegisterPage() {
     const [files, setFiles] = useState<{ p1_photo: File | null, p2_photo: File | null, dupr_screenshot: File | null }>({
         p1_photo: null, p2_photo: null, dupr_screenshot: null
     });
+    const MEDICAL_OPTIONS = [
+        'Heart Condition', 'High Blood Pressure', 'Asthma', 'Diabetes', 'Epilepsy',
+        'Joint / Knee Injury', 'Shoulder Injury', 'Back Injury', 'Allergies (Food)',
+        'Allergies (Medication)', 'Colour Blindness', 'Hearing Impairment', 'Vision Impairment',
+        'Vertigo / Dizziness', 'None'
+    ];
+    const BLOOD_TYPES = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Unknown'];
+
     const [formData, setFormData] = useState({
         team_id: `TEAM-${Math.floor(Math.random() * 9000) + 1000}`,
         p1_dupr_id: '',
@@ -50,13 +58,28 @@ export default function BpoRegisterPage() {
         p1_ic_no: '',
         p1_hp: '',
         p1_email: '',
+        p1_emergency_name: '',
+        p1_emergency_phone: '',
+        p1_blood_type: 'Unknown',
+        p1_hometown: '',
         p2_dupr_id: '',
         p2_name: '',
         p2_ic_no: '',
         p2_hp: '',
+        p2_emergency_name: '',
+        p2_emergency_phone: '',
+        p2_blood_type: 'Unknown',
+        p2_hometown: '',
         group_name: "Men's Doubles",
         dupr_rating: 0.00,
     });
+
+    const [p1Medical, setP1Medical] = useState<string[]>([]);
+    const [p2Medical, setP2Medical] = useState<string[]>([]);
+
+    const toggleMedical = (setter: React.Dispatch<React.SetStateAction<string[]>>, value: string) => {
+        setter(prev => prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]);
+    };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
         if (e.target.files && e.target.files[0]) {
@@ -154,7 +177,17 @@ export default function BpoRegisterPage() {
                 dupr_screenshot_url: dupr_url,
                 data: {
                     p1_dupr_id: formData.p1_dupr_id,
-                    p2_dupr_id: formData.p2_dupr_id
+                    p2_dupr_id: formData.p2_dupr_id,
+                    p1_emergency_name: formData.p1_emergency_name,
+                    p1_emergency_phone: formData.p1_emergency_phone,
+                    p1_blood_type: formData.p1_blood_type,
+                    p1_hometown: formData.p1_hometown,
+                    p1_medical_history: p1Medical,
+                    p2_emergency_name: formData.p2_emergency_name,
+                    p2_emergency_phone: formData.p2_emergency_phone,
+                    p2_blood_type: formData.p2_blood_type,
+                    p2_hometown: formData.p2_hometown,
+                    p2_medical_history: p2Medical,
                 }
             };
 
@@ -382,6 +415,57 @@ export default function BpoRegisterPage() {
                                         />
                                     </div>
                                 </div>
+
+                                {/* Emergency Contact */}
+                                <div className="pt-4 border-t border-white/10">
+                                    <p className="text-[10px] font-black text-red-400 uppercase tracking-[0.2em] mb-4">🆘 Emergency Contact</p>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="space-y-1.5">
+                                            <div className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1"><User size={10} /> Name</div>
+                                            <input type="text" name="p1_emergency_name" required value={formData.p1_emergency_name} onChange={handleChange}
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400 transition"
+                                                placeholder="Contact name" />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <div className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1"><Phone size={10} /> Phone</div>
+                                            <input type="tel" name="p1_emergency_phone" required value={formData.p1_emergency_phone} onChange={handleChange}
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400 transition"
+                                                placeholder="+60..." />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Blood Type & Hometown */}
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="space-y-1.5">
+                                        <div className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1">🩸 Blood Type</div>
+                                        <select name="p1_blood_type" value={formData.p1_blood_type} onChange={handleChange}
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400 transition">
+                                            {BLOOD_TYPES.map(bt => <option key={bt} value={bt} className="bg-[#1a1a1a]">{bt}</option>)}
+                                        </select>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <div className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1">🏠 Hometown</div>
+                                        <input type="text" name="p1_hometown" value={formData.p1_hometown} onChange={handleChange}
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400 transition"
+                                            placeholder="City, State" />
+                                    </div>
+                                </div>
+
+                                {/* Medical History */}
+                                <div className="pt-4 border-t border-white/10">
+                                    <p className="text-[10px] font-black text-yellow-400 uppercase tracking-[0.2em] mb-4">⚕️ Medical History (tick all that apply)</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {MEDICAL_OPTIONS.map(opt => (
+                                            <button key={opt} type="button" onClick={() => toggleMedical(setP1Medical, opt)}
+                                                className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
+                                                    p1Medical.includes(opt)
+                                                        ? 'bg-yellow-500/20 border-yellow-500 text-yellow-300'
+                                                        : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/30'
+                                                }`}>{opt}</button>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
                         </section>
 
@@ -441,6 +525,57 @@ export default function BpoRegisterPage() {
                                             type="file" accept="image/*" required onChange={e => handleFileChange(e, 'p2_photo')}
                                             className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm text-gray-400 outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400 transition file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-orange-500 file:text-white hover:file:bg-orange-600 cursor-pointer"
                                         />
+                                    </div>
+                                </div>
+
+                                {/* Emergency Contact */}
+                                <div className="pt-4 border-t border-white/10">
+                                    <p className="text-[10px] font-black text-red-400 uppercase tracking-[0.2em] mb-4">🆘 Emergency Contact</p>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="space-y-1.5">
+                                            <div className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1"><User size={10} /> Name</div>
+                                            <input type="text" name="p2_emergency_name" required value={formData.p2_emergency_name} onChange={handleChange}
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400 transition"
+                                                placeholder="Contact name" />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <div className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1"><Phone size={10} /> Phone</div>
+                                            <input type="tel" name="p2_emergency_phone" required value={formData.p2_emergency_phone} onChange={handleChange}
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400 transition"
+                                                placeholder="+60..." />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Blood Type & Hometown */}
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="space-y-1.5">
+                                        <div className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1">🩸 Blood Type</div>
+                                        <select name="p2_blood_type" value={formData.p2_blood_type} onChange={handleChange}
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400 transition">
+                                            {BLOOD_TYPES.map(bt => <option key={bt} value={bt} className="bg-[#1a1a1a]">{bt}</option>)}
+                                        </select>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <div className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1">🏠 Hometown</div>
+                                        <input type="text" name="p2_hometown" value={formData.p2_hometown} onChange={handleChange}
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400 transition"
+                                            placeholder="City, State" />
+                                    </div>
+                                </div>
+
+                                {/* Medical History */}
+                                <div className="pt-4 border-t border-white/10">
+                                    <p className="text-[10px] font-black text-yellow-400 uppercase tracking-[0.2em] mb-4">⚕️ Medical History (tick all that apply)</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {MEDICAL_OPTIONS.map(opt => (
+                                            <button key={opt} type="button" onClick={() => toggleMedical(setP2Medical, opt)}
+                                                className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
+                                                    p2Medical.includes(opt)
+                                                        ? 'bg-yellow-500/20 border-yellow-500 text-yellow-300'
+                                                        : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/30'
+                                                }`}>{opt}</button>
+                                        ))}
                                     </div>
                                 </div>
                             </div>
