@@ -7,6 +7,7 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOi
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 import { AddTaskButton, TaskCard } from '../../components/ProjectModals';
+import { CalendarSyncButton } from '../../components/CalendarSync';
 
 export default async function TasksPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
@@ -24,7 +25,10 @@ export default async function TasksPage({ params }: { params: Promise<{ id: stri
                     <h1 className="text-3xl font-serif font-bold text-white mb-2">Tasks</h1>
                     <p className="text-zinc-400">Manage project deliverables and track progress.</p>
                 </div>
-                <AddTaskButton projectId={id} />
+                <div className="flex items-center gap-3">
+                    <CalendarSyncButton projectId={id} />
+                    <AddTaskButton projectId={id} />
+                </div>
             </div>
 
             {error && (
