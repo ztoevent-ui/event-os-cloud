@@ -46,31 +46,31 @@ export function TaskCard({ task, projectId }: { task: any, projectId: string }) 
 
     // Dynamic styles
     const priorityColor = task.priority === 'critical' ? 'bg-red-500' : task.priority === 'high' ? 'bg-amber-500' : task.priority === 'medium' ? 'bg-blue-500' : 'bg-zinc-600';
-    const accessBadge = task.access_level === 'admin' ? <span className="text-[10px] uppercase font-bold tracking-wider text-red-400 bg-red-900/20 px-1.5 py-0.5 rounded">Admin Only</span> : null;
+    const accessBadge = task.access_level === 'admin' ? <span className="text-[9px] uppercase font-bold tracking-wider text-red-400 bg-red-900/20 px-1 py-0.5 rounded">Admin</span> : null;
 
     return (
         <>
-            <div onClick={() => setIsEditOpen(true)} className="bg-zinc-900 border border-zinc-800 hover:border-amber-500/50 p-4 rounded-xl transition-all group cursor-pointer shadow-sm hover:shadow-md relative overflow-hidden h-full flex flex-col">
+            <div onClick={() => setIsEditOpen(true)} className="bg-zinc-900 border border-zinc-800 hover:border-amber-500/50 p-3 rounded-xl transition-all group cursor-pointer shadow-sm hover:shadow-md relative overflow-hidden h-full flex flex-col">
                 <div className={`absolute left-0 top-0 bottom-0 w-1 ${priorityColor}`}></div>
-                <div className="ml-3 flex-1 flex flex-col">
-                    <div className="flex justify-between items-start mb-2">
-                        {accessBadge || <span className="text-zinc-500 text-[10px]">TASK-{task.id.slice(0, 4)}</span>}
-                        {task.priority === 'critical' && <i className="fa-solid fa-fire text-red-500 animate-pulse text-xs" title="Critical"></i>}
+                <div className="ml-2 flex-1 flex flex-col">
+                    <div className="flex justify-between items-start mb-1.5">
+                        {accessBadge || <span className="text-zinc-600 text-[9px] font-mono">#{task.id.slice(0, 4)}</span>}
+                        {task.priority === 'critical' && <i className="fa-solid fa-fire text-red-500 animate-pulse text-[10px]" title="Critical"></i>}
                     </div>
-                    <h4 className="font-medium text-zinc-100 mb-2 group-hover:text-amber-400 transition-colors leading-snug break-words">
+                    <h4 className="font-semibold text-zinc-100 mb-1 group-hover:text-amber-400 transition-colors text-sm leading-tight break-words">
                         {task.title}
                     </h4>
                     {task.description && (
-                        <p className="text-xs text-zinc-500 line-clamp-2 mb-4 font-light">
+                        <p className="text-[11px] text-zinc-500 line-clamp-1 mb-3 font-light">
                             {task.description}
                         </p>
                     )}
-                    <div className="mt-auto flex justify-between items-center text-xs text-zinc-600 border-t border-zinc-800 pt-3">
-                        <div className="flex items-center gap-1.5">
-                            <i className="fa-regular fa-calendar text-zinc-500"></i>
-                            {task.due_date ? String(task.due_date).split('T')[0] : 'No date'}
+                    <div className="mt-auto flex justify-between items-center text-[10px] text-zinc-600 border-t border-zinc-800/50 pt-2">
+                        <div className="flex items-center gap-1.5 italic">
+                            <i className="fa-regular fa-calendar text-zinc-600"></i>
+                            {task.due_date ? String(task.due_date).split('T')[0] : 'TBD'}
                         </div>
-                        <i className="fa-solid fa-pen-to-square opacity-0 group-hover:opacity-100 transition-opacity text-amber-500"></i>
+                        <i className="fa-solid fa-up-right-from-square opacity-0 group-hover:opacity-100 transition-opacity text-amber-500/80"></i>
                     </div>
                 </div>
             </div>
@@ -78,7 +78,7 @@ export function TaskCard({ task, projectId }: { task: any, projectId: string }) 
             <Modal isOpen={isEditOpen} onClose={() => setIsEditOpen(false)} title="Edit Task">
                 <TaskForm task={task} projectId={projectId} onClose={() => setIsEditOpen(false)} />
                 <div className="mt-4 pt-4 border-t border-zinc-800 flex justify-between items-center">
-                    <span className="text-xs text-zinc-500">Danger Zone</span>
+                    <span className="text-xs text-zinc-500 font-bold uppercase tracking-widest opacity-50">Admin</span>
                     <button
                         onClick={async () => {
                             if (confirm('Are you sure you want to delete this task?')) {
@@ -91,9 +91,79 @@ export function TaskCard({ task, projectId }: { task: any, projectId: string }) 
                             }
                         }}
                         disabled={isDeleting}
-                        className="text-xs text-red-500 hover:text-red-400 hover:underline flex items-center gap-1"
+                        className="text-xs text-red-500/70 hover:text-red-500 hover:underline flex items-center gap-1 transition-all"
                     >
-                        {isDeleting ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-trash"></i>} Delete Task
+                        {isDeleting ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-trash-can"></i>} Delete
+                    </button>
+                </div>
+            </Modal>
+        </>
+    );
+}
+
+export function TaskRow({ task, projectId }: { task: any, projectId: string }) {
+    const [isEditOpen, setIsEditOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const priorityIcon = 
+        task.priority === 'critical' ? <i className="fa-solid fa-circle-exclamation text-red-500"></i> : 
+        task.priority === 'high' ? <i className="fa-solid fa-angles-up text-amber-500"></i> : 
+        task.priority === 'medium' ? <i className="fa-solid fa-angle-up text-blue-500"></i> : 
+        <i className="fa-solid fa-angle-down text-zinc-600"></i>;
+
+    const statusBadge = 
+        task.status === 'done' ? 'bg-green-500/10 text-green-500 border-green-500/20' :
+        task.status === 'review' ? 'bg-purple-500/10 text-purple-500 border-purple-500/20' :
+        task.status === 'in_progress' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' :
+        'bg-zinc-800 text-zinc-400 border-zinc-700';
+
+    return (
+        <>
+            <div 
+                onClick={() => setIsEditOpen(true)}
+                className="flex items-center gap-4 bg-zinc-900/50 border border-zinc-800/50 hover:bg-zinc-900 hover:border-amber-500/30 p-2.5 px-4 rounded-xl transition-all group cursor-pointer mb-2"
+            >
+                <div className="w-5 text-center shrink-0">
+                    {priorityIcon}
+                </div>
+                
+                <div className="flex-1 min-w-0">
+                    <h4 className="font-medium text-zinc-100 group-hover:text-amber-400 transition-colors text-sm truncate">
+                        {task.title}
+                    </h4>
+                </div>
+
+                <div className={`text-[9px] uppercase font-black tracking-tighter px-2 py-0.5 rounded border shrink-0 ${statusBadge}`}>
+                    {task.status.replace('_', ' ')}
+                </div>
+
+                <div className="w-24 text-[10px] text-zinc-500 font-mono text-right shrink-0">
+                    {task.due_date ? String(task.due_date).split('T')[0] : 'No date'}
+                </div>
+
+                <div className="w-6 text-right shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <i className="fa-solid fa-chevron-right text-amber-500 text-xs"></i>
+                </div>
+            </div>
+
+            <Modal isOpen={isEditOpen} onClose={() => setIsEditOpen(false)} title="Edit Task">
+                <TaskForm task={task} projectId={projectId} onClose={() => setIsEditOpen(false)} />
+                <div className="mt-4 pt-4 border-t border-zinc-800 flex justify-end">
+                    <button
+                        onClick={async () => {
+                            if (confirm('Are you sure you want to delete this task?')) {
+                                setIsDeleting(true);
+                                const formData = new FormData();
+                                formData.append('id', task.id);
+                                formData.append('project_id', projectId);
+                                await deleteTask(formData);
+                                setIsEditOpen(false);
+                            }
+                        }}
+                        disabled={isDeleting}
+                        className="text-xs text-red-500/70 hover:text-red-500 hover:underline flex items-center gap-1 transition-all"
+                    >
+                        {isDeleting ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-trash-can"></i>} Delete Task
                     </button>
                 </div>
             </Modal>
