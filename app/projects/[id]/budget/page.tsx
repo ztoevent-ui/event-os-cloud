@@ -23,6 +23,11 @@ export default async function BudgetPage({ params }: { params: Promise<{ id: str
     const totalSpends = expenses.reduce((sum, item) => sum + Number(item.amount), 0);
     const totalIncome = income.reduce((sum, item) => sum + Number(item.amount), 0);
 
+    // Extract unique categories for suggestions
+    const existingCategories = Array.from(
+        new Set(budgetItems?.map(item => item.category).filter(Boolean))
+    );
+
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
             <div className="flex justify-between items-center bg-zinc-900 border border-zinc-800 p-6 rounded-2xl shadow-sm">
@@ -34,7 +39,7 @@ export default async function BudgetPage({ params }: { params: Promise<{ id: str
                     <button className="px-6 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-full transition-all flex items-center gap-2 border border-zinc-700">
                         <i className="fa-solid fa-file-invoice-dollar"></i> Report
                     </button>
-                    <AddBudgetButton projectId={id} />
+                    <AddBudgetButton projectId={id} existingCategories={existingCategories as string[]} />
                 </div>
             </div>
 

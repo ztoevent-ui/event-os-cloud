@@ -209,8 +209,17 @@ export function DeleteTimelineButton({ id, projectId }: { id: string, projectId:
 
 // --- BUDGETS ---
 
-export function AddBudgetButton({ projectId }: { projectId: string }) {
+export function AddBudgetButton({ projectId, existingCategories = [] }: { projectId: string, existingCategories?: string[] }) {
     const [isOpen, setIsOpen] = useState(false);
+    
+    // Combine defaults with existing categories and remove duplicates
+    const defaultCategories = [
+        "Venue", "Decor", "Marketing", "Staff", "Sponsorship",
+        "Live Streaming", "Media Team (Photo/Video)", "Prize Pool", 
+        "Equipment", "F&B (Catering)", "Logistics"
+    ];
+    const combinedCategories = Array.from(new Set([...defaultCategories, ...existingCategories]));
+
     return (
         <>
             <button onClick={() => setIsOpen(true)} className="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-full transition-all flex items-center gap-2 transform hover:scale-105 shadow-lg shadow-amber-500/20">
@@ -242,17 +251,9 @@ export function AddBudgetButton({ projectId }: { projectId: string }) {
                             <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Category</label>
                             <input name="category" list="categories" className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500" placeholder="Select or type..." />
                             <datalist id="categories">
-                                <option value="Venue" />
-                                <option value="Decor" />
-                                <option value="Marketing" />
-                                <option value="Staff" />
-                                <option value="Sponsorship" />
-                                <option value="Live Streaming" />
-                                <option value="Media Team (Photo/Video)" />
-                                <option value="Prize Pool" />
-                                <option value="Equipment" />
-                                <option value="F&B (Catering)" />
-                                <option value="Logistics" />
+                                {combinedCategories.map((cat, i) => (
+                                    <option key={i} value={cat} />
+                                ))}
                             </datalist>
                         </div>
                     </div>
