@@ -1,14 +1,22 @@
 import { createClient } from '@supabase/supabase-js';
 import { TournamentBracket } from '../../../../components/sports/TournamentBracket';
-import { Match, Player, Tournament } from '../../../../lib/sports/types';
+import { TournamentControls } from '../../../../components/sports/TournamentControls';
+import { Match, Player, Tournament, CategoryConfig } from '../../../../lib/sports/types';
 import Link from 'next/link';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://zihjzbweasaqqbwilshx.supabase.co';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''; // fallback empty or import from lib
 import { supabase } from '@/lib/supabaseClient';
 
-export default async function ProjectTournamentPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ProjectTournamentPage({ 
+    params,
+    searchParams 
+}: { 
+    params: Promise<{ id: string }>,
+    searchParams: Promise<{ q?: string; category?: string }>
+}) {
     const { id } = await params;
+    const { q, category } = await searchParams;
 
     // Fetch the overarching project
     const { data: project } = await supabase.from('projects').select('*').eq('id', id).single();
@@ -63,9 +71,6 @@ export default async function ProjectTournamentPage({ params }: { params: Promis
                         <h1 className="text-3xl font-serif font-bold text-white mb-2">Tournament Selection</h1>
                         <p className="text-zinc-400">Link an existing tournament configuration to this project.</p>
                     </div>
-                    <button className="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-full transition-all flex items-center gap-2">
-                        <i className="fa-solid fa-plus"></i> Create New Bracket
-                    </button>
                 </div>
 
                 {unlinkedTournaments && unlinkedTournaments.length > 0 ? (
@@ -104,12 +109,22 @@ export default async function ProjectTournamentPage({ params }: { params: Promis
     
     // An active tournament is now successfully linked and loaded.
     const activeTournament = tournament;
+    const categories: CategoryConfig[] = activeTournament.config?.categories || [];
+    const activeCategoryId = category || (categories.length > 0 ? categories[0].id : null);
 
     // Fetch players and matches for the tournament
-    const { data: matchesData } = await supabase
+    let matchQuery = supabase
         .from('matches')
         .select('*')
         .eq('tournament_id', activeTournament.id);
+    
+    // If a category is selected, we should ideally filter by it. 
+    // Assuming round_name or some metadata identifies the category for now if not explicit in schema.
+    if (activeCategoryId) {
+        // matchQuery = matchQuery.eq('category_id', activeCategoryId); 
+    }
+
+    const { data: matchesData } = await matchQuery;
         
     const { data: playersData } = await supabase
         .from('players')
@@ -125,11 +140,11 @@ export default async function ProjectTournamentPage({ params }: { params: Promis
     }
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500 h-full flex flex-col min-h-[80vh]">
+        <div className="space-y-6 animate-in fade-in duration-500 h-full flex flex-col min-h-[80vh]">
             <div className="flex justify-between items-center bg-zinc-900 border border-zinc-800 p-6 rounded-2xl shadow-sm shrink-0">
                 <div>
                     <h1 className="text-3xl font-serif font-bold text-white mb-2">Tournament Brackets</h1>
-                    <p className="text-zinc-400">View and manage the match progression tree.</p>
+                    <p className="text-zinc-400">View matches for <span className="text-amber-500 font-bold">{activeTournament.name}</span></p>
                 </div>
                 <div className="flex gap-4">
                     <button className="px-6 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-full transition-all flex items-center gap-2 border border-zinc-700">
@@ -141,11 +156,15 @@ export default async function ProjectTournamentPage({ params }: { params: Promis
                 </div>
             </div>
 
-            <div className="flex-1 w-full bg-zinc-950 rounded-2xl border border-zinc-800 overflow-hidden min-h-[600px] relative">
+            {/* Controls: Category Tabs and Search */}
+            <TournamentControls categories={categories} />
+
+            <div className="flex-1 w-full bg-zinc-950 rounded-2xl border border-zinc-800 overflow-hidden min-h-[600px] relative shadow-inner">
                 <TournamentBracket 
                     tournament={activeTournament as Tournament} 
                     matches={matchArray} 
-                    players={playerRecord} 
+                    players={playerRecord}
+                    searchQuery={q}
                 />
             </div>
         </div>

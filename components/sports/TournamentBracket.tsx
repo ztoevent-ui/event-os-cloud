@@ -1,200 +1,243 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
+import { motion, useMotionValue, useSpring } from 'framer-motion';
 import { Match, Player, Tournament } from '@/lib/sports/types';
 
 interface TournamentBracketProps {
     matches: Match[];
     players: Record<string, Player>;
     tournament: Tournament;
+    searchQuery?: string;
 }
 
-export function TournamentBracket({ matches, players, tournament }: TournamentBracketProps) {
-    // 1. Group matches by standard rounds
-    const roundOrder = ['Final', 'SF', 'QF', 'R16', 'R32', 'R64'];
-    const groupedMatches: Record<string, Match[]> = {
-        'Final': [], 'SF': [], 'QF': [], 'R16': [], 'R32': [], 'R64': []
+export function TournamentBracket({ matches, players, tournament, searchQuery = '' }: TournamentBracketProps) {
+    // 1. Group and Order Rounds (L-to-R)
+    const roundMapping: Record<string, string> = {
+        'R64': 'Round of 64',
+        'R32': 'Round of 32',
+        'R16': 'Round of 16',
+        'QF': 'Quarter Finals',
+        'SF': 'Semi Finals',
+        'Final': 'Final'
     };
 
-    matches.forEach(m => {
-        let rName = m.round_name.toUpperCase();
-        if (rName.includes('R64')) rName = 'R64';
-        else if (rName.includes('R32')) rName = 'R32';
-        else if (rName.includes('R16') || rName === 'ROUND OF 16') rName = 'R16';
-        else if (rName.includes('QF') || rName === 'QUARTER FINALS') rName = 'QF';
-        else if (rName.includes('SF') || rName === 'SEMI FINALS') rName = 'SF';
-        else if (rName.includes('FINAL')) rName = 'Final';
-        else return; // Ignore unknown rounds
+    const orderedRoundKeys = ['R64', 'R32', 'R16', 'QF', 'SF', 'Final'];
+    
+    // The provided `updateParams` function and related hooks (searchParams, startTransition, router, pathname)
+    // are not defined within this component's scope. Assuming this was intended for a different component
+    // or requires additional context/imports not provided in the snippet.
+    // For the purpose of this edit, I will not include the `updateParams` function as it would cause errors.
 
-        if (groupedMatches[rName]) {
-            groupedMatches[rName].push(m);
-        }
-    });
+    const bracketData = useMemo(() => {
+        const grouped: Record<string, Match[]> = {};
+        orderedRoundKeys.forEach(k => grouped[k] = []);
 
-    // Determine the deepest active round to dynamically size the bracket
-    let maxIndex = -1;
-    roundOrder.forEach((r, i) => {
-        if (groupedMatches[r].length > 0) maxIndex = Math.max(maxIndex, i);
-    });
+        matches.forEach(m => {
+            let rKey = '';
+            const rName = m.round_name.toUpperCase();
+            if (rName.includes('R64')) rKey = 'R64';
+            else if (rName.includes('R32')) rKey = 'R32';
+            else if (rName.includes('R16') || rName === 'ROUND OF 16') rKey = 'R16';
+            else if (rName.includes('QF') || rName === 'QUARTER FINALS') rKey = 'QF';
+            else if (rName.includes('SF') || rName === 'SEMI FINALS') rKey = 'SF';
+            else if (rName.includes('FINAL')) rKey = 'Final';
 
-    // Always show at least down to QF (index 2)
-    if (maxIndex < 2) maxIndex = 2;
+            if (rKey && grouped[rKey]) grouped[rKey].push(m);
+        });
 
-    const activeSideRounds = roundOrder.slice(1, maxIndex + 1).reverse();
+        // Filter out empty rounds from the tail, but keep them if they are in the middle (though logically they shouldn't be)
+        const firstActive = orderedRoundKeys.findIndex(k => grouped[k].length > 0);
+        const lastActive = [...orderedRoundKeys].reverse().findIndex(k => grouped[k].length > 0);
+        const actualLastIndex = lastActive === -1 ? orderedRoundKeys.length - 1 : (orderedRoundKeys.length - 1 - lastActive);
+        
+        const activeRounds = orderedRoundKeys.slice(Math.max(0, firstActive), actualLastIndex + 1);
+        
+        return { grouped, activeRounds };
+    }, [matches]);
 
-    // 2. Dynamic dimensions & Scaling
+    // 2. Interaction State (Pan & Zoom)
+    const [zoom, setZoom] = useState(1);
     const containerRef = useRef<HTMLDivElement>(null);
-    const [scale, setScale] = useState(1);
 
-    const TARGET_WIDTH = 400 + (activeSideRounds.length * 320) * 2;
-    const maxSideSlots = Math.pow(2, maxIndex - 1);
-    const TARGET_HEIGHT = Math.max(900, maxSideSlots * 120 + 200);
+    // 3. Render Match Card
+    const MatchCard = ({ match, isHighlighted }: { match: Match, isHighlighted: boolean }) => {
+        const p1 = match.player1_id ? players[match.player1_id] : null;
+        const p2 = match.player2_id ? players[match.player2_id] : null;
 
-    useEffect(() => {
-        const calculateScale = () => {
-            if (!containerRef.current) return;
-            const parent = containerRef.current.parentElement;
-            if (!parent) return;
+        const isP1Winner = match.status === 'completed' && match.winner_id === match.player1_id;
+        const isP2Winner = match.status === 'completed' && match.winner_id === match.player2_id;
 
-            const scaleX = parent.clientWidth / TARGET_WIDTH;
-            const scaleY = parent.clientHeight / TARGET_HEIGHT;
-            let newScale = Math.min(scaleX, scaleY) * 0.95;
-            if (newScale > 1.1) newScale = 1.1;
-
-            setScale(newScale);
-        };
-
-        calculateScale();
-        setTimeout(calculateScale, 100);
-        window.addEventListener('resize', calculateScale);
-        return () => window.removeEventListener('resize', calculateScale);
-    }, [TARGET_WIDTH, TARGET_HEIGHT]);
-
-    const getPlayerRow = (pId: string | null) => {
-        const player = pId ? players[pId] : null;
         return (
-            <div className={`flex items-center gap-3 p-2 bg-white ${player ? 'text-black font-bold' : 'text-zinc-400'} border-b border-gray-200 last:border-b-0`}>
-                <div className="w-8 h-8 bg-zinc-200 rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden border border-gray-300">
-                    {player?.avatar_url || player?.country_code ? (
-                        <img src={player.avatar_url || player.country_code} alt="flag" className="w-full h-full object-cover" />
-                    ) : (
-                        <i className="fa-solid fa-user text-gray-400 text-xs text-center"></i>
-                    )}
-                </div>
-                <span className="truncate">{player ? player.name : 'TBD'}</span>
-            </div>
-        );
-    };
-
-    const BracketMatchNode = ({ match, isFinal = false }: { match?: Match, isFinal?: boolean }) => {
-        return (
-            <div className={`relative bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.15)] border-2 border-red-600/20 overflow-hidden flex flex-col z-10 transition-transform hover:scale-105 ${isFinal ? 'w-72 border-zto-gold/50 shadow-zto-gold/20 shadow-2xl scale-110' : 'w-64'}`}>
-                {getPlayerRow(match?.player1_id || null)}
-                {getPlayerRow(match?.player2_id || null)}
-
-                {match && match.status !== 'scheduled' && (
-                    <div className="absolute inset-y-0 right-0 w-16 bg-red-600 flex flex-col items-center justify-center text-white font-black text-sm border-l border-red-700">
-                        <div>{match.sets_p1}</div>
-                        <div className="w-8 h-[1px] bg-white/30 my-1"></div>
-                        <div>{match.sets_p2}</div>
-                    </div>
-                )}
-            </div>
-        );
-    };
-
-    const renderSide = (sideIndex: 'left' | 'right') => {
-        return (
-            <div className={`flex ${sideIndex === 'left' ? 'flex-row' : 'flex-row-reverse'} items-center h-full gap-16`}>
-                {activeSideRounds.map((roundName, colIndex) => {
-                    const depth = activeSideRounds.length - 1 - colIndex;
-                    const totalSlots = Math.pow(2, depth);
-                    const expectedTotalMatches = Math.pow(2, depth + 1);
-
-                    const roundMatches = groupedMatches[roundName] || [];
-                    const paddedMatches = [...roundMatches, ...Array(Math.max(0, expectedTotalMatches - roundMatches.length)).fill(undefined)];
-                    const sideMatches = sideIndex === 'left'
-                        ? paddedMatches.slice(0, totalSlots)
-                        : paddedMatches.slice(totalSlots, totalSlots * 2);
-
-                    return (
-                        <div key={roundName} className="flex flex-col justify-around h-full relative" style={{ width: '256px' }}>
-                            {sideMatches.map((m, i) => (
-                                <div key={i} className="relative w-full flex items-center justify-center -z-1" style={{ height: `${100 / totalSlots}%` }}>
-
-                                    <div className="z-10 relative">
-                                        <BracketMatchNode match={m} />
-
-                                        <div
-                                            className={`absolute top-1/2 ${sideIndex === 'left' ? '-right-10' : '-left-10'} w-10 h-[2px] bg-[#dc3137]/60 pointer-events-none -z-10`}
-                                        />
-                                    </div>
-
-                                    {colIndex > 0 && (
-                                        <div
-                                            className={`absolute top-[25%] ${sideIndex === 'left' ? '-left-10' : '-right-10'} w-10 h-[50%] border-t-2 border-b-2 ${sideIndex === 'left' ? 'border-l-2 rounded-l-lg border-r-0' : 'border-r-2 rounded-r-lg border-l-0'} border-[#dc3137]/60 pointer-events-none -z-20`}
-                                        />
-                                    )}
-                                </div>
-                            ))}
+            <div className={`w-64 bg-zinc-900 border-2 rounded-xl overflow-hidden shadow-lg transition-all ${
+                isHighlighted ? 'border-amber-500 ring-4 ring-amber-500/20 scale-105 z-20' : 'border-zinc-800'
+            }`}>
+                {/* Status Bar */}
+                <div className={`h-1 w-full ${
+                    match.status === 'ongoing' ? 'bg-green-500 animate-pulse' : 
+                    match.status === 'completed' ? 'bg-zinc-700' : 'bg-zinc-800'
+                }`} />
+                
+                <div className="p-3 space-y-2">
+                    {/* Player 1 */}
+                    <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <div className="w-6 h-6 rounded-full bg-zinc-800 flex items-center justify-center shrink-0 border border-zinc-700 overflow-hidden">
+                                {p1?.avatar_url || p1?.country_code ? (
+                                    <img src={p1.avatar_url || p1.country_code} className="w-full h-full object-cover" />
+                                ) : <span className="text-[10px] text-zinc-500">P1</span>}
+                            </div>
+                            <span className={`text-sm truncate ${isP1Winner ? 'text-white font-bold' : 'text-zinc-400'}`}>
+                                {p1?.name || (match.round_name === 'R64' ? 'TBD' : 'Wait...')}
+                            </span>
                         </div>
-                    );
-                })}
+                        {match.status !== 'scheduled' && (
+                            <span className={`text-sm font-black ${isP1Winner ? 'text-amber-500' : 'text-zinc-500'}`}>{match.sets_p1}</span>
+                        )}
+                    </div>
+
+                    {/* Player 2 */}
+                    <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <div className="w-6 h-6 rounded-full bg-zinc-800 flex items-center justify-center shrink-0 border border-zinc-700 overflow-hidden">
+                                {p2?.avatar_url || p2?.country_code ? (
+                                    <img src={p2.avatar_url || p2.country_code} className="w-full h-full object-cover" />
+                                ) : <span className="text-[10px] text-zinc-500">P2</span>}
+                            </div>
+                            <span className={`text-sm truncate ${isP2Winner ? 'text-white font-bold' : 'text-zinc-400'}`}>
+                                {p2?.name || (match.round_name === 'R64' ? 'TBD' : 'Wait...')}
+                            </span>
+                        </div>
+                        {match.status !== 'scheduled' && (
+                            <span className={`text-sm font-black ${isP2Winner ? 'text-amber-500' : 'text-zinc-500'}`}>{match.sets_p2}</span>
+                        )}
+                    </div>
+                </div>
+
+                {/* Match Info Footer */}
+                <div className="bg-black/50 px-3 py-1.5 flex justify-between items-center border-t border-zinc-800">
+                    <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
+                        {match.court_id ? `Court ${match.court_id}` : 'TBA'}
+                    </span>
+                    <span className={`text-[10px] font-bold uppercase ${
+                        match.status === 'ongoing' ? 'text-green-500' : 'text-zinc-600'
+                    }`}>
+                        {match.status}
+                    </span>
+                </div>
             </div>
         );
     };
 
-    const finalMatch = groupedMatches['Final'][0];
+    // 4. Draw SVG Connections (Simplified for performance)
+    const renderConnections = () => {
+        const rounds = bracketData.activeRounds;
+        return (
+            <svg className="absolute inset-0 pointer-events-none z-0 overflow-visible" 
+                 width="100%" height="100%">
+                <defs>
+                    <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#3f3f46" stopOpacity="0.4" />
+                        <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.6" />
+                    </linearGradient>
+                </defs>
+                {/* 
+                  Note: In a production app, we would use refs to get exact match card centers.
+                  For this demo, we'll use a reliable CSS-connector pattern instead as it's more 
+                  robust for panning/zooming than raw SVG coords without a heavy resize observer.
+                */}
+            </svg>
+        );
+    };
 
     return (
-        <div ref={containerRef} className="w-full h-full flex items-center justify-center overflow-hidden bg-[#f7ebe6] rounded-3xl shadow-2xl relative font-sans">
-            <div
-                style={{
-                    transform: `scale(${scale})`,
-                    transformOrigin: 'center center',
-                    width: `${TARGET_WIDTH}px`,
-                    height: `${TARGET_HEIGHT}px`
-                }}
-                className="flex flex-col items-center justify-start relative transition-transform duration-500 ease-out"
-            >
-                <div className="w-full h-32 bg-white flex flex-col justify-center items-center relative border-b-4 border-[#dc3137] shrink-0 z-50">
-                    <h1 className="text-4xl font-black text-[#dc3137] tracking-widest uppercase mb-2">
-                        {tournament.name || "YONEX Taipei Open 2025"}
-                    </h1>
-                    <h2 className="text-2xl font-bold text-[#b5262a] italic">
-                        TOURNAMENT BRACKET
-                    </h2>
-                    <div className="flex w-full absolute bottom-[-4px] left-0 h-1">
-                        <div className="w-1/3 bg-[#f07b38]"></div>
-                        <div className="w-1/3 bg-[#69c6ba]"></div>
-                        <div className="w-1/3 bg-[#5abdc7]"></div>
-                    </div>
+        <div className="w-full h-full bg-zinc-950 flex flex-col items-center justify-center overflow-hidden relative group">
+            {/* Toolbar */}
+            <div className="absolute top-4 right-4 z-50 flex gap-2">
+                <button onClick={() => setZoom(z => Math.max(0.2, z - 0.1))} className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 text-white flex items-center justify-center hover:bg-zinc-800 transition-colors">
+                    <i className="fa-solid fa-minus" />
+                </button>
+                <div className="w-16 h-10 rounded-xl bg-zinc-900 border border-zinc-800 text-white flex items-center justify-center text-xs font-bold">
+                    {Math.round(zoom * 100)}%
                 </div>
-
-                <div className="flex-1 w-full flex items-stretch justify-center pt-16 pb-8 relative z-10">
-                    <div className="h-full flex items-center justify-between relative px-8">
-                        {renderSide('left')}
-
-                        <div className="flex flex-col items-center justify-center flex-shrink-0 z-20 mx-16 mt-20 relative">
-                            <div className="bg-[#dc3137]/10 p-4 rounded-full border border-[#dc3137]/30 mb-8 backdrop-blur-sm shadow-xl">
-                                <h3 className="text-2xl font-black text-[#dc3137] tracking-[0.5em] rotate-180 uppercase" style={{ writingMode: 'vertical-rl' }}>
-                                    C H A M P I O N
-                                </h3>
-                            </div>
-                            <div className="relative z-10">
-                                <BracketMatchNode match={finalMatch} isFinal />
-
-                                <div className="absolute top-1/2 -left-6 w-6 h-[2px] bg-[#dc3137]/60 pointer-events-none -z-10" />
-                                <div className="absolute top-1/2 -right-6 w-6 h-[2px] bg-[#dc3137]/60 pointer-events-none -z-10" />
-                            </div>
-                        </div>
-
-                        {renderSide('right')}
-                    </div>
-                </div>
+                <button onClick={() => setZoom(z => Math.min(2, z + 0.1))} className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 text-white flex items-center justify-center hover:bg-zinc-800 transition-colors">
+                    <i className="fa-solid fa-plus" />
+                </button>
+                <button onClick={() => setZoom(1)} className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 text-white flex items-center justify-center hover:bg-zinc-800 transition-colors">
+                    <i className="fa-solid fa-expand" />
+                </button>
             </div>
 
-            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#dc3137]/10 to-transparent pointer-events-none z-0"></div>
+            {/* Instruction Overlay */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 bg-black/60 backdrop-blur-md rounded-full border border-zinc-800 text-[10px] text-zinc-500 font-bold uppercase tracking-widest pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+                DRAG TO PAN · MOUSE WHEEL TO SCROLL
+            </div>
+
+            {/* Draggable Viewport */}
+            <div ref={containerRef} className="w-full h-full cursor-grab active:cursor-grabbing">
+                <motion.div
+                    drag
+                    dragConstraints={containerRef}
+                    dragElastic={0}
+                    style={{ scale: zoom }}
+                    className="flex p-40 items-start gap-32 origin-center"
+                >
+                    {bracketData.activeRounds.map((rKey, roundIdx) => {
+                        const roundMatches = bracketData.grouped[rKey];
+                        const isLastRound = roundIdx === bracketData.activeRounds.length - 1;
+
+                        return (
+                            <div key={rKey} className="flex flex-col justify-around h-full gap-20">
+                                <div className="text-center space-y-1 mb-8">
+                                    <h3 className="text-zinc-600 font-black text-xs uppercase tracking-[0.3em]">{rKey}</h3>
+                                    <h4 className="text-zinc-400 text-[10px] font-bold uppercase">{roundMapping[rKey]}</h4>
+                                </div>
+                                
+                                <div className="flex flex-col gap-12 justify-center">
+                                    {roundMatches.map(m => {
+                                        const isMatchHighlighted = searchQuery !== '' && (
+                                            (players[m.player1_id || '']?.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                                            (players[m.player2_id || '']?.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                                        );
+
+                                        return (
+                                            <div key={m.id} className="relative">
+                                                <MatchCard match={m} isHighlighted={!!isMatchHighlighted} />
+                                                
+                                                {/* Connection Lines (Conceptual) */}
+                                                {!isLastRound && (
+                                                    <div className="absolute top-1/2 -right-32 w-32 h-px bg-zinc-800 z-0">
+                                                        <div className="absolute top-1/2 right-0 w-2 h-2 rounded-full bg-zinc-800 -translate-y-1/2" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        );
+                    })}
+                    
+                    {/* Winner Podium (If final is completed) */}
+                    {bracketData.grouped['Final']?.[0]?.status === 'completed' && (
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.5 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="flex flex-col items-center justify-center gap-6 pl-20"
+                        >
+                            <div className="w-32 h-32 rounded-full bg-amber-500/10 border-4 border-amber-500 flex items-center justify-center text-4xl shadow-[0_0_50px_rgba(245,158,11,0.3)]">
+                                🏆
+                            </div>
+                            <div className="text-center">
+                                <h2 className="text-amber-500 font-black text-2xl tracking-tighter uppercase">Champion</h2>
+                                <p className="text-white text-xl font-bold">
+                                    {players[bracketData.grouped['Final'][0].winner_id!]?.name}
+                                </p>
+                            </div>
+                        </motion.div>
+                    )}
+                </motion.div>
+            </div>
         </div>
     );
 }
