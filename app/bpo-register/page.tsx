@@ -13,6 +13,12 @@ export default function BpoRegisterPage() {
     const [termsAccepted, setTermsAccepted] = useState(false);
 
     useEffect(() => {
+        if (typeof window !== 'undefined' && window.location.search.includes('preview=success')) {
+            setSubmitted(true);
+        }
+    }, []);
+
+    useEffect(() => {
         if (submitted) {
             const duration = 3 * 1000;
             const animationEnd = Date.now() + duration;

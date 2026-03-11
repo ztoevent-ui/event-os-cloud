@@ -16,11 +16,11 @@ export default function TeamPage() {
                 {/* Mock Manager */}
                 <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-2xl flex items-center gap-4">
                     <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center text-xl font-bold text-black border-2 border-amber-300">
-                        JD
+                        TW
                     </div>
                     <div>
-                        <h3 className="font-bold text-white text-lg">John Doe</h3>
-                        <p className="text-amber-500 text-sm font-medium">Project Manager</p>
+                        <h3 className="font-bold text-white text-lg">Tony Wong</h3>
+                        <p className="text-amber-500 text-sm font-medium">Tournament Director</p>
                         <span className="text-xs text-zinc-500 mt-1 block">Full Access</span>
                     </div>
                 </div>

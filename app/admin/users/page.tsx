@@ -19,6 +19,13 @@ export default function AdminUsersPage() {
     const router = useRouter();
     const [currentUser, setCurrentUser] = useState<any>(null);
 
+    // Modal state
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [newUserEmail, setNewUserEmail] = useState('');
+    const [newUserPassword, setNewUserPassword] = useState('');
+    const [newUserRole, setNewUserRole] = useState<'admin' | 'client'>('client');
+    const [isCreating, setIsCreating] = useState(false);
+
     // Initial load check
     useEffect(() => {
         const checkAdmin = async () => {
@@ -81,6 +88,48 @@ export default function AdminUsersPage() {
         setUsers(users.map(u => u.id === userId ? { ...u, raw_user_meta_data: { ...u.raw_user_meta_data, role: newRole } } : u));
     };
 
+    const handleCreateUser = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newUserEmail || !newUserPassword) return;
+
+        setIsCreating(true);
+        try {
+            // Using standard signUp. Note: On browser client, standard signUp will log the current user out.
+            // Ideally, you would create an API route using SUPABASE_SERVICE_ROLE_KEY to use supabase.auth.admin.createUser
+            const { data, error } = await supabase.auth.signUp({
+                email: newUserEmail,
+                password: newUserPassword,
+                options: {
+                    data: {
+                        role: newUserRole
+                    }
+                }
+            });
+
+            if (error) throw error;
+            
+            alert('User created successfully. They will need to verify their email.');
+            
+            // Add optimistic mockup to list
+            if (data.user) {
+                setUsers([...users, {
+                    id: data.user.id,
+                    email: data.user.email!,
+                    last_sign_in_at: new Date().toISOString(),
+                    raw_user_meta_data: { role: newUserRole }
+                }]);
+            }
+            
+            setShowAddModal(false);
+            setNewUserEmail('');
+            setNewUserPassword('');
+        } catch (err: any) {
+            alert('Error creating user: ' + err.message);
+        } finally {
+            setIsCreating(false);
+        }
+    };
+
     if (loading) return <div className="p-10 text-center">Loading Admin Panel...</div>;
 
     return (
@@ -91,10 +140,79 @@ export default function AdminUsersPage() {
                         <h1 className="text-3xl font-black text-gray-900">User Management</h1>
                         <p className="text-gray-500">Manage access and roles for Event OS users.</p>
                     </div>
-                    <button onClick={() => router.push('/')} className="text-sm font-bold text-gray-500 hover:text-gray-700">
-                        Exit Admin
-                    </button>
+                    <div className="flex items-center gap-4">
+                        <button 
+                            onClick={() => setShowAddModal(true)}
+                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition"
+                        >
+                            + Add User
+                        </button>
+                        <button onClick={() => router.push('/')} className="text-sm font-bold text-gray-500 hover:text-gray-700">
+                            Exit Admin
+                        </button>
+                    </div>
                 </div>
+
+                {showAddModal && (
+                    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                        <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
+                            <h2 className="text-xl font-bold mb-4">Add New User</h2>
+                            <form onSubmit={handleCreateUser} className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                    <input 
+                                        type="email" 
+                                        required
+                                        value={newUserEmail}
+                                        onChange={(e) => setNewUserEmail(e.target.value)}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                                        placeholder="user@example.com"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                                    <input 
+                                        type="password" 
+                                        required
+                                        value={newUserPassword}
+                                        onChange={(e) => setNewUserPassword(e.target.value)}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                                        placeholder="••••••••"
+                                        minLength={6}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                                    <select 
+                                        value={newUserRole}
+                                        onChange={(e) => setNewUserRole(e.target.value as 'admin' | 'client')}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
+                                    >
+                                        <option value="client">Client</option>
+                                        <option value="admin">Admin</option>
+                                    </select>
+                                </div>
+                                <div className="flex justify-end gap-3 mt-6">
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setShowAddModal(false)}
+                                        className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+                                        disabled={isCreating}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button 
+                                        type="submit"
+                                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg disabled:opacity-50"
+                                        disabled={isCreating}
+                                    >
+                                        {isCreating ? 'Creating...' : 'Create User'}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
 
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
                     <table className="min-w-full divide-y divide-gray-200">

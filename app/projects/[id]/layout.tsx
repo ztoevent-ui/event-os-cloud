@@ -44,8 +44,8 @@ export default async function ProjectLayout({
                             <Link href="/" className="text-xs font-medium text-gray-500 hover:text-white transition-colors">
                                 Exit to Projects
                             </Link>
-                            <button className="w-8 h-8 rounded-full bg-amber-900/30 border border-amber-600/30 flex items-center justify-center text-amber-500 text-xs">
-                                JD
+                            <button className="w-8 h-8 rounded-full bg-amber-900/30 border border-amber-600/30 flex items-center justify-center text-amber-500 text-xs text-bold" title="Tony Wong - Tournament Director">
+                                TW
                             </button>
                         </div>
                     </div>
