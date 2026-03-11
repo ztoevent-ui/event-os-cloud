@@ -312,8 +312,38 @@ export default function BpoAdminPage() {
                                         <p className="font-medium">{selectedRegistration.p1_hp}</p>
                                         <p className="text-blue-400">{selectedRegistration.p1_email}</p>
                                     </div>
+                                    <div className="grid grid-cols-2 gap-4 pt-2 border-t border-white/5">
+                                        <div>
+                                            <p className="text-[10px] text-gray-500 uppercase">Hometown</p>
+                                            <p className="text-sm">{selectedRegistration.data?.p1_hometown || 'N/A'}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] text-gray-500 uppercase">Blood Type</p>
+                                            <p className="text-sm">{selectedRegistration.data?.p1_blood_type || 'N/A'}</p>
+                                        </div>
+                                    </div>
+                                    <div className="pt-2 border-t border-white/5">
+                                        <p className="text-[10px] text-gray-500 uppercase mb-1">Medical History</p>
+                                        <div className="flex flex-wrap gap-1">
+                                            {selectedRegistration.data?.p1_medical_history?.length > 0 ? (
+                                                selectedRegistration.data.p1_medical_history.map((m: string, idx: number) => (
+                                                    <span key={idx} className="px-2 py-0.5 rounded-full bg-red-500/10 border border-red-500/20 text-[10px] text-red-400">
+                                                        {m}
+                                                    </span>
+                                                ))
+                                            ) : (
+                                                <span className="text-xs text-gray-600 italic">None reported</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="pt-2 border-t border-white/5 bg-red-950/20 p-3 rounded-xl">
+                                        <p className="text-[10px] text-red-400/80 uppercase font-black tracking-widest mb-1">🆘 Emergency Contact</p>
+                                        <p className="text-sm font-bold">{selectedRegistration.data?.p1_emergency_name}</p>
+                                        <p className="text-xs text-gray-400">{selectedRegistration.data?.p1_emergency_phone}</p>
+                                        <p className="text-[10px] text-gray-500 mt-1">Relation: <span className="text-white">{selectedRegistration.data?.p1_emergency_relationship || 'N/A'}</span></p>
+                                    </div>
+                                    </div>
                                 </div>
-                            </div>
 
                             {/* P2 Section */}
                             <div className="space-y-6 rounded-2xl bg-white/5 p-6 border border-white/5">
@@ -335,7 +365,37 @@ export default function BpoAdminPage() {
                                         <p className="text-xs text-gray-500 uppercase">Phone</p>
                                         <p className="font-medium">{selectedRegistration.p2_hp}</p>
                                     </div>
-                                </div>
+                                    <div className="grid grid-cols-2 gap-4 pt-2 border-t border-white/5">
+                                        <div>
+                                            <p className="text-[10px] text-gray-500 uppercase">Hometown</p>
+                                            <p className="text-sm">{selectedRegistration.data?.p2_hometown || 'N/A'}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] text-gray-500 uppercase">Blood Type</p>
+                                            <p className="text-sm">{selectedRegistration.data?.p2_blood_type || 'N/A'}</p>
+                                        </div>
+                                    </div>
+                                    <div className="pt-2 border-t border-white/5">
+                                        <p className="text-[10px] text-gray-500 uppercase mb-1">Medical History</p>
+                                        <div className="flex flex-wrap gap-1">
+                                            {selectedRegistration.data?.p2_medical_history?.length > 0 ? (
+                                                selectedRegistration.data.p2_medical_history.map((m: string, idx: number) => (
+                                                    <span key={idx} className="px-2 py-0.5 rounded-full bg-red-500/10 border border-red-500/20 text-[10px] text-red-400">
+                                                        {m}
+                                                    </span>
+                                                ))
+                                            ) : (
+                                                <span className="text-xs text-gray-600 italic">None reported</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="pt-2 border-t border-white/5 bg-red-950/20 p-3 rounded-xl">
+                                        <p className="text-[10px] text-red-400/80 uppercase font-black tracking-widest mb-1">🆘 Emergency Contact</p>
+                                        <p className="text-sm font-bold">{selectedRegistration.data?.p2_emergency_name}</p>
+                                        <p className="text-xs text-gray-400">{selectedRegistration.data?.p2_emergency_phone}</p>
+                                        <p className="text-[10px] text-gray-500 mt-1">Relation: <span className="text-white">{selectedRegistration.data?.p2_emergency_relationship || 'N/A'}</span></p>
+                                    </div>
+                                    </div>
                             </div>
                         </div>
 

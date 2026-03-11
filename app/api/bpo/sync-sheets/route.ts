@@ -40,18 +40,29 @@ export async function POST(request: Request) {
 
         // Prepare headers and data
         const rows = [
-            ['Team ID', 'P1 DUPR', 'P1 Name', 'P1 IC', 'P1 HP', 'Team Email', 'P2 DUPR', 'P2 Name', 'P2 IC', 'P2 HP', 'Group', 'Avg DUPR', 'Status', 'Timestamp'],
+            [
+                'Team ID', 
+                'P1 Name', 'P1 Hometown', 'P1 Blood', 'P1 Medical', 'P1 Emergency Name', 'P1 Emergency Phone', 'P1 Emergency Relation',
+                'P2 Name', 'P2 Hometown', 'P2 Blood', 'P2 Medical', 'P2 Emergency Name', 'P2 Emergency Phone', 'P2 Emergency Relation',
+                'Team Email', 'Group', 'Avg DUPR', 'Status', 'Timestamp'
+            ],
             ...registrations.map((r: any) => [
                 r.team_id,
-                r.data?.p1_dupr_id || '',
                 r.p1_name,
-                r.p1_ic_no,
-                r.p1_hp,
-                r.p1_email,
-                r.data?.p2_dupr_id || '',
+                r.data?.p1_hometown || '',
+                r.data?.p1_blood_type || '',
+                (r.data?.p1_medical_history || []).join(', '),
+                r.data?.p1_emergency_name || '',
+                r.data?.p1_emergency_phone || '',
+                r.data?.p1_emergency_relationship || '',
                 r.p2_name,
-                r.p2_ic_no,
-                r.p2_hp,
+                r.data?.p2_hometown || '',
+                r.data?.p2_blood_type || '',
+                (r.data?.p2_medical_history || []).join(', '),
+                r.data?.p2_emergency_name || '',
+                r.data?.p2_emergency_phone || '',
+                r.data?.p2_emergency_relationship || '',
+                r.p1_email,
                 r.group_name,
                 r.dupr_rating,
                 r.payment_status,

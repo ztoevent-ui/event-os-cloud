@@ -26,34 +26,44 @@ export const MasterListPrint = React.forwardRef<HTMLDivElement, { data: Registra
                 <thead>
                     <tr className="bg-gray-100">
                         <th className="border border-black p-2 text-left">Team ID</th>
-                        <th className="border border-black p-2 text-left">Player 1 Name</th>
-                        <th className="border border-black p-2 text-left">Player 2 Name</th>
-                        <th className="border border-black p-2 text-left">Group</th>
+                        <th className="border border-black p-2 text-left">Players Details</th>
+                        <th className="border border-black p-2 text-left">Hometown</th>
+                        <th className="border border-black p-2 text-left text-red-600">Medical / Alert</th>
                         <th className="border border-black p-2 text-center">DUPR</th>
                         <th className="border border-black p-2 text-center">Status</th>
                         <th className="border border-black p-2 text-center">Check-in</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {data.map((row, i) => (
-                        <tr key={i}>
-                            <td className="border border-black p-2 font-mono font-bold">{row.team_id}</td>
-                            <td className="border border-black p-2">
-                                {(row as any).data?.p1_dupr_id && <span className="text-gray-500 font-mono text-xs mr-1">{(row as any).data.p1_dupr_id}</span>}
-                                {row.p1_name}
-                            </td>
-                            <td className="border border-black p-2">
-                                {(row as any).data?.p2_dupr_id && <span className="text-gray-500 font-mono text-xs mr-1">{(row as any).data.p2_dupr_id}</span>}
-                                {row.p2_name}
-                            </td>
-                            <td className="border border-black p-2">{row.group_name}</td>
-                            <td className="border border-black p-2 text-center">{Number(row.dupr_rating).toFixed(2)}</td>
-                            <td className="border border-black p-2 text-center uppercase font-bold text-xs">{row.payment_status}</td>
-                            <td className="border border-black p-2 w-24">
-                                <div className="h-6 border border-gray-400 rounded"></div>
-                            </td>
-                        </tr>
-                    ))}
+                    {data.map((row, i) => {
+                        const p1Medical = (row as any).data?.p1_medical_history || [];
+                        const p2Medical = (row as any).data?.p2_medical_history || [];
+                        const hasMedical = p1Medical.length > 0 || p2Medical.length > 0;
+                        
+                        return (
+                            <tr key={i} className={hasMedical ? 'bg-red-50' : ''}>
+                                <td className="border border-black p-2 font-mono font-bold">{row.team_id}</td>
+                                <td className="border border-black p-2">
+                                    <div className="font-bold">P1: {row.p1_name}</div>
+                                    <div className="text-xs text-gray-500">P2: {row.p2_name}</div>
+                                </td>
+                                <td className="border border-black p-2 text-xs">
+                                    <div>P1: {(row as any).data?.p1_hometown || '-'}</div>
+                                    <div>P2: {(row as any).data?.p2_hometown || '-'}</div>
+                                </td>
+                                <td className="border border-black p-2 text-xs">
+                                    {p1Medical.length > 0 && <div className="text-red-600 font-bold">P1: {p1Medical.join(', ')}</div>}
+                                    {p2Medical.length > 0 && <div className="text-red-600 font-bold">P2: {p2Medical.join(', ')}</div>}
+                                    {!hasMedical && <span className="text-gray-400 italic">No health issues</span>}
+                                </td>
+                                <td className="border border-black p-2 text-center">{Number(row.dupr_rating).toFixed(2)}</td>
+                                <td className="border border-black p-2 text-center uppercase font-bold text-xs">{row.payment_status}</td>
+                                <td className="border border-black p-2 w-20">
+                                    <div className="h-6 border border-gray-400 rounded"></div>
+                                </td>
+                            </tr>
+                        );
+                    })}
                 </tbody>
             </table>
 
