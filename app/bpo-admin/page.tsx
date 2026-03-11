@@ -235,7 +235,7 @@ export default function BpoAdminPage() {
                 <AdminTable data={data} onRowClick={setSelectedRegistration} />
 
                 {/* Print Master List Section */}
-                <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
                     <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-white/10 bg-white/[0.02] py-12 text-center transition hover:bg-white/[0.04]">
                         <Printer className="mb-4 h-12 w-12 text-blue-400" />
                         <h2 className="text-xl font-bold">Print Master List</h2>
@@ -245,7 +245,7 @@ export default function BpoAdminPage() {
                             className="mt-6 flex items-center gap-2 rounded-2xl bg-white px-8 py-3 text-sm font-bold text-black transition hover:scale-105 active:scale-95"
                         >
                             <Printer size={18} />
-                            Generate & Print
+                            Generate &amp; Print
                         </button>
                     </div>
 
@@ -261,6 +261,15 @@ export default function BpoAdminPage() {
                             One-Click Google Sync
                         </button>
                     </div>
+
+                    <a href="/bpo-admin/safety-checklist" className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-amber-500/20 bg-amber-500/[0.02] py-12 text-center transition hover:bg-amber-500/[0.05] hover:border-amber-500/40 group">
+                        <span className="mb-4 text-5xl group-hover:scale-110 transition-transform">🛡️</span>
+                        <h2 className="text-xl font-bold">Safety Checklist</h2>
+                        <p className="mt-2 text-sm text-gray-400 max-w-xs">Daily staff safety checks — Morning, Lunch &amp; End of Day sign-offs.</p>
+                        <span className="mt-6 flex items-center gap-2 rounded-2xl bg-amber-500 px-8 py-3 text-sm font-bold text-black transition hover:bg-amber-400 hover:scale-105 active:scale-95">
+                            🗒️ Open Checklist
+                        </span>
+                    </a>
                 </div>
             </main>
 
