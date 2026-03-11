@@ -35,28 +35,75 @@ export default async function ProjectTournamentPage({ params }: { params: Promis
         .eq('project_id', id)
         .single();
     
-    // For demo purposes, if no linked tournament exists, fetch the fallback 't1_id' (ZTO Super Series Final) from seed_dual_events
-    // or just fetch any active badminton tournament to show the component
-    let activeTournament = tournament;
-    if (!activeTournament) {
-        const { data: fallback } = await supabase.from('tournaments').select('*').eq('type', 'badminton').limit(1).single();
-        activeTournament = fallback;
+    // Server Action to link tournament
+    async function linkTournament(tournamentId: string) {
+        'use server'
+        const { error } = await supabase
+            .from('tournaments')
+            .update({ project_id: id })
+            .eq('id', tournamentId);
+            
+        if (error) {
+            console.error('Error linking tournament:', error);
+        }
     }
 
-    if (!activeTournament) {
+    if (!tournament) {
+        // Fetch unlinked tournaments
+        const { data: unlinkedTournaments } = await supabase
+            .from('tournaments')
+            .select('*')
+            .is('project_id', null)
+            .order('created_at', { ascending: false });
+
         return (
-            <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-zinc-800 rounded-2xl">
-                <i className="fa-solid fa-trophy text-4xl text-zinc-600 mb-4"></i>
-                <h2 className="text-xl font-bold text-white mb-2">No Bracket Configured</h2>
-                <p className="text-zinc-500 max-w-md text-center">
-                    You haven't setup the matches or players for this tournament yet.
-                </p>
-                <button className="mt-6 px-6 py-2 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-full transition border border-zinc-700">
-                    <i className="fa-solid fa-plus mr-2"></i> Generate Bracket
-                </button>
+            <div className="space-y-8 animate-in fade-in duration-500 min-h-[80vh]">
+                <div className="flex justify-between items-center bg-zinc-900 border border-zinc-800 p-6 rounded-2xl shadow-sm shrink-0">
+                    <div>
+                        <h1 className="text-3xl font-serif font-bold text-white mb-2">Tournament Selection</h1>
+                        <p className="text-zinc-400">Link an existing tournament configuration to this project.</p>
+                    </div>
+                    <button className="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-full transition-all flex items-center gap-2">
+                        <i className="fa-solid fa-plus"></i> Create New Bracket
+                    </button>
+                </div>
+
+                {unlinkedTournaments && unlinkedTournaments.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {unlinkedTournaments.map((t: Tournament) => (
+                            <div key={t.id} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 flex flex-col hover:border-amber-500/50 transition-colors">
+                                <div className="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-xl mb-4">
+                                    <i className={`fa-solid ${
+                                        t.type === 'badminton' ? 'fa-table-tennis-paddle-ball' : 
+                                        t.type === 'football' ? 'fa-futbol' : 'fa-trophy'
+                                    }`}></i>
+                                </div>
+                                <h3 className="text-xl font-bold text-white mb-2">{t.name}</h3>
+                                <p className="text-zinc-500 text-sm capitalize mb-6">{t.type} Tournament</p>
+                                
+                                <form action={linkTournament.bind(null, t.id)} className="mt-auto">
+                                    <button type="submit" className="w-full py-2.5 bg-zinc-800 hover:bg-amber-500 hover:text-black text-white font-bold rounded-xl transition-all border border-zinc-700 hover:border-amber-500">
+                                        Link to Project
+                                    </button>
+                                </form>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-zinc-800 rounded-2xl text-center px-4">
+                        <i className="fa-solid fa-folder-open text-4xl text-zinc-600 mb-4"></i>
+                        <h2 className="text-xl font-bold text-white mb-2">No Standalone Tournaments</h2>
+                        <p className="text-zinc-500 max-w-md">
+                            There are no available unlinked tournaments in the database. You will need to generate a new bracket tree for this project.
+                        </p>
+                    </div>
+                )}
             </div>
         );
     }
+    
+    // An active tournament is now successfully linked and loaded.
+    const activeTournament = tournament;
 
     // Fetch players and matches for the tournament
     const { data: matchesData } = await supabase
@@ -72,7 +119,7 @@ export default async function ProjectTournamentPage({ params }: { params: Promis
     const matchArray: Match[] = matchesData || [];
     const playerRecord: Record<string, Player> = {};
     if (playersData) {
-        playersData.forEach(p => {
+        playersData.forEach((p: Player) => {
             playerRecord[p.id] = p;
         });
     }
