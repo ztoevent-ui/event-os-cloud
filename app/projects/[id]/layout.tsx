@@ -50,6 +50,11 @@ export default async function ProjectLayout({
                             <NavLink href={`/projects/${projectId}/settings`}>
                                 <i className="fa-solid fa-gear text-xs mr-1"></i>Settings
                             </NavLink>
+                            {isTournament && (
+                                <NavLink href={`/projects/${projectId}/safety`}>
+                                    🛡️ Safety
+                                </NavLink>
+                            )}
                         </div>
                         <div className="flex items-center gap-4">
                             <Link href="/" className="text-xs font-medium text-gray-500 hover:text-white transition-colors">
