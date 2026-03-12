@@ -217,17 +217,8 @@ export function BadmintonCard({ match, p1, p2, activeAd, logoUrl, bgUrl, now }: 
                     <span className="font-bold text-xs">OFFICIAL PARTNER</span>
                 </div>
                 <div className="text-right">
-                    {logoUrl ? (
-                        <div className="flex flex-col items-end">
-                            <img src={logoUrl} className="h-12 w-auto object-contain" alt="Tournament Logo" />
-                            <div className="text-[8px] tracking-[0.4em] uppercase opacity-50 mt-1">Tournament Series</div>
-                        </div>
-                    ) : (
-                        <>
-                            <div className="text-zto-gold font-black italic text-2xl">ZTO ARENA</div>
-                            <div className="text-[8px] tracking-[0.4em] uppercase opacity-50">Scoreboard System</div>
-                        </>
-                    )}
+                    <div className="text-zto-gold font-black italic text-2xl">ZTO ARENA</div>
+                    <div className="text-[8px] tracking-[0.4em] uppercase opacity-50">Scoreboard System</div>
                 </div>
             </div>
         </motion.div>

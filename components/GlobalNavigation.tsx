@@ -25,7 +25,7 @@ export function GlobalNavigation() {
     }, [router]);
 
     // Don't show navigation on homepage, admin pages (their own headers), or display pages (big screens)
-    if (!pathname || pathname === '/' || pathname.startsWith('/admin') || pathname.startsWith('/display') || pathname.startsWith('/broadcast')) return null;
+    if (!pathname || pathname === '/' || pathname.startsWith('/admin') || pathname.startsWith('/arena') || pathname.startsWith('/display') || pathname.startsWith('/broadcast') || pathname.startsWith('/projects') || pathname.startsWith('/apps') || pathname.startsWith('/consultations')) return null;
 
     return (
         <div className="fixed top-4 left-4 z-[9999] flex items-center gap-3 transition-opacity duration-300 opacity-60 hover:opacity-100 group">
