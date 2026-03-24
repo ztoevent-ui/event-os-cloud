@@ -32,14 +32,15 @@ export default async function ProjectLayout({
                                 </span>
                             </Link>
                         </div>
-                        <div className="hidden md:flex space-x-8">
+                        <div className="hidden md:flex space-x-6">
                             <NavLink href={`/projects/${projectId}`}>Dashboard</NavLink>
                             <NavLink href={`/projects/${projectId}/tasks`}>Tasks</NavLink>
                             <NavLink href={`/projects/${projectId}/timelines`}>Timeline</NavLink>
+                            <NavLink href={`/projects/${projectId}/schedule`}>Schedule</NavLink>
+                            <NavLink href={`/projects/${projectId}/program`}>Program</NavLink>
                             <NavLink href={`/projects/${projectId}/budget`}>Budget</NavLink>
                             <NavLink href={`/projects/${projectId}/vendors`}>Vendors</NavLink>
-                            <NavLink href={`/projects/${projectId}/consultation`}>Consultation</NavLink>
-                            <NavLink href={`/projects/${projectId}/team`}>Team</NavLink>
+                            <NavLink href={`/projects/${projectId}/consultation`}>Client</NavLink>
                         </div>
                         <div className="flex items-center gap-4">
                             <Link href="/" className="text-xs font-medium text-gray-500 hover:text-white transition-colors">
