@@ -45,6 +45,25 @@ export default function EventManagerDashboard() {
             </div>
           </Link>
 
+          <Link
+            href="/apps/event-manager/schedule"
+            className="app-card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm relative overflow-hidden group block hover:shadow-md transition-all"
+          >
+            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
+              <i className="fa-solid fa-clipboard-list text-6xl text-emerald-500"></i>
+            </div>
+            <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 text-xl mb-4 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+              <i className="fa-solid fa-clipboard-list"></i>
+            </div>
+            <h4 className="text-lg font-bold text-gray-900">Event Schedule</h4>
+            <p className="text-sm text-gray-500 mt-1">
+              High-level production schedule, logistics, and crew dispatch.
+            </p>
+            <div className="mt-4 flex items-center text-xs font-bold text-emerald-600">
+              OPEN SCHEDULE <i className="fa-solid fa-arrow-right ml-1"></i>
+            </div>
+          </Link>
+
           <div className="app-card disabled bg-white rounded-2xl p-6 border border-gray-100 shadow-sm relative overflow-hidden">
             <div className="absolute top-3 right-3 bg-gray-100 text-gray-400 text-[10px] font-bold px-2 py-1 rounded">
               COMING SOON
