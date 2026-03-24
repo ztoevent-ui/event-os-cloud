@@ -152,6 +152,32 @@ export default async function ProjectDashboard({ params }: { params: Promise<{ i
                         </p>
                     </div>
                 </Link>
+
+                <Link href={`/projects/${id}/schedule`} className="block">
+                    <div className="h-full bg-zinc-900/50 backdrop-blur-sm border border-zinc-800 p-6 rounded-2xl hover:border-amber-500/50 hover:bg-zinc-800/50 transition-all group cursor-pointer">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-bold text-zinc-200">Schedule</h3>
+                            <i className="fa-solid fa-clipboard-list text-amber-500/50 group-hover:text-amber-500 transition-colors"></i>
+                        </div>
+                        <div className="text-3xl font-mono text-white mb-1"><span className="text-sm text-zinc-500 font-sans">Production</span></div>
+                        <p className="text-xs text-zinc-500 flex items-center gap-1">
+                            <i className="fa-solid fa-bars-progress"></i> Track Logistics
+                        </p>
+                    </div>
+                </Link>
+
+                <Link href={`/projects/${id}/program`} className="block">
+                    <div className="h-full bg-zinc-900/50 backdrop-blur-sm border border-zinc-800 p-6 rounded-2xl hover:border-amber-500/50 hover:bg-zinc-800/50 transition-all group cursor-pointer">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-bold text-zinc-200">Program</h3>
+                            <i className="fa-solid fa-list-ol text-amber-500/50 group-hover:text-amber-500 transition-colors"></i>
+                        </div>
+                        <div className="text-3xl font-mono text-white mb-1"><span className="text-sm text-zinc-500 font-sans">Run Sheet</span></div>
+                        <p className="text-xs text-zinc-500 flex items-center gap-1">
+                            <i className="fa-solid fa-music"></i> Live AV Cues
+                        </p>
+                    </div>
+                </Link>
             </div>
         </div >
     );
