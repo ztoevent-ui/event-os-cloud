@@ -76,6 +76,44 @@ export default function Home() {
                 LAUNCH APP <i className="fa-solid fa-arrow-right ml-1"></i>
               </div>
             </Link>
+
+            <Link
+              href="/apps/zto-arena/master"
+              className="app-card bg-zinc-900 rounded-2xl p-6 border border-zinc-800 shadow-[0_0_15px_rgba(0,0,0,0.5)] relative overflow-hidden group block"
+            >
+              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
+                <i className="fa-solid fa-gamepad text-6xl text-amber-500"></i>
+              </div>
+              <div className="w-12 h-12 bg-amber-500/20 rounded-xl flex items-center justify-center text-amber-500 text-xl mb-4 group-hover:bg-amber-500 group-hover:text-black transition-colors">
+                <i className="fa-solid fa-tablet-screen-button"></i>
+              </div>
+              <h4 className="text-lg font-bold text-white">ZTO Arena Master</h4>
+              <p className="text-sm text-zinc-400 mt-1">
+                iPad LAN-First Referee Console for Live Scoring & Overrides.
+              </p>
+              <div className="mt-4 flex items-center text-xs font-bold text-amber-500">
+                ENTER CONSOLE <i className="fa-solid fa-arrow-right ml-1"></i>
+              </div>
+            </Link>
+
+            <Link
+              href="/apps/zto-arena/screen"
+              className="app-card bg-black rounded-2xl p-6 border border-zinc-800 shadow-[0_0_15px_rgba(0,0,0,0.5)] relative overflow-hidden group block"
+            >
+              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
+                <i className="fa-solid fa-tv text-6xl text-cyan-500"></i>
+              </div>
+              <div className="w-12 h-12 bg-cyan-500/20 rounded-xl flex items-center justify-center text-cyan-400 text-xl mb-4 group-hover:bg-cyan-500 group-hover:text-black transition-colors">
+                <i className="fa-solid fa-display"></i>
+              </div>
+              <h4 className="text-lg font-bold text-white">ZTO Arena Display</h4>
+              <p className="text-sm text-zinc-400 mt-1">
+                Big Screen UI driven instantly by the Master Console.
+              </p>
+              <div className="mt-4 flex items-center text-xs font-bold text-cyan-400">
+                LAUNCH SCREEN <i className="fa-solid fa-arrow-right ml-1"></i>
+              </div>
+            </Link>
           </div>
         </div>
 
@@ -154,6 +192,25 @@ export default function Home() {
                 <i className="fa-solid fa-lock"></i> COMING SOON
               </div>
             </div>
+
+            <Link
+              href="/apps/event-manager"
+              className="app-card bg-white rounded-2xl p-6 border border-gray-100 shadow-sm relative overflow-hidden group block"
+            >
+              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
+                <i className="fa-solid fa-calendar-check text-6xl text-blue-500"></i>
+              </div>
+              <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 text-xl mb-4 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                <i className="fa-solid fa-calendar-check"></i>
+              </div>
+              <h4 className="text-lg font-bold text-gray-900">Event Manager</h4>
+              <p className="text-sm text-gray-500 mt-1">
+                Manage event schedules, tentative programs, and itineraries.
+              </p>
+              <div className="mt-4 flex items-center text-xs font-bold text-blue-600">
+                LAUNCH APP <i className="fa-solid fa-arrow-right ml-1"></i>
+              </div>
+            </Link>
           </div>
         </div>
 
