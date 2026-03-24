@@ -13,8 +13,8 @@ import Link from 'next/link';
 // Register Chart.js plugins
 Chart.register(ChartDataLabels);
 
-const SUPABASE_URL = 'https://zihjzbweasaqqbwilshx.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppaGp6YndlYXNhcXFid2lsc2h4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4OTQ5MTYsImV4cCI6MjA4MTQ3MDkxNn0.ilHqOs75eUA6p2n-h1rgfulwNwq_hPQyptFg-kcjbv4';
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://zihjzbweasaqqbwilshx.supabase.co';
+const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppaGp6YndlYXNhcXFid2lsc2h4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4OTQ5MTYsImV4cCI6MjA4MTQ3MDkxNn0.ilHqOs75eUA6p2n-h1rgfulwNwq_hPQyptFg-kcjbv4';
 
 const COLORS = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
 
@@ -73,17 +73,21 @@ export default function LuckyDrawPage() {
             const client = createClient(SUPABASE_URL, SUPABASE_KEY);
             supabaseRef.current = client;
 
-            const { error: pingError } = await client.from('participants').select('id', { count: 'exact', head: true }).limit(1);
+            // Ping Check
+            const { error: pingError } = await client.from('attendees').select('id', { count: 'exact', head: true }).limit(1);
             if (pingError) {
                 console.error('DB ping failed:', pingError);
-                setDbStatus('offline');
-                Swal.fire('Error', `Database not connected: ${pingError.message}`, 'error');
-                return;
+                // Don't set offline immediately if table is just empty, only on connection error
+                if (pingError.code !== 'PGRST116') { // PGRST116 is JSON error, usually fine for empty
+                    setDbStatus('offline');
+                }
+            } else {
+                setDbStatus('online');
             }
 
             await fetchData();
 
-            client.channel('public:participants').on('postgres_changes', { event: '*', schema: 'public', table: 'participants' }, (payload) => {
+            client.channel('public:attendees').on('postgres_changes', { event: '*', schema: 'public', table: 'attendees' }, (payload) => {
                 console.log('DB Change:', payload);
                 fetchData();
             }).subscribe((status) => {
@@ -93,58 +97,41 @@ export default function LuckyDrawPage() {
         } catch (e: any) {
             console.error('Supabase Init Fail', e);
             setDbStatus('offline');
-            Swal.fire('Error', `Database not connected: ${e.message || e}`, 'error');
         }
     };
 
-    const fetchAllRows = async (table: string, isWinner: boolean) => {
-        let allRows: any[] = [];
-        let from = 0;
-        const step = 1000;
-        let keepFetching = true;
-
+    const fetchAllRows = async (isWinner: boolean) => {
         if (!supabaseRef.current) return [];
 
-        while (keepFetching) {
-            const { data, error } = await supabaseRef.current
-                .from(table)
-                .select('id,name,is_winner,updated_at,created_at')
-                .eq('is_winner', isWinner)
-                .order('id', { ascending: true })
-                .range(from, from + step - 1);
+        // Fetch Checked-in attendees
+        let query = supabaseRef.current
+            .from('attendees')
+            .select('id,name,ticket_code,won_prize,created_at') // changed updated_at to created_at if updated_at is missing or null
+            .eq('checked_in', true) // Only checked-in people!
+            .eq('won_prize', isWinner)
+            .order('id', { ascending: true }); // consistent order
 
-            if (error) {
-                console.error('Fetch error:', error);
-                return allRows;
-            }
+        const { data, error } = await query;
 
-            if (data && data.length > 0) {
-                allRows = allRows.concat(data);
-                from += step;
-                if (data.length < step) keepFetching = false;
-            } else {
-                keepFetching = false;
-            }
+        if (error) {
+            console.error('Fetch error:', error);
+            return [];
         }
-        return allRows;
+        return data || [];
     };
 
     const fetchData = async () => {
         if (!supabaseRef.current) return;
         try {
-            const activeData = await fetchAllRows('participants', false);
+            const activeData = await fetchAllRows(false); // Not won yet
             const nameList = activeData.map((r: any) => r.name);
             setNames(nameList);
             setCountDisplay(nameList.length);
 
-            const winData = await fetchAllRows('participants', true);
+            const winData = await fetchAllRows(true); // Already won
             const sortedWinners = winData
-                .map((r: any) => ({ id: r.id, name: r.name, updated_at: r.updated_at, created_at: r.created_at }))
-                .sort((a: any, b: any) => {
-                    const ta = new Date(a.updated_at || a.created_at || 0).getTime();
-                    const tb = new Date(b.updated_at || b.created_at || 0).getTime();
-                    return tb - ta;
-                });
+                .map((r: any) => ({ name: r.name, code: r.ticket_code }))
+                .reverse(); // Show recent on top
             setWinners(sortedWinners);
         } catch (e) {
             console.error('Fetch logic error:', e);
@@ -196,7 +183,7 @@ export default function LuckyDrawPage() {
 
     const startSpin = () => {
         if (isSpinning) return;
-        if (names.length === 0) return Swal.fire('Error', 'Database Empty!', 'error');
+        if (names.length === 0) return Swal.fire('Error', 'No checked-in participants!', 'error');
         if (drawCount > names.length) return Swal.fire('Error', 'Not enough people', 'error');
 
         if (spinningIntervalRef.current) {
@@ -249,7 +236,7 @@ export default function LuckyDrawPage() {
         }
 
         try {
-            const eligible = await fetchAllRows('participants', false);
+            const eligible = await fetchAllRows(false);
             if (!eligible || eligible.length === 0) {
                 Swal.fire('Error', 'No eligible participants left.', 'error');
                 return;
@@ -267,11 +254,12 @@ export default function LuckyDrawPage() {
                 if (!row || row.id == null) continue;
                 if (picked.has(row.id)) continue;
 
+                // Update 'won_prize' to true
                 const { data, error } = await supabaseRef.current
-                    .from('participants')
-                    .update({ is_winner: true })
+                    .from('attendees')
+                    .update({ won_prize: true })
                     .eq('id', row.id)
-                    .eq('is_winner', false)
+                    .eq('won_prize', false)
                     .select('id,name');
 
                 if (error) {
@@ -334,47 +322,6 @@ export default function LuckyDrawPage() {
         const mo = localStorage.getItem('ld_mask_opacity'); if (mo) setMaskOpacity(Number(mo));
     };
 
-    const handleGoogleSheet = async () => {
-        if (!supabaseRef.current) return;
-        const { value: url } = await Swal.fire({
-            title: 'Import CSV Link',
-            input: 'url',
-            inputLabel: 'Paste your Direct CSV Link (Publish to Web)',
-            inputPlaceholder: 'https://docs.google.com/.../pub?output=csv',
-            showCancelButton: true
-        });
-
-        if (url) {
-            Swal.fire({ title: 'Fetching...', didOpen: () => Swal.showLoading() });
-            try {
-                let res;
-                try { res = await fetch(url); } catch { res = null; }
-                if (!res || !res.ok) {
-                    const proxied = `https://r.jina.ai/http(s)://` + url.replace(/^https:\/\//, '');
-                    res = await fetch(proxied);
-                }
-                if (!res.ok) throw new Error(`Fetch Failed (Status: ${res.status})`);
-
-                const csvText = await res.text();
-                // Basic CSV parsing logic from original
-                const rows = csvText.split('\n').map(r => r.trim()).filter(r => r && !r.startsWith('Title:') && !r.startsWith('URL') && !r.startsWith('Markdown'));
-                const validNames = rows
-                    .filter(r => !r.toLowerCase().match(/^(name|nama|no|id)$/))
-                    .map(line => ({ name: line.split(',')[0].replace(/['"]/g, '').trim(), is_winner: false }))
-                    .filter(n => n.name.length > 0);
-
-                const chunkSize = 1000;
-                for (let i = 0; i < validNames.length; i += chunkSize) {
-                    await supabaseRef.current.from('participants').insert(validNames.slice(i, i + chunkSize));
-                }
-                await fetchData();
-                Swal.fire('Success', `Imported ${validNames.length} names!`, 'success');
-            } catch (e: any) {
-                Swal.fire('Error', `Failed: ${e.message}`, 'error');
-            }
-        }
-    };
-
     return (
         <div className="min-h-screen overflow-hidden font-sans transition-all duration-500 ease-in-out" style={{ backgroundImage, backgroundSize: 'cover', backgroundPosition: 'center' }}>
             {/* Global Overlay */}
@@ -405,7 +352,7 @@ export default function LuckyDrawPage() {
                     <div className="absolute top-4 left-6 z-20">
                         <div className="flex items-center gap-2 text-gray-700 bg-white/40 border border-white/40 px-4 py-2 rounded-full backdrop-blur-md shadow-sm text-sm font-bold">
                             <span className={`w-2.5 h-2.5 rounded-full inline-block mr-1.5 ${dbStatus === 'online' ? 'bg-green-500 animate-pulse shadow-[0_0_8px_#22c55e]' : 'bg-red-500'}`}></span>
-                            <span>{countDisplay}</span> Participants
+                            <span>{countDisplay}</span> Participants (In House)
                         </div>
                     </div>
 
@@ -503,13 +450,17 @@ export default function LuckyDrawPage() {
                     {/* Data Sources */}
                     <div className="space-y-3 border-t border-gray-100 pt-4">
                         <h3 className="text-xs font-bold text-gray-400 uppercase">Data Sources</h3>
-                        <button onClick={handleGoogleSheet} className="w-full text-left px-3 py-2 rounded-lg border border-gray-200 hover:bg-green-50 text-sm font-medium text-green-700 flex items-center justify-between">
-                            <span><i className="fa-brands fa-google-drive mr-2"></i> Import Google Sheet</span>
-                        </button>
+
+                        <div className="bg-yellow-50 p-3 rounded text-xs text-yellow-800">
+                            <i className="fa-solid fa-circle-info mr-1"></i>
+                            Reading from <strong>Attendees</strong> table. Only checked-in guests are eligible.
+                        </div>
+
                         <button onClick={async () => {
                             if (!supabaseRef.current) return;
-                            const { error } = await supabaseRef.current.from('participants').delete().gte('id', 0);
-                            if (!error) { Swal.fire('Deleted', 'Database cleared.', 'success'); fetchData(); }
+                            const { error } = await supabaseRef.current.from('attendees').delete().gte('id', 0); // Warning: dangerous
+                            if (!error) { Swal.fire('Deleted', 'Attendees cleared.', 'success'); fetchData(); }
+                            else { Swal.fire('Error', error.message, 'error') }
                         }} className="w-full text-red-500 hover:bg-red-50 font-bold py-2 rounded-xl transition text-sm flex items-center justify-center gap-2">
                             <i className="fa-solid fa-trash"></i> DELETE All Database
                         </button>
@@ -523,5 +474,3 @@ export default function LuckyDrawPage() {
         </div>
     );
 }
-
-// Add Tailwind CSS for input range in globals.css or keep utilizing standard appearance
