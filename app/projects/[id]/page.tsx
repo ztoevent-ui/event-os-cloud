@@ -1,6 +1,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://zihjzbweasaqqbwilshx.supabase.co';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppaGp6YndlYXNhcXFid2lsc2h4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4OTQ5MTYsImV4cCI6MjA4MTQ3MDkxNn0.ilHqOs75eUA6p2n-h1rgfulwNwq_hPQyptFg-kcjbv4';
@@ -44,141 +45,129 @@ export default async function ProjectDashboard({ params }: { params: Promise<{ i
     const { count: consultationCount } = await supabase.from('consulting_forms').select('*', { count: 'exact', head: true }).eq('project_id', id);
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-700">
-            {/* Hero Section */}
-            <div className="relative rounded-3xl overflow-hidden bg-zinc-900 border border-zinc-800 shadow-2xl">
-                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center opacity-20 mix-blend-overlay"></div>
-                <div className="relative z-10 p-10 md:p-16 text-center">
-                    <div className="inline-block px-3 py-1 mb-4 border border-amber-500/30 rounded-full bg-amber-500/10 text-amber-400 text-xs font-bold tracking-widest uppercase">
-                        {project?.status || 'Active Project'}
-                    </div>
-                    <h1 className="text-4xl md:text-6xl font-serif font-black text-white mb-4 tracking-tight">
-                        {project?.name || 'Loading Project...'}
-                    </h1>
-                    <p className="text-xl text-zinc-400 max-w-2xl mx-auto mb-8 font-light">
-                        The centralized command center for {project?.type?.replace('_', ' ') || 'your event'}.
-                    </p>
-
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <Link href={`/projects/${id}/timelines`}>
-                            <button className="px-8 py-3 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-full transition-all transform hover:scale-105 shadow-[0_0_20px_rgba(234,179,8,0.3)]">
-                                View Master Plan
-                            </button>
-                        </Link>
-                        <div className="px-8 py-3 bg-zinc-800 text-white font-medium rounded-full border border-zinc-700 flex items-center gap-2">
-                            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                            On Track
+        <div className="space-y-10 animate-in fade-in slide-in-from-bottom-5 duration-1000">
+            {/* Hero Section: Command Center */}
+            <div className="relative rounded-[2.5rem] overflow-hidden bg-[#050505] border border-white/5 shadow-2xl group">
+                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=2069&auto=format&fit=crop')] bg-cover bg-center opacity-10 group-hover:opacity-20 transition-opacity duration-1000"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/60"></div>
+                
+                <div className="relative z-10 p-12 md:p-20">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
+                        <div>
+                            <div className="inline-flex items-center gap-2 px-4 py-1.5 mb-6 border border-amber-500/30 rounded-full bg-amber-500/5 text-amber-500 text-[10px] font-black tracking-[0.2em] uppercase">
+                                <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></span>
+                                {project?.status || 'Active Operation'}
+                            </div>
+                            <h1 className="text-5xl md:text-7xl font-black text-white mb-4 tracking-tighter uppercase italic">
+                                {project?.name || 'ZTO Event'}
+                            </h1>
+                            <p className="text-lg text-zinc-500 max-w-xl font-medium tracking-wide">
+                                Event ID: <span className="text-zinc-300 font-mono">{id}</span> • {project?.type?.replace('_', ' ') || 'Special Project'}
+                            </p>
                         </div>
+                        
+                        <div className="flex flex-col items-end">
+                            <div className="text-zinc-600 text-[10px] font-black tracking-[0.3em] uppercase mb-2">Countdown</div>
+                            <div className="text-6xl font-black text-white tabular-nums tracking-tighter">
+                                {daysLeft}<span className="text-xl text-zinc-500 ml-2 italic">DAYS</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-12">
+                        <Link href={`/projects/${id}/program`} className="flex-1">
+                            <div className="group/btn relative px-8 py-5 bg-amber-500 hover:bg-amber-400 text-black font-black rounded-2xl transition-all transform hover:scale-[1.02] shadow-[0_0_30px_rgba(245,158,11,0.2)] flex items-center justify-between">
+                                <span className="uppercase tracking-widest text-xs">Run Live Program</span>
+                                <i className="fa-solid fa-play text-sm group-hover/btn:translate-x-1 transition-transform"></i>
+                            </div>
+                        </Link>
+                        <Link href={`/projects/${id}/schedule`} className="flex-1">
+                            <div className="group/btn relative px-8 py-5 bg-zinc-900 hover:bg-zinc-800 text-white font-black rounded-2xl transition-all transform hover:scale-[1.02] border border-white/5 flex items-center justify-between">
+                                <span className="uppercase tracking-widest text-xs">Dispatch Schedule</span>
+                                <i className="fa-solid fa-list-check text-sm group-hover/btn:translate-x-1 transition-transform"></i>
+                            </div>
+                        </Link>
+                        <Link href={`/projects/${id}/timelines`} className="flex-1">
+                            <div className="group/btn relative px-8 py-5 bg-zinc-900/50 hover:bg-zinc-800/50 text-zinc-400 hover:text-white font-black rounded-2xl transition-all transform hover:scale-[1.02] border border-white/5 backdrop-blur-md flex items-center justify-between">
+                                <span className="uppercase tracking-widest text-xs">Full Timeline</span>
+                                <i className="fa-solid fa-calendar-days text-sm group-hover/btn:translate-x-1 transition-transform"></i>
+                            </div>
+                        </Link>
                     </div>
                 </div>
             </div>
 
-            {/* Info Grid */}
+            {/* Core Metrics Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <Link href={`/projects/${id}/timelines`} className="block">
-                    <div className="h-full bg-zinc-900/50 backdrop-blur-sm border border-zinc-800 p-6 rounded-2xl hover:border-amber-500/50 hover:bg-zinc-800/50 transition-all group cursor-pointer">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-bold text-zinc-200">Timeline</h3>
-                            <i className="fa-solid fa-clock text-amber-500/50 group-hover:text-amber-500 transition-colors"></i>
+                {/* Tasks */}
+                <Link href={`/projects/${id}/tasks`} className="group relative bg-[#0a0a0a]/60 backdrop-blur-xl border border-white/5 p-8 rounded-3xl hover:border-amber-500/30 transition-all">
+                    <div className="flex items-center justify-between mb-8">
+                        <div className="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-500">
+                            <i className="fa-solid fa-check-double text-xl"></i>
                         </div>
-                        <div className="text-3xl font-mono text-white mb-1">{daysLeft} <span className="text-sm text-zinc-500 font-sans">Days Left</span></div>
-                        <p className="text-xs text-zinc-500">Until Event Day</p>
+                        <span className="text-[10px] font-black text-zinc-600 tracking-widest">TASKS</span>
+                    </div>
+                    <div className="text-4xl font-black text-white mb-2">{pendingTasksCount || 0}</div>
+                    <div className="text-[10px] font-bold text-zinc-500 tracking-widest uppercase mb-4">Pending Actions</div>
+                    <div className="w-full bg-white/5 h-1 rounded-full overflow-hidden">
+                        <motion.div 
+                            initial={{ width: 0 }}
+                            animate={{ width: '40%' }}
+                            className="bg-amber-500 h-full shadow-[0_0_10px_#f59e0b]"
+                        ></motion.div>
                     </div>
                 </Link>
 
-                <Link href={`/projects/${id}/tasks`} className="block">
-                    <div className="h-full bg-zinc-900/50 backdrop-blur-sm border border-zinc-800 p-6 rounded-2xl hover:border-amber-500/50 hover:bg-zinc-800/50 transition-all group cursor-pointer">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-bold text-zinc-200">Tasks</h3>
-                            <i className="fa-solid fa-list-check text-amber-500/50 group-hover:text-amber-500 transition-colors"></i>
+                {/* Budget */}
+                <Link href={`/projects/${id}/budget`} className="group relative bg-[#0a0a0a]/60 backdrop-blur-xl border border-white/5 p-8 rounded-3xl hover:border-emerald-500/30 transition-all">
+                    <div className="flex items-center justify-between mb-8">
+                        <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-500">
+                            <i className="fa-solid fa-receipt text-xl"></i>
                         </div>
-                        <div className="text-xl font-bold text-white mb-1">{pendingTasksCount || 0} Pending</div>
-                        <div className="w-full bg-zinc-800 h-1.5 rounded-full mt-2 overflow-hidden">
-                            <div className="bg-amber-500 h-full" style={{ width: '40%' }}></div>
-                            {/* width hardcoded for now or calculate percentage done */}
-                        </div>
-                        <p className="text-xs text-zinc-500 mt-2">{criticalTasksCount || 0} Critical Items</p>
+                        <span className="text-[10px] font-black text-zinc-600 tracking-widest">BUDGET</span>
+                    </div>
+                    <div className="text-3xl font-black text-white mb-2">RM {expenses.toLocaleString()}</div>
+                    <div className="text-[10px] font-bold text-zinc-500 tracking-widest uppercase mb-4">Current Expenditure</div>
+                    <div className="flex items-center gap-2 text-[10px] font-black text-emerald-500">
+                        <i className="fa-solid fa-arrow-trend-down"></i> -12.4% vs Initial Est.
                     </div>
                 </Link>
 
-                <Link href={`/projects/${id}/budget`} className="block">
-                    <div className="h-full bg-zinc-900/50 backdrop-blur-sm border border-zinc-800 p-6 rounded-2xl hover:border-amber-500/50 hover:bg-zinc-800/50 transition-all group cursor-pointer">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-bold text-zinc-200">Budget</h3>
-                            <i className="fa-solid fa-coins text-amber-500/50 group-hover:text-amber-500 transition-colors"></i>
+                {/* Consultations */}
+                <Link href={`/projects/${id}/consultation`} className="group relative bg-[#0a0a0a]/60 backdrop-blur-xl border border-white/5 p-8 rounded-3xl hover:border-cyan-500/30 transition-all">
+                    <div className="flex items-center justify-between mb-8">
+                        <div className="w-12 h-12 bg-cyan-500/10 rounded-xl flex items-center justify-center text-cyan-500">
+                            <i className="fa-solid fa-wand-magic-sparkles text-xl"></i>
                         </div>
-                        <div className="text-3xl font-mono text-white mb-1">RM {expenses.toFixed(0)} <span className="text-sm text-zinc-500 font-sans">Spent</span></div>
-                        <p className="text-xs text-green-500 flex items-center gap-1">
-                            <i className="fa-solid fa-check"></i> Within initial allocation
-                        </p>
+                        <span className="text-[10px] font-black text-zinc-600 tracking-widest">REPORTS</span>
+                    </div>
+                    <div className="text-4xl font-black text-white mb-2">{consultationCount || 0}</div>
+                    <div className="text-[10px] font-bold text-zinc-500 tracking-widest uppercase mb-4">AI Ready Summaries</div>
+                    <div className="flex items-center gap-2 text-[10px] font-black text-cyan-500">
+                        <span className="w-2 h-2 bg-cyan-500 rounded-full shadow-[0_0_10px_#06b6d4]"></span> PRE-MEETING SYNCED
                     </div>
                 </Link>
 
-                <Link href={`/projects/${id}/consultation`} className="block">
-                    <div className="h-full bg-zinc-900/50 backdrop-blur-sm border border-zinc-800 p-6 rounded-2xl hover:border-amber-500/50 hover:bg-zinc-800/50 transition-all group cursor-pointer">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-bold text-zinc-200">Reports</h3>
-                            <i className="fa-solid fa-clipboard-question text-amber-500/50 group-hover:text-amber-500 transition-colors"></i>
-                        </div>
-                        <div className="text-3xl font-mono text-white mb-1">{consultationCount || 0} <span className="text-sm text-zinc-500 font-sans">Total</span></div>
-                        <p className="text-xs text-green-500 flex items-center gap-1">
-                            <i className="fa-solid fa-wand-magic-sparkles"></i> AI summaries ready
-                        </p>
-                    </div>
-                </Link>
-
-                <Link href={`/projects/${id}/guests`} className="block">
-                    <div className="h-full bg-zinc-900/50 backdrop-blur-sm border border-zinc-800 p-6 rounded-2xl hover:border-amber-500/50 hover:bg-zinc-800/50 transition-all group cursor-pointer">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-bold text-zinc-200">Guests</h3>
-                            <i className="fa-solid fa-users text-amber-500/50 group-hover:text-amber-500 transition-colors"></i>
-                        </div>
-                        <div className="text-3xl font-mono text-white mb-1"><span className="text-sm text-zinc-500 font-sans">Manage List</span></div>
-                        <p className="text-xs text-zinc-500 flex items-center gap-1">
-                            <i className="fa-solid fa-list"></i> View Attendees
-                        </p>
-                    </div>
-                </Link>
-
-                <Link href={`/projects/${id}/tickets`} className="block">
-                    <div className="h-full bg-zinc-900/50 backdrop-blur-sm border border-zinc-800 p-6 rounded-2xl hover:border-amber-500/50 hover:bg-zinc-800/50 transition-all group cursor-pointer">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-bold text-zinc-200">Ticketing</h3>
-                            <i className="fa-solid fa-ticket text-amber-500/50 group-hover:text-amber-500 transition-colors"></i>
-                        </div>
-                        <div className="text-3xl font-mono text-white mb-1"><span className="text-sm text-zinc-500 font-sans">Setup Tiers</span></div>
-                        <p className="text-xs text-zinc-500 flex items-center gap-1">
-                            <i className="fa-solid fa-gear"></i> Configure Sales
-                        </p>
-                    </div>
-                </Link>
-
-                <Link href={`/projects/${id}/schedule`} className="block">
-                    <div className="h-full bg-zinc-900/50 backdrop-blur-sm border border-zinc-800 p-6 rounded-2xl hover:border-amber-500/50 hover:bg-zinc-800/50 transition-all group cursor-pointer">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-bold text-zinc-200">Schedule</h3>
-                            <i className="fa-solid fa-clipboard-list text-amber-500/50 group-hover:text-amber-500 transition-colors"></i>
-                        </div>
-                        <div className="text-3xl font-mono text-white mb-1"><span className="text-sm text-zinc-500 font-sans">Production</span></div>
-                        <p className="text-xs text-zinc-500 flex items-center gap-1">
-                            <i className="fa-solid fa-bars-progress"></i> Track Logistics
-                        </p>
-                    </div>
-                </Link>
-
-                <Link href={`/projects/${id}/program`} className="block">
-                    <div className="h-full bg-zinc-900/50 backdrop-blur-sm border border-zinc-800 p-6 rounded-2xl hover:border-amber-500/50 hover:bg-zinc-800/50 transition-all group cursor-pointer">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-bold text-zinc-200">Program</h3>
-                            <i className="fa-solid fa-list-ol text-amber-500/50 group-hover:text-amber-500 transition-colors"></i>
-                        </div>
-                        <div className="text-3xl font-mono text-white mb-1"><span className="text-sm text-zinc-500 font-sans">Run Sheet</span></div>
-                        <p className="text-xs text-zinc-500 flex items-center gap-1">
-                            <i className="fa-solid fa-music"></i> Live AV Cues
-                        </p>
-                    </div>
-                </Link>
+                {/* More Tools Dropdown-ish style */}
+                <div className="grid grid-cols-2 gap-4">
+                    <Link href={`/projects/${id}/guests`} className="bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl flex flex-col items-center justify-center gap-3 transition-colors group/mini">
+                         <i className="fa-solid fa-users text-zinc-500 group-hover/mini:text-white transition-colors"></i>
+                         <span className="text-[9px] font-black tracking-widest uppercase text-zinc-600 group-hover/mini:text-zinc-400">Guests</span>
+                    </Link>
+                    <Link href={`/projects/${id}/tickets`} className="bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl flex flex-col items-center justify-center gap-3 transition-colors group/mini">
+                         <i className="fa-solid fa-ticket text-zinc-500 group-hover/mini:text-white transition-colors"></i>
+                         <span className="text-[9px] font-black tracking-widest uppercase text-zinc-600 group-hover/mini:text-zinc-400">Tickets</span>
+                    </Link>
+                    <Link href={`/projects/${id}/vendors`} className="bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl flex flex-col items-center justify-center gap-3 transition-colors group/mini">
+                         <i className="fa-solid fa-handshake-angle text-zinc-500 group-hover/mini:text-white transition-colors"></i>
+                         <span className="text-[9px] font-black tracking-widest uppercase text-zinc-600 group-hover/mini:text-zinc-400">Vendors</span>
+                    </Link>
+                    <Link href={`/projects/${id}/team`} className="bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl flex flex-col items-center justify-center gap-3 transition-colors group/mini">
+                         <i className="fa-solid fa-user-group text-zinc-500 group-hover/mini:text-white transition-colors"></i>
+                         <span className="text-[9px] font-black tracking-widest uppercase text-zinc-600 group-hover/mini:text-zinc-400">Internal</span>
+                    </Link>
+                </div>
             </div>
-        </div >
+        </div>
     );
 }
