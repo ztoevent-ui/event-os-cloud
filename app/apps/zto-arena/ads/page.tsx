@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 import { motion } from 'framer-motion';
@@ -12,9 +13,11 @@ const defaultAds = [
   { id: 'ad-4', title: 'Tech Solutions', url: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1000', category: 'Partner' },
 ];
 
-export default function AdsPlacementPage() {
+function AdsPlacementContent() {
+  const searchParams = useSearchParams();
+  const eventId = searchParams.get('eventId') || 'BINTULU_OPEN_2026';
+  
   const [activeAdId, setActiveAdId] = useState<string | null>(null);
-  const [eventId, setEventId] = useState('BINTULU_OPEN_2026');
   const [isConnected, setIsConnected] = useState(false);
   const channelRef = useRef<any>(null);
 
@@ -51,7 +54,9 @@ export default function AdsPlacementPage() {
           </Link>
           <div>
             <h1 className="text-xl font-black text-emerald-500 uppercase tracking-[0.2em] leading-none">Ads Placement</h1>
-            <p className="text-[10px] font-bold text-zinc-500 mt-1 uppercase tracking-widest italic">Live Media Controller</p>
+            <div className="flex items-center gap-2 text-[10px] font-bold text-zinc-500 tracking-[0.1em] mt-1 italic uppercase">
+              Live Media Node • ID: {eventId}
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-4">
@@ -86,7 +91,7 @@ export default function AdsPlacementPage() {
                 <i className={`fa-solid ${activeAdId === ad.id ? 'fa-check' : 'fa-play text-[10px]'}`}></i>
               </div>
               {activeAdId === ad.id && (
-                  <div className="absolute top-2 left-2 px-2 py-1 bg-emerald-500 text-black text-[8px] font-black rounded uppercase tracking-tighter animate-pulse">
+                  <div className="absolute top-2 left-2 px-2 py-1 bg-emerald-500 text-black text-[8px] font-black rounded uppercase tracking-tighter animate-pulse text-white">
                       On Screen
                   </div>
               )}
@@ -100,27 +105,30 @@ export default function AdsPlacementPage() {
         </div>
 
         <section className="mt-12 p-8 bg-zinc-900/40 rounded-[2rem] border border-white/5">
-            <h2 className="text-xs font-black uppercase tracking-[0.3em] text-zinc-500 mb-6 flex items-center gap-2">
-                <i className="fa-solid fa-circle-info"></i> Broadcast Config
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="flex items-center justify-between">
                 <div>
-                    <label className="block text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-2">Target Event ID</label>
-                    <input 
-                        type="text" 
-                        value={eventId}
-                        onChange={(e) => setEventId(e.target.value)}
-                        className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 font-mono text-sm focus:outline-none focus:border-emerald-500 transition-colors"
-                    />
-                </div>
-                <div className="flex flex-col justify-end">
-                    <p className="text-xs text-zinc-600 leading-relaxed italic">
-                        All devices linked to this Event ID will react instantly when you trigger a placement. Ensure the "Arena Screen" is set to the same ID.
+                    <h2 className="text-xs font-black uppercase tracking-[0.3em] text-zinc-500 mb-2 flex items-center gap-2">
+                        <i className="fa-solid fa-circle-info"></i> Isolation Protocol
+                    </h2>
+                    <p className="text-[10px] text-zinc-600 leading-relaxed italic max-w-2xl">
+                        This session is isolated to <span className="text-emerald-500 font-black">{eventId}</span>. Only screens set to this specific ID will receive these media updates. To switch events, return to the Arena Hub.
                     </p>
                 </div>
+                <Link href="/apps/zto-arena" className="h-10 px-6 bg-white/5 hover:bg-white/10 text-zinc-400 rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/10 flex items-center justify-center transition-all">
+                    Change Session
+                </Link>
             </div>
         </section>
       </main>
     </div>
   );
 }
+
+export default function AdsPlacementPage() {
+    return (
+        <Suspense fallback={<div className="bg-black min-h-screen"></div>}>
+            <AdsPlacementContent />
+        </Suspense>
+    );
+}
+

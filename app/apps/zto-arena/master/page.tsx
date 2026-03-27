@@ -1,39 +1,44 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
 
 type MatchState = {
   eventId: string;
+  sportType: string;
   teamA: { name: string; score: number };
   teamB: { name: string; score: number };
   currentSet: number;
   isPaused: boolean;
   announcement: string;
+  timer?: number; // For basketball/futsal
 };
 
-const initialState: MatchState = {
-  eventId: 'BINTULU_OPEN_2026',
-  teamA: { name: 'Player A', score: 0 },
-  teamB: { name: 'Player B', score: 0 },
-  currentSet: 1,
-  isPaused: false,
-  announcement: '',
-};
+function MasterConsoleContent() {
+  const searchParams = useSearchParams();
+  const eventId = searchParams.get('eventId') || 'BINTULU_OPEN_2026';
+  const sportType = searchParams.get('sport') || 'PICKLEBALL';
+  
+  const [matchState, setMatchState] = useState<MatchState>({
+    eventId,
+    sportType,
+    teamA: { name: 'Player A', score: 0 },
+    teamB: { name: 'Player B', score: 0 },
+    currentSet: 1,
+    isPaused: false,
+    announcement: '',
+  });
 
-export default function MasterConsolePage() {
-  const [matchState, setMatchState] = useState<MatchState>(initialState);
   const [isConnected, setIsConnected] = useState(false);
   const [locked, setLocked] = useState(false);
   const channelRef = useRef<any>(null);
 
   useEffect(() => {
-    const channel = supabase.channel(`zto-arena-${matchState.eventId}`, {
-      config: {
-        broadcast: { ack: true },
-      },
+    const channel = supabase.channel(`zto-arena-${eventId}`, {
+      config: { broadcast: { ack: true } },
     });
 
     channel
@@ -41,17 +46,12 @@ export default function MasterConsolePage() {
         setMatchState(payload.payload);
       })
       .subscribe((status) => {
-        if (status === 'SUBSCRIBED') setIsConnected(true);
-        else setIsConnected(false);
+        setIsConnected(status === 'SUBSCRIBED');
       });
 
     channelRef.current = channel;
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [matchState.eventId]);
+    return () => { supabase.removeChannel(channel); };
+  }, [eventId]);
 
   const broadcastUpdate = async (newState: MatchState) => {
     setMatchState(newState);
@@ -97,32 +97,34 @@ export default function MasterConsolePage() {
 
   return (
     <div className="min-h-screen bg-black text-white font-sans overflow-hidden flex flex-col select-none relative">
-      {/* Dynamic Background */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(245,158,11,0.1),transparent_40%),radial-gradient(circle_at_bottom_left,rgba(37,99,235,0.1),transparent_40%)] pointer-events-none"></div>
 
       <header className="z-10 bg-zinc-900/40 backdrop-blur-xl border-b border-white/5 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-6">
-          <Link href="/" className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors border border-white/10">
+          <Link href="/apps/zto-arena" className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors border border-white/10">
             <i className="fa-solid fa-arrow-left text-zinc-400"></i>
           </Link>
           <div>
-            <h1 className="text-xl font-black text-amber-500 uppercase tracking-[0.2em] leading-none">Arena Master</h1>
+            <div className="flex items-center gap-3">
+                <h1 className="text-xl font-black text-amber-500 uppercase tracking-[0.2em] leading-none">Arena Master</h1>
+                <span className="px-2 py-0.5 bg-amber-500/10 border border-amber-500/20 rounded text-[8px] font-black text-amber-500 tracking-widest">{sportType}</span>
+            </div>
             <div className="flex items-center gap-2 text-[10px] font-bold text-zinc-500 tracking-[0.1em] mt-1">
               <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></span>
-              {isConnected ? 'NODE CONNECTED' : 'DISCONNECTED'} • ID: {matchState.eventId}
+              {isConnected ? 'NODE CONNECTED' : 'DISCONNECTED'} • ID: {eventId}
             </div>
           </div>
         </div>
 
         <div className="flex items-center gap-4">
           <div className="flex bg-zinc-900/80 p-1 rounded-xl border border-white/5">
-             {[1, 2, 3].map((set) => (
+             {[1, 2, 3, 4, 5].map((set) => (
                <button 
                  key={set}
                  onClick={() => !locked && broadcastUpdate({ ...matchState, currentSet: set })}
                  className={`px-4 py-1.5 rounded-lg text-xs font-black transition-all ${matchState.currentSet === set ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/20' : 'text-zinc-500 hover:text-zinc-300'}`}
                >
-                 SET {set}
+                 {sportType === 'BASKETBALL' || sportType === 'FUTSAL' ? `Q${set}` : `SET ${set}`}
                </button>
              ))}
           </div>
@@ -137,7 +139,6 @@ export default function MasterConsolePage() {
       </header>
 
       <main className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-4 p-4 z-10">
-        {/* TEAM A */}
         <div className={`relative flex flex-col rounded-[2rem] p-8 border-t border-white/10 transition-all duration-500 overflow-hidden ${locked ? 'bg-zinc-900/30' : 'bg-gradient-to-br from-blue-900/40 to-black'}`}>
           <div className="absolute inset-0 bg-blue-500/5 mix-blend-overlay"></div>
           <div className="flex justify-between items-start z-10">
@@ -168,7 +169,6 @@ export default function MasterConsolePage() {
           </div>
         </div>
 
-        {/* TEAM B */}
         <div className={`relative flex flex-col rounded-[2rem] p-8 border-t border-white/10 transition-all duration-500 overflow-hidden ${locked ? 'bg-zinc-900/30' : 'bg-gradient-to-br from-red-900/40 to-black'}`}>
           <div className="absolute inset-0 bg-red-500/5 mix-blend-overlay"></div>
           <div className="flex justify-end items-start z-10 text-right">
@@ -199,7 +199,6 @@ export default function MasterConsolePage() {
           </div>
         </div>
 
-        {/* Action Panel */}
         <div className="col-span-1 lg:col-span-2 bg-zinc-900/60 backdrop-blur-xl rounded-[2rem] p-6 border border-white/5 flex flex-wrap items-center justify-between gap-6">
           <div className="flex-1 min-w-[300px]">
             <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest block mb-4">Production Cues</span>
@@ -243,3 +242,12 @@ export default function MasterConsolePage() {
     </div>
   );
 }
+
+export default function MasterConsolePage() {
+    return (
+        <Suspense fallback={<div className="bg-black min-h-screen"></div>}>
+            <MasterConsoleContent />
+        </Suspense>
+    );
+}
+

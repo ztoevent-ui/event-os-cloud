@@ -53,6 +53,24 @@ const modules = [
 ];
 
 export default function ArenaHubPage() {
+  const [sessionConfig, setSessionConfig] = React.useState({
+    eventId: 'BINTULU_OPEN_2026',
+    sportType: 'PICKLEBALL'
+  });
+  const [isConfigMode, setIsConfigMode] = React.useState(false);
+
+  const sports = [
+    { id: 'PICKLEBALL', name: 'Pickleball', icon: 'fa-table-tennis-paddle-ball' },
+    { id: 'BADMINTON', name: 'Badminton', icon: 'fa-shuttlecock' },
+    { id: 'BASKETBALL', name: 'Basketball', icon: 'fa-basketball' },
+    { id: 'FUTSAL', name: 'Futsal', icon: 'fa-futbol' },
+    { id: 'ARCHERY', name: 'Archery', icon: 'fa-bullseye' },
+  ];
+
+  const getUrl = (base: string) => {
+    return `${base}?eventId=${sessionConfig.eventId}&sport=${sessionConfig.sportType}`;
+  };
+
   return (
     <div className="min-h-screen bg-black text-white font-sans p-6 md:p-12 relative flex flex-col items-center justify-center">
       {/* Background Decor */}
@@ -80,6 +98,43 @@ export default function ArenaHubPage() {
           </motion.p>
         </header>
 
+        {/* Configuration Section */}
+        <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-12 p-8 bg-zinc-900/40 backdrop-blur-xl border border-white/5 rounded-[2rem] flex flex-col md:flex-row gap-8 items-end"
+        >
+            <div className="flex-1 w-full">
+                <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3">Event Session ID</label>
+                <input 
+                    type="text" 
+                    value={sessionConfig.eventId}
+                    onChange={(e) => setSessionConfig(prev => ({ ...prev, eventId: e.target.value.toUpperCase().replace(/\s+/g, '_') }))}
+                    className="w-full bg-black/50 border border-white/10 rounded-xl px-5 py-3 font-mono text-sm focus:outline-none focus:border-amber-500 transition-colors uppercase"
+                    placeholder="E.G. KUCHING_2026"
+                />
+            </div>
+            <div className="flex-1 w-full">
+                <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3">Sport Discipline</label>
+                <select 
+                    value={sessionConfig.sportType}
+                    onChange={(e) => setSessionConfig(prev => ({ ...prev, sportType: e.target.value }))}
+                    className="w-full bg-black/50 border border-white/10 rounded-xl px-5 py-3 font-bold text-sm focus:outline-none focus:border-amber-500 transition-colors appearance-none cursor-pointer"
+                >
+                    {sports.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </select>
+            </div>
+            <div className="flex-shrink-0 flex items-center gap-3 bg-zinc-800/50 p-1.5 rounded-2xl border border-white/5">
+                <div className="w-10 h-10 bg-amber-500/10 text-amber-500 rounded-xl flex items-center justify-center text-lg">
+                    <i className={`fa-solid ${sports.find(s => s.id === sessionConfig.sportType)?.icon || 'fa-medal'}`}></i>
+                </div>
+                <div className="pr-4">
+                    <div className="text-[8px] font-black text-zinc-600 uppercase tracking-tighter">Ready to sync</div>
+                    <div className="text-[10px] font-black uppercase text-zinc-300">{sessionConfig.sportType}</div>
+                </div>
+            </div>
+        </motion.div>
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {modules.map((mod, idx) => (
             <motion.div
@@ -90,7 +145,7 @@ export default function ArenaHubPage() {
               className={mod.fullWidth ? 'md:col-span-3' : ''}
             >
               <Link 
-                href={mod.href}
+                href={getUrl(mod.href)}
                 className={`group block h-full p-8 bg-zinc-900/40 backdrop-blur-xl border ${mod.borderBase} rounded-[2rem] ${mod.borderHover} transition-all duration-500 hover:shadow-[0_0_40px_rgba(0,0,0,0.5)] relative overflow-hidden`}
               >
                 <div className={`absolute -right-4 -bottom-4 opacity-5 text-8xl transition-transform duration-700 group-hover:scale-125 group-hover:rotate-12 ${mod.text}`}>
@@ -122,3 +177,4 @@ export default function ArenaHubPage() {
     </div>
   );
 }
+
