@@ -9,6 +9,18 @@ export default function ProjectsPage() {
     const [projects, setProjects] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
+    const deleteProject = async (e: React.MouseEvent, projectId: string, projectName: string) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!confirm(`确定要删除 "${projectName}" 吗？此操作无法撤销。`)) return;
+        const { error } = await supabase.from('projects').delete().eq('id', projectId);
+        if (error) {
+            alert('删除失败: ' + error.message);
+        } else {
+            setProjects(prev => prev.filter(p => p.id !== projectId));
+        }
+    };
+
     useEffect(() => {
         fetchProjects();
     }, []);
@@ -102,7 +114,16 @@ export default function ProjectsPage() {
 
                                     <div className="mt-6 pt-4 border-t border-gray-50 flex items-center justify-between text-xs font-bold text-gray-400 uppercase tracking-wider">
                                         <span>View Dashboard</span>
-                                        <span className="group-hover:translate-x-1 transition-transform">Open <i className="fa-solid fa-chevron-right ml-1"></i></span>
+                                        <div className="flex items-center gap-4">
+                                            <button
+                                                onClick={(e) => deleteProject(e, project.id, project.name)}
+                                                className="text-gray-300 hover:text-red-500 transition-colors p-1"
+                                                title="Delete project"
+                                            >
+                                                <i className="fa-solid fa-trash-can text-xs"></i>
+                                            </button>
+                                            <span className="group-hover:translate-x-1 transition-transform">Open <i className="fa-solid fa-chevron-right ml-1"></i></span>
+                                        </div>
                                     </div>
                                 </article>
                             </Link>
