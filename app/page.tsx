@@ -66,13 +66,6 @@ export default function Home() {
                             <p className="text-gray-400 text-sm">Manage projects, timelines, tasks & budgets.</p>
                         </Link>
 
-                        <Link href="/apps/event-manager/tentative-program" className="group bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-blue-100 transition-all hover:-translate-y-1">
-                            <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
-                                <i className="fa-solid fa-list-ol"></i>
-                            </div>
-                            <h3 className="font-bold text-lg text-gray-900 mb-2">Tentative Program</h3>
-                            <p className="text-gray-400 text-sm">Interactive master schedule and AV cues.</p>
-                        </Link>
 
                         <Link href="/apps/zto-arena/master" className="group bg-zinc-900 p-6 rounded-2xl shadow-sm border border-zinc-800 hover:shadow-xl hover:border-amber-500 transition-all hover:-translate-y-1 relative overflow-hidden">
                             <div className="absolute top-0 right-0 p-4 opacity-10"><i className="fa-solid fa-gamepad text-6xl text-amber-500"></i></div>
