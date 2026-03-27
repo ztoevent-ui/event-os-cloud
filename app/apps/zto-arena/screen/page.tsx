@@ -1,14 +1,8 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
-import Link from 'next/link';
-import { createClient } from '@supabase/supabase-js';
+import React, { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
-
-const SUPABASE_URL = 'https://zihjzbweasaqqbwilshx.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppaGp6YndlYXNhcXFid2lsc2h4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4OTQ5MTYsImV4cCI6MjA4MTQ3MDkxNn0.ilHqOs75eUA6p2|1rgfulwNwq_hPQyptFg-kcjbv4'; // Note: Fixing the broken key if it was truncated in thought, but I'll use the one from previous view_file.
-// Wait, the key in the previous view_file was:
-// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppaGp6YndlYXNhcXFid2lsc2h4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4OTQ5MTYsImV4cCI6MjA4MTQ3MDkxNn0.ilHqOs75eUA6p2n-h1rgfulwNwq_hPQyptFg-kcjbv4
 
 type MatchState = {
   eventId: string;
@@ -34,16 +28,14 @@ export default function BigScreenPage() {
   const [showAnnouncement, setShowAnnouncement] = useState(false);
 
   useEffect(() => {
-    const client = createClient(SUPABASE_URL, SUPABASE_KEY);
-    
-    const channel = client.channel(`zto-arena-${matchState.eventId}`, {
+    const channel = supabase.channel(`zto-arena-${matchState.eventId}`, {
       config: {
         broadcast: { ack: true },
       },
     });
 
     channel
-      .on('broadcast', { event: 'match-update' }, (payload) => {
+      .on('broadcast', { event: 'match-update' }, (payload: any) => {
         const newState = payload.payload as MatchState;
         setMatchState(newState);
 
@@ -52,13 +44,13 @@ export default function BigScreenPage() {
           setTimeout(() => setShowAnnouncement(false), 4500);
         }
       })
-      .subscribe((status) => {
+      .subscribe((status: string) => {
         if (status === 'SUBSCRIBED') setIsConnected(true);
         else setIsConnected(false);
       });
 
     return () => {
-      client.removeChannel(channel);
+      supabase.removeChannel(channel);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

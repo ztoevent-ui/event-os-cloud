@@ -2,11 +2,8 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
-
-const SUPABASE_URL = 'https://zihjzbweasaqqbwilshx.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppaGp6YndlYXNhcXFid2lsc2h4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4OTQ5MTYsImV4cCI6MjA4MTQ3MDkxNn0.ilHqOs75eUA6p2n-h1rgfulwNwq_hPQyptFg-kcjbv4';
 
 type MatchState = {
   eventId: string;
@@ -33,9 +30,7 @@ export default function MasterConsolePage() {
   const channelRef = useRef<any>(null);
 
   useEffect(() => {
-    const client = createClient(SUPABASE_URL, SUPABASE_KEY);
-    
-    const channel = client.channel(`zto-arena-${matchState.eventId}`, {
+    const channel = supabase.channel(`zto-arena-${matchState.eventId}`, {
       config: {
         broadcast: { ack: true },
       },
@@ -53,7 +48,7 @@ export default function MasterConsolePage() {
     channelRef.current = channel;
 
     return () => {
-      client.removeChannel(channel);
+      supabase.removeChannel(channel);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matchState.eventId]);

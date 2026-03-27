@@ -163,16 +163,6 @@ export default function Home() {
                             </div>
                         </Link>
 
-                        <Link href="/display/layout/demo" className="flex items-center gap-4 bg-gray-900 p-4 rounded-xl hover:bg-gray-800 border border-gray-800 shadow-lg text-white group transition">
-                            <div className="w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center text-blue-400 group-hover:scale-110 transition text-xl">
-                                <i className="fa-solid fa-layer-group"></i>
-                            </div>
-                            <div>
-                                <div className="font-bold text-sm">3D Layout Viewer</div>
-                                <div className="text-xs text-gray-400">Stage rendering visualizer.</div>
-                            </div>
-                        </Link>
-
                         <Link href="/apps/zto-arena/screen" className="flex items-center gap-4 bg-black p-4 rounded-xl hover:bg-zinc-900 border border-cyan-900/50 shadow-[0_0_15px_rgba(6,182,212,0.1)] text-white group transition">
                             <div className="w-12 h-12 bg-cyan-500/20 rounded-lg flex items-center justify-center text-cyan-400 group-hover:scale-110 transition text-xl">
                                 <i className="fa-solid fa-display"></i>
