@@ -99,20 +99,18 @@ function MasterConsoleContent() {
     <div className="min-h-screen bg-black text-white font-sans overflow-hidden flex flex-col select-none relative">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(245,158,11,0.1),transparent_40%),radial-gradient(circle_at_bottom_left,rgba(37,99,235,0.1),transparent_40%)] pointer-events-none"></div>
 
-      <header className="z-10 bg-zinc-900/40 backdrop-blur-xl border-b border-white/5 px-6 py-4 flex items-center justify-between">
+      <header className="z-10 bg-black border-b border-white/10 px-8 py-4 flex items-center justify-between">
         <div className="flex items-center gap-6">
-          <Link href="/apps/zto-arena" className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors border border-white/10">
-            <i className="fa-solid fa-arrow-left text-zinc-400"></i>
+          <Link href="/apps/zto-arena" className="flex items-center gap-2 text-[10px] font-black uppercase text-zinc-600 hover:text-white transition-colors tracking-widest group">
+            <i className="fa-solid fa-arrow-left group-hover:-translate-x-1 transition-transform"></i>
+            Hub
           </Link>
-          <div>
-            <div className="flex items-center gap-3">
-                <h1 className="text-xl font-black text-amber-500 uppercase tracking-[0.2em] leading-none">Arena Master</h1>
-                <span className="px-2 py-0.5 bg-amber-500/10 border border-amber-500/20 rounded text-[8px] font-black text-amber-500 tracking-widest">{sportType}</span>
+          <div className="w-px h-6 bg-white/10"></div>
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 bg-amber-500 text-black rounded-xl flex items-center justify-center text-xl shadow-[0_0_20px_rgba(245,158,11,0.2)]">
+              <i className="fa-solid fa-gamepad"></i>
             </div>
-            <div className="flex items-center gap-2 text-[10px] font-bold text-zinc-500 tracking-[0.1em] mt-1">
-              <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></span>
-              {isConnected ? 'NODE CONNECTED' : 'DISCONNECTED'} • ID: {eventId}
-            </div>
+            <h1 className="text-xl font-black tracking-widest uppercase italic hidden md:block">Master Console</h1>
           </div>
         </div>
 

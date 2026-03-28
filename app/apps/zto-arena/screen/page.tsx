@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -49,7 +50,15 @@ function ArenaScreenContent() {
   const currentSport = matchState?.sportType || urlSportType;
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans overflow-hidden flex flex-col relative select-none cursor-none">
+    <div className="min-h-screen bg-black text-white font-sans overflow-hidden flex flex-col relative select-none cursor-none group">
+      {/* Floating Back Button (Subtle) */}
+      <Link 
+        href="/apps/zto-arena" 
+        className="absolute top-8 left-8 z-[200] opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 bg-black/50 backdrop-blur-xl border border-white/10 px-4 py-2 rounded-full text-[10px] font-black uppercase text-zinc-500 hover:text-white hover:border-amber-500/50 tracking-[0.3em] cursor-pointer"
+      >
+        <i className="fa-solid fa-arrow-left"></i>
+        Exit to Hub
+      </Link>
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(37,99,235,0.1),transparent_50%),radial-gradient(circle_at_80%_70%,rgba(220,38,38,0.1),transparent_50%)]"></div>
         <div className="absolute inset-0 backdrop-blur-[100px]"></div>

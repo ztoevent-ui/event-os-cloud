@@ -46,18 +46,23 @@ function AdsPlacementContent() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans flex flex-col">
-      <header className="z-10 bg-zinc-900/40 backdrop-blur-xl border-b border-white/5 px-6 py-4 flex items-center justify-between">
+    <div className="min-h-screen bg-zinc-950 text-white font-sans flex flex-col relative overflow-hidden">
+      <header className="z-10 bg-black border-b border-white/10 px-8 py-10 flex items-center justify-between">
         <div className="flex items-center gap-6">
-          <Link href="/apps/zto-arena" className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors border border-white/10">
-            <i className="fa-solid fa-arrow-left text-zinc-400"></i>
-          </Link>
-          <div>
-            <h1 className="text-xl font-black text-emerald-500 uppercase tracking-[0.2em] leading-none">Ads Placement</h1>
-            <div className="flex items-center gap-2 text-[10px] font-bold text-zinc-500 tracking-[0.1em] mt-1 italic uppercase">
-              Live Media Node • ID: {eventId}
+            <Link href="/apps/zto-arena" className="flex items-center gap-2 text-[10px] font-black uppercase text-zinc-600 hover:text-white transition-colors tracking-widest group">
+                <i className="fa-solid fa-arrow-left group-hover:-translate-x-1 transition-transform"></i>
+                Hub
+            </Link>
+            <div className="w-px h-6 bg-white/10"></div>
+            <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-emerald-500 text-black rounded-2xl flex items-center justify-center text-2xl shadow-[0_0_30px_rgba(16,185,129,0.2)]">
+                    <i className="fa-solid fa-rectangle-ad"></i>
+                </div>
+                <div>
+                    <h1 className="text-2xl font-black uppercase tracking-widest italic leading-none">Ads Placement</h1>
+                    <p className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.3em] mt-1">Billboard Engine V2.0</p>
+                </div>
             </div>
-          </div>
         </div>
         <div className="flex items-center gap-4">
             <div className={`px-4 py-1.5 rounded-full text-[10px] font-black tracking-widest border ${isConnected ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' : 'bg-red-500/10 border-red-500/20 text-red-500'}`}>

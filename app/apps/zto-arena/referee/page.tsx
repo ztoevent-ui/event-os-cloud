@@ -58,11 +58,18 @@ function RefereeScreenContent() {
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[linear-gradient(to_right,#808080_1px,transparent_1px),linear-gradient(to_bottom,#808080_1px,transparent_1px)] bg-[size:40px_40px]"></div>
 
       <header className="z-10 bg-black border-b-2 border-white/5 px-8 py-6 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="px-4 py-2 bg-blue-600 text-black font-black text-sm skew-x-[-12deg]">REFEREE</div>
-          <div className="flex flex-col">
-            <h1 className="text-lg font-black tracking-widest text-zinc-400 leading-none">ID: {eventId}</h1>
-            <span className="text-[10px] font-black text-blue-500 uppercase tracking-[0.3em] mt-1">{matchState.sportType || sportType}</span>
+        <div className="flex items-center gap-6">
+          <Link href="/apps/zto-arena" className="flex items-center gap-2 text-[10px] font-black uppercase text-zinc-600 hover:text-white transition-colors tracking-widest group">
+            <i className="fa-solid fa-arrow-left group-hover:-translate-x-1 transition-transform"></i>
+            Hub
+          </Link>
+          <div className="w-px h-6 bg-white/10"></div>
+          <div className="flex items-center gap-4">
+            <div className="px-4 py-2 bg-blue-600 text-black font-black text-sm skew-x-[-12deg]">REFEREE</div>
+            <div className="flex flex-col">
+              <h1 className="text-lg font-black tracking-widest text-zinc-400 leading-none">ID: {eventId}</h1>
+              <span className="text-[10px] font-black text-blue-500 uppercase tracking-[0.3em] mt-1">{matchState.sportType || sportType}</span>
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-3">
