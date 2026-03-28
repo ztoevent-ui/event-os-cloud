@@ -123,10 +123,10 @@ export default function ProjectsPage() {
                                     </div>
 
                                     <div className="flex justify-between items-start mb-6">
-                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl shadow-inner ${project.type === 'wedding_fair' ? 'bg-pink-50 text-pink-500' :
+                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl shadow-inner ${project.type === 'wedding' || project.type === 'wedding_fair' ? 'bg-pink-50 text-pink-500' :
                                                 project.type === 'corporate' ? 'bg-blue-50 text-blue-500' : 'bg-purple-50 text-purple-500'
                                             }`}>
-                                            <i className={`fa-solid ${project.type === 'wedding_fair' ? 'fa-heart' :
+                                            <i className={`fa-solid ${project.type === 'wedding' || project.type === 'wedding_fair' ? 'fa-heart' :
                                                     project.type === 'corporate' ? 'fa-building' : 'fa-calendar-check'
                                                 }`}></i>
                                         </div>
@@ -212,6 +212,7 @@ export default function ProjectsPage() {
                                     className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition text-gray-900 font-medium bg-white"
                                 >
                                     <option value="corporate">Corporate Event</option>
+                                    <option value="wedding">Wedding Ceremony</option>
                                     <option value="wedding_fair">Wedding Fair</option>
                                     <option value="sports">Sports Tournament</option>
                                     <option value="dinner">Annual Dinner</option>
