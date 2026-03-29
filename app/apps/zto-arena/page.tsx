@@ -88,21 +88,32 @@ export default function ArenaHubPage() {
     if (!newTournament.name) return;
     const slug = newTournament.name.toUpperCase().replace(/\s+/g, '_') + '_' + Math.floor(Math.random() * 1000);
     
-    const { data, error } = await supabase
-      .from('arena_tournaments')
-      .insert([{
-        name: newTournament.name,
-        sport_type: newTournament.sport,
-        event_id_slug: slug
-      }])
-      .select()
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('arena_tournaments')
+        .insert([{
+          name: newTournament.name,
+          sport_type: newTournament.sport,
+          event_id_slug: slug
+        }])
+        .select()
+        .single();
 
-    if (!error && data) {
-      setTournaments([data, ...tournaments]);
-      setSelectedTournament(data);
-      setIsCreating(false);
-      setNewTournament({ name: '', sport: 'PICKLEBALL' });
+      if (error) {
+        console.error("Supabase Error:", error);
+        alert(`Creation failed: ${error.message}`);
+        return;
+      }
+
+      if (data) {
+        setTournaments([data, ...tournaments]);
+        setSelectedTournament(data);
+        setIsCreating(false);
+        setNewTournament({ name: '', sport: 'PICKLEBALL' });
+      }
+    } catch (err: any) {
+      console.error(err);
+      alert(`Exception: ${err.message}`);
     }
   };
 
