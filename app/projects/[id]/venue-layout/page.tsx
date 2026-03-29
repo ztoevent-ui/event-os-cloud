@@ -288,10 +288,15 @@ function Draggable({ children, isSelected, onDragStart, onDragEnd }: { children:
           object={ref} 
           mode="translate" 
           showY={false}
-          onMouseDown={onDragStart}
           onMouseUp={() => {
             const pos = ref.current.position.clone();
-            onDragEnd(pos);
+            const delta = pos.clone().sub(new THREE.Vector3(ref.current.userData.startX || 0, 0, ref.current.userData.startZ || 0));
+            onDragEnd(delta);
+          }}
+          onMouseDown={() => {
+            ref.current.userData.startX = ref.current.position.x;
+            ref.current.userData.startZ = ref.current.position.z;
+            onDragStart();
           }}
         />
       )}
@@ -309,7 +314,7 @@ function VenueScene({
   layoutData: ProjectLayoutData, 
   selectedIds: string[], 
   onSelect: (id: string | null) => void,
-  onUpdateAsset: (id: string, updates: Partial<TableDef | AssetDef>) => void,
+  onUpdateAsset: (id: string, updates: Partial<TableDef | AssetDef>, isDelta?: boolean) => void,
   onDragStart: () => void
 }) {
   const tables = useMemo(() => layoutData.customAssets.filter(a => a.type === 'guest' || a.type === 'bridal') as TableDef[], [layoutData.customAssets]);
@@ -324,20 +329,37 @@ function VenueScene({
       <HallFloor />
 
       {stage && (
-        <Draggable isSelected={selectedIds.includes('stage')} onDragStart={onDragStart} onDragEnd={(pos) => onUpdateAsset('stage', { x: pos.x, z: pos.z })}>
+        <Draggable 
+          isSelected={selectedIds.includes('stage')} 
+          onDragStart={onDragStart} 
+          onDragEnd={(delta) => onUpdateAsset('stage', { x: delta.x, z: delta.z }, true)}
+        >
           <VenueStage stage={stage} isSelected={selectedIds.includes('stage')} onSelect={onSelect} />
         </Draggable>
       )}
 
       {carpet && (
-        <Draggable isSelected={selectedIds.includes('carpet')} onDragStart={onDragStart} onDragEnd={(pos) => onUpdateAsset('carpet', { x: pos.x, z: pos.z })}>
+        <Draggable 
+          isSelected={selectedIds.includes('carpet')} 
+          onDragStart={onDragStart} 
+          onDragEnd={(delta) => onUpdateAsset('carpet', { x: delta.x, z: delta.z }, true)}
+        >
           <RedCarpet carpet={carpet} />
         </Draggable>
       )}
 
       {tables.map(t => (
-        <Draggable key={t.id} isSelected={selectedIds.includes(t.id)} onDragStart={onDragStart} onDragEnd={(pos) => onUpdateAsset(t.id, { x: pos.x, z: pos.z })}>
-          <WeddingTable table={t} isSelected={selectedIds.includes(t.id)} onSelect={onSelect} />
+        <Draggable 
+          key={t.id} 
+          isSelected={selectedIds.includes(t.id)} 
+          onDragStart={onDragStart}
+          onDragEnd={(delta) => onUpdateAsset(t.id, { x: delta.x, z: delta.z }, true)}
+        >
+          <WeddingTable 
+            table={t} 
+            isSelected={selectedIds.includes(t.id)} 
+            onSelect={onSelect} 
+          />
         </Draggable>
       ))}
 
@@ -355,6 +377,7 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [orbitEnabled, setOrbitEnabled] = useState(true);
+  const [errorStatus, setErrorStatus] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -399,9 +422,18 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
     load();
   }, [projectId]);
 
-  const updateAsset = (id: string, updates: Partial<TableDef | AssetDef>) => {
+  const updateAsset = (id: string, updates: Partial<TableDef | AssetDef>, isDelta = false) => {
     if (!layoutData) return;
-    const newAssets = layoutData.customAssets.map(a => a.id === id ? { ...a, ...updates } : a);
+    const targets = selectedIds.includes(id) ? selectedIds : [id];
+    const newAssets = layoutData.customAssets.map(a => {
+      if (targets.includes(a.id)) {
+        if (isDelta) {
+          return { ...a, x: a.x + (updates.x || 0), z: a.z + (updates.z || 0) };
+        }
+        return { ...a, ...updates };
+      }
+      return a;
+    });
     setLayoutData({ ...layoutData, customAssets: newAssets as (TableDef | AssetDef)[] });
     setOrbitEnabled(true);
   };
@@ -419,6 +451,22 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
       ...layoutData,
       customAssets: newAssets as (TableDef | AssetDef)[],
       globalColors: { ...layoutData.globalColors, [type]: hex }
+    });
+  };
+
+  const switchPreset = (key: string) => {
+    const preset = PRESETS.find(p => p.key === key) || SHORT_AISLE;
+    if (layoutData && !window.confirm("Switching layout will reset your current customizations. Continue?")) return;
+    
+    setLayoutData({
+      selectedPreset: preset.key,
+      customAssets: [preset.stage, preset.carpet, ...preset.tables, ...preset.extras],
+      globalColors: {
+        guestTable: CLOTH_OPTIONS[0].hex,
+        guestChair: CHAIR_OPTIONS[0].hex,
+        bridalTable: CLOTH_OPTIONS[0].hex,
+        bridalChair: CHAIR_OPTIONS[0].hex
+      }
     });
   };
 
@@ -452,7 +500,20 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
       <div className="flex flex-col xl:flex-row gap-6 px-6">
         <div className="w-full xl:w-72 space-y-6">
           <div className="bg-zinc-900 border border-white/5 rounded-2xl p-6 space-y-6">
-            <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest border-b border-white/5 pb-2">Table Settings</h3>
+            <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest border-b border-white/5 pb-2">Layout Base</h3>
+            <div className="grid grid-cols-1 gap-2">
+              {PRESETS.map(p => (
+                <button 
+                  key={p.key} 
+                  onClick={() => switchPreset(p.key)}
+                  className={`px-3 py-2 rounded-xl text-[9px] font-black uppercase tracking-tight text-left transition-all border ${layoutData?.selectedPreset === p.key ? 'bg-amber-500/10 border-amber-500/50 text-amber-500' : 'bg-white/5 border-transparent text-zinc-500 hover:bg-white/10'}`}
+                >
+                  {p.name}
+                </button>
+              ))}
+            </div>
+
+            <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest border-b border-white/5 pb-2 pt-2">Table Settings</h3>
             <div className="space-y-3">
               <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Guest Tablecloth</label>
               <div className="flex gap-2">
@@ -469,11 +530,33 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
                 ))}
               </div>
             </div>
+            <div className="h-px bg-white/5" />
+            <div className="space-y-3">
+              <label className="text-[9px] font-black text-pink-500 uppercase tracking-widest">Bridal Tablecloth</label>
+              <div className="flex gap-2">
+                {CLOTH_OPTIONS.map(c => (
+                  <button key={c.hex} onClick={() => updateGlobalColor('bridalTable', c.hex)} className={`w-6 h-6 rounded-lg border-2 ${layoutData?.globalColors?.bridalTable === c.hex ? 'border-white' : 'border-transparent'}`} style={{ backgroundColor: c.hex }} />
+                ))}
+              </div>
+            </div>
+            <div className="space-y-3">
+              <label className="text-[9px] font-black text-pink-500 uppercase tracking-widest">Bridal Chair Cover</label>
+              <div className="flex gap-2">
+                {CHAIR_OPTIONS.map(c => (
+                  <button key={c.hex} onClick={() => updateGlobalColor('bridalChair', c.hex)} className={`w-6 h-6 rounded-lg border-2 ${layoutData?.globalColors?.bridalChair === c.hex ? 'border-white' : 'border-transparent'}`} style={{ backgroundColor: c.hex }} />
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
         <div className="flex-1 relative h-[68vh] bg-[#080808] rounded-3xl border border-white/5 overflow-hidden">
-          {layoutData ? (
+          {errorStatus ? (
+            <div className="flex flex-col items-center justify-center h-full text-red-500 uppercase tracking-widest text-[10px]">
+              <i className="fa-solid fa-triangle-exclamation text-red-500 mb-2 text-2xl" />
+              {errorStatus}
+            </div>
+          ) : layoutData ? (
             <Canvas shadows dpr={[1, 2]}>
               <PerspectiveCamera makeDefault position={[0, 20, 15]} fov={50} />
               <OrbitControls enabled={orbitEnabled} makeDefault enableDamping dampingFactor={0.05} maxPolarAngle={Math.PI / 2.15} minDistance={5} maxDistance={50} />
