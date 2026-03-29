@@ -18,7 +18,7 @@ type TableDef = {
 
 type AssetDef = {
   id: string;
-  type: 'stage' | 'carpet' | 'lectern' | 'audio-control' | 'mc' | 'led';
+  type: 'stage' | 'carpet' | 'lectern' | 'audio-control' | 'mc' | 'led' | 'camera';
   x: number;
   z: number;
   w?: number;
@@ -138,7 +138,6 @@ function WeddingTable({ table, isSelected, onSelect }: { table: TableDef, isSele
   const chairs = useMemo(() =>
     Array.from({ length: numChairs }, (_, i) => {
       const a = (i / numChairs) * Math.PI * 2;
-      // rot should point to center (0,0) of this group
       return { x: Math.cos(a) * chairDist, z: Math.sin(a) * chairDist, rot: -a - Math.PI/2 };
     }), [chairDist]
   );
@@ -154,24 +153,20 @@ function WeddingTable({ table, isSelected, onSelect }: { table: TableDef, isSele
           <meshBasicMaterial color="#FF69B4" transparent opacity={0.5} />
         </mesh>
       )}
-      {/* Tablecloth drape */}
       <mesh position={[0, 0.48, 0]} castShadow>
         <cylinderGeometry args={[r + 0.08, r + 0.22, 0.65, 32]} />
         <meshStandardMaterial color={table.tableColor || CLOTH_OPTIONS[0].hex} roughness={0.85} side={THREE.DoubleSide} />
       </mesh>
-      {/* Table surface */}
       <mesh position={[0, 0.76, 0]} receiveShadow>
         <cylinderGeometry args={[r, r, 0.04, 32]} />
         <meshStandardMaterial color="#331111" roughness={0.3} />
       </mesh>
-      {/* Glass lazy susan */}
       {!isBridal && (
         <mesh position={[0, 0.79, 0]}>
           <cylinderGeometry args={[0.32, 0.32, 0.015, 32]} />
           <meshStandardMaterial color={GLASS_TINT} transparent opacity={0.35} roughness={0.05} metalness={0.3} />
         </mesh>
       )}
-      {/* Number plate OR centerpiece */}
       {isBridal ? (
         <group position={[0, 0.82, 0]}>
           <mesh><cylinderGeometry args={[0.06, 0.1, 0.12, 8]} /><meshStandardMaterial color="#DAA520" metalness={0.6} roughness={0.3} /></mesh>
@@ -186,7 +181,6 @@ function WeddingTable({ table, isSelected, onSelect }: { table: TableDef, isSele
           </div>
         </Html>
       )}
-      {/* Label for bridal */}
       {isBridal && (
         <Html position={[0, 1.2, 0]} center distanceFactor={10}>
           <div style={{ background: 'rgba(139,26,26,0.9)', color: '#fff', padding: '3px 10px', borderRadius: 6, fontSize: 9, fontWeight: 900, letterSpacing: 2, textTransform: 'uppercase', fontFamily: 'sans-serif', whiteSpace: 'nowrap' }}>
@@ -194,12 +188,10 @@ function WeddingTable({ table, isSelected, onSelect }: { table: TableDef, isSele
           </div>
         </Html>
       )}
-      {/* Table center leg */}
       <mesh position={[0, 0.22, 0]}>
         <cylinderGeometry args={[0.06, 0.06, 0.44, 8]} />
         <meshStandardMaterial color="#333" />
       </mesh>
-      {/* 10 Chairs - facing INWARDS */}
       {chairs.map((c, i) => (
         <group key={i} position={[c.x, 0, c.z]} rotation={[0, c.rot, 0]}>
           <mesh position={[0, 0.28, 0]} castShadow>
@@ -271,7 +263,6 @@ function HallFloor() {
         <planeGeometry args={[32, 24]} />
         <meshStandardMaterial color="#1a1a1a" roughness={0.9} />
       </mesh>
-      {/* Walls */}
       {[
         { pos: [0, 1.5, -12] as [number, number, number], size: [32, 3, 0.1] as [number, number, number] },
         { pos: [0, 1.5, 12] as [number, number, number], size: [32, 3, 0.1] as [number, number, number] },
@@ -287,17 +278,7 @@ function HallFloor() {
   );
 }
 
-function Draggable({ 
-  children, 
-  isSelected, 
-  onDragStart, 
-  onDragEnd 
-}: { 
-  children: React.ReactNode, 
-  isSelected: boolean, 
-  onDragStart: () => void, 
-  onDragEnd: (pos: THREE.Vector3) => void 
-}) {
+function Draggable({ children, isSelected, onDragStart, onDragEnd }: { children: React.ReactNode, isSelected: boolean, onDragStart: () => void, onDragEnd: (pos: THREE.Vector3) => void }) {
   const ref = useRef<THREE.Group>(null!);
   return (
     <group ref={ref}>
@@ -331,7 +312,7 @@ function VenueScene({
   onUpdateAsset: (id: string, updates: Partial<TableDef | AssetDef>) => void,
   onDragStart: () => void
 }) {
-  const tables = layoutData.customAssets.filter(a => a.type === 'guest' || a.type === 'bridal') as TableDef[];
+  const tables = useMemo(() => layoutData.customAssets.filter(a => a.type === 'guest' || a.type === 'bridal') as TableDef[], [layoutData.customAssets]);
   const stage = layoutData.customAssets.find(a => a.type === 'stage') as AssetDef;
   const carpet = layoutData.customAssets.find(a => a.type === 'carpet') as AssetDef;
 
@@ -343,41 +324,20 @@ function VenueScene({
       <HallFloor />
 
       {stage && (
-        <Draggable 
-          isSelected={selectedIds.includes('stage')} 
-          onDragStart={onDragStart}
-          onDragEnd={(pos) => onUpdateAsset('stage', { x: pos.x, z: pos.z })}
-        >
-          <VenueStage 
-            stage={stage} 
-            isSelected={selectedIds.includes('stage')} 
-            onSelect={onSelect} 
-          />
+        <Draggable isSelected={selectedIds.includes('stage')} onDragStart={onDragStart} onDragEnd={(pos) => onUpdateAsset('stage', { x: pos.x, z: pos.z })}>
+          <VenueStage stage={stage} isSelected={selectedIds.includes('stage')} onSelect={onSelect} />
         </Draggable>
       )}
 
       {carpet && (
-        <Draggable 
-          isSelected={selectedIds.includes('carpet')} 
-          onDragStart={onDragStart}
-          onDragEnd={(pos) => onUpdateAsset('carpet', { x: pos.x, z: pos.z })}
-        >
+        <Draggable isSelected={selectedIds.includes('carpet')} onDragStart={onDragStart} onDragEnd={(pos) => onUpdateAsset('carpet', { x: pos.x, z: pos.z })}>
           <RedCarpet carpet={carpet} />
         </Draggable>
       )}
 
       {tables.map(t => (
-        <Draggable 
-          key={t.id} 
-          isSelected={selectedIds.includes(t.id)} 
-          onDragStart={onDragStart}
-          onDragEnd={(pos) => onUpdateAsset(t.id, { x: pos.x, z: pos.z })}
-        >
-          <WeddingTable 
-            table={t} 
-            isSelected={selectedIds.includes(t.id)} 
-            onSelect={onSelect} 
-          />
+        <Draggable key={t.id} isSelected={selectedIds.includes(t.id)} onDragStart={onDragStart} onDragEnd={(pos) => onUpdateAsset(t.id, { x: pos.x, z: pos.z })}>
+          <WeddingTable table={t} isSelected={selectedIds.includes(t.id)} onSelect={onSelect} />
         </Draggable>
       ))}
 
@@ -387,8 +347,6 @@ function VenueScene({
     </>
   );
 }
-
-// ========== MAIN PAGE ==========
 
 export default function VenueLayoutPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: projectId } = use(params);
@@ -400,24 +358,43 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
 
   useEffect(() => {
     const load = async () => {
-      const { data } = await supabase.from('project_venue_settings').select('selected_layout, layout_data').eq('project_id', projectId).single();
-      
-      if (data?.layout_data && Object.keys(data.layout_data).length > 0) {
-        setLayoutData(data.layout_data);
-      } else if (data?.selected_layout) {
-        const preset = PRESETS.find(p => p.key === data.selected_layout) || SHORT_AISLE;
-        setLayoutData({
-          selectedPreset: preset.key,
-          customAssets: [preset.stage, preset.carpet, ...preset.tables, ...preset.extras],
-          globalColors: {
-            guestTable: CLOTH_OPTIONS[0].hex,
-            guestChair: CHAIR_OPTIONS[0].hex,
-            bridalTable: CLOTH_OPTIONS[0].hex,
-            bridalChair: CHAIR_OPTIONS[0].hex
-          }
-        });
+      try {
+        const { data, error } = await supabase.from('project_venue_settings').select('selected_layout, layout_data').eq('project_id', projectId).single();
+        if (error) console.error("Error fetching layout settings:", error);
+        
+        if (data?.layout_data && typeof data.layout_data === 'object' && Object.keys(data.layout_data).length > 0) {
+          setLayoutData(data.layout_data as ProjectLayoutData);
+        } else if (data?.selected_layout) {
+          const preset = PRESETS.find(p => p.key === data.selected_layout) || SHORT_AISLE;
+          setLayoutData({
+            selectedPreset: preset.key,
+            customAssets: [preset.stage, preset.carpet, ...preset.tables, ...preset.extras],
+            globalColors: {
+              guestTable: CLOTH_OPTIONS[0].hex,
+              guestChair: CHAIR_OPTIONS[0].hex,
+              bridalTable: CLOTH_OPTIONS[0].hex,
+              bridalChair: CHAIR_OPTIONS[0].hex
+            }
+          });
+        } else {
+          // Default to short aisle if nothing selected
+          const preset = SHORT_AISLE;
+          setLayoutData({
+            selectedPreset: preset.key,
+            customAssets: [preset.stage, preset.carpet, ...preset.tables, ...preset.extras],
+            globalColors: {
+              guestTable: CLOTH_OPTIONS[0].hex,
+              guestChair: CHAIR_OPTIONS[0].hex,
+              bridalTable: CLOTH_OPTIONS[0].hex,
+              bridalChair: CHAIR_OPTIONS[0].hex
+            }
+          });
+        }
+      } catch (err) {
+        console.error("Data loading caught error:", err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     load();
   }, [projectId]);
@@ -425,7 +402,7 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
   const updateAsset = (id: string, updates: Partial<TableDef | AssetDef>) => {
     if (!layoutData) return;
     const newAssets = layoutData.customAssets.map(a => a.id === id ? { ...a, ...updates } : a);
-    setLayoutData({ ...layoutData, customAssets: newAssets });
+    setLayoutData({ ...layoutData, customAssets: newAssets as (TableDef | AssetDef)[] });
     setOrbitEnabled(true);
   };
 
@@ -434,16 +411,13 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
     const isGuest = type.includes('guest');
     const newAssets = layoutData.customAssets.map(a => {
       if (a.type === (isGuest ? 'guest' : 'bridal')) {
-        return { 
-          ...a, 
-          [type.includes('Table') ? 'tableColor' : 'chairColor']: hex 
-        };
+        return { ...a, [type.includes('Table') ? 'tableColor' : 'chairColor']: hex };
       }
       return a;
     });
     setLayoutData({
       ...layoutData,
-      customAssets: newAssets,
+      customAssets: newAssets as (TableDef | AssetDef)[],
       globalColors: { ...layoutData.globalColors, [type]: hex }
     });
   };
@@ -451,7 +425,8 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
   const saveLayout = async () => {
     if (!layoutData) return;
     setSaving(true);
-    await supabase.from('project_venue_settings').upsert({ project_id: projectId, layout_data: layoutData }, { onConflict: 'project_id' });
+    const { error } = await supabase.from('project_venue_settings').upsert({ project_id: projectId, layout_data: layoutData }, { onConflict: 'project_id' });
+    if (error) console.error("Save error:", error);
     setSaving(false);
     import('sweetalert2').then(Swal => { Swal.default.fire({ title: 'Saved!', icon: 'success', toast: true, position: 'top-end', timer: 2000, showConfirmButton: false, background: '#18181b', color: '#fff' }); });
   };
@@ -460,7 +435,6 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
 
   return (
     <div className="space-y-6 -mx-4 sm:-mx-6 lg:-mx-8 -mt-4">
-      {/* Header */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 px-6 pt-2">
         <div>
           <h1 className="text-3xl font-black text-white uppercase italic tracking-tighter">
@@ -476,66 +450,30 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
       </div>
 
       <div className="flex flex-col xl:flex-row gap-6 px-6">
-        {/* Sidebar Controls */}
         <div className="w-full xl:w-72 space-y-6">
           <div className="bg-zinc-900 border border-white/5 rounded-2xl p-6 space-y-6">
             <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest border-b border-white/5 pb-2">Table Settings</h3>
-            
-            {/* Guest Table Colors */}
             <div className="space-y-3">
               <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Guest Tablecloth</label>
               <div className="flex gap-2">
                 {CLOTH_OPTIONS.map(c => (
-                  <button key={c.hex} onClick={() => updateGlobalColor('guestTable', c.hex)} className={`w-6 h-6 rounded-lg border-2 ${layoutData?.globalColors.guestTable === c.hex ? 'border-white' : 'border-transparent'}`} style={{ backgroundColor: c.hex }} title={c.name} />
+                  <button key={c.hex} onClick={() => updateGlobalColor('guestTable', c.hex)} className={`w-6 h-6 rounded-lg border-2 ${layoutData?.globalColors?.guestTable === c.hex ? 'border-white' : 'border-transparent'}`} style={{ backgroundColor: c.hex }} />
                 ))}
               </div>
             </div>
-
             <div className="space-y-3">
               <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Guest Chair Cover</label>
               <div className="flex gap-2">
                 {CHAIR_OPTIONS.map(c => (
-                  <button key={c.hex} onClick={() => updateGlobalColor('guestChair', c.hex)} className={`w-6 h-6 rounded-lg border-2 ${layoutData?.globalColors.guestChair === c.hex ? 'border-white' : 'border-transparent'}`} style={{ backgroundColor: c.hex }} title={c.name} />
+                  <button key={c.hex} onClick={() => updateGlobalColor('guestChair', c.hex)} className={`w-6 h-6 rounded-lg border-2 ${layoutData?.globalColors?.guestChair === c.hex ? 'border-white' : 'border-transparent'}`} style={{ backgroundColor: c.hex }} />
                 ))}
               </div>
             </div>
-
-            <div className="h-px bg-white/5" />
-
-            {/* Bridal Table Colors */}
-            <div className="space-y-3">
-              <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest text-pink-500">Bridal Tablecloth</label>
-              <div className="flex gap-2">
-                {CLOTH_OPTIONS.map(c => (
-                  <button key={c.hex} onClick={() => updateGlobalColor('bridalTable', c.hex)} className={`w-6 h-6 rounded-lg border-2 ${layoutData?.globalColors.bridalTable === c.hex ? 'border-white' : 'border-transparent'}`} style={{ backgroundColor: c.hex }} title={c.name} />
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest text-pink-500">Bridal Chair Cover</label>
-              <div className="flex gap-2">
-                {CHAIR_OPTIONS.map(c => (
-                  <button key={c.hex} onClick={() => updateGlobalColor('bridalChair', c.hex)} className={`w-6 h-6 rounded-lg border-2 ${layoutData?.globalColors.bridalChair === c.hex ? 'border-white' : 'border-transparent'}`} style={{ backgroundColor: c.hex }} title={c.name} />
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-zinc-900 border border-white/5 rounded-2xl p-6">
-            <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest border-b border-white/5 pb-2">Instructions</h3>
-            <ul className="mt-4 space-y-2 text-[9px] text-zinc-500 uppercase tracking-widest leading-relaxed">
-              <li>• Click object to select</li>
-              <li>• Drag gizmo to move</li>
-              <li>• Click floor to deselect</li>
-              <li>• Shift + Click to multi-select</li>
-            </ul>
           </div>
         </div>
 
-        {/* 3D Viewport */}
         <div className="flex-1 relative h-[68vh] bg-[#080808] rounded-3xl border border-white/5 overflow-hidden">
-          {layoutData && (
+          {layoutData ? (
             <Canvas shadows dpr={[1, 2]}>
               <PerspectiveCamera makeDefault position={[0, 20, 15]} fov={50} />
               <OrbitControls enabled={orbitEnabled} makeDefault enableDamping dampingFactor={0.05} maxPolarAngle={Math.PI / 2.15} minDistance={5} maxDistance={50} />
@@ -544,19 +482,18 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
                   <VenueScene 
                     layoutData={layoutData} 
                     selectedIds={selectedIds}
-                    onSelect={(id) => {
-                      if (id) {
-                        setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
-                      } else {
-                        setSelectedIds([]);
-                      }
-                    }}
+                    onSelect={(id) => id ? setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]) : setSelectedIds([])}
                     onUpdateAsset={updateAsset}
                     onDragStart={() => setOrbitEnabled(false)}
                   />
                 </group>
               </Suspense>
             </Canvas>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full text-zinc-500 uppercase tracking-widest text-[10px]">
+              <i className="fa-solid fa-triangle-exclamation text-amber-500 mb-2 text-2xl" />
+              Failed to load spatial data.
+            </div>
           )}
         </div>
       </div>
