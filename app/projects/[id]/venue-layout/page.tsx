@@ -1,76 +1,111 @@
 'use client';
 
-import React, { useState, Suspense, useEffect, use, useMemo } from 'react';
+import React, { useState, Suspense, useEffect, use, useMemo, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, PerspectiveCamera, ContactShadows, Environment, Grid, Html } from '@react-three/drei';
+import { OrbitControls, PerspectiveCamera, ContactShadows, Environment, Html, TransformControls } from '@react-three/drei';
 import { supabase } from '@/lib/supabaseClient';
 import * as THREE from 'three';
 
 // --- TYPES ---
-type TableDef = { id: number; x: number; z: number; isBridal?: boolean };
-type ExtraDef = { label: string; x: number; z: number };
-type LayoutPreset = {
-  key: string; name: string; desc: string;
-  tables: TableDef[];
-  stage: { x: number; z: number; w: number; d: number };
-  carpet: { x: number; z: number; w: number; d: number };
-  extras: ExtraDef[];
+type TableDef = { 
+  id: string; 
+  type: 'guest' | 'bridal';
+  x: number; 
+  z: number; 
+  tableColor?: string;
+  chairColor?: string;
 };
 
-// --- COLORS ---
-const CLOTH_RED = '#8B1A1A';
-const CHAIR_PINK = '#E8C9B7';
+type AssetDef = {
+  id: string;
+  type: 'stage' | 'carpet' | 'lectern' | 'audio-control' | 'mc' | 'led';
+  x: number;
+  z: number;
+  w?: number;
+  h?: number;
+  d?: number;
+  r?: number; // rotation
+};
+
+type ProjectLayoutData = {
+  selectedPreset: string;
+  customAssets: (TableDef | AssetDef)[];
+  globalColors: {
+    guestTable: string;
+    guestChair: string;
+    bridalTable: string;
+    bridalChair: string;
+  }
+};
+
+type LayoutPreset = {
+  key: string; 
+  name: string; 
+  desc: string;
+  tables: TableDef[];
+  stage: AssetDef;
+  carpet: AssetDef;
+  extras: AssetDef[];
+};
+
+// --- CONSTANTS ---
+const CLOTH_OPTIONS = [
+  { name: 'Red', hex: '#8B1A1A' },
+  { name: 'Champagne', hex: '#F7E7CE' },
+  { name: 'Green', hex: '#2D5A27' },
+  { name: 'Pink', hex: '#FFB6C1' }
+];
+const CHAIR_OPTIONS = [
+  { name: 'Champagne', hex: '#E8C9B7' },
+  { name: 'Red', hex: '#7B1A1A' },
+  { name: 'White', hex: '#F5F5F5' }
+];
 const CARPET_RED = '#9B1B30';
 const GLASS_TINT = '#c8e6ec';
+const STAGE_HEIGHT = 1.83; // 6ft
 
-// --- PRESET: SHORT AISLE (20 tables, stage on right) ---
+// --- PRESETS ---
 const SHORT_AISLE: LayoutPreset = {
   key: 'short-aisle',
   name: 'Emerald Hall — Short Aisle',
   desc: 'Promenade Hotel BTU • 20 tables + Bridal • Stage right side',
-  stage: { x: 13, z: -2, w: 6, d: 2.5 },
-  carpet: { x: 1, z: 0.5, w: 13, d: 1.5 },
+  stage: { id: 'stage', type: 'stage', x: 13, z: -2, w: 6, d: 2.5 },
+  carpet: { id: 'carpet', type: 'carpet', x: 1, z: 0.5, w: 13, d: 1.5 },
   tables: [
-    { id: 18, x: -8, z: -7 }, { id: 16, x: -3, z: -7 }, { id: 14, x: 1.5, z: -7 },
-    { id: 12, x: 5.5, z: -7 }, { id: 4, x: 9.5, z: -7 },
-    { id: 20, x: -10, z: -3.5 }, { id: 17, x: -5.5, z: -3.5 }, { id: 15, x: -1, z: -3.5 },
-    { id: 13, x: 3, z: -3.5 }, { id: 11, x: 6.5, z: -3.5 }, { id: 5, x: 10, z: -3.5 },
-    { id: 19, x: -8, z: -0.5 }, { id: 10, x: -3.5, z: -0.5 }, { id: 9, x: 5.5, z: -1 },
-    { id: 0, x: 8.5, z: 0.5, isBridal: true },
-    { id: 7, x: -2, z: 3 }, { id: 3, x: 5.5, z: 3 },
-    { id: 8, x: -4, z: 6.5 }, { id: 6, x: 1.5, z: 6.5 }, { id: 2, x: 7, z: 6.5 },
+    { id: '18', type: 'guest', x: -8, z: -7 }, { id: '16', type: 'guest', x: -3, z: -7 }, { id: '14', type: 'guest', x: 1.5, z: -7 },
+    { id: '12', type: 'guest', x: 5.5, z: -7 }, { id: '4', type: 'guest', x: 9.5, z: -7 },
+    { id: '20', type: 'guest', x: -10, z: -3.5 }, { id: '17', type: 'guest', x: -5.5, z: -3.5 }, { id: '15', type: 'guest', x: -1, z: -3.5 },
+    { id: '13', type: 'guest', x: 3, z: -3.5 }, { id: '11', type: 'guest', x: 6.5, z: -3.5 }, { id: '5', type: 'guest', x: 10, z: -3.5 },
+    { id: '19', type: 'guest', x: -8, z: -0.5 }, { id: '10', type: 'guest', x: -3.5, z: -0.5 }, { id: '9', type: 'guest', x: 5.5, z: -1 },
+    { id: 'bridal', type: 'bridal', x: 8.5, z: 0.5 },
+    { id: '7', type: 'guest', x: -2, z: 3 }, { id: '3', type: 'guest', x: 5.5, z: 3 },
+    { id: '8', type: 'guest', x: -4, z: 6.5 }, { id: '6', type: 'guest', x: 1.5, z: 6.5 }, { id: '2', type: 'guest', x: 7, z: 6.5 },
   ],
   extras: [
-    { label: 'PHOTOBOOTH', x: -13, z: 0 }, { label: 'REGISTRATION', x: -9, z: 9.5 },
-    { label: 'AV ROOM', x: 0, z: 9.5 }, { label: 'MC', x: 13, z: -0.5 },
-    { label: 'LED SCREEN', x: 15, z: -2 }, { label: 'CAKE TABLE', x: 13, z: -4.5 },
-    { label: 'TOASTING', x: 13, z: 3 },
+    { id: 'extra-1', type: 'mc', x: 13, z: -0.5 },
+    { id: 'extra-2', type: 'led', x: 15, z: -2 },
   ],
 };
 
-// --- PRESET: LONG AISLE (25 tables, stage at back center) ---
 const LONG_AISLE: LayoutPreset = {
   key: 'long-aisle',
   name: 'Emerald Hall — Long Aisle',
   desc: 'Promenade Hotel BTU • 25 tables + Bridal • Stage back center',
-  stage: { x: 0, z: -10, w: 5, d: 2.5 },
-  carpet: { x: 0, z: 0.5, w: 1.5, d: 15 },
+  stage: { id: 'stage', type: 'stage', x: 0, z: -10, w: 5, d: 2.5 },
+  carpet: { id: 'carpet', type: 'carpet', x: 0, z: 0.5, w: 1.5, d: 15 },
   tables: [
-    { id: 0, x: 0, z: -6.5, isBridal: true },
-    { id: 2, x: -9, z: -4 }, { id: 5, x: -5.5, z: -4 }, { id: 9, x: -2, z: -4 },
-    { id: 3, x: -9, z: -0.5 }, { id: 6, x: -5.5, z: -0.5 }, { id: 10, x: -2, z: -0.5 }, { id: 12, x: 1.5, z: -0.5 },
-    { id: 4, x: -9, z: 3 }, { id: 7, x: -5.5, z: 3 }, { id: 11, x: -2, z: 3 }, { id: 13, x: 1.5, z: 3 },
-    { id: 8, x: -5.5, z: 6.5 },
-    { id: 16, x: 5.5, z: -4 }, { id: 19, x: 9.5, z: -4 },
-    { id: 14, x: 4.5, z: -0.5 }, { id: 17, x: 8, z: -0.5 }, { id: 20, x: 11, z: -0.5 }, { id: 23, x: 14, z: -0.5 },
-    { id: 15, x: 4.5, z: 3 }, { id: 18, x: 8, z: 3 }, { id: 21, x: 11, z: 3 }, { id: 24, x: 14, z: 3 },
-    { id: 22, x: 10, z: 6.5 }, { id: 25, x: 13, z: 6.5 },
+    { id: 'bridal', type: 'bridal', x: 0, z: -6.5 },
+    { id: '2', type: 'guest', x: -9, z: -4 }, { id: '5', type: 'guest', x: -5.5, z: -4 }, { id: '9', type: 'guest', x: -2, z: -4 },
+    { id: '3', type: 'guest', x: -9, z: -0.5 }, { id: '6', type: 'guest', x: -5.5, z: -0.5 }, { id: '10', type: 'guest', x: -2, z: -0.5 }, { id: '12', type: 'guest', x: 1.5, z: -0.5 },
+    { id: '4', type: 'guest', x: -9, z: 3 }, { id: '7', type: 'guest', x: -5.5, z: 3 }, { id: '11', type: 'guest', x: -2, z: 3 }, { id: '13', type: 'guest', x: 1.5, z: 3 },
+    { id: '8', type: 'guest', x: -5.5, z: 6.5 },
+    { id: '16', type: 'guest', x: 5.5, z: -4 }, { id: '19', type: 'guest', x: 9.5, z: -4 },
+    { id: '14', type: 'guest', x: 4.5, z: -0.5 }, { id: '17', type: 'guest', x: 8, z: -0.5 }, { id: '20', type: 'guest', x: 11, z: -0.5 }, { id: '23', type: 'guest', x: 14, z: -0.5 },
+    { id: '15', type: 'guest', x: 4.5, z: 3 }, { id: '18', type: 'guest', x: 8, z: 3 }, { id: '21', type: 'guest', x: 11, z: 3 }, { id: '24', type: 'guest', x: 14, z: 3 },
+    { id: '22', type: 'guest', x: 10, z: 6.5 }, { id: '25', type: 'guest', x: 13, z: 6.5 },
   ],
   extras: [
-    { label: 'GIFTS TABLE', x: -6, z: -9.5 }, { label: 'EMCEE', x: -3.5, z: -8.5 },
-    { label: 'CAKE TABLE', x: -1, z: -8.5 }, { label: 'TOASTING', x: 3, z: -8.5 },
-    { label: 'REGISTRATION', x: -8, z: 9.5 }, { label: 'PHOTOBOOTH', x: -3, z: 9.5 },
-    { label: 'AV ROOM', x: 2, z: 9.5 },
+    { id: 'extra-1', type: 'mc', x: -3.5, z: -8.5 },
   ],
 };
 
@@ -78,37 +113,66 @@ const PRESETS = [SHORT_AISLE, LONG_AISLE];
 
 // ========== 3D COMPONENTS ==========
 
-function WeddingTable({ table }: { table: TableDef }) {
-  const r = table.isBridal ? 1.2 : 0.9;
+function Lectern({ x, z, r }: { x: number, z: number, r?: number }) {
+  return (
+    <group position={[x, STAGE_HEIGHT, z]} rotation={[0, r || 0, 0]}>
+      <mesh position={[0, 0.5, 0]} castShadow>
+        <boxGeometry args={[0.5, 1, 0.4]} />
+        <meshStandardMaterial color="#442211" roughness={0.3} />
+      </mesh>
+      <mesh position={[0, 1, 0]} rotation={[-0.2, 0, 0]} castShadow>
+        <boxGeometry args={[0.6, 0.05, 0.5]} />
+        <meshStandardMaterial color="#331100" />
+      </mesh>
+      <mesh position={[0, 1.05, 0.1]}><boxGeometry args={[0.1, 0.02, 0.1]} /><meshStandardMaterial color="#000" emissive="blue" emissiveIntensity={0.2} /></mesh>
+    </group>
+  );
+}
+
+function WeddingTable({ table, isSelected, onSelect }: { table: TableDef, isSelected?: boolean, onSelect?: (id: string | null) => void }) {
+  const isBridal = table.type === 'bridal';
+  const r = isBridal ? 1.2 : 0.9;
   const chairDist = r + 0.55;
   const numChairs = 10;
 
   const chairs = useMemo(() =>
     Array.from({ length: numChairs }, (_, i) => {
       const a = (i / numChairs) * Math.PI * 2;
-      return { x: Math.cos(a) * chairDist, z: Math.sin(a) * chairDist, rot: -a + Math.PI };
+      // rot should point to center (0,0) of this group
+      return { x: Math.cos(a) * chairDist, z: Math.sin(a) * chairDist, rot: -a - Math.PI/2 };
     }), [chairDist]
   );
 
   return (
-    <group position={[table.x, 0, table.z]}>
+    <group 
+      position={[table.x, 0, table.z]} 
+      onClick={(e) => { e.stopPropagation(); onSelect?.(table.id); }}
+    >
+      {isSelected && (
+        <mesh position={[0, -0.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[r + 0.6, r + 0.7, 32]} />
+          <meshBasicMaterial color="#FF69B4" transparent opacity={0.5} />
+        </mesh>
+      )}
       {/* Tablecloth drape */}
       <mesh position={[0, 0.48, 0]} castShadow>
         <cylinderGeometry args={[r + 0.08, r + 0.22, 0.65, 32]} />
-        <meshStandardMaterial color={CLOTH_RED} roughness={0.85} side={THREE.DoubleSide} />
+        <meshStandardMaterial color={table.tableColor || CLOTH_OPTIONS[0].hex} roughness={0.85} side={THREE.DoubleSide} />
       </mesh>
       {/* Table surface */}
       <mesh position={[0, 0.76, 0]} receiveShadow>
         <cylinderGeometry args={[r, r, 0.04, 32]} />
-        <meshStandardMaterial color="#4a1515" roughness={0.3} />
+        <meshStandardMaterial color="#331111" roughness={0.3} />
       </mesh>
       {/* Glass lazy susan */}
-      <mesh position={[0, 0.79, 0]}>
-        <cylinderGeometry args={[0.32, 0.32, 0.015, 32]} />
-        <meshStandardMaterial color={GLASS_TINT} transparent opacity={0.35} roughness={0.05} metalness={0.3} />
-      </mesh>
+      {!isBridal && (
+        <mesh position={[0, 0.79, 0]}>
+          <cylinderGeometry args={[0.32, 0.32, 0.015, 32]} />
+          <meshStandardMaterial color={GLASS_TINT} transparent opacity={0.35} roughness={0.05} metalness={0.3} />
+        </mesh>
+      )}
       {/* Number plate OR centerpiece */}
-      {table.isBridal ? (
+      {isBridal ? (
         <group position={[0, 0.82, 0]}>
           <mesh><cylinderGeometry args={[0.06, 0.1, 0.12, 8]} /><meshStandardMaterial color="#DAA520" metalness={0.6} roughness={0.3} /></mesh>
           <mesh position={[0, 0.12, 0]}><sphereGeometry args={[0.1, 12, 12]} /><meshStandardMaterial color="#C41E3A" emissive="#FF4500" emissiveIntensity={0.2} /></mesh>
@@ -123,7 +187,7 @@ function WeddingTable({ table }: { table: TableDef }) {
         </Html>
       )}
       {/* Label for bridal */}
-      {table.isBridal && (
+      {isBridal && (
         <Html position={[0, 1.2, 0]} center distanceFactor={10}>
           <div style={{ background: 'rgba(139,26,26,0.9)', color: '#fff', padding: '3px 10px', borderRadius: 6, fontSize: 9, fontWeight: 900, letterSpacing: 2, textTransform: 'uppercase', fontFamily: 'sans-serif', whiteSpace: 'nowrap' }}>
             ♛ Bridal Table
@@ -135,20 +199,20 @@ function WeddingTable({ table }: { table: TableDef }) {
         <cylinderGeometry args={[0.06, 0.06, 0.44, 8]} />
         <meshStandardMaterial color="#333" />
       </mesh>
-      {/* 10 Chairs */}
+      {/* 10 Chairs - facing INWARDS */}
       {chairs.map((c, i) => (
         <group key={i} position={[c.x, 0, c.z]} rotation={[0, c.rot, 0]}>
           <mesh position={[0, 0.28, 0]} castShadow>
             <boxGeometry args={[0.32, 0.04, 0.32]} />
-            <meshStandardMaterial color={CHAIR_PINK} roughness={0.75} />
+            <meshStandardMaterial color={table.chairColor || CHAIR_OPTIONS[0].hex} roughness={0.75} />
           </mesh>
           <mesh position={[0, 0.5, -0.14]} castShadow>
             <boxGeometry args={[0.32, 0.42, 0.04]} />
-            <meshStandardMaterial color={CHAIR_PINK} roughness={0.75} />
+            <meshStandardMaterial color={table.chairColor || CHAIR_OPTIONS[0].hex} roughness={0.75} />
           </mesh>
           <mesh position={[0, 0.14, 0]}>
-            <boxGeometry args={[0.28, 0.28, 0.28]} />
-            <meshStandardMaterial color="#777" roughness={0.5} />
+            <boxGeometry args={[0.26, 0.26, 0.26]} />
+            <meshStandardMaterial color="#555" roughness={0.5} />
           </mesh>
         </group>
       ))}
@@ -156,52 +220,47 @@ function WeddingTable({ table }: { table: TableDef }) {
   );
 }
 
-function VenueStage({ stage }: { stage: LayoutPreset['stage'] }) {
+function VenueStage({ stage, isSelected, onSelect }: { stage: AssetDef, isSelected?: boolean, onSelect?: (id: string | null) => void }) {
   return (
-    <group position={[stage.x, 0, stage.z]}>
-      <mesh position={[0, 0.25, 0]} castShadow receiveShadow>
-        <boxGeometry args={[stage.w, 0.5, stage.d]} />
+    <group position={[stage.x, 0, stage.z]} onClick={(e) => { e.stopPropagation(); onSelect?.('stage'); }}>
+      <mesh position={[0, STAGE_HEIGHT/2, 0]} castShadow receiveShadow>
+        <boxGeometry args={[stage.w || 6, STAGE_HEIGHT, stage.d || 2.5]} />
         <meshStandardMaterial color="#111" metalness={0.7} roughness={0.2} />
       </mesh>
-      <mesh position={[0, 2.8, -stage.d / 2 - 0.05]} castShadow>
-        <boxGeometry args={[stage.w + 1, 5, 0.15]} />
+      <mesh position={[0, STAGE_HEIGHT + 2.3, -(stage.d || 2.5) / 2 - 0.05]} castShadow>
+        <boxGeometry args={[(stage.w || 6) + 1, 5, 0.15]} />
         <meshStandardMaterial color="#fff" emissive="#fff" emissiveIntensity={0.08} />
       </mesh>
-      <Html position={[0, 2.8, -stage.d / 2 + 0.05]} transform distanceFactor={6} center>
+      <Html position={[0, STAGE_HEIGHT + 2.3, -(stage.d || 2.5) / 2 + 0.05]} transform distanceFactor={6} center>
         <div style={{ background: 'rgba(0,0,0,0.7)', color: '#fff', padding: '6px 18px', borderRadius: 10, fontSize: 16, fontWeight: 900, letterSpacing: 4, textTransform: 'uppercase', fontFamily: 'sans-serif', border: '1px solid rgba(255,255,255,0.15)' }}>
           MAIN STAGE
         </div>
+      </Html>
+      <Lectern x={-(stage.w || 6)/2 + 0.8} z={(stage.d || 2.5)/2 - 0.5} />
+    </group>
+  );
+}
+
+function AudioControlRoom({ x, z }: { x: number, z: number }) {
+  return (
+    <group position={[x, 0, z]}>
+      <mesh position={[0, 0.1, 0]} castShadow><boxGeometry args={[1.8, 0.2, 0.8]} /><meshStandardMaterial color="#111" /></mesh>
+      <mesh position={[0, 0.6, 0.2]} castShadow><boxGeometry args={[1.5, 1, 0.1]} /><meshStandardMaterial color="#333" /></mesh>
+      <mesh position={[-0.4, 0.7, 0.22]}><boxGeometry args={[0.6, 0.4, 0.02]} /><meshStandardMaterial color="#000" emissive="cyan" emissiveIntensity={0.15} /></mesh>
+      <mesh position={[0.4, 0.7, 0.22]}><boxGeometry args={[0.6, 0.4, 0.02]} /><meshStandardMaterial color="#000" emissive="cyan" emissiveIntensity={0.15} /></mesh>
+      <Html position={[0, 1.2, 0]} center distanceFactor={10}>
+        <div style={{ background: 'rgba(0,0,0,0.85)', color: '#0FF', padding: '4px 10px', borderRadius: 4, fontSize: 8, fontWeight: 900, textTransform: 'uppercase', border: '1px solid #0FF3' }}>AUDIO CONTROL</div>
       </Html>
     </group>
   );
 }
 
-function RedCarpet({ carpet }: { carpet: LayoutPreset['carpet'] }) {
+function RedCarpet({ carpet }: { carpet: AssetDef }) {
   return (
     <mesh position={[carpet.x, 0.01, carpet.z]} receiveShadow>
-      <boxGeometry args={[carpet.w, 0.02, carpet.d]} />
+      <boxGeometry args={[carpet.w || 10, 0.02, carpet.d || 1.5]} />
       <meshStandardMaterial color={CARPET_RED} roughness={0.9} />
     </mesh>
-  );
-}
-
-function ExtraLabels({ extras }: { extras: ExtraDef[] }) {
-  return (
-    <>
-      {extras.map((e, i) => (
-        <group key={i} position={[e.x, 0, e.z]}>
-          <mesh position={[0, 0.15, 0]}>
-            <boxGeometry args={[1.8, 0.3, 0.8]} />
-            <meshStandardMaterial color="#222" roughness={0.5} />
-          </mesh>
-          <Html position={[0, 0.5, 0]} center distanceFactor={12}>
-            <div style={{ background: 'rgba(30,30,30,0.85)', color: '#aaa', padding: '2px 8px', borderRadius: 4, fontSize: 7, fontWeight: 900, letterSpacing: 2, textTransform: 'uppercase', fontFamily: 'sans-serif', whiteSpace: 'nowrap', border: '1px solid rgba(255,255,255,0.08)' }}>
-              {e.label}
-            </div>
-          </Html>
-        </group>
-      ))}
-    </>
   );
 }
 
@@ -224,33 +283,105 @@ function HallFloor() {
           <meshStandardMaterial color="#252525" roughness={0.8} transparent opacity={0.3} />
         </mesh>
       ))}
-      {/* Entrance markers */}
-      {[-10, -3, 5, 12].map((ex, i) => (
-        <Html key={i} position={[ex, 0.3, 11.5]} center distanceFactor={14}>
-          <div style={{ color: '#555', fontSize: 7, fontWeight: 900, letterSpacing: 2, fontFamily: 'sans-serif' }}>
-            ENTRANCE {i + 1}
-          </div>
-        </Html>
-      ))}
     </>
   );
 }
 
-function VenueScene({ layout }: { layout: LayoutPreset }) {
+function Draggable({ 
+  children, 
+  isSelected, 
+  onDragStart, 
+  onDragEnd 
+}: { 
+  children: React.ReactNode, 
+  isSelected: boolean, 
+  onDragStart: () => void, 
+  onDragEnd: (pos: THREE.Vector3) => void 
+}) {
+  const ref = useRef<THREE.Group>(null!);
+  return (
+    <group ref={ref}>
+      {children}
+      {isSelected && (
+        <TransformControls 
+          object={ref} 
+          mode="translate" 
+          showY={false}
+          onMouseDown={onDragStart}
+          onMouseUp={() => {
+            const pos = ref.current.position.clone();
+            onDragEnd(pos);
+          }}
+        />
+      )}
+    </group>
+  );
+}
+
+function VenueScene({ 
+  layoutData, 
+  selectedIds, 
+  onSelect,
+  onUpdateAsset,
+  onDragStart
+}: { 
+  layoutData: ProjectLayoutData, 
+  selectedIds: string[], 
+  onSelect: (id: string | null) => void,
+  onUpdateAsset: (id: string, updates: Partial<TableDef | AssetDef>) => void,
+  onDragStart: () => void
+}) {
+  const tables = layoutData.customAssets.filter(a => a.type === 'guest' || a.type === 'bridal') as TableDef[];
+  const stage = layoutData.customAssets.find(a => a.type === 'stage') as AssetDef;
+  const carpet = layoutData.customAssets.find(a => a.type === 'carpet') as AssetDef;
+
   return (
     <>
       <ambientLight intensity={0.4} color="#fff5e6" />
       <spotLight position={[0, 18, 0]} angle={0.6} penumbra={0.8} intensity={1.2} castShadow color="#fff5e6" />
-      <spotLight position={[-10, 12, -8]} angle={0.4} penumbra={1} intensity={0.5} color="#ffd8a8" />
-      <spotLight position={[10, 12, 5]} angle={0.4} penumbra={1} intensity={0.4} color="#ffd8a8" />
-      <pointLight position={[0, 8, -10]} intensity={0.3} color="#ff9999" />
 
       <HallFloor />
-      <VenueStage stage={layout.stage} />
-      <RedCarpet carpet={layout.carpet} />
-      {layout.tables.map(t => <WeddingTable key={`${t.id}-${t.isBridal ? 'b' : 'g'}`} table={t} />)}
-      <ExtraLabels extras={layout.extras} />
 
+      {stage && (
+        <Draggable 
+          isSelected={selectedIds.includes('stage')} 
+          onDragStart={onDragStart}
+          onDragEnd={(pos) => onUpdateAsset('stage', { x: pos.x, z: pos.z })}
+        >
+          <VenueStage 
+            stage={stage} 
+            isSelected={selectedIds.includes('stage')} 
+            onSelect={onSelect} 
+          />
+        </Draggable>
+      )}
+
+      {carpet && (
+        <Draggable 
+          isSelected={selectedIds.includes('carpet')} 
+          onDragStart={onDragStart}
+          onDragEnd={(pos) => onUpdateAsset('carpet', { x: pos.x, z: pos.z })}
+        >
+          <RedCarpet carpet={carpet} />
+        </Draggable>
+      )}
+
+      {tables.map(t => (
+        <Draggable 
+          key={t.id} 
+          isSelected={selectedIds.includes(t.id)} 
+          onDragStart={onDragStart}
+          onDragEnd={(pos) => onUpdateAsset(t.id, { x: pos.x, z: pos.z })}
+        >
+          <WeddingTable 
+            table={t} 
+            isSelected={selectedIds.includes(t.id)} 
+            onSelect={onSelect} 
+          />
+        </Draggable>
+      ))}
+
+      <AudioControlRoom x={0} z={9.5} />
       <ContactShadows position={[0, 0, 0]} opacity={0.3} scale={40} blur={2.5} far={6} />
       <Environment preset="apartment" />
     </>
@@ -261,135 +392,174 @@ function VenueScene({ layout }: { layout: LayoutPreset }) {
 
 export default function VenueLayoutPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: projectId } = use(params);
-  const [selectedKey, setSelectedKey] = useState<string>('');
-  const [savedKey, setSavedKey] = useState<string>('');
+  const [layoutData, setLayoutData] = useState<ProjectLayoutData | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-
-  const layout = PRESETS.find(p => p.key === selectedKey);
+  const [orbitEnabled, setOrbitEnabled] = useState(true);
 
   useEffect(() => {
     const load = async () => {
-      const { data } = await supabase.from('project_venue_settings').select('selected_layout').eq('project_id', projectId).single();
-      if (data?.selected_layout) {
-        setSelectedKey(data.selected_layout);
-        setSavedKey(data.selected_layout);
+      const { data } = await supabase.from('project_venue_settings').select('selected_layout, layout_data').eq('project_id', projectId).single();
+      
+      if (data?.layout_data && Object.keys(data.layout_data).length > 0) {
+        setLayoutData(data.layout_data);
+      } else if (data?.selected_layout) {
+        const preset = PRESETS.find(p => p.key === data.selected_layout) || SHORT_AISLE;
+        setLayoutData({
+          selectedPreset: preset.key,
+          customAssets: [preset.stage, preset.carpet, ...preset.tables, ...preset.extras],
+          globalColors: {
+            guestTable: CLOTH_OPTIONS[0].hex,
+            guestChair: CHAIR_OPTIONS[0].hex,
+            bridalTable: CLOTH_OPTIONS[0].hex,
+            bridalChair: CHAIR_OPTIONS[0].hex
+          }
+        });
       }
       setLoading(false);
     };
     load();
   }, [projectId]);
 
+  const updateAsset = (id: string, updates: Partial<TableDef | AssetDef>) => {
+    if (!layoutData) return;
+    const newAssets = layoutData.customAssets.map(a => a.id === id ? { ...a, ...updates } : a);
+    setLayoutData({ ...layoutData, customAssets: newAssets });
+    setOrbitEnabled(true);
+  };
+
+  const updateGlobalColor = (type: keyof ProjectLayoutData['globalColors'], hex: string) => {
+    if (!layoutData) return;
+    const isGuest = type.includes('guest');
+    const newAssets = layoutData.customAssets.map(a => {
+      if (a.type === (isGuest ? 'guest' : 'bridal')) {
+        return { 
+          ...a, 
+          [type.includes('Table') ? 'tableColor' : 'chairColor']: hex 
+        };
+      }
+      return a;
+    });
+    setLayoutData({
+      ...layoutData,
+      customAssets: newAssets,
+      globalColors: { ...layoutData.globalColors, [type]: hex }
+    });
+  };
+
   const saveLayout = async () => {
+    if (!layoutData) return;
     setSaving(true);
-    await supabase.from('project_venue_settings').upsert({ project_id: projectId, selected_layout: selectedKey }, { onConflict: 'project_id' });
-    setSavedKey(selectedKey);
+    await supabase.from('project_venue_settings').upsert({ project_id: projectId, layout_data: layoutData }, { onConflict: 'project_id' });
     setSaving(false);
     import('sweetalert2').then(Swal => { Swal.default.fire({ title: 'Saved!', icon: 'success', toast: true, position: 'top-end', timer: 2000, showConfirmButton: false, background: '#18181b', color: '#fff' }); });
   };
-
-  const guestCount = layout ? layout.tables.filter(t => !t.isBridal).length * 10 : 0;
-  const bridalCount = layout ? (layout.tables.some(t => t.isBridal) ? 1 : 0) : 0;
 
   if (loading) return <div className="flex items-center justify-center h-[60vh]"><i className="fa-solid fa-spinner fa-spin text-3xl text-amber-500" /></div>;
 
   return (
     <div className="space-y-6 -mx-4 sm:-mx-6 lg:-mx-8 -mt-4">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 px-6 pt-2">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 px-6 pt-2">
         <div>
           <h1 className="text-3xl font-black text-white uppercase italic tracking-tighter">
-            Venue Layout <span className="text-pink-400 font-normal not-italic text-sm tracking-normal ml-2">3D Wedding</span>
+            Venue Layout <span className="text-pink-400 font-normal not-italic text-sm tracking-normal ml-2">Studio</span>
           </h1>
-          <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] mt-1">Promenade Hotel Bintulu — Emerald Hall Presets</p>
+          <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] mt-1">Interactive 3D Spatial Designer</p>
         </div>
-        <div className="flex items-center gap-3 flex-wrap">
-          {/* Preset Selector */}
-          {PRESETS.map(p => (
-            <button key={p.key} onClick={() => setSelectedKey(p.key)}
-              className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${selectedKey === p.key ? 'bg-pink-500 text-black border-pink-500 shadow-[0_0_15px_rgba(236,72,153,0.3)]' : 'bg-zinc-900 text-zinc-500 border-white/5 hover:border-pink-500/40'}`}
-            >
-              {p.key === 'short-aisle' ? '⬌ Short Aisle' : '⬍ Long Aisle'}
-            </button>
-          ))}
-          {/* Save Button */}
-          {selectedKey && selectedKey !== savedKey && (
-            <button onClick={saveLayout} disabled={saving}
-              className="px-5 py-2 bg-emerald-500 text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-400 transition-all disabled:opacity-50"
-            >
-              {saving ? <><i className="fa-solid fa-spinner fa-spin mr-2" />Saving</> : <><i className="fa-solid fa-save mr-2" />Save Layout</>}
-            </button>
-          )}
-          {selectedKey === savedKey && savedKey && (
-            <span className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-[10px] font-black text-emerald-500 uppercase tracking-widest">
-              <i className="fa-solid fa-check mr-2" />Saved
-            </span>
-          )}
+        <div className="flex items-center gap-3">
+          <button onClick={saveLayout} disabled={saving} className="px-5 py-2 bg-emerald-500 text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-400 transition-all disabled:opacity-50">
+            {saving ? 'Saving...' : 'Save Changes'}
+          </button>
         </div>
       </div>
 
-      {/* Stats Bar */}
-      {layout && (
-        <div className="flex items-center gap-4 px-6 flex-wrap">
-          <div className="bg-zinc-900 border border-white/5 rounded-xl px-4 py-2 flex items-center gap-2">
-            <i className="fa-solid fa-utensils text-pink-400 text-xs" />
-            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">{layout.tables.length} Tables</span>
-          </div>
-          <div className="bg-zinc-900 border border-white/5 rounded-xl px-4 py-2 flex items-center gap-2">
-            <i className="fa-solid fa-users text-amber-400 text-xs" />
-            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">{guestCount + (bridalCount * 10)} PAX</span>
-          </div>
-          <div className="bg-zinc-900 border border-white/5 rounded-xl px-4 py-2 flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full" style={{ background: CLOTH_RED }} />
-            <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Red Cloth</span>
-          </div>
-          <div className="bg-zinc-900 border border-white/5 rounded-xl px-4 py-2 flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full" style={{ background: CHAIR_PINK }} />
-            <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Champagne Chair</span>
-          </div>
-          <div className="bg-zinc-900 border border-white/5 rounded-xl px-4 py-2 flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-cyan-300/40" />
-            <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Glass Turntable</span>
-          </div>
-        </div>
-      )}
+      <div className="flex flex-col xl:flex-row gap-6 px-6">
+        {/* Sidebar Controls */}
+        <div className="w-full xl:w-72 space-y-6">
+          <div className="bg-zinc-900 border border-white/5 rounded-2xl p-6 space-y-6">
+            <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest border-b border-white/5 pb-2">Table Settings</h3>
+            
+            {/* Guest Table Colors */}
+            <div className="space-y-3">
+              <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Guest Tablecloth</label>
+              <div className="flex gap-2">
+                {CLOTH_OPTIONS.map(c => (
+                  <button key={c.hex} onClick={() => updateGlobalColor('guestTable', c.hex)} className={`w-6 h-6 rounded-lg border-2 ${layoutData?.globalColors.guestTable === c.hex ? 'border-white' : 'border-transparent'}`} style={{ backgroundColor: c.hex }} title={c.name} />
+                ))}
+              </div>
+            </div>
 
-      {/* 3D Viewport or Empty State */}
-      {layout ? (
-        <div className="relative h-[68vh] bg-[#080808] rounded-3xl border border-white/5 overflow-hidden mx-6">
-          <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
-            <p className="text-[8px] font-black text-white/15 uppercase tracking-[0.5em]">Drag to Orbit • Scroll to Zoom • Right-click to Pan</p>
-          </div>
-          <div className="absolute top-4 left-4 z-20">
-            <div className="bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl px-5 py-3">
-              <div className="text-[9px] font-black text-pink-400 uppercase tracking-widest">{layout.name}</div>
-              <div className="text-[8px] text-zinc-500 mt-0.5">{layout.desc}</div>
+            <div className="space-y-3">
+              <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Guest Chair Cover</label>
+              <div className="flex gap-2">
+                {CHAIR_OPTIONS.map(c => (
+                  <button key={c.hex} onClick={() => updateGlobalColor('guestChair', c.hex)} className={`w-6 h-6 rounded-lg border-2 ${layoutData?.globalColors.guestChair === c.hex ? 'border-white' : 'border-transparent'}`} style={{ backgroundColor: c.hex }} title={c.name} />
+                ))}
+              </div>
+            </div>
+
+            <div className="h-px bg-white/5" />
+
+            {/* Bridal Table Colors */}
+            <div className="space-y-3">
+              <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest text-pink-500">Bridal Tablecloth</label>
+              <div className="flex gap-2">
+                {CLOTH_OPTIONS.map(c => (
+                  <button key={c.hex} onClick={() => updateGlobalColor('bridalTable', c.hex)} className={`w-6 h-6 rounded-lg border-2 ${layoutData?.globalColors.bridalTable === c.hex ? 'border-white' : 'border-transparent'}`} style={{ backgroundColor: c.hex }} title={c.name} />
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest text-pink-500">Bridal Chair Cover</label>
+              <div className="flex gap-2">
+                {CHAIR_OPTIONS.map(c => (
+                  <button key={c.hex} onClick={() => updateGlobalColor('bridalChair', c.hex)} className={`w-6 h-6 rounded-lg border-2 ${layoutData?.globalColors.bridalChair === c.hex ? 'border-white' : 'border-transparent'}`} style={{ backgroundColor: c.hex }} title={c.name} />
+                ))}
+              </div>
             </div>
           </div>
-          {/* Legend */}
-          <div className="absolute top-4 right-4 z-20 bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl p-4 space-y-2">
-            <div className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mb-2">Legend</div>
-            <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full" style={{ background: CLOTH_RED }} /><span className="text-[9px] text-zinc-400">6ft Table (Red Cloth)</span></div>
-            <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full" style={{ background: '#C41E3A' }} /><span className="text-[9px] text-zinc-400">8ft Bridal Table</span></div>
-            <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full" style={{ background: CHAIR_PINK }} /><span className="text-[9px] text-zinc-400">Champagne Chair Cover</span></div>
-            <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full" style={{ background: CARPET_RED }} /><span className="text-[9px] text-zinc-400">Red Carpet</span></div>
-          </div>
 
-          <Canvas shadows dpr={[1, 2]}>
-            <PerspectiveCamera makeDefault position={[0, 28, 22]} fov={50} />
-            <OrbitControls makeDefault enableDamping dampingFactor={0.05} maxPolarAngle={Math.PI / 2.15} minDistance={8} maxDistance={60} target={[0, 0, 0]} />
-            <Suspense fallback={null}>
-              <VenueScene layout={layout} />
-            </Suspense>
-          </Canvas>
+          <div className="bg-zinc-900 border border-white/5 rounded-2xl p-6">
+            <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest border-b border-white/5 pb-2">Instructions</h3>
+            <ul className="mt-4 space-y-2 text-[9px] text-zinc-500 uppercase tracking-widest leading-relaxed">
+              <li>• Click object to select</li>
+              <li>• Drag gizmo to move</li>
+              <li>• Click floor to deselect</li>
+              <li>• Shift + Click to multi-select</li>
+            </ul>
+          </div>
         </div>
-      ) : (
-        <div className="h-[60vh] flex flex-col items-center justify-center mx-6 rounded-3xl border border-dashed border-white/10 bg-zinc-950">
-          <i className="fa-solid fa-map-location-dot text-5xl text-zinc-800 mb-6" />
-          <h3 className="text-xl font-black text-zinc-600 uppercase tracking-widest mb-2">Select a Layout</h3>
-          <p className="text-zinc-700 text-sm max-w-md text-center">Choose a preset above to view the 3D venue layout for this project.</p>
+
+        {/* 3D Viewport */}
+        <div className="flex-1 relative h-[68vh] bg-[#080808] rounded-3xl border border-white/5 overflow-hidden">
+          {layoutData && (
+            <Canvas shadows dpr={[1, 2]}>
+              <PerspectiveCamera makeDefault position={[0, 20, 15]} fov={50} />
+              <OrbitControls enabled={orbitEnabled} makeDefault enableDamping dampingFactor={0.05} maxPolarAngle={Math.PI / 2.15} minDistance={5} maxDistance={50} />
+              <Suspense fallback={null}>
+                <group onClick={() => setSelectedIds([])}>
+                  <VenueScene 
+                    layoutData={layoutData} 
+                    selectedIds={selectedIds}
+                    onSelect={(id) => {
+                      if (id) {
+                        setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+                      } else {
+                        setSelectedIds([]);
+                      }
+                    }}
+                    onUpdateAsset={updateAsset}
+                    onDragStart={() => setOrbitEnabled(false)}
+                  />
+                </group>
+              </Suspense>
+            </Canvas>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
