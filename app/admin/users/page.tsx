@@ -4,20 +4,20 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 
-type User = {
+type Profile = {
     id: string;
     email: string;
+    role: 'admin' | 'client' | 'staff';
     last_sign_in_at: string;
-    raw_user_meta_data: {
-        role?: 'admin' | 'client';
-    };
+    created_at: string;
 };
 
 export default function AdminUsersPage() {
-    const [users, setUsers] = useState<User[]>([]);
+    const [profiles, setProfiles] = useState<Profile[]>([]);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
     const [currentUser, setCurrentUser] = useState<any>(null);
+    const [dbError, setDbError] = useState<string | null>(null);
 
     // Initial load check
     useEffect(() => {
@@ -28,60 +28,77 @@ export default function AdminUsersPage() {
                 return;
             }
 
-            // Since we can't easily check 'admin' role on client without custom claims or separate table query safely immediately,
-            // we will rely on middleware security, but here is a client-side check for UX.
-            if (user.user_metadata?.role !== 'admin') {
-                // Determine where to send non-admins
-                if (user.user_metadata?.role === 'client') {
+            // Verify admin status against the public.profiles table securely
+            const { data: profileError } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', user.id)
+                .single();
+
+            // If they can't be fetched or aren't admin, kick them out
+            if (!profileError || profileError.role !== 'admin') {
+                if (profileError?.role === 'client') {
                     router.push('/apps/wedding-hub');
                 } else {
                     router.push('/');
                 }
                 return;
             }
+            
             setCurrentUser(user);
-            fetchUsers();
+            fetchProfiles();
         };
 
         checkAdmin();
     }, [router]);
 
-    const fetchUsers = async () => {
+    const fetchProfiles = async () => {
         setLoading(true);
-        // NOTE: In a real production app, Supabase Admin API should be called via a Server Action or API Route
-        // because service_role key is needed to list *all* users.
-        // HOWEVER, for this "demo" / "prototype" phase, if RLS is not strict on a custom 'profiles' table, we could fetch.
-        // BUT Supabase Auth Listing is strictly Admin-only.
+        setDbError(null);
+        
+        // Fetch all users from the public.profiles table
+        // This relies on RLS allowing Admins to SELECT all profiles
+        const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .order('created_at', { ascending: false });
 
-        // WORKAROUND: For this specific task without a backend API route setup yet, 
-        // we will Mock this data or use a public 'profiles' table strategy if available.
-        // Since we don't have a 'profiles' table yet, we can't list users client-side securely.
-
-        // RECOMMENDATION: We need to creating a mock list for UI Development 
-        // OR quick setup of a public profiles table trigger.
-
-        // Let's Simulate for now to show the UI structure, assuming integration later.
-
-        // Mock Data simulation
-        setUsers([
-            { id: '1', email: 'admin@eventos.com', last_sign_in_at: new Date().toISOString(), raw_user_meta_data: { role: 'admin' } },
-            { id: '2', email: 'client@wedding.com', last_sign_in_at: new Date().toISOString(), raw_user_meta_data: { role: 'client' } },
-            { id: '3', email: 'newuser@gmail.com', last_sign_in_at: new Date().toISOString(), raw_user_meta_data: {} },
-        ]);
+        if (error) {
+            console.error("Error fetching profiles:", error);
+            setDbError(`Database Error: ${error.message}. Please ensure you ran 'setup_user_profiles.sql' in Supabase.`);
+        } else {
+            setProfiles(data || []);
+        }
+        
         setLoading(false);
     };
 
     const handleRoleUpdate = async (userId: string, newRole: 'admin' | 'client') => {
         if (!confirm(`Are you sure you want to promote this user to ${newRole}?`)) return;
 
-        // Would normally call API endpoint here:
-        // await fetch('/api/admin/set-role', { method: 'POST', body: JSON.stringify({ userId, role: newRole }) });
+        // Optimistic UI Update base state
+        const originalProfiles = [...profiles];
+        setProfiles(profiles.map(p => p.id === userId ? { ...p, role: newRole } : p));
 
-        // Optimistic UI Update
-        setUsers(users.map(u => u.id === userId ? { ...u, raw_user_meta_data: { ...u.raw_user_meta_data, role: newRole } } : u));
+        // Call Supabase Database to update the profile
+        const { error } = await supabase
+            .from('profiles')
+            .update({ role: newRole })
+            .eq('id', userId);
+
+        if (error) {
+            alert(`Failed to update role: ${error.message}`);
+            // Revert on failure
+            setProfiles(originalProfiles);
+        }
     };
 
-    if (loading) return <div className="p-10 text-center">Loading Admin Panel...</div>;
+    if (loading) return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 flex-col gap-4">
+            <div className="w-12 h-12 border-4 border-gray-200 border-t-indigo-600 rounded-full animate-spin"></div>
+            <div className="text-gray-500 font-bold uppercase tracking-widest text-sm">Authenticating Admin Node...</div>
+        </div>
+    );
 
     return (
         <div className="min-h-screen bg-gray-50 p-6 md:p-12 font-sans">
@@ -89,76 +106,110 @@ export default function AdminUsersPage() {
                 <div className="flex items-center justify-between mb-8">
                     <div>
                         <h1 className="text-3xl font-black text-gray-900">User Management</h1>
-                        <p className="text-gray-500">Manage access and roles for Event OS users.</p>
+                        <p className="text-gray-500 mt-1">Manage access and roles for Event OS users via synchronous DB.</p>
                     </div>
-                    <button onClick={() => router.push('/')} className="text-sm font-bold text-gray-500 hover:text-gray-700">
-                        Exit Admin
+                    <button onClick={() => router.push('/')} className="px-6 py-2 bg-white shadow-sm border border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:text-gray-900 hover:border-gray-300 transition-all flex items-center gap-2">
+                        <i className="fa-solid fa-house"></i> Exit Admin
                     </button>
                 </div>
 
+                {dbError && (
+                    <div className="mb-8 p-6 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-4">
+                        <i className="fa-solid fa-triangle-exclamation text-2xl text-red-500 mt-1"></i>
+                        <div>
+                            <h3 className="font-black text-red-900 text-lg">System Initialization Required</h3>
+                            <p className="text-red-700 mt-1">{dbError}</p>
+                            <p className="text-sm text-red-600 font-bold mt-2">Action: Go to Supabase SQL Editor and run the provided `setup_user_profiles.sql` script to create the synchronization tables.</p>
+                        </div>
+                    </div>
+                )}
+
+                {!dbError && (
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">User</th>
-                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Role</th>
-                                <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Last Active</th>
-                                <th className="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
+                                <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">User Details</th>
+                                <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">System Role</th>
+                                <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Joined / Active</th>
+                                <th className="px-6 py-4 text-right text-xs font-black text-gray-500 uppercase tracking-widest">Command</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                            {users.map((user) => (
-                                <tr key={user.id} className="hover:bg-gray-50 transition">
-                                    <td className="px-6 py-4 whitespace-nowrap">
+                            {profiles.length === 0 && (
+                                <tr>
+                                    <td colSpan={4} className="p-12 text-center text-gray-400 font-bold italic tracking-wide">
+                                        No profiles found. (If you just generated the table, run the backfill query).
+                                    </td>
+                                </tr>
+                            )}
+                            {profiles.map((profile) => (
+                                <tr key={profile.id} className="hover:bg-gray-50 transition-colors">
+                                    <td className="px-6 py-5 whitespace-nowrap">
                                         <div className="flex items-center">
-                                            <div className="flex-shrink-0 h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
-                                                {user.email[0].toUpperCase()}
+                                            <div className="flex-shrink-0 h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-black text-lg">
+                                                {profile.email ? profile.email[0].toUpperCase() : '?'}
                                             </div>
                                             <div className="ml-4">
-                                                <div className="text-sm font-medium text-gray-900">{user.email}</div>
-                                                <div className="text-xs text-gray-500">ID: {user.id.slice(0, 8)}...</div>
+                                                <div className="text-sm font-bold text-gray-900">{profile.email}</div>
+                                                <div className="text-[10px] uppercase font-black tracking-widest text-gray-400 mt-0.5">ID: {profile.id.slice(0, 8)}...</div>
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        {user.raw_user_meta_data.role === 'admin' ? (
-                                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
+                                    <td className="px-6 py-5 whitespace-nowrap">
+                                        {profile.role === 'admin' ? (
+                                            <span className="px-3 py-1 inline-flex text-xs leading-5 font-black uppercase tracking-widest rounded-md bg-purple-100 text-purple-700 border border-purple-200">
                                                 Admin
                                             </span>
-                                        ) : user.raw_user_meta_data.role === 'client' ? (
-                                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-pink-100 text-pink-800">
+                                        ) : profile.role === 'client' ? (
+                                            <span className="px-3 py-1 inline-flex text-xs leading-5 font-black uppercase tracking-widest rounded-md bg-emerald-100 text-emerald-700 border border-emerald-200">
                                                 Client
                                             </span>
                                         ) : (
-                                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                                                Pending
+                                            <span className="px-3 py-1 inline-flex text-xs leading-5 font-black uppercase tracking-widest rounded-md bg-gray-100 text-gray-600 border border-gray-200">
+                                                {profile.role}
                                             </span>
                                         )}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {new Date(user.last_sign_in_at).toLocaleDateString()}
+                                    <td className="px-6 py-5 whitespace-nowrap">
+                                        <div className="text-sm font-medium text-gray-900">
+                                            {profile.created_at ? new Date(profile.created_at).toLocaleDateString() : 'Unknown'}
+                                        </div>
+                                        <div className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-0.5">
+                                            Active: {profile.last_sign_in_at ? new Date(profile.last_sign_in_at).toLocaleDateString() : 'Never'}
+                                        </div>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        {user.raw_user_meta_data.role !== 'admin' && (
-                                            <div className="flex justify-end gap-2">
-                                                {user.raw_user_meta_data.role !== 'client' && (
+                                    <td className="px-6 py-5 whitespace-nowrap text-right text-sm font-medium">
+                                        {profile.role !== 'admin' && (
+                                            <div className="flex justify-end gap-3">
+                                                {profile.role !== 'client' && (
                                                     <button
-                                                        onClick={() => handleRoleUpdate(user.id, 'client')}
-                                                        className="text-pink-600 hover:text-pink-900 font-bold hover:underline"
+                                                        onClick={() => handleRoleUpdate(profile.id, 'client')}
+                                                        className="text-emerald-600 hover:text-emerald-900 font-black uppercase tracking-widest text-[10px] px-3 py-1.5 rounded-md hover:bg-emerald-50 transition-colors"
                                                     >
-                                                        Set as Client
+                                                        Set Client
                                                     </button>
                                                 )}
                                                 <button
-                                                    onClick={() => handleRoleUpdate(user.id, 'admin')}
-                                                    className="text-purple-600 hover:text-purple-900 font-bold hover:underline"
+                                                    onClick={() => handleRoleUpdate(profile.id, 'admin')}
+                                                    className="text-purple-600 hover:text-purple-900 font-black uppercase tracking-widest text-[10px] px-3 py-1.5 rounded-md hover:bg-purple-50 border border-transparent hover:border-purple-200 transition-colors"
                                                 >
-                                                    Make Admin
+                                                    Promote to Admin
                                                 </button>
                                             </div>
                                         )}
-                                        {user.raw_user_meta_data.role === 'admin' && user.id !== currentUser?.id && (
-                                            <span className="text-gray-400 italic">Protected</span>
+                                        {profile.role === 'admin' && profile.id !== currentUser?.id && (
+                                            <div className="flex justify-end gap-3">
+                                                 <span className="text-gray-400 italic font-bold text-xs flex items-center gap-2">
+                                                     <i className="fa-solid fa-shield-halved"></i> Verified
+                                                 </span>
+                                                 <button
+                                                    onClick={() => handleRoleUpdate(profile.id, 'client')}
+                                                    className="text-red-500 hover:text-red-700 font-black uppercase tracking-widest text-[10px] px-3 py-1.5 rounded-md hover:bg-red-50 transition-colors border border-transparent hover:border-red-200"
+                                                >
+                                                    Demote
+                                                </button>
+                                            </div>
                                         )}
                                     </td>
                                 </tr>
@@ -166,7 +217,9 @@ export default function AdminUsersPage() {
                         </tbody>
                     </table>
                 </div>
+                )}
             </div>
         </div>
     );
 }
+

@@ -67,13 +67,13 @@ export default function Home() {
                         </Link>
 
 
-                        <Link href="/apps/zto-arena/master" className="group bg-zinc-900 p-6 rounded-2xl shadow-sm border border-zinc-800 hover:shadow-xl hover:border-amber-500 transition-all hover:-translate-y-1 relative overflow-hidden">
+                        <Link href="/apps/zto-arena" className="group bg-zinc-900 p-6 rounded-2xl shadow-sm border border-zinc-800 hover:shadow-xl hover:border-amber-500 transition-all hover:-translate-y-1 relative overflow-hidden">
                             <div className="absolute top-0 right-0 p-4 opacity-10"><i className="fa-solid fa-gamepad text-6xl text-amber-500"></i></div>
                             <div className="w-12 h-12 bg-amber-500/20 text-amber-500 rounded-xl flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
                                 <i className="fa-solid fa-tablet-screen-button"></i>
                             </div>
-                            <h3 className="font-bold text-lg text-white mb-2">ZTO Arena Master</h3>
-                            <p className="text-zinc-400 text-sm">IPad referee UI. Controls big screen live.</p>
+                            <h3 className="font-bold text-lg text-white mb-2">ZTO Arena Hub</h3>
+                            <p className="text-zinc-400 text-sm">Tournament orchestration & master controls.</p>
                         </Link>
 
                         <Link href="/apps/lucky-draw" className="group bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-purple-100 transition-all hover:-translate-y-1">
