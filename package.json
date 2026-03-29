@@ -10,10 +10,13 @@
     "test:e2e": "playwright test"
   },
   "devDependencies": {
-    "@playwright/test": "^1.42.1"
+    "@playwright/test": "^1.42.1",
+    "@types/three": "^0.183.1"
   },
   "dependencies": {
     "@google/generative-ai": "^0.2.1",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.5.0",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.89.0",
     "@tailwindcss/postcss": "^4.1.18",
@@ -39,6 +42,7 @@
     "sweetalert2": "^11.26.17",
     "tailwind-merge": "^2.2.0",
     "tailwindcss": "^4.1.18",
+    "three": "^0.183.2",
     "typescript": "^5.9.3",
     "xlsx": "^0.18.5"
   }
