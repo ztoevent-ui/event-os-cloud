@@ -62,7 +62,7 @@ const CHAIR_OPTIONS = [
 ];
 const CARPET_RED = '#9B1B30';
 const GLASS_TINT = '#c8e6ec';
-const STAGE_HEIGHT = 1.83; // 6ft
+const STAGE_HEIGHT = 0.914; // 3ft
 
 // --- PRESETS ---
 const SHORT_AISLE: LayoutPreset = {
