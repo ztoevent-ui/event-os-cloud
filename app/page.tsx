@@ -84,12 +84,12 @@ export default function Home() {
                             <p className="text-gray-400 text-sm">Master control for Lucky Draw & Spin Wheel.</p>
                         </Link>
 
-                        <Link href="/consultations" className="group bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-teal-100 transition-all hover:-translate-y-1">
-                            <div className="w-12 h-12 bg-teal-50 text-teal-600 rounded-xl flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
-                                <i className="fa-solid fa-clipboard-question"></i>
+                        <Link href="/apps/event-manager" className="group bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-blue-100 transition-all hover:-translate-y-1">
+                            <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
+                                <i className="fa-solid fa-list-check"></i>
                             </div>
-                            <h3 className="font-bold text-lg text-gray-900 mb-2">Consultations</h3>
-                            <p className="text-gray-400 text-sm">View received consultation forms & leads.</p>
+                            <h3 className="font-bold text-lg text-gray-900 mb-2">Event Manager</h3>
+                            <p className="text-gray-400 text-sm">Orchestrate programs, MC cues, & schedules.</p>
                         </Link>
                     </div>
                 </section>
@@ -99,28 +99,29 @@ export default function Home() {
                 {/* 2. Public Zone */}
                 <section>
                     <div className="flex items-center gap-3 mb-6">
-                        <div className="p-2 bg-green-100 text-green-600 rounded-lg">
-                            <i className="fa-solid fa-users"></i>
+                        <div className="p-2 bg-amber-100 text-amber-600 rounded-lg">
+                            <i className="fa-solid fa-star"></i>
                         </div>
                         <div>
-                            <h2 className="text-2xl font-black text-gray-900">Public Services</h2>
-                            <p className="text-gray-500 text-sm">Accessible to guests and clients.</p>
+                            <h2 className="text-2xl font-black text-gray-900">Featured Events</h2>
+                            <p className="text-gray-500 text-sm">Active registrations and public portals.</p>
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <Link href="/apps/ticketing/registration" className="flex items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
-                            <div className="w-10 h-10 bg-green-50 text-green-600 rounded-full flex items-center justify-center">
-                                <i className="fa-solid fa-ticket"></i>
+                        <Link href="/apps/ticketing/bpo-2026" className="flex items-center gap-6 bg-zinc-950 p-8 rounded-[2rem] border border-amber-500/30 hover:shadow-[0_0_50px_rgba(245,158,11,0.15)] transition-all group overflow-hidden relative">
+                            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-20 transition-opacity"><i className="fa-solid fa-trophy text-8xl text-amber-500"></i></div>
+                            <div className="w-16 h-16 bg-amber-500 rounded-2xl flex items-center justify-center text-black text-3xl shadow-xl">
+                                <i className="fa-solid fa-id-card"></i>
                             </div>
                             <div>
-                                <h3 className="font-bold text-gray-900">Ticket Purchase</h3>
-                                <p className="text-xs text-gray-400">Buy tickets with Guest Checkout.</p>
+                                <h3 className="font-black text-2xl text-white tracking-widest uppercase">BPO <span className="text-amber-500 italic">2026</span></h3>
+                                <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest mt-1">Official Registration Portal</p>
                             </div>
                         </Link>
 
                         <Link href="/public/consulting" className="flex items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
-                            <div className="w-10 h-10 bg-teal-50 text-teal-600 rounded-full flex items-center justify-center">
+                            <div className="w-10 h-10 bg-teal-50 text-teal-600 rounded-full flex items-center justify-center text-xl">
                                 <i className="fa-solid fa-clipboard-question"></i>
                             </div>
                             <div>

@@ -1,7 +1,8 @@
 -- ZTO Event OS: Intelligent Ticketing & Verification Schema
 
 -- 1. Create the Tickets Table
-CREATE TABLE IF NOT EXISTS public.tickets (
+DROP TABLE IF EXISTS public.tickets CASCADE;
+CREATE TABLE public.tickets (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   event_id text NOT NULL,
   attendee_name text NOT NULL,

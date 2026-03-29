@@ -103,6 +103,7 @@ function MasterConsoleContent() {
   });
 
   const [bracketState, setBracketState] = useState<BracketData>(() => generateFlexibleBracket(8));
+  const [bracketVersion, setBracketVersion] = useState(0); // For forcing component reset
   const [activeAdId, setActiveAdId] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [locked, setLocked] = useState(false);
@@ -126,7 +127,27 @@ function MasterConsoleContent() {
   };
 
   const handleRegenBracket = () => {
-      broadcastBracketUpdate(generateFlexibleBracket(teamInputCount));
+      const count = Number(teamInputCount);
+      if (isNaN(count) || count < 2) return;
+      
+      const newBracket = generateFlexibleBracket(count);
+      broadcastBracketUpdate(newBracket);
+      setBracketVersion(prev => prev + 1); // Force-reset viewport
+      
+      // Visual Feedback
+      import('sweetalert2').then((Swal) => {
+          Swal.default.fire({
+              title: 'Bracket Initialized!',
+              text: `Generated ${count}-team tournament tree. Viewport reset.`,
+              icon: 'success',
+              toast: true,
+              position: 'top-end',
+              timer: 3000,
+              showConfirmButton: false,
+              background: '#18181b',
+              color: '#fff'
+          });
+      });
   };
 
   const advanceWinner = (matchId: string, winnerSlot: 1 | 2) => {
@@ -213,6 +234,7 @@ function MasterConsoleContent() {
                 {/* ZOOMABLE VIEWPORT */}
                 <div className="flex-1 bg-zinc-950 relative overflow-hidden">
                     <TransformWrapper 
+                        key={bracketVersion}
                         initialScale={0.6} 
                         centerOnInit 
                         minScale={0.1} 
