@@ -151,6 +151,9 @@ export default function SimulatorPage() {
 
   return (
     <div className="h-screen w-full bg-[#050505] overflow-hidden flex flex-col font-sans">
+      <title>ZTO | 3D Spatial Simulator</title>
+      <meta name="description" content="Professional 3D event floor planning and asset management." />
+      
       {/* Header Overlay */}
       <div className="absolute top-0 left-0 right-0 p-6 z-20 flex justify-between items-start pointer-events-none">
         <div className="pointer-events-auto">
