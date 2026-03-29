@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
@@ -42,6 +42,19 @@ const emptyPlayer = (): PlayerForm => ({
     emergency_contact_name: '', emergency_contact_phone: '', emergency_contact_relationship: '',
 });
 
+type RegConfig = {
+    event_name: string;
+    event_subtitle: string;
+    logo_url: string;
+    background_url: string;
+    primary_color: string;
+    organizers: { name: string; logo_url: string }[];
+    co_organizers: { name: string; logo_url: string }[];
+    sponsors: { name: string; logo_url: string; tier: string }[];
+    terms_and_conditions: string;
+    payment_enabled: boolean;
+};
+
 export default function BPORegistrationPage() {
     const [step, setStep] = useState(1);
     const [teamName, setTeamName] = useState('');
@@ -51,6 +64,17 @@ export default function BPORegistrationPage() {
     const [agreedTerms, setAgreedTerms] = useState(false);
     const [loading, setLoading] = useState(false);
     const [successData, setSuccessData] = useState<any>(null);
+    const [config, setConfig] = useState<RegConfig | null>(null);
+    const [configLoading, setConfigLoading] = useState(true);
+
+    useEffect(() => {
+        const loadConfig = async () => {
+            const { data } = await supabase.from('registration_config').select('*').eq('event_slug', 'bpo-2026').single();
+            if (data) setConfig(data);
+            setConfigLoading(false);
+        };
+        loadConfig();
+    }, []);
 
     const toggleMedical = (player: 'captain' | 'partner', condition: string) => {
         const setter = player === 'captain' ? setCaptain : setPartner;
@@ -196,32 +220,76 @@ export default function BPORegistrationPage() {
         </div>
     );
 
+    if (configLoading) return <div className="min-h-screen bg-black flex items-center justify-center"><i className="fa-solid fa-spinner fa-spin text-4xl text-amber-500" /></div>;
+
+    const primaryColor = config?.primary_color || '#f59e0b';
+
     return (
         <div className="min-h-screen bg-black text-white selection:bg-amber-500 selection:text-black">
             {/* Background */}
-            <div className="fixed inset-0 pointer-events-none opacity-20">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-amber-500 blur-[150px] rounded-full" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[30%] h-[30%] bg-blue-600 blur-[150px] rounded-full opacity-30" />
+            <div className="fixed inset-0 pointer-events-none">
+                {config?.background_url ? (
+                    <div className="absolute inset-0 bg-cover bg-center opacity-20" style={{ backgroundImage: `url(${config.background_url})` }} />
+                ) : (
+                    <>
+                        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] blur-[150px] rounded-full opacity-20" style={{ backgroundColor: primaryColor }} />
+                        <div className="absolute bottom-[-10%] right-[-10%] w-[30%] h-[30%] bg-blue-600 blur-[150px] rounded-full opacity-10" />
+                    </>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/50 to-black" />
             </div>
 
             <div className="relative z-10 max-w-3xl mx-auto px-6 py-12">
                 {/* Header */}
                 <div className="text-center mb-12">
-                    <span className="inline-block px-4 py-1 bg-amber-500 text-black text-[9px] font-black uppercase tracking-[0.4em] rounded-full mb-6">Official Registration</span>
+                    {config?.logo_url && <img src={config.logo_url} alt="Event Logo" className="w-24 h-24 object-contain mx-auto mb-6 rounded-2xl" />}
+                    <span className="inline-block px-4 py-1 text-black text-[9px] font-black uppercase tracking-[0.4em] rounded-full mb-6" style={{ backgroundColor: config?.primary_color || '#f59e0b' }}>Official Registration</span>
                     <h1 className="text-6xl md:text-7xl font-black uppercase tracking-tighter leading-none mb-4">
-                        BPO <span className="text-amber-500 italic">2026</span>
+                        {config?.event_name?.split(' ').map((w, i) => i === config.event_name.split(' ').length - 1 ? <span key={i} className="italic" style={{ color: config?.primary_color || '#f59e0b' }}>{w}</span> : w + ' ') || 'BPO 2026'}
                     </h1>
-                    <p className="text-zinc-500 max-w-md mx-auto">Borneo Pickleball Open — Team Registration Portal</p>
+                    <p className="text-zinc-500 max-w-md mx-auto">{config?.event_subtitle || 'Team Registration Portal'}</p>
+
+                    {/* Organizers & Sponsors */}
+                    {(config?.organizers?.length || config?.co_organizers?.length || config?.sponsors?.length) ? (
+                        <div className="mt-8 space-y-4">
+                            {config?.organizers?.length ? (
+                                <div className="flex items-center justify-center gap-4 flex-wrap">
+                                    <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Organized by</span>
+                                    {config.organizers.map((o, i) => (
+                                        <span key={i} className="text-xs font-bold text-zinc-300">{o.logo_url ? <img src={o.logo_url} alt={o.name} className="h-6 inline mr-1" /> : null}{o.name}</span>
+                                    ))}
+                                </div>
+                            ) : null}
+                            {config?.co_organizers?.length ? (
+                                <div className="flex items-center justify-center gap-4 flex-wrap">
+                                    <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Co-organized by</span>
+                                    {config.co_organizers.map((o, i) => (
+                                        <span key={i} className="text-xs font-bold text-zinc-400">{o.name}</span>
+                                    ))}
+                                </div>
+                            ) : null}
+                            {config?.sponsors?.length ? (
+                                <div className="flex items-center justify-center gap-3 flex-wrap mt-4">
+                                    <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Sponsors</span>
+                                    {config.sponsors.map((s, i) => (
+                                        <span key={i} className={`text-[10px] font-black px-3 py-1 rounded-full border ${s.tier === 'gold' ? 'text-amber-400 border-amber-500/30 bg-amber-500/5' : s.tier === 'silver' ? 'text-zinc-300 border-zinc-500/30 bg-zinc-500/5' : 'text-orange-400 border-orange-500/30 bg-orange-500/5'}`}>
+                                            {s.tier === 'gold' ? '🥇 ' : s.tier === 'silver' ? '🥈 ' : '🥉 '}{s.name}
+                                        </span>
+                                    ))}
+                                </div>
+                            ) : null}
+                        </div>
+                    ) : null}
                 </div>
 
                 {/* Step Indicator */}
                 <div className="flex items-center justify-center gap-3 mb-12">
                     {[1, 2, 3].map(s => (
                         <div key={s} className="flex items-center gap-3">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-black transition-all ${step >= s ? 'bg-amber-500 text-black' : 'bg-zinc-900 text-zinc-600 border border-white/10'}`}>
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-black transition-all`} style={step >= s ? { backgroundColor: config?.primary_color || '#f59e0b', color: '#000' } : { backgroundColor: '#18181b', color: '#52525b', border: '1px solid rgba(255,255,255,0.1)' }}>
                                 {step > s ? <i className="fa-solid fa-check" /> : s}
                             </div>
-                            {s < 3 && <div className={`w-16 h-0.5 ${step > s ? 'bg-amber-500' : 'bg-zinc-800'}`} />}
+                            <div className={`w-16 h-0.5`} style={{ backgroundColor: step > s ? primaryColor : '#27272a' }} />
                         </div>
                     ))}
                 </div>
@@ -245,7 +313,7 @@ export default function BPORegistrationPage() {
                                 </div>
 
                                 <div className="flex justify-end pt-4">
-                                    <button type="button" onClick={() => setStep(2)} className="px-10 py-4 bg-amber-500 text-black rounded-2xl font-black uppercase tracking-widest hover:bg-amber-400 transition-all active:scale-95 shadow-xl shadow-amber-500/20">
+                                    <button type="button" onClick={() => setStep(2)} className="px-10 py-4 text-black rounded-2xl font-black uppercase tracking-widest transition-all active:scale-95 shadow-xl" style={{ backgroundColor: primaryColor, boxShadow: `0 0 20px ${primaryColor}33` }}>
                                         Next: Partner Info <i className="fa-solid fa-arrow-right ml-3" />
                                     </button>
                                 </div>
@@ -261,7 +329,7 @@ export default function BPORegistrationPage() {
                                     <button type="button" onClick={() => setStep(1)} className="px-8 py-4 bg-zinc-900 text-zinc-400 rounded-2xl font-black uppercase tracking-widest hover:bg-zinc-800 transition-all">
                                         <i className="fa-solid fa-arrow-left mr-3" /> Back
                                     </button>
-                                    <button type="button" onClick={() => setStep(3)} className="px-10 py-4 bg-amber-500 text-black rounded-2xl font-black uppercase tracking-widest hover:bg-amber-400 transition-all active:scale-95 shadow-xl shadow-amber-500/20">
+                                    <button type="button" onClick={() => setStep(3)} className="px-10 py-4 text-black rounded-2xl font-black uppercase tracking-widest transition-all active:scale-95 shadow-xl" style={{ backgroundColor: primaryColor, boxShadow: `0 0 20px ${primaryColor}33` }}>
                                         Next: Review <i className="fa-solid fa-arrow-right ml-3" />
                                     </button>
                                 </div>
@@ -288,25 +356,16 @@ export default function BPORegistrationPage() {
 
                                 {/* Terms & Conditions */}
                                 <div className="bg-zinc-950 border border-white/5 rounded-[2rem] p-8 md:p-10">
-                                    <h3 className="text-lg font-black uppercase tracking-widest mb-4 text-amber-500">Terms & Conditions</h3>
-                                    <div className="max-h-48 overflow-y-auto bg-black/50 rounded-xl p-6 border border-white/5 text-zinc-400 text-xs leading-relaxed space-y-3 mb-6">
-                                        <p>1. By registering, both players acknowledge that Pickleball is a physical sport and accept full responsibility for any injuries sustained during the tournament.</p>
-                                        <p>2. Players must present a valid IC/Passport for identity verification during check-in. Failure to do so may result in disqualification.</p>
-                                        <p>3. All DUPR IDs provided must be valid and verifiable. Falsified DUPR ratings will result in immediate disqualification.</p>
-                                        <p>4. The organizer reserves the right to change the tournament schedule, format, or rules at any time without prior notice.</p>
-                                        <p>5. Registration fees are non-refundable once payment is confirmed, unless the tournament is cancelled by the organizer.</p>
-                                        <p>6. Players consent to the use of their name, likeness, and photographs for promotional purposes related to BPO 2026.</p>
-                                        <p>7. The organizer is not liable for any loss of personal belongings during the tournament.</p>
-                                        <p>8. All players must adhere to the official BPO Code of Conduct. Unsportsmanlike behavior will result in penalties or disqualification.</p>
-                                        <p>9. Medical information provided will be kept confidential and used solely for emergency purposes during the event.</p>
-                                        <p>10. By submitting this form, both the Captain and Partner confirm that all information provided is accurate and complete.</p>
+                                    <h3 className="text-lg font-black uppercase tracking-widest mb-4" style={{ color: config?.primary_color || '#f59e0b' }}>Terms & Conditions</h3>
+                                    <div className="max-h-48 overflow-y-auto bg-black/50 rounded-xl p-6 border border-white/5 text-zinc-400 text-xs leading-relaxed space-y-3 mb-6 whitespace-pre-line">
+                                        {config?.terms_and_conditions || 'Terms & Conditions apply.'}
                                     </div>
 
                                     <label className="flex items-center gap-4 cursor-pointer group">
-                                        <div onClick={() => setAgreedTerms(!agreedTerms)} className={`w-7 h-7 rounded-lg border-2 flex items-center justify-center transition-all shrink-0 ${agreedTerms ? 'bg-amber-500 border-amber-500' : 'border-zinc-700 group-hover:border-amber-500/50'}`}>
+                                        <div onClick={() => setAgreedTerms(!agreedTerms)} className={`w-7 h-7 rounded-lg border-2 flex items-center justify-center transition-all shrink-0`} style={agreedTerms ? { backgroundColor: config?.primary_color || '#f59e0b', borderColor: config?.primary_color || '#f59e0b' } : { borderColor: '#3f3f46' }}>
                                             {agreedTerms && <i className="fa-solid fa-check text-black text-sm" />}
                                         </div>
-                                        <span className="text-sm text-zinc-300 font-bold">I, <span className="text-amber-500">{captain.full_name || 'Captain'}</span>, confirm that both myself and my partner have read and agreed to the Terms & Conditions above.</span>
+                                        <span className="text-sm text-zinc-300 font-bold">I, <span style={{ color: primaryColor }}>{captain.full_name || 'Captain'}</span>, confirm that both myself and my partner have read and agreed to the Terms & Conditions above.</span>
                                     </label>
                                 </div>
 
@@ -318,7 +377,8 @@ export default function BPORegistrationPage() {
                                         type="button" 
                                         onClick={handleSubmit} 
                                         disabled={!agreedTerms || loading}
-                                        className="px-12 py-4 bg-amber-500 text-black rounded-2xl font-black uppercase tracking-widest hover:bg-amber-400 transition-all active:scale-95 shadow-xl shadow-amber-500/20 disabled:opacity-30 disabled:cursor-not-allowed"
+                                        className="px-12 py-4 text-black rounded-2xl font-black uppercase tracking-widest transition-all active:scale-95 shadow-xl disabled:opacity-30 disabled:cursor-not-allowed"
+                                        style={{ backgroundColor: agreedTerms ? primaryColor : '#27272a', boxShadow: agreedTerms ? `0 0 20px ${primaryColor}33` : 'none' }}
                                     >
                                         {loading ? <><i className="fa-solid fa-spinner fa-spin mr-3" />Processing...</> : <>Submit Registration <i className="fa-solid fa-paper-plane ml-3" /></>}
                                     </button>

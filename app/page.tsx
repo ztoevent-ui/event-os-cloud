@@ -91,6 +91,14 @@ export default function Home() {
                             <h3 className="font-bold text-lg text-gray-900 mb-2">Consultations</h3>
                             <p className="text-gray-400 text-sm">View received consultation forms & leads.</p>
                         </Link>
+
+                        <Link href="/admin/registration" className="group bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-amber-100 transition-all hover:-translate-y-1">
+                            <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
+                                <i className="fa-solid fa-sliders"></i>
+                            </div>
+                            <h3 className="font-bold text-lg text-gray-900 mb-2">Registration Admin</h3>
+                            <p className="text-gray-400 text-sm">Manage form fields, branding, sponsors & T&C.</p>
+                        </Link>
                     </div>
                 </section>
 
