@@ -13,32 +13,49 @@ export default function GuestListPage() {
     const { id } = useParams();
     const [attendees, setAttendees] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [project, setProject] = useState<any>(null);
     const projectId = Array.isArray(id) ? id[0] : id;
 
     useEffect(() => {
+        fetchProjectData();
         fetchAttendees();
     }, [projectId]);
 
+    const fetchProjectData = async () => {
+        const { data } = await supabase.from('projects').select('type').eq('id', projectId).single();
+        setProject(data);
+    };
+
+    const isWedding = project?.type === 'wedding' || project?.type === 'wedding_fair';
+    const theme = isWedding ? {
+        primary: 'text-pink-500',
+        bg: 'bg-pink-500',
+        hover: 'hover:bg-pink-400',
+        border: 'border-pink-500/30',
+        accentBg: 'bg-pink-500/10',
+        accentText: 'text-pink-500',
+        accentBorder: 'border-pink-500/20'
+    } : {
+        primary: 'text-amber-500',
+        bg: 'bg-amber-500',
+        hover: 'hover:bg-amber-400',
+        border: 'border-white/10',
+        accentBg: 'bg-amber-500/10',
+        accentText: 'text-amber-500',
+        accentBorder: 'border-amber-500/20'
+    };
+
     const fetchAttendees = async () => {
         try {
-            // Note: Currently attendees table doesn't have project_id in my previous schema edit,
-            // but for future proofing we should filter.
-            // If project_id column is missing, this might error if we don't handle it.
-            // However, since I created the schema in schema_ticketing.sql with project_id, it should be fine IF applied.
-            // If not, we list all or handle error.
-
-            // Checking if project_id exists in schema via select attempt
             const { data, error } = await supabase
                 .from('attendees')
                 .select('*')
-                // .eq('project_id', projectId) // Uncomment when column is confirmed and populated
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
             setAttendees(data || []);
         } catch (error: any) {
             console.error('Error fetching attendees:', error);
-            // Fallback if generic error
         } finally {
             setLoading(false);
         }
@@ -67,64 +84,70 @@ export default function GuestListPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 p-8 font-sans">
-            <header className="max-w-7xl mx-auto mb-10 flex justify-between items-center">
+        <div className="space-y-8 animate-in fade-in duration-500">
+            <header className={`bg-zinc-900 border ${theme.border} p-6 rounded-2xl shadow-sm flex justify-between items-center`}>
                 <div>
-                    <h1 className="text-3xl font-black text-gray-900 tracking-tight">Guest List</h1>
-                    <p className="text-gray-500 mt-1">Manage attendees and ticket holders.</p>
+                    <h1 className="text-3xl font-serif font-bold text-white mb-2 tracking-tight">Guest List</h1>
+                    <p className="text-zinc-400 font-medium">Manage attendees and ticket holders.</p>
                 </div>
                 <div className="flex gap-4">
-                    <a href={`/apps/ticketing/registration?project_id=${projectId}`} target="_blank" className="px-5 py-2.5 rounded-xl text-sm font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 transition">
+                    <a 
+                        href={`/apps/ticketing/registration?project_id=${projectId}`} 
+                        target="_blank" 
+                        className={`px-5 py-2.5 rounded-xl text-sm font-black uppercase tracking-wider ${theme.bg} text-black ${theme.hover} transition shadow-lg`}
+                    >
                         <i className="fa-solid fa-link mr-2"></i> Registration Link
                     </a>
                 </div>
             </header>
 
-            <div className="max-w-7xl mx-auto">
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <table className="w-full text-left">
-                        <thead className="bg-gray-50 text-gray-500 font-bold text-xs uppercase tracking-wider">
-                            <tr>
-                                <th className="px-6 py-4">Name</th>
-                                <th className="px-6 py-4">Phone</th>
-                                <th className="px-6 py-4">Ticket Code</th>
-                                <th className="px-6 py-4">Status</th>
-                                <th className="px-6 py-4 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {loading ? (
-                                <tr><td colSpan={5} className="text-center py-10 opacity-50">Loading...</td></tr>
-                            ) : attendees.length === 0 ? (
-                                <tr><td colSpan={5} className="text-center py-10 text-gray-400">No guests registered yet.</td></tr>
-                            ) : (
-                                attendees.map((guest) => (
-                                    <tr key={guest.id} className="hover:bg-gray-50 transition">
-                                        <td className="px-6 py-4 font-bold text-gray-900">{guest.name}</td>
-                                        <td className="px-6 py-4 text-gray-500 font-mono text-sm">{guest.phone || '-'}</td>
-                                        <td className="px-6 py-4 font-mono text-indigo-600 bg-indigo-50 rounded-lg text-xs w-fit px-2 py-1 inline-block mt-2 md:mt-0 md:inline">{guest.ticket_code}</td>
-                                        <td className="px-6 py-4">
-                                            {guest.checked_in ? (
-                                                <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border border-green-200">
-                                                    Checked In
-                                                </span>
-                                            ) : (
-                                                <span className="bg-gray-100 text-gray-500 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border border-gray-200">
-                                                    Registered
-                                                </span>
-                                            )}
-                                        </td>
-                                        <td className="px-6 py-4 text-right">
-                                            <button onClick={() => handleDelete(guest.id)} className="text-red-400 hover:text-red-600 transition">
-                                                <i className="fa-solid fa-trash"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden shadow-xl">
+                <table className="w-full text-left">
+                    <thead className="bg-zinc-900/50 text-zinc-500 font-black text-[10px] uppercase tracking-widest border-b border-zinc-800">
+                        <tr>
+                            <th className="px-8 py-5">Name</th>
+                            <th className="px-8 py-5">Phone</th>
+                            <th className="px-8 py-5">Ticket</th>
+                            <th className="px-8 py-5">Status</th>
+                            <th className="px-8 py-5 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-zinc-800">
+                        {loading ? (
+                            <tr><td colSpan={5} className="text-center py-12 opacity-50 text-zinc-500 italic">Gathering guest data...</td></tr>
+                        ) : attendees.length === 0 ? (
+                            <tr><td colSpan={5} className="text-center py-12 text-zinc-500 italic">No guests registered yet.</td></tr>
+                        ) : (
+                            attendees.map((guest) => (
+                                <tr key={guest.id} className="hover:bg-white/5 transition group">
+                                    <td className="px-8 py-5 font-bold text-white group-hover:text-zinc-200">{guest.name}</td>
+                                    <td className="px-8 py-5 text-zinc-500 font-mono text-xs">{guest.phone || '-'}</td>
+                                    <td className="px-8 py-5">
+                                        <span className={`font-mono ${theme.accentText} ${theme.accentBg} ${theme.accentBorder} border rounded-lg text-xs px-2.5 py-1.5 font-bold`}>
+                                            {guest.ticket_code}
+                                        </span>
+                                    </td>
+                                    <td className="px-8 py-5">
+                                        {guest.checked_in ? (
+                                            <span className="bg-emerald-500/10 text-emerald-500 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-500/30">
+                                                Checked In
+                                            </span>
+                                        ) : (
+                                            <span className="bg-zinc-800 text-zinc-500 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-zinc-700">
+                                                Registered
+                                            </span>
+                                        )}
+                                    </td>
+                                    <td className="px-8 py-5 text-right">
+                                        <button onClick={() => handleDelete(guest.id)} className="text-zinc-600 hover:text-red-500 transition-colors p-2">
+                                            <i className="fa-solid fa-trash text-sm"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
             </div>
         </div>
     );

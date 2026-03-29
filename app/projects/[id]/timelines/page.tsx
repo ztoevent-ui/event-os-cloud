@@ -10,6 +10,20 @@ import { AddTimelineButton, DeleteTimelineButton } from '../../components/Projec
 export default async function TimelinesPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
 
+    const { data: project } = await supabase.from('projects').select('type').eq('id', id).single();
+    const isWedding = project?.type === 'wedding' || project?.type === 'wedding_fair';
+    const theme = isWedding ? {
+        dot: 'border-pink-500 shadow-[0_0_10px_rgba(236,72,153,0.5)]',
+        border: 'border-pink-500/30',
+        hover: 'group-hover:text-pink-400',
+        progress: 'from-pink-600 to-pink-400'
+    } : {
+        dot: 'border-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]',
+        border: 'border-amber-500/30',
+        hover: 'group-hover:text-amber-400',
+        progress: 'from-amber-600 to-amber-400'
+    };
+
     const { data: timelines, error } = await supabase
         .from('timelines')
         .select('*')
@@ -21,9 +35,9 @@ export default async function TimelinesPage({ params }: { params: Promise<{ id: 
             <div className="flex justify-between items-center mb-8">
                 <div>
                     <h1 className="text-3xl font-serif font-bold text-white mb-2">Project Timeline</h1>
-                    <p className="text-zinc-400">Key phases and milestones.</p>
+                    <p className="text-zinc-400 font-medium">Key phases and milestones.</p>
                 </div>
-                <AddTimelineButton projectId={id} />
+                <AddTimelineButton projectId={id} isWedding={isWedding} />
             </div>
 
             {error && (
@@ -36,16 +50,16 @@ export default async function TimelinesPage({ params }: { params: Promise<{ id: 
                 {timelines?.map((phase, index) => (
                     <div key={phase.id} className="relative pl-8 md:pl-12 group">
                         {/* Dot */}
-                        <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-zinc-900 border-2 border-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)] group-hover:scale-125 transition-transform z-10"></div>
+                        <div className={`absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-zinc-900 border-2 ${theme.dot} group-hover:scale-125 transition-transform z-10`}></div>
 
-                        <div className="bg-zinc-900/50 backdrop-blur-sm border border-zinc-800 p-6 rounded-2xl hover:border-amber-500/30 transition-all cursor-pointer relative overflow-hidden">
+                        <div className={`bg-zinc-900/50 backdrop-blur-sm border border-zinc-800 p-6 rounded-2xl ${theme.border} transition-all cursor-pointer relative overflow-hidden`}>
                             <div className="absolute top-0 right-0 p-4 opacity-10 font-black text-6xl text-zinc-700 pointer-events-none">
                                 {index + 1}
                             </div>
 
                             <DeleteTimelineButton id={phase.id} projectId={id} />
 
-                            <h3 className="text-xl font-bold text-white mb-2 group-hover:text-amber-400 transition-colors">
+                            <h3 className={`text-xl font-bold text-white mb-2 ${theme.hover} transition-colors`}>
                                 {phase.name}
                             </h3>
 
@@ -60,9 +74,9 @@ export default async function TimelinesPage({ params }: { params: Promise<{ id: 
                                 </div>
                             </div>
 
-                            {/* Progress bar simulation (could be calculated from tasks later) */}
+                            {/* Progress bar simulation */}
                             <div className="w-full bg-zinc-800 h-2 rounded-full overflow-hidden">
-                                <div className="bg-gradient-to-r from-amber-600 to-amber-400 h-full w-[20%]"></div>
+                                <div className={`bg-gradient-to-r ${theme.progress} h-full w-[20%]`}></div>
                             </div>
                             <div className="text-xs text-right mt-1 text-zinc-500">20% Complete</div>
                         </div>

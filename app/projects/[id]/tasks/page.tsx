@@ -11,6 +11,20 @@ import { AddTaskButton, TaskCard } from '../../components/ProjectModals';
 export default async function TasksPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
 
+    const { data: project } = await supabase.from('projects').select('type').eq('id', id).single();
+    const isWedding = project?.type === 'wedding' || project?.type === 'wedding_fair';
+    const theme = isWedding ? {
+        primary: 'text-pink-500',
+        bg: 'bg-pink-500',
+        hover: 'hover:bg-pink-400',
+        border: 'border-pink-500/30'
+    } : {
+        primary: 'text-amber-500',
+        bg: 'bg-amber-500',
+        hover: 'hover:bg-amber-400',
+        border: 'border-amber-500/30'
+    };
+
     const { data: tasks, error } = await supabase
         .from('tasks')
         .select('*')
@@ -19,12 +33,12 @@ export default async function TasksPage({ params }: { params: Promise<{ id: stri
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
-            <div className="flex justify-between items-center bg-zinc-900 border border-zinc-800 p-6 rounded-2xl shadow-sm">
+            <div className={`flex justify-between items-center bg-zinc-900 border ${theme.border} p-6 rounded-2xl shadow-sm`}>
                 <div>
                     <h1 className="text-3xl font-serif font-bold text-white mb-2">Tasks</h1>
-                    <p className="text-zinc-400">Manage project deliverables and track progress.</p>
+                    <p className="text-zinc-400 font-medium">Manage project deliverables and track progress.</p>
                 </div>
-                <AddTaskButton projectId={id} />
+                <AddTaskButton projectId={id} isWedding={isWedding} />
             </div>
 
             {error && (
@@ -62,7 +76,7 @@ export default async function TasksPage({ params }: { params: Promise<{ id: stri
 
                             <div className="space-y-4 flex-1">
                                 {statusTasks.map((task) => (
-                                    <TaskCard key={task.id} task={task} projectId={id} />
+                                    <TaskCard key={task.id} task={task} projectId={id} isWedding={isWedding} />
                                 ))}
 
                                 {statusTasks.length === 0 && (

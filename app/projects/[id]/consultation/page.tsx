@@ -11,6 +11,18 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 export default async function ConsultationPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
 
+    const { data: project } = await supabase.from('projects').select('type').eq('id', id).single();
+    const isWedding = project?.type === 'wedding' || project?.type === 'wedding_fair';
+    const theme = isWedding ? {
+        border: 'border-pink-500/30',
+        primary: 'bg-pink-500 hover:bg-pink-400 text-black',
+        text: 'text-pink-500'
+    } : {
+        border: 'border-white/10',
+        primary: 'bg-white hover:bg-zinc-200 text-black',
+        text: 'text-white'
+    };
+
     // Fetch existing consultations for this project
     const { data: consultations, error } = await supabase
         .from('consulting_forms')
@@ -26,7 +38,7 @@ export default async function ConsultationPage({ params }: { params: Promise<{ i
         return (
             <div className="space-y-8 animate-in fade-in duration-500 pb-20">
                 <div className="text-center max-w-2xl mx-auto mb-12">
-                    <h1 className="text-4xl font-serif text-zinc-900 mb-4">No Consultations Yet</h1>
+                    <h1 className="text-4xl font-serif text-white mb-4">No Consultations Yet</h1>
                     <p className="text-zinc-500 text-lg">No consultation reports found for this project. You can add one manually below.</p>
                 </div>
                 <ConsultingForm projectId={id} />
@@ -35,18 +47,18 @@ export default async function ConsultationPage({ params }: { params: Promise<{ i
     }
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500 pb-20 max-w-7xl mx-auto px-4">
-            <div className="flex justify-between items-end mb-8 border-b border-zinc-200 pb-4">
+        <div className="space-y-8 animate-in fade-in duration-500 pb-20 max-w-7xl mx-auto">
+            <div className={`flex justify-between items-end mb-8 border-b ${theme.border} pb-4`}>
                 <div>
-                    <h1 className="text-3xl font-serif text-zinc-900 mb-2">Consultation Reports</h1>
-                    <p className="text-zinc-500">AI-Powered summaries and client details.</p>
+                    <h1 className="text-3xl font-serif text-white mb-2">Consultation Reports</h1>
+                    <p className="text-zinc-400 font-medium">AI-Powered summaries and client details.</p>
                 </div>
                 <Link
                     href={`/public/consulting?project_id=${id}`}
                     target="_blank"
-                    className="bg-zinc-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-black transition-colors flex items-center gap-2"
+                    className={`${theme.primary} px-4 py-2 rounded-xl text-sm font-black uppercase tracking-wider transition-all flex items-center gap-2 shadow-lg`}
                 >
-                    <i className="fa-solid fa-arrow-up-right-from-square"></i> Public Form Link
+                    <i className="fa-solid fa-arrow-up-right-from-square"></i> Public Link
                 </Link>
             </div>
 

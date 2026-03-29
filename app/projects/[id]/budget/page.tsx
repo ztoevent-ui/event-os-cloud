@@ -10,6 +10,18 @@ import { AddBudgetButton, DeleteBudgetButton } from '../../components/ProjectMod
 export default async function BudgetPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
 
+    const { data: project } = await supabase.from('projects').select('type').eq('id', id).single();
+    const isWedding = project?.type === 'wedding' || project?.type === 'wedding_fair';
+    const theme = isWedding ? {
+        border: 'border-pink-500/30',
+        primary: 'text-pink-500',
+        hover: 'hover:text-pink-400'
+    } : {
+        border: 'border-amber-500/30',
+        primary: 'text-amber-500',
+        hover: 'hover:text-amber-400'
+    };
+
     const { data: budgetItems, error } = await supabase
         .from('budgets')
         .select('*')
@@ -25,16 +37,16 @@ export default async function BudgetPage({ params }: { params: Promise<{ id: str
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
-            <div className="flex justify-between items-center bg-zinc-900 border border-zinc-800 p-6 rounded-2xl shadow-sm">
+            <div className={`flex justify-between items-center bg-zinc-900 border ${theme.border} p-6 rounded-2xl shadow-sm`}>
                 <div>
                     <h1 className="text-3xl font-serif font-bold text-white mb-2">Budget Tracker</h1>
-                    <p className="text-zinc-400">Monitor expenses and adhere to financial goals.</p>
+                    <p className="text-zinc-400 font-medium">Monitor expenses and adhere to financial goals.</p>
                 </div>
                 <div className="flex gap-4">
                     <button className="px-6 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-full transition-all flex items-center gap-2 border border-zinc-700">
                         <i className="fa-solid fa-file-invoice-dollar"></i> Report
                     </button>
-                    <AddBudgetButton projectId={id} />
+                    <AddBudgetButton projectId={id} isWedding={isWedding} />
                 </div>
             </div>
 
@@ -47,15 +59,15 @@ export default async function BudgetPage({ params }: { params: Promise<{ id: str
             {/* Overview Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-zinc-900/50 border border-zinc-800 p-6 rounded-2xl">
-                    <h3 className="text-zinc-400 mb-2">Total Expenses</h3>
+                    <h3 className="text-zinc-400 mb-2 font-bold text-xs uppercase tracking-widest">Total Expenses</h3>
                     <div className="text-3xl font-mono text-white">RM {totalSpends.toFixed(2)}</div>
                 </div>
                 <div className="bg-zinc-900/50 border border-zinc-800 p-6 rounded-2xl">
-                    <h3 className="text-zinc-400 mb-2">Projected Income</h3>
+                    <h3 className="text-zinc-400 mb-2 font-bold text-xs uppercase tracking-widest">Projected Income</h3>
                     <div className="text-3xl font-mono text-green-400">RM {totalIncome.toFixed(2)}</div>
                 </div>
                 <div className="bg-zinc-900/50 border border-zinc-800 p-6 rounded-2xl">
-                    <h3 className="text-zinc-400 mb-2">Net Balance</h3>
+                    <h3 className="text-zinc-400 mb-2 font-bold text-xs uppercase tracking-widest">Net Balance</h3>
                     <div className={`text-3xl font-mono ${totalIncome - totalSpends >= 0 ? 'text-blue-400' : 'text-red-400'}`}>
                         RM {(totalIncome - totalSpends).toFixed(2)}
                     </div>
@@ -64,8 +76,9 @@ export default async function BudgetPage({ params }: { params: Promise<{ id: str
 
             {/* List */}
             <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
-                <div className="p-6 border-b border-zinc-800">
+                <div className="p-6 border-b border-zinc-800 flex justify-between items-center">
                     <h3 className="text-xl font-bold text-white">Transactions</h3>
+                    <span className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">{budgetItems?.length || 0} Records</span>
                 </div>
                 <div className="divide-y divide-zinc-800">
                     {budgetItems?.map((item) => (
@@ -75,7 +88,7 @@ export default async function BudgetPage({ params }: { params: Promise<{ id: str
                                     <i className={`fa-solid ${item.type === 'expense' ? 'fa-arrow-trend-down' : 'fa-arrow-trend-up'}`}></i>
                                 </div>
                                 <div>
-                                    <h4 className="font-bold text-zinc-200 group-hover:text-amber-400 transition-colors">{item.item}</h4>
+                                    <h4 className={`font-bold text-zinc-200 ${theme.hover} transition-colors`}>{item.item}</h4>
                                     <p className="text-xs text-zinc-500 uppercase tracking-wide">{item.category}</p>
                                 </div>
                             </div>

@@ -21,10 +21,36 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
   const [rows, setRows] = useState<ProgramRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
+  const [project, setProject] = useState<any>(null);
 
   useEffect(() => {
+    fetchProject();
     fetchProgram();
   }, [projectId]);
+
+  const fetchProject = async () => {
+    const { data } = await supabase.from('projects').select('type').eq('id', projectId).single();
+    setProject(data);
+  };
+  
+  const isWedding = project?.type === 'wedding' || project?.type === 'wedding_fair';
+  const theme = isWedding ? {
+    text: 'text-pink-500',
+    bg: 'bg-pink-500',
+    border: 'border-pink-400',
+    shadow: 'shadow-[0_0_20px_rgba(236,72,153,0.3)]',
+    text70: 'text-pink-500/70',
+    text80: 'text-pink-500/80',
+    bgFocus: 'focus:bg-pink-500/5'
+  } : {
+    text: '${theme.text}',
+    bg: '${theme.bg}',
+    border: '${theme.border}',
+    shadow: '${theme.shadow}',
+    text70: '${theme.text70}',
+    text80: '${theme.text80}',
+    bgFocus: '${theme.bgFocus}'
+  };
 
   const fetchProgram = async () => {
     setLoading(true);
@@ -106,7 +132,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-32 text-zinc-500">
-        <i className="fa-solid fa-circle-notch animate-spin text-4xl mb-6 text-amber-500"></i>
+        <i className="fa-solid fa-circle-notch animate-spin text-4xl mb-6 ${theme.text}"></i>
         <p className="font-black text-sm uppercase tracking-widest italic">Syncing with Command Center...</p>
       </div>
     );
@@ -118,7 +144,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-[#0a0a0a]/80 backdrop-blur-2xl p-8 rounded-[2rem] border border-white/5 shadow-2xl">
         <div>
           <div className="flex items-center gap-3">
-             <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center text-black">
+             <div className="w-10 h-10 ${theme.bg} rounded-xl flex items-center justify-center text-black">
                 <i className="fa-solid fa-list-check text-xl"></i>
              </div>
              <h1 className="text-3xl font-black tracking-tighter text-white uppercase italic">Tentative Program</h1>
@@ -128,7 +154,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
         <div className="flex items-center gap-4 mt-6 md:mt-0">
             <button 
               onClick={() => setEditMode(!editMode)}
-              className={`h-12 px-8 text-xs font-black rounded-full transition-all flex items-center gap-3 border tracking-widest ${editMode ? 'bg-amber-500 text-black border-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.3)]' : 'bg-white/5 text-amber-500 border-white/10 hover:bg-white/10'}`}
+              className={`h-12 px-8 text-xs font-black rounded-full transition-all flex items-center gap-3 border tracking-widest ${editMode ? '${theme.bg} text-black ${theme.border} ${theme.shadow}' : 'bg-white/5 ${theme.text} border-white/10 hover:bg-white/10'}`}
             >
               <i className={`fa-solid ${editMode ? 'fa-check' : 'fa-pencil'}`}></i>
               {editMode ? 'SAVE SCRIPT' : 'MODIFY SEQUENCE'}
@@ -181,11 +207,11 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
                             onBlur={(e) => {
                               if (e.target.value !== row.time) handleFieldChange(row.id, 'time', e.target.value)
                             }}
-                            className="w-full h-full p-6 min-h-[80px] bg-transparent resize-none outline-none focus:bg-amber-500/5 text-sm font-black text-amber-500/80 placeholder-zinc-800 transition-colors"
+                            className="w-full h-full p-6 min-h-[80px] bg-transparent resize-none outline-none ${theme.bgFocus} text-sm font-black ${theme.text80} placeholder-zinc-800 transition-colors"
                             placeholder="TIME"
                           />
                         ) : (
-                          <div className="p-6 text-sm font-black text-amber-500/70 tabular-nums whitespace-pre-wrap leading-relaxed">{row.time}</div>
+                          <div className="p-6 text-sm font-black ${theme.text70} tabular-nums whitespace-pre-wrap leading-relaxed">{row.time}</div>
                         )}
                       </div>
                     </td>
@@ -206,7 +232,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
                           onBlur={(e) => {
                             if (e.target.value !== row.activities) handleFieldChange(row.id, 'activities', e.target.value)
                           }}
-                          className={`w-full h-full p-6 min-h-[80px] bg-transparent resize-none outline-none focus:bg-amber-500/5 text-sm font-bold placeholder-zinc-800 transition-colors ${row.is_important ? 'text-red-500' : 'text-zinc-100'}`}
+                          className={`w-full h-full p-6 min-h-[80px] bg-transparent resize-none outline-none ${theme.bgFocus} text-sm font-bold placeholder-zinc-800 transition-colors ${row.is_important ? 'text-red-500' : 'text-zinc-100'}`}
                           placeholder="ACTIVITY"
                         />
                       ) : (
@@ -222,7 +248,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
                           onBlur={(e) => {
                             if (e.target.value !== row.movement) handleFieldChange(row.id, 'movement', e.target.value)
                           }}
-                          className="w-full h-full p-6 min-h-[80px] bg-transparent resize-none outline-none focus:bg-amber-500/5 text-sm text-zinc-400 placeholder-zinc-800 font-medium transition-colors"
+                          className="w-full h-full p-6 min-h-[80px] bg-transparent resize-none outline-none ${theme.bgFocus} text-sm text-zinc-400 placeholder-zinc-800 font-medium transition-colors"
                           placeholder="MOVEMENT"
                         />
                       ) : (
@@ -238,7 +264,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
                           onBlur={(e) => {
                             if (e.target.value !== row.cues) handleFieldChange(row.id, 'cues', e.target.value)
                           }}
-                          className="w-full h-full p-6 min-h-[80px] bg-transparent resize-none outline-none focus:bg-amber-500/5 text-sm text-zinc-500 placeholder-zinc-800 italic transition-colors"
+                          className="w-full h-full p-6 min-h-[80px] bg-transparent resize-none outline-none ${theme.bgFocus} text-sm text-zinc-500 placeholder-zinc-800 italic transition-colors"
                           placeholder="CUES / CUST"
                         />
                       ) : (
@@ -254,7 +280,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
                           onBlur={(e) => {
                             if (e.target.value !== row.song) handleFieldChange(row.id, 'song', e.target.value)
                           }}
-                          className="w-full h-full p-6 min-h-[80px] bg-transparent resize-none outline-none focus:bg-amber-500/5 text-sm text-blue-400/80 font-black placeholder-zinc-800 tracking-wide transition-colors"
+                          className="w-full h-full p-6 min-h-[80px] bg-transparent resize-none outline-none ${theme.bgFocus} text-sm text-blue-400/80 font-black placeholder-zinc-800 tracking-wide transition-colors"
                           placeholder="SONG / BGM"
                         />
                       ) : (
@@ -271,7 +297,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
                           onBlur={(e) => {
                             if (e.target.value !== row.volume) handleFieldChange(row.id, 'volume', e.target.value)
                           }}
-                          className="w-full h-full p-6 min-h-[80px] bg-transparent outline-none focus:bg-amber-500/5 text-sm text-zinc-500 font-black text-center placeholder-zinc-800 transition-colors"
+                          className="w-full h-full p-6 min-h-[80px] bg-transparent outline-none ${theme.bgFocus} text-sm text-zinc-500 font-black text-center placeholder-zinc-800 transition-colors"
                           placeholder="%"
                         />
                       ) : (

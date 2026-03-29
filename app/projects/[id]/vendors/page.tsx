@@ -10,6 +10,20 @@ import { AddVendorButton, DeleteVendorButton } from '../../components/ProjectMod
 export default async function VendorsPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
 
+    const { data: project } = await supabase.from('projects').select('type').eq('id', id).single();
+    const isWedding = project?.type === 'wedding' || project?.type === 'wedding_fair';
+    const theme = isWedding ? {
+        border: 'border-pink-500/30',
+        hoverBorder: 'hover:border-pink-500/50',
+        primary: 'text-pink-500',
+        hover: 'group-hover:text-pink-400'
+    } : {
+        border: 'border-amber-500/30',
+        hoverBorder: 'hover:border-amber-500/50',
+        primary: 'text-amber-500',
+        hover: 'group-hover:text-amber-400'
+    };
+
     const { data: vendors, error } = await supabase
         .from('vendors')
         .select('*')
@@ -18,19 +32,19 @@ export default async function VendorsPage({ params }: { params: Promise<{ id: st
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
-            <div className="flex justify-between items-center bg-zinc-900 border border-zinc-800 p-6 rounded-2xl shadow-sm">
+            <div className={`flex justify-between items-center bg-zinc-900 border ${theme.border} p-6 rounded-2xl shadow-sm`}>
                 <div>
                     <h1 className="text-3xl font-serif font-bold text-white mb-2">Vendor Management</h1>
-                    <p className="text-zinc-400">Track contracts and contact details.</p>
+                    <p className="text-zinc-400 font-medium">Track contracts and contact details.</p>
                 </div>
-                <AddVendorButton projectId={id} />
+                <AddVendorButton projectId={id} isWedding={isWedding} />
             </div>
 
             {error && <div className="text-red-500">Error: {error.message}</div>}
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {vendors?.map((vendor) => (
-                    <div key={vendor.id} className="bg-zinc-900 border border-zinc-800 p-6 rounded-2xl hover:border-amber-500/50 transition-all group relative overflow-hidden">
+                    <div key={vendor.id} className={`bg-zinc-900 border border-zinc-800 p-6 rounded-2xl ${theme.hoverBorder} transition-all group relative overflow-hidden`}>
                         <div className="absolute top-4 right-4">
                             <span className={`text-xs font-bold px-2 py-1 rounded-full uppercase tracking-wide border ${vendor.status === 'confirmed' ? 'bg-green-900/20 text-green-500 border-green-500/30' :
                                 vendor.status === 'contacted' ? 'bg-blue-900/20 text-blue-500 border-blue-500/30' :
@@ -43,10 +57,10 @@ export default async function VendorsPage({ params }: { params: Promise<{ id: st
                         <DeleteVendorButton id={vendor.id} projectId={id} />
 
                         <div className="mb-4">
-                            <div className="w-12 h-12 bg-zinc-800 rounded-xl flex items-center justify-center text-amber-500 text-xl border border-zinc-700 mb-4 group-hover:scale-110 transition-transform">
+                            <div className={`w-12 h-12 bg-zinc-800 rounded-xl flex items-center justify-center ${theme.primary} text-xl border border-zinc-700 mb-4 group-hover:scale-110 transition-transform`}>
                                 <i className="fa-solid fa-store"></i>
                             </div>
-                            <h3 className="text-xl font-bold text-white group-hover:text-amber-400 transition-colors">{vendor.name}</h3>
+                            <h3 className={`text-xl font-bold text-white ${theme.hover} transition-colors`}>{vendor.name}</h3>
                             <p className="text-sm text-zinc-400 uppercase tracking-wide font-mono mt-1">{vendor.category}</p>
                         </div>
 

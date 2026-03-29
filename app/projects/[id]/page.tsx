@@ -10,7 +10,23 @@ export default async function ProjectDashboard({ params }: { params: Promise<{ i
     const { id } = await params;
 
     const { data: project } = await supabase.from('projects').select('*').eq('id', id).single();
-
+    const isWedding = project?.type === 'wedding' || project?.type === 'wedding_fair';
+    const theme = isWedding ? {
+        primary: 'text-pink-500',
+        bg: 'bg-pink-500',
+        hover: 'hover:bg-pink-400',
+        pill: 'bg-pink-500/5',
+        border: 'border-pink-500/30',
+        shadow: 'shadow-[0_0_25px_rgba(236,72,153,0.2)]'
+    } : {
+        primary: 'text-amber-500',
+        bg: 'bg-amber-500',
+        hover: 'hover:bg-amber-400',
+        pill: 'bg-amber-500/5',
+        border: 'border-amber-500/30',
+        shadow: 'shadow-[0_0_25px_rgba(245,158,11,0.2)]'
+    };
+    
     const { count: pendingTasksCount } = await supabase
         .from('tasks')
         .select('*', { count: 'exact', head: true })
@@ -47,15 +63,15 @@ export default async function ProjectDashboard({ params }: { params: Promise<{ i
             <div className="relative rounded-3xl overflow-hidden bg-zinc-900 border border-zinc-800 shadow-2xl">
                 <div
                     className="absolute inset-0 bg-cover bg-center opacity-15"
-                    style={{ backgroundImage: "url('https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=2069&auto=format&fit=crop')" }}
+                    style={{ backgroundImage: `url(${isWedding ? 'https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=2070&auto=format&fit=crop' : 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=2069&auto=format&fit=crop'})` }}
                 ></div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/60"></div>
 
                 <div className="relative z-10 p-10 md:p-16">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
                         <div>
-                            <div className="inline-flex items-center gap-2 px-4 py-1.5 mb-5 border border-amber-500/30 rounded-full bg-amber-500/5 text-amber-500 text-[10px] font-black tracking-[0.2em] uppercase">
-                                <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></span>
+                            <div className={`inline-flex items-center gap-2 px-4 py-1.5 mb-5 border ${theme.border} rounded-full ${theme.pill} ${theme.primary} text-[10px] font-black tracking-[0.2em] uppercase`}>
+                                <span className={`w-1.5 h-1.5 ${theme.bg} rounded-full animate-pulse`}></span>
                                 {project?.status || 'Active Operation'}
                             </div>
                             <h1 className="text-4xl md:text-6xl font-black text-white mb-3 tracking-tighter uppercase italic">
@@ -78,7 +94,7 @@ export default async function ProjectDashboard({ params }: { params: Promise<{ i
                     {/* Quick Action Buttons */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-10">
                         <Link href={`/projects/${id}/program`}>
-                            <div className="px-8 py-4 bg-amber-500 hover:bg-amber-400 text-black font-black rounded-2xl transition-all flex items-center justify-between shadow-[0_0_25px_rgba(245,158,11,0.2)]">
+                            <div className={`px-8 py-4 ${theme.bg} ${theme.hover} text-black font-black rounded-2xl transition-all flex items-center justify-between ${theme.shadow}`}>
                                 <span className="uppercase tracking-widest text-xs">Run Live Program</span>
                                 <i className="fa-solid fa-play text-sm"></i>
                             </div>
@@ -104,9 +120,9 @@ export default async function ProjectDashboard({ params }: { params: Promise<{ i
 
                 {/* Tasks */}
                 <Link href={`/projects/${id}/tasks`} className="block group">
-                    <div className="h-full bg-zinc-900/50 border border-white/5 p-8 rounded-3xl hover:border-amber-500/30 transition-all cursor-pointer">
+                    <div className={`h-full bg-zinc-900/50 border border-white/5 p-8 rounded-3xl ${isWedding ? 'hover:border-pink-500/30' : 'hover:border-amber-500/30'} transition-all cursor-pointer`}>
                         <div className="flex items-center justify-between mb-6">
-                            <div className="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-500">
+                            <div className={`w-12 h-12 ${theme.pill} rounded-xl flex items-center justify-center ${theme.primary}`}>
                                 <i className="fa-solid fa-check-double text-xl"></i>
                             </div>
                             <span className="text-[10px] font-black text-zinc-600 tracking-widest">TASKS</span>
@@ -114,7 +130,7 @@ export default async function ProjectDashboard({ params }: { params: Promise<{ i
                         <div className="text-4xl font-black text-white mb-1">{pendingTasksCount || 0}</div>
                         <div className="text-[10px] font-bold text-zinc-500 tracking-widest uppercase mb-4">Pending Actions</div>
                         <div className="w-full bg-white/5 h-1 rounded-full overflow-hidden">
-                            <div className="bg-amber-500 h-full w-2/5"></div>
+                            <div className={`${theme.bg} h-full w-2/5`}></div>
                         </div>
                         <div className="text-[10px] text-zinc-600 mt-2">{criticalTasksCount || 0} Critical Items</div>
                     </div>
@@ -139,17 +155,17 @@ export default async function ProjectDashboard({ params }: { params: Promise<{ i
 
                 {/* Consultations */}
                 <Link href={`/projects/${id}/consultation`} className="block group">
-                    <div className="h-full bg-zinc-900/50 border border-white/5 p-8 rounded-3xl hover:border-cyan-500/30 transition-all cursor-pointer">
+                    <div className={`h-full bg-zinc-900/50 border border-white/5 p-8 rounded-3xl ${isWedding ? 'hover:border-pink-500/30' : 'hover:border-cyan-500/30'} transition-all cursor-pointer`}>
                         <div className="flex items-center justify-between mb-6">
-                            <div className="w-12 h-12 bg-cyan-500/10 rounded-xl flex items-center justify-center text-cyan-500">
+                            <div className={`w-12 h-12 ${isWedding ? 'bg-pink-500/10 text-pink-500' : 'bg-cyan-500/10 text-cyan-500'} rounded-xl flex items-center justify-center`}>
                                 <i className="fa-solid fa-wand-magic-sparkles text-xl"></i>
                             </div>
                             <span className="text-[10px] font-black text-zinc-600 tracking-widest">REPORTS</span>
                         </div>
                         <div className="text-4xl font-black text-white mb-1">{consultationCount || 0}</div>
                         <div className="text-[10px] font-bold text-zinc-500 tracking-widest uppercase mb-4">Client Submissions</div>
-                        <div className="text-[10px] font-black text-cyan-500">
-                            <span className="inline-block w-2 h-2 bg-cyan-500 rounded-full mr-2"></span>AI Summaries Ready
+                        <div className={`text-[10px] font-black ${isWedding ? 'text-pink-500' : 'text-cyan-500'}`}>
+                            <span className={`inline-block w-2 h-2 ${isWedding ? 'bg-pink-500' : 'bg-cyan-500'} rounded-full mr-2`}></span>AI Summaries Ready
                         </div>
                     </div>
                 </Link>

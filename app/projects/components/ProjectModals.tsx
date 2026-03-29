@@ -26,38 +26,41 @@ const Modal = ({ isOpen, onClose, title, children }: { isOpen: boolean, onClose:
 
 // --- TASKS ---
 
-export function AddTaskButton({ projectId }: { projectId: string }) {
+export function AddTaskButton({ projectId, isWedding }: { projectId: string; isWedding?: boolean }) {
     const [isOpen, setIsOpen] = useState(false);
+    const colorClass = isWedding ? 'bg-pink-500 hover:bg-pink-400 shadow-pink-500/20' : 'bg-amber-500 hover:bg-amber-400 shadow-amber-500/20';
     return (
         <>
-            <button onClick={() => setIsOpen(true)} className="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-full transition-all flex items-center gap-2 transform hover:scale-105 shadow-lg shadow-amber-500/20">
+            <button onClick={() => setIsOpen(true)} className={`px-6 py-2.5 ${colorClass} text-black font-bold rounded-full transition-all flex items-center gap-2 transform hover:scale-105 shadow-lg`}>
                 <i className="fa-solid fa-plus"></i> Add Task
             </button>
             <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title="New Task">
-                <TaskForm projectId={projectId} onClose={() => setIsOpen(false)} />
+                <TaskForm projectId={projectId} onClose={() => setIsOpen(false)} isWedding={isWedding} />
             </Modal>
         </>
     );
 }
 
-export function TaskCard({ task, projectId }: { task: any, projectId: string }) {
+export function TaskCard({ task, projectId, isWedding }: { task: any, projectId: string, isWedding?: boolean }) {
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
     // Dynamic styles
-    const priorityColor = task.priority === 'critical' ? 'bg-red-500' : task.priority === 'high' ? 'bg-amber-500' : task.priority === 'medium' ? 'bg-blue-500' : 'bg-zinc-600';
+    const accentColor = isWedding ? 'pink-500' : 'amber-500';
+    const borderHover = isWedding ? 'hover:border-pink-500/50' : 'hover:border-amber-500/50';
+    const priorityColor = task.priority === 'critical' ? 'bg-red-500' : task.priority === 'high' ? `bg-${accentColor}` : task.priority === 'medium' ? 'bg-blue-500' : 'bg-zinc-600';
     const accessBadge = task.access_level === 'admin' ? <span className="text-[10px] uppercase font-bold tracking-wider text-red-400 bg-red-900/20 px-1.5 py-0.5 rounded">Admin Only</span> : null;
 
     return (
         <>
-            <div onClick={() => setIsEditOpen(true)} className="bg-zinc-900 border border-zinc-800 hover:border-amber-500/50 p-4 rounded-xl transition-all group cursor-pointer shadow-sm hover:shadow-md relative overflow-hidden h-full flex flex-col">
+            <div onClick={() => setIsEditOpen(true)} className={`bg-zinc-900 border border-zinc-800 ${borderHover} p-4 rounded-xl transition-all group cursor-pointer shadow-sm hover:shadow-md relative overflow-hidden h-full flex flex-col`}>
                 <div className={`absolute left-0 top-0 bottom-0 w-1 ${priorityColor}`}></div>
                 <div className="ml-3 flex-1 flex flex-col">
                     <div className="flex justify-between items-start mb-2">
                         {accessBadge || <span className="text-zinc-500 text-[10px]">TASK-{task.id.slice(0, 4)}</span>}
                         {task.priority === 'critical' && <i className="fa-solid fa-fire text-red-500 animate-pulse text-xs" title="Critical"></i>}
                     </div>
-                    <h4 className="font-medium text-zinc-100 mb-2 group-hover:text-amber-400 transition-colors leading-snug break-words">
+                    <h4 className={`font-medium text-zinc-100 mb-2 ${isWedding ? 'group-hover:text-pink-400' : 'group-hover:text-amber-400'} transition-colors leading-snug break-words`}>
                         {task.title}
                     </h4>
                     {task.description && (
@@ -70,13 +73,13 @@ export function TaskCard({ task, projectId }: { task: any, projectId: string }) 
                             <i className="fa-regular fa-calendar text-zinc-500"></i>
                             {task.due_date ? new Date(task.due_date).toLocaleDateString() : 'No date'}
                         </div>
-                        <i className="fa-solid fa-pen-to-square opacity-0 group-hover:opacity-100 transition-opacity text-amber-500"></i>
+                        <i className={`fa-solid fa-pen-to-square opacity-0 group-hover:opacity-100 transition-opacity ${isWedding ? 'text-pink-500' : 'text-amber-500'}`}></i>
                     </div>
                 </div>
             </div>
 
             <Modal isOpen={isEditOpen} onClose={() => setIsEditOpen(false)} title="Edit Task">
-                <TaskForm task={task} projectId={projectId} onClose={() => setIsEditOpen(false)} />
+                <TaskForm task={task} projectId={projectId} onClose={() => setIsEditOpen(false)} isWedding={isWedding} />
                 <div className="mt-4 pt-4 border-t border-zinc-800 flex justify-between items-center">
                     <span className="text-xs text-zinc-500">Danger Zone</span>
                     <button
@@ -101,9 +104,11 @@ export function TaskCard({ task, projectId }: { task: any, projectId: string }) 
     );
 }
 
-function TaskForm({ task, projectId, onClose }: { task?: any, projectId: string, onClose: () => void }) {
+function TaskForm({ task, projectId, onClose, isWedding }: { task?: any, projectId: string, onClose: () => void, isWedding?: boolean }) {
     const isEdit = !!task;
     const [isLoading, setIsLoading] = useState(false);
+    const focusClass = isWedding ? 'focus:border-pink-500' : 'focus:border-amber-500';
+    const btnClass = isWedding ? 'bg-pink-500 hover:bg-pink-400 shadow-pink-500/20' : 'bg-amber-500 hover:bg-amber-400 shadow-amber-500/20';
 
     return (
         <form action={async (formData) => {
@@ -120,12 +125,12 @@ function TaskForm({ task, projectId, onClose }: { task?: any, projectId: string,
             <input type="hidden" name="project_id" value={projectId} />
             <div>
                 <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Title</label>
-                <input name="title" defaultValue={task?.title} required className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500 transition-colors" placeholder="Task Name..." />
+                <input name="title" defaultValue={task?.title} required className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass} transition-colors`} placeholder="Task Name..." />
             </div>
             <div className="grid grid-cols-2 gap-4">
                 <div>
                     <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Status</label>
-                    <select name="status" defaultValue={task?.status || 'todo'} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500">
+                    <select name="status" defaultValue={task?.status || 'todo'} className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass}`}>
                         <option value="todo">Todo</option>
                         <option value="in_progress">In Progress</option>
                         <option value="review">Review</option>
@@ -134,7 +139,7 @@ function TaskForm({ task, projectId, onClose }: { task?: any, projectId: string,
                 </div>
                 <div>
                     <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Priority</label>
-                    <select name="priority" defaultValue={task?.priority || 'medium'} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500">
+                    <select name="priority" defaultValue={task?.priority || 'medium'} className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass}`}>
                         <option value="medium">Medium</option>
                         <option value="high">High</option>
                         <option value="critical">Critical</option>
@@ -144,13 +149,13 @@ function TaskForm({ task, projectId, onClose }: { task?: any, projectId: string,
             </div>
             <div>
                 <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Due Date</label>
-                <input type="date" name="due_date" defaultValue={task?.due_date?.split('T')[0]} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500" />
+                <input type="date" name="due_date" defaultValue={task?.due_date?.split('T')[0]} className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass}`} />
             </div>
             <div>
                 <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Description</label>
-                <textarea name="description" defaultValue={task?.description} rows={3} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500" placeholder="Details..."></textarea>
+                <textarea name="description" defaultValue={task?.description} rows={3} className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass}`} placeholder="Details..."></textarea>
             </div>
-            <button type="submit" disabled={isLoading} className="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold py-3 rounded-xl transition-colors mt-4 flex justify-center items-center gap-2">
+            <button type="submit" disabled={isLoading} className={`w-full ${btnClass} text-black font-bold py-3 rounded-xl transition-colors mt-4 flex justify-center items-center gap-2 shadow-lg`}>
                 {isLoading && <i className="fa-solid fa-spinner fa-spin"></i>}
                 {isEdit ? 'Save Changes' : 'Create Task'}
             </button>
@@ -161,11 +166,14 @@ function TaskForm({ task, projectId, onClose }: { task?: any, projectId: string,
 
 // --- TIMELINES ---
 
-export function AddTimelineButton({ projectId }: { projectId: string }) {
+export function AddTimelineButton({ projectId, isWedding }: { projectId: string; isWedding?: boolean }) {
     const [isOpen, setIsOpen] = useState(false);
+    const colorClass = isWedding ? 'bg-pink-500 hover:bg-pink-400 shadow-pink-500/20' : 'bg-amber-500 hover:bg-amber-400 shadow-amber-500/20';
+    const focusClass = isWedding ? 'focus:border-pink-500' : 'focus:border-amber-500';
+
     return (
         <>
-            <button onClick={() => setIsOpen(true)} className="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-full transition-all flex items-center gap-2 transform hover:scale-105 shadow-lg shadow-amber-500/20">
+            <button onClick={() => setIsOpen(true)} className={`px-6 py-2.5 ${colorClass} text-black font-bold rounded-full transition-all flex items-center gap-2 transform hover:scale-105 shadow-lg`}>
                 <i className="fa-solid fa-plus"></i> Add Phase
             </button>
             <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title="New Phase">
@@ -176,19 +184,19 @@ export function AddTimelineButton({ projectId }: { projectId: string }) {
                     <input type="hidden" name="project_id" value={projectId} />
                     <div>
                         <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Phase Name</label>
-                        <input name="name" required className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500" placeholder="e.g. Phase 1: Planning" />
+                        <input name="name" required className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass}`} placeholder="e.g. Phase 1: Planning" />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Start Date</label>
-                            <input type="date" name="start_date" className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500" />
+                            <input type="date" name="start_date" className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass}`} />
                         </div>
                         <div>
                             <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">End Date</label>
-                            <input type="date" name="end_date" className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500" />
+                            <input type="date" name="end_date" className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass}`} />
                         </div>
                     </div>
-                    <button type="submit" className="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold py-3 rounded-xl transition-colors mt-4">Add Phase</button>
+                    <button type="submit" className={`w-full ${colorClass} text-black font-bold py-3 rounded-xl transition-colors mt-4 shadow-lg`}>Add Phase</button>
                 </form>
             </Modal>
         </>
@@ -209,11 +217,14 @@ export function DeleteTimelineButton({ id, projectId }: { id: string, projectId:
 
 // --- BUDGETS ---
 
-export function AddBudgetButton({ projectId }: { projectId: string }) {
+export function AddBudgetButton({ projectId, isWedding }: { projectId: string; isWedding?: boolean }) {
     const [isOpen, setIsOpen] = useState(false);
+    const colorClass = isWedding ? 'bg-pink-500 hover:bg-pink-400 shadow-pink-500/20' : 'bg-amber-500 hover:bg-amber-400 shadow-amber-500/20';
+    const focusClass = isWedding ? 'focus:border-pink-500' : 'focus:border-amber-500';
+
     return (
         <>
-            <button onClick={() => setIsOpen(true)} className="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-full transition-all flex items-center gap-2 transform hover:scale-105 shadow-lg shadow-amber-500/20">
+            <button onClick={() => setIsOpen(true)} className={`px-6 py-2.5 ${colorClass} text-black font-bold rounded-full transition-all flex items-center gap-2 transform hover:scale-105 shadow-lg`}>
                 <i className="fa-solid fa-plus"></i> Add Item
             </button>
             <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title="New Budget Item">
@@ -224,23 +235,23 @@ export function AddBudgetButton({ projectId }: { projectId: string }) {
                     <input type="hidden" name="project_id" value={projectId} />
                     <div>
                         <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Item Name</label>
-                        <input name="item" required className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500" placeholder="e.g. Venue Deposit" />
+                        <input name="item" required className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass}`} placeholder="e.g. Venue Deposit" />
                     </div>
                     <div>
                         <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Amount (RM)</label>
-                        <input name="amount" type="number" step="0.01" required className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500" placeholder="0.00" />
+                        <input name="amount" type="number" step="0.01" required className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass}`} placeholder="0.00" />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Type</label>
-                            <select name="type" className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500">
+                            <select name="type" className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass}`}>
                                 <option value="expense">Expense</option>
                                 <option value="income">Income</option>
                             </select>
                         </div>
                         <div>
                             <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Category</label>
-                            <input name="category" list="categories" className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500" placeholder="Select or type..." />
+                            <input name="category" list="categories" className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass}`} placeholder="Select or type..." />
                             <datalist id="categories">
                                 <option value="Venue" />
                                 <option value="Decor" />
@@ -250,7 +261,7 @@ export function AddBudgetButton({ projectId }: { projectId: string }) {
                             </datalist>
                         </div>
                     </div>
-                    <button type="submit" className="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold py-3 rounded-xl transition-colors mt-4">Add Transaction</button>
+                    <button type="submit" className={`w-full ${colorClass} text-black font-bold py-3 rounded-xl transition-colors mt-4 shadow-lg`}>Add Transaction</button>
                 </form>
             </Modal>
         </>
@@ -272,11 +283,14 @@ export function DeleteBudgetButton({ id, projectId }: { id: string, projectId: s
 
 // --- VENDORS ---
 
-export function AddVendorButton({ projectId }: { projectId: string }) {
+export function AddVendorButton({ projectId, isWedding }: { projectId: string; isWedding?: boolean }) {
     const [isOpen, setIsOpen] = useState(false);
+    const colorClass = isWedding ? 'bg-pink-500 hover:bg-pink-400 shadow-pink-500/20' : 'bg-amber-500 hover:bg-amber-400 shadow-amber-500/20';
+    const focusClass = isWedding ? 'focus:border-pink-500' : 'focus:border-amber-500';
+
     return (
         <>
-            <button onClick={() => setIsOpen(true)} className="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-full transition-all flex items-center gap-2 transform hover:scale-105 shadow-lg shadow-amber-500/20">
+            <button onClick={() => setIsOpen(true)} className={`px-6 py-2.5 ${colorClass} text-black font-bold rounded-full transition-all flex items-center gap-2 transform hover:scale-105 shadow-lg`}>
                 <i className="fa-solid fa-plus"></i> Add Vendor
             </button>
             <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title="New Vendor">
@@ -287,11 +301,11 @@ export function AddVendorButton({ projectId }: { projectId: string }) {
                     <input type="hidden" name="project_id" value={projectId} />
                     <div>
                         <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Vendor Name</label>
-                        <input name="name" required className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500" placeholder="Company Name" />
+                        <input name="name" required className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass}`} placeholder="Company Name" />
                     </div>
                     <div>
                         <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Category</label>
-                        <input name="category" list="vendor-categories" className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500" placeholder="e.g. Catering" />
+                        <input name="category" list="vendor-categories" className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass}`} placeholder="e.g. Catering" />
                         <datalist id="vendor-categories">
                             <option value="Venue" />
                             <option value="Catering" />
@@ -303,7 +317,7 @@ export function AddVendorButton({ projectId }: { projectId: string }) {
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Status</label>
-                            <select name="status" className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500">
+                            <select name="status" className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass}`}>
                                 <option value="potential">Potential</option>
                                 <option value="contacted">Contacted</option>
                                 <option value="confirmed">Confirmed</option>
@@ -311,20 +325,20 @@ export function AddVendorButton({ projectId }: { projectId: string }) {
                         </div>
                         <div>
                             <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Contact Person</label>
-                            <input name="contact_person" className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500" placeholder="Name" />
+                            <input name="contact_person" className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass}`} placeholder="Name" />
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Phone</label>
-                            <input name="phone" className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500" placeholder="+60..." />
+                            <input name="phone" className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass}`} placeholder="+60..." />
                         </div>
                         <div>
                             <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Email</label>
-                            <input name="email" className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500" placeholder="email@example.com" />
+                            <input name="email" className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass}`} placeholder="email@example.com" />
                         </div>
                     </div>
-                    <button type="submit" className="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold py-3 rounded-xl transition-colors mt-4">Add Vendor</button>
+                    <button type="submit" className={`w-full ${colorClass} text-black font-bold py-3 rounded-xl transition-colors mt-4 shadow-lg`}>Add Vendor</button>
                 </form>
             </Modal>
         </>
