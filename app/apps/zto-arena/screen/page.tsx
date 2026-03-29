@@ -19,6 +19,20 @@ type MatchState = {
   timer?: number;
 };
 
+type BracketNode = {
+  id: string;
+  team1: string;
+  team2: string;
+  winner: 1 | 2 | null;
+  nextMatchId?: string;
+  nextTeamSlot?: 1 | 2;
+};
+
+type BracketState = {
+  id: string;
+  matches: Record<string, BracketNode>;
+};
+
 // ==========================================
 // 1. SCOREBOARD COMPONENT
 // ==========================================
@@ -95,6 +109,99 @@ const ScoreBoardView = ({ matchState, urlEventId, currentSport, isConnected }: a
   );
 };
 
+// ==========================================
+// 2. BRACKET COMPONENT
+// ==========================================
+const BracketBoardView = ({ bracketState }: { bracketState: BracketState | null }) => {
+    if (!bracketState || !bracketState.matches) {
+       return (
+            <motion.div key="bracket-idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1 flex flex-col items-center justify-center z-10 p-24 w-full h-full">
+                <div className="flex flex-col items-center justify-center w-full h-full border border-zinc-800/50 bg-zinc-950/20 backdrop-blur-md rounded-[3rem]">
+                    <i className="fa-solid fa-sitemap text-9xl text-blue-500/20 mb-8 drop-shadow-[0_0_30px_rgba(59,130,246,0.3)] animate-pulse"></i>
+                    <h2 className="text-4xl font-black text-blue-500 uppercase tracking-[0.4em] italic drop-shadow-md">Tournament Bracket</h2>
+                    <p className="text-zinc-500 font-bold uppercase tracking-[0.5em] mt-6 bg-zinc-900/50 px-8 py-3 rounded-full border border-white/5 text-sm">Waiting for bracket pipeline data...</p>
+                </div>
+             </motion.div>
+       );
+    }
+
+    return (
+        <motion.div key="bracket-render" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.05 }} className="flex-1 flex flex-col items-center justify-center z-10 p-24 w-full h-full relative">
+            <div className="absolute top-16 left-1/2 -translate-x-1/2 flex flex-col items-center">
+                <h1 className="text-6xl font-black text-blue-500 uppercase tracking-widest italic drop-shadow-[0_0_30px_rgba(59,130,246,0.6)]">ZTO Open Cup Bracket</h1>
+                <div className="text-sm font-black text-blue-300 tracking-[0.5em] uppercase mt-4">Node Engine Render</div>
+            </div>
+            
+            <div className="flex justify-between gap-16 py-8 px-4 min-w-[1200px] w-full max-w-7xl h-full mt-24 items-center">
+                {/* QF */}
+                <div className="flex flex-col justify-around gap-12 flex-1 h-full py-8">
+                    {['qf1', 'qf2', 'qf3', 'qf4'].map(matchId => {
+                        const match = bracketState.matches[matchId];
+                        return (
+                            <div key={matchId} className="bg-zinc-900 border border-white/10 rounded-2xl overflow-hidden flex flex-col relative text-2xl shadow-xl flex-1 justify-center">
+                                <div className={`flex items-center p-6 border-b border-white/5 transition-all w-full h-full ${match.winner === 1 ? 'bg-blue-600/20 text-blue-400 font-black' : 'text-zinc-400 font-bold'}`}>
+                                    <div className="flex-1 truncate">{match.team1}</div>
+                                    {match.winner === 1 && <i className="fa-solid fa-caret-right text-blue-500 text-3xl ml-4"></i>}
+                                </div>
+                                <div className={`flex items-center p-6 transition-all w-full h-full ${match.winner === 2 ? 'bg-blue-600/20 text-blue-400 font-black' : 'text-zinc-400 font-bold'}`}>
+                                    <div className="flex-1 truncate">{match.team2}</div>
+                                    {match.winner === 2 && <i className="fa-solid fa-caret-right text-blue-500 text-3xl ml-4"></i>}
+                                </div>
+                            </div>
+                        )
+                    })}
+                </div>
+
+                {/* SF */}
+                <div className="flex flex-col justify-around gap-20 flex-1 py-24 h-full">
+                     {['sf1', 'sf2'].map(matchId => {
+                        const match = bracketState.matches[matchId];
+                        return (
+                            <div key={matchId} className="bg-zinc-900 border-2 border-blue-500/30 rounded-2xl overflow-hidden flex flex-col shadow-[0_0_30px_rgba(37,99,235,0.2)] relative text-3xl flex-1 justify-center">
+                                <div className={`flex items-center p-8 border-b border-white/5 transition-all w-full h-full ${match.winner === 1 ? 'bg-blue-600 text-white font-black' : 'text-indigo-200 font-black'}`}>
+                                    <div className="flex-1 truncate drop-shadow-md">{match.team1}</div>
+                                    {match.winner === 1 && <i className="fa-solid fa-caret-right text-white text-4xl ml-4"></i>}
+                                </div>
+                                <div className={`flex items-center p-8 transition-all w-full h-full ${match.winner === 2 ? 'bg-blue-600 text-white font-black' : 'text-indigo-200 font-black'}`}>
+                                    <div className="flex-1 truncate drop-shadow-md">{match.team2}</div>
+                                    {match.winner === 2 && <i className="fa-solid fa-caret-right text-white text-4xl ml-4"></i>}
+                                </div>
+                            </div>
+                        )
+                    })}
+                </div>
+
+                {/* Final */}
+                <div className="flex flex-col justify-center flex-1 py-12 relative h-full">
+                     {['f1'].map(matchId => {
+                        const match = bracketState.matches[matchId];
+                        return (
+                            <div key={matchId} className="bg-zinc-900 border-4 border-amber-500/80 rounded-3xl overflow-hidden flex flex-col shadow-[0_0_60px_rgba(245,158,11,0.4)] relative text-4xl h-[60%] justify-center">
+                                <div className={`flex items-center p-12 border-b border-white/10 transition-all w-full h-full ${match.winner === 1 ? 'bg-amber-500 text-black font-black shadow-[inset_0_0_50px_rgba(255,255,255,0.5)]' : 'text-amber-100 font-black'}`}>
+                                    {match.winner === 1 && <i className="fa-solid fa-trophy mr-6 text-black drop-shadow-lg text-5xl"></i>}
+                                    <div className="flex-1 truncate drop-shadow-md">{match.team1}</div>
+                                </div>
+                                <div className={`flex items-center p-12 transition-all w-full h-full ${match.winner === 2 ? 'bg-amber-500 text-black font-black shadow-[inset_0_0_50px_rgba(255,255,255,0.5)]' : 'text-amber-100 font-black'}`}>
+                                    {match.winner === 2 && <i className="fa-solid fa-trophy mr-6 text-black drop-shadow-lg text-5xl"></i>}
+                                    <div className="flex-1 truncate drop-shadow-md">{match.team2}</div>
+                                </div>
+                            </div>
+                        )
+                    })}
+                    
+                    <AnimatePresence>
+                       {bracketState.matches['f1'].winner !== null && (
+                           <motion.div initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="absolute bottom-[0%] left-1/2 -translate-x-1/2 bg-white text-black px-12 py-4 rounded-full shadow-[0_0_100px_rgba(255,255,255,1)]">
+                               <div className="text-2xl font-black uppercase tracking-widest text-center">Champion</div>
+                           </motion.div>
+                       )}
+                    </AnimatePresence>
+                </div>
+            </div>
+        </motion.div>
+    );
+};
+
 function ArenaScreenContent() {
   const searchParams = useSearchParams();
   const urlEventId = searchParams.get('eventId') || 'BINTULU_OPEN_2026';
@@ -102,6 +209,7 @@ function ArenaScreenContent() {
 
   const [screenMode, setScreenMode] = useState<ScreenMode>('SCORE');
   const [matchState, setMatchState] = useState<MatchState | null>(null);
+  const [bracketState, setBracketState] = useState<BracketState | null>(null);
   const [activeAd, setActiveAd] = useState<any | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 
@@ -113,6 +221,9 @@ function ArenaScreenContent() {
     channel
       .on('broadcast', { event: 'match-update' }, (payload) => {
         setMatchState(payload.payload);
+      })
+      .on('broadcast', { event: 'bracket-update' }, (payload) => {
+        setBracketState(payload.payload);
       })
       .on('broadcast', { event: 'screen-mode' }, (payload) => {
         setScreenMode(payload.payload.mode);
@@ -173,13 +284,7 @@ function ArenaScreenContent() {
         )}
 
         {screenMode === 'BRACKET' && (
-             <motion.div key="bracket-screen" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -50 }} className="flex-1 flex flex-col items-center justify-center z-10 p-24 w-full h-full">
-                <div className="flex flex-col items-center justify-center w-full h-full border border-zinc-800/50 bg-zinc-950/20 backdrop-blur-md rounded-[3rem]">
-                    <i className="fa-solid fa-sitemap text-9xl text-blue-500/20 mb-8 drop-shadow-[0_0_30px_rgba(59,130,246,0.3)]"></i>
-                    <h2 className="text-4xl font-black text-blue-500 uppercase tracking-[0.4em] italic drop-shadow-md">Tournament Bracket</h2>
-                    <p className="text-zinc-500 font-bold uppercase tracking-[0.5em] mt-6 bg-zinc-900/50 px-8 py-3 rounded-full border border-white/5 text-sm">Rendering Live Tree Data...</p>
-                </div>
-             </motion.div>
+             <BracketBoardView bracketState={bracketState} />
         )}
 
         {!matchState && screenMode === 'SCORE' && (
