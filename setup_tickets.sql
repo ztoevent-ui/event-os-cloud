@@ -28,7 +28,7 @@ CREATE POLICY "Scanners can check in tickets"
 
 CREATE POLICY "Admins can insert tickets"
   ON public.tickets FOR INSERT
-  USING (true);
+  WITH CHECK (true);
 
 -- 5. Mock Data Generation (For Testing the Workflow)
 -- We'll insert a few mock attendees for the 'ZTO_SUMMIT_2026' event
