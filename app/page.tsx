@@ -84,12 +84,12 @@ export default function Home() {
                             <p className="text-gray-400 text-sm">Master control for Lucky Draw & Spin Wheel.</p>
                         </Link>
 
-                        <Link href="/apps/event-manager" className="group bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-blue-100 transition-all hover:-translate-y-1">
-                            <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
-                                <i className="fa-solid fa-list-check"></i>
+                        <Link href="/consultations" className="group bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-teal-100 transition-all hover:-translate-y-1">
+                            <div className="w-12 h-12 bg-teal-50 text-teal-600 rounded-xl flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
+                                <i className="fa-solid fa-clipboard-question"></i>
                             </div>
-                            <h3 className="font-bold text-lg text-gray-900 mb-2">Event Manager</h3>
-                            <p className="text-gray-400 text-sm">Orchestrate programs, MC cues, & schedules.</p>
+                            <h3 className="font-bold text-lg text-gray-900 mb-2">Consultations</h3>
+                            <p className="text-gray-400 text-sm">View received consultation forms & leads.</p>
                         </Link>
                     </div>
                 </section>
