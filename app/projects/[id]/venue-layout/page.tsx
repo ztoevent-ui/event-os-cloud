@@ -358,7 +358,7 @@ function VenueStage({
   onSelect: (id: string, e: ThreeEvent<MouseEvent>) => void;
 }) {
   return (
-    <group position={[stage.x, 0, stage.z]} onClick={(e) => { e.stopPropagation(); onSelect('stage', e); }}>
+    <group position={[stage.x, 0, stage.z]} onClick={(e) => { e.stopPropagation(); onSelect(stage.id, e); }}>
       {isSelected && (
         <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
           <planeGeometry args={[(stage.w || 6) + 0.6, (stage.d || 2.5) + 0.6]} />
@@ -677,12 +677,10 @@ function VenueScene({
 
       <AudioControlRoom x={0} z={9.5} />
       
-      {/* Venue Title in Scene */}
       <group position={[0, 5.5, -11]}>
         <DreiText
           fontSize={1.2}
           color="#ffb300"
-          font="https://fonts.gstatic.com/s/outfit/v11/Q_k790_jRWW_fOat0N8m.woff"
           anchorX="center"
           anchorY="middle"
           outlineWidth={0.05}
