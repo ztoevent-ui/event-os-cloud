@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, Suspense, useEffect, use, useMemo, useRef, useCallback } from 'react';
-import { Canvas, useThree, ThreeEvent } from '@react-three/fiber';
+import { Canvas, useThree, ThreeEvent, useFrame } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera, ContactShadows, Environment, Html } from '@react-three/drei';
 import { supabase } from '@/lib/supabaseClient';
 import * as THREE from 'three';
@@ -557,12 +557,24 @@ function HangingLeaves({ asset }: { asset: AssetDef }) {
 }
 
 function StarLights({ asset }: { asset: AssetDef }) {
+  const groupRef = useRef<THREE.Group>(null);
+  
+  useFrame((state: any) => {
+    if (!groupRef.current) return;
+    const time = state.clock.getElapsedTime();
+    groupRef.current.children.forEach((child, i) => {
+      if (child instanceof THREE.Mesh) {
+        (child.material as THREE.MeshStandardMaterial).emissiveIntensity = 1 + Math.sin(time * 2 + i) * 0.5;
+      }
+    });
+  });
+
   return (
-    <group position={[asset.x, 3.8, asset.z]}>
+    <group ref={groupRef} position={[asset.x, 3.8, asset.z]}>
       {Array.from({ length: 20 }).map((_, i) => (
-        <mesh key={i} position={[(i % 5) - 2, 0, Math.floor(i / 5) - 2]}>
+        <mesh key={i} position={[(i % 5) - 2 + Math.sin(i)*0.2, 0, Math.floor(i / 5) - 2 + Math.cos(i)*0.2]}>
           <sphereGeometry args={[0.02, 8, 8]} />
-          <meshStandardMaterial color={asset.color || '#fff'} emissive={asset.color || '#fff'} emissiveIntensity={2} />
+          <meshStandardMaterial color={asset.color || '#fff'} emissive={asset.color || '#fff'} emissiveIntensity={1} />
         </mesh>
       ))}
     </group>
@@ -823,6 +835,25 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
     setLayoutData({ ...layoutData, customAssets: newAssets as (TableDef | AssetDef)[] });
   };
 
+  // Keyboard Shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't delete if user is typing in an input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      if (e.key === 'Backspace' || e.key === 'Delete') {
+        if (selectedIds.length > 0) {
+          removeSelected();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedIds, layoutData]);
+
+  const [searchQuery, setSearchQuery] = useState('');
+  
   if (loading) return <div className="flex items-center justify-center h-[60vh]"><i className="fa-solid fa-spinner fa-spin text-3xl text-amber-500" /></div>;
 
   const selectedCount = selectedIds.length;
@@ -928,24 +959,39 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
           {/* Asset Library */}
           <div className="bg-zinc-900 border border-white/5 rounded-2xl p-5 space-y-4">
             <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest border-b border-white/5 pb-2">Asset Library</h3>
+            <div className="relative">
+              <i className="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600 text-[8px]" />
+              <input 
+                type="text" 
+                placeholder="SEARCH ASSETS..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value.toUpperCase())}
+                className="w-full bg-black/50 border border-white/5 rounded-lg pl-8 pr-3 py-1.5 text-[8px] font-black text-white focus:border-amber-500/50 outline-none transition-all"
+              />
+            </div>
             <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-              {['Furniture', 'AV', 'Decor', 'Structures'].map(cat => (
-                <div key={cat} className="space-y-2">
-                  <h4 className="text-[8px] font-black text-zinc-600 uppercase tracking-widest">{cat}</h4>
-                  <div className="grid grid-cols-1 gap-1">
-                    {ASSET_LIBRARY.filter(a => a.category === cat).map(a => (
-                      <button 
-                        key={a.type} 
-                        onClick={() => addAsset(a.type)}
-                        className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-left transition-all border border-transparent hover:border-white/10 group flex items-center justify-between"
-                      >
-                        <span className="text-[9px] font-black text-zinc-400 uppercase tracking-tight group-hover:text-amber-400">{a.name}</span>
-                        <i className="fa-solid fa-plus text-[8px] text-zinc-600 group-hover:text-amber-400" />
-                      </button>
-                    ))}
+              {['Furniture', 'AV', 'Decor', 'Structures'].map(cat => {
+                const items = ASSET_LIBRARY.filter(a => a.category === cat && (a.name.toUpperCase().includes(searchQuery) || cat.toUpperCase().includes(searchQuery)));
+                if (items.length === 0) return null;
+                
+                return (
+                  <div key={cat} className="space-y-2">
+                    <h4 className="text-[8px] font-black text-zinc-600 uppercase tracking-widest">{cat}</h4>
+                    <div className="grid grid-cols-1 gap-1">
+                      {items.map(a => (
+                        <button 
+                          key={a.type} 
+                          onClick={() => addAsset(a.type)}
+                          className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-left transition-all border border-transparent hover:border-white/10 group flex items-center justify-between"
+                        >
+                          <span className="text-[9px] font-black text-zinc-400 uppercase tracking-tight group-hover:text-amber-400">{a.name}</span>
+                          <i className="fa-solid fa-plus text-[8px] text-zinc-600 group-hover:text-amber-400" />
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
