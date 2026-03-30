@@ -412,14 +412,15 @@ function RedCarpet({ carpet, isSelected, onSelect }: { carpet: AssetDef; isSelec
   );
 }
 
-function SpeakerTripod({ asset }: { asset: AssetDef }) {
+function SpeakerTripod({ asset, isSelected, onSelect }: { asset: AssetDef, isSelected: boolean, onSelect: any }) {
   return (
-    <group position={[asset.x, 0, asset.z]}>
+    <group position={[asset.x, 0, asset.z]} onClick={(e) => { e.stopPropagation(); onSelect(asset.id, e); }}>
+      <SelectionGlow radius={0.3} isSelected={isSelected} />
       {/* Tripod legs */}
       <mesh position={[0, 0.4, 0]}><cylinderGeometry args={[0.02, 0.02, 0.8, 8]} /><meshStandardMaterial color="#222" /></mesh>
-      <mesh position={[0.2, 0.15, 0.1]} rotation={[0.4, 0, 0.4]}><cylinderGeometry args={[0.015, 0.015, 0.4, 8]} /><meshStandardMaterial color="#222" /></mesh>
-      <mesh position={[-0.2, 0.15, 0.1]} rotation={[0.4, 0, -0.4]}><cylinderGeometry args={[0.015, 0.015, 0.4, 8]} /><meshStandardMaterial color="#222" /></mesh>
-      <mesh position={[0, 0.15, -0.22]} rotation={[-0.4, 0, 0]}><cylinderGeometry args={[0.015, 0.015, 0.4, 8]} /><meshStandardMaterial color="#222" /></mesh>
+      <mesh position={[0.2, 0.15, 0.1]} rotation={[0.4, 0, 0.4]}><cylinderGeometry args={[0.02, 0.02, 0.4, 8]} /><meshStandardMaterial color="#222" /></mesh>
+      <mesh position={[-0.2, 0.15, 0.1]} rotation={[0.4, 0, -0.4]}><cylinderGeometry args={[0.02, 0.02, 0.4, 8]} /><meshStandardMaterial color="#222" /></mesh>
+      <mesh position={[0, 0.15, -0.22]} rotation={[-0.4, 0, 0]}><cylinderGeometry args={[0.02, 0.02, 0.4, 8]} /><meshStandardMaterial color="#222" /></mesh>
       {/* Speaker box */}
       <mesh position={[0, 1.2, 0]} castShadow>
         <boxGeometry args={[0.3, 0.5, 0.25]} />
@@ -646,7 +647,7 @@ function VenueScene({
         switch(a.type) {
           case 'stage': return <VenueStage key={a.id} stage={a} isSelected={isSel} onSelect={onSelect} />;
           case 'carpet': return <RedCarpet key={a.id} carpet={a} isSelected={isSel} onSelect={onSelect} />;
-          case 'speaker-tripod': return <SpeakerTripod key={a.id} asset={a} />;
+          case 'speaker-tripod': return <SpeakerTripod key={a.id} asset={a} isSelected={isSel} onSelect={onSelect} />;
           case 'rect-6ft': return <RectTable6ft key={a.id} asset={a} isSelected={isSel} onSelect={onSelect} />;
           case 'cocktail': return <CocktailTable key={a.id} asset={a} isSelected={isSel} onSelect={onSelect} />;
           case 'bar': return <BarCounter key={a.id} asset={a} isSelected={isSel} onSelect={onSelect} />;
@@ -1012,10 +1013,11 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
                   enableDamping
                   dampingFactor={0.05}
                   maxPolarAngle={Math.PI / 2.15}
-                  minDistance={5}
-                  maxDistance={50}
+                  minDistance={2}
+                  maxDistance={60}
+                  enablePan={true}
                   enabled={!isDragging}
-                  mouseButtons={{ LEFT: isDragging ? -1 : THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.ROTATE } as any}
+                  mouseButtons={{ LEFT: isDragging ? -1 : THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN } as any}
                 />
                 <Suspense fallback={null}>
                   <VenueScene
