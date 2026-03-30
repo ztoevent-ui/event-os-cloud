@@ -2,7 +2,7 @@
 
 import React, { useState, Suspense, useEffect, use, useMemo, useRef, useCallback } from 'react';
 import { Canvas, useThree, ThreeEvent, useFrame } from '@react-three/fiber';
-import { OrbitControls, PerspectiveCamera, ContactShadows, Environment, Html } from '@react-three/drei';
+import { OrbitControls, PerspectiveCamera, ContactShadows, Environment, Html, Text as DreiText } from '@react-three/drei';
 import { supabase } from '@/lib/supabaseClient';
 import * as THREE from 'three';
 
@@ -12,6 +12,7 @@ type TableDef = {
   type: 'guest' | 'bridal';
   x: number;
   z: number;
+  r?: number; // Added rotation
   tableColor?: string;
   chairColor?: string;
 };
@@ -38,6 +39,7 @@ type AssetDef = {
 
 type ProjectLayoutData = {
   selectedPreset: string;
+  venueName?: string;
   customAssets: (TableDef | AssetDef)[];
   globalColors: {
     guestTable: string;
@@ -674,6 +676,22 @@ function VenueScene({
       ))}
 
       <AudioControlRoom x={0} z={9.5} />
+      
+      {/* Venue Title in Scene */}
+      <group position={[0, 5.5, -11]}>
+        <DreiText
+          fontSize={1.2}
+          color="#ffb300"
+          font="https://fonts.gstatic.com/s/outfit/v11/Q_k790_jRWW_fOat0N8m.woff"
+          anchorX="center"
+          anchorY="middle"
+          outlineWidth={0.05}
+          outlineColor="#000"
+        >
+          {layoutData.venueName || 'NEW EVENT VENUE'}
+        </DreiText>
+      </group>
+
       <ContactShadows position={[0, 0, 0]} opacity={0.3} scale={40} blur={2.5} far={6} />
       <Environment preset="apartment" />
     </>
@@ -685,6 +703,7 @@ function VenueScene({
 function buildDefaultLayout(preset: LayoutPreset): ProjectLayoutData {
   return {
     selectedPreset: preset.key,
+    venueName: preset.name.split(' — ')[0],
     customAssets: [preset.stage, preset.carpet, ...preset.tables, ...preset.extras],
     globalColors: {
       guestTable: CLOTH_OPTIONS[0].hex,
@@ -904,6 +923,21 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
             </div>
           </div>
 
+          {/* Venue Configuration */}
+          <div className="bg-zinc-900 border border-white/5 rounded-2xl p-5 space-y-4">
+            <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest border-b border-white/5 pb-2">Venue Identity</h3>
+            <div className="space-y-2">
+              <label className="text-[8px] font-black text-zinc-600 uppercase tracking-widest">Venue Name (Studio Title)</label>
+              <input 
+                type="text" 
+                value={layoutData?.venueName || ''} 
+                onChange={(e) => setLayoutData(prev => prev ? { ...prev, venueName: e.target.value.toUpperCase() } : null)}
+                placeholder="ENTER VENUE NAME..."
+                className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-[10px] font-black text-white focus:border-amber-500/50 outline-none transition-all uppercase"
+              />
+            </div>
+          </div>
+
           {/* Color Settings */}
           <div className="bg-zinc-900 border border-white/5 rounded-2xl p-5 space-y-4">
             <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest border-b border-white/5 pb-2">Guest Colors</h3>
@@ -952,8 +986,9 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
               <li className="flex gap-2"><span className="text-emerald-400">●</span> 点击物体选中</li>
               <li className="flex gap-2"><span className="text-emerald-400">●</span> 选中后拖动移动</li>
               <li className="flex gap-2"><span className="text-emerald-400">●</span> Shift+点击 多选</li>
+              <li className="flex gap-2"><span className="text-emerald-400">●</span> 右键拖动 移动画面 (PAN)</li>
               <li className="flex gap-2"><span className="text-emerald-400">●</span> 点击空地取消选中</li>
-              <li className="flex gap-2"><span className="text-emerald-400">●</span> 右键/滚轮 旋转缩放视角</li>
+              <li className="flex gap-2"><span className="text-emerald-400">●</span> 滚轮 缩放视角 (ZOOM)</li>
             </ul>
           </div>
 
@@ -1114,17 +1149,15 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
                       )}
 
                       {/* Rotation */}
-                      {!isTable && (
-                        <div className="space-y-1">
-                          <label className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Rotation (Rad)</label>
-                          <input 
-                            type="range" min="0" max={Math.PI * 2} step="0.1"
-                            value={asset.r || 0} 
-                            onChange={(e) => updateAssetProp(asset.id, 'r', parseFloat(e.target.value))}
-                            className="w-full accent-amber-500"
-                          />
-                        </div>
-                      )}
+                      <div className="space-y-1">
+                        <label className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Horizontal Rotation (Rad)</label>
+                        <input 
+                          type="range" min="0" max={Math.PI * 2} step="0.1"
+                          value={asset.r || 0} 
+                          onChange={(e) => updateAssetProp(asset.id, 'r', parseFloat(e.target.value))}
+                          className="w-full accent-amber-500"
+                        />
+                      </div>
 
                       {/* Color Picker for specific asset */}
                       {(!isTable && ['rect-6ft', 'cocktail', 'bar', 'bg-wall-16ft', 'bg-wall-20ft', 'dec-pillar', 'carpet', 'star-lights'].includes(asset.type)) && (
