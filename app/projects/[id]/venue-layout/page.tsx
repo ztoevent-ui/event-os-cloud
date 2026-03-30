@@ -16,15 +16,24 @@ type TableDef = {
   chairColor?: string;
 };
 
+type AssetType = 
+  | 'stage' | 'carpet' | 'lectern' | 'audio-control' | 'mc' | 'led' | 'camera' 
+  | 'speaker-tripod' | 'rect-6ft' | 'cocktail' | 'bar' 
+  | 'bg-wall-16ft' | 'bg-wall-20ft' | 'dec-pillar' | 'hanging-leaves' 
+  | 'marquee-tent' | 'arabian-canopy' | 'transparent-marquee' | 'star-lights';
+
 type AssetDef = {
   id: string;
-  type: 'stage' | 'carpet' | 'lectern' | 'audio-control' | 'mc' | 'led' | 'camera';
+  type: AssetType;
   x: number;
   z: number;
   w?: number;
   h?: number;
   d?: number;
-  r?: number;
+  r?: number; // rotation
+  color?: string;
+  segments?: number; // for modular tents
+  isTransparent?: boolean;
 };
 
 type ProjectLayoutData = {
@@ -63,6 +72,23 @@ const CHAIR_OPTIONS = [
 const CARPET_RED = '#9B1B30';
 const GLASS_TINT = '#c8e6ec';
 const STAGE_HEIGHT = 0.914; // 3ft
+
+const ASSET_LIBRARY: { type: AssetType; name: string; category: string; defaultProps: Partial<AssetDef> }[] = [
+  { type: 'rect-6ft', name: '6ft Rect Table', category: 'Furniture', defaultProps: { w: 1.8, d: 0.75, h: 0.75, color: '#8b1a1a' } },
+  { type: 'cocktail', name: 'Cocktail Table', category: 'Furniture', defaultProps: { color: '#ffffff' } },
+  { type: 'bar', name: 'Bar Counter', category: 'Furniture', defaultProps: { w: 2, d: 0.6, h: 1.1, color: '#333' } },
+  { type: 'speaker-tripod', name: 'Speaker (Tripod)', category: 'AV', defaultProps: {} },
+  { type: 'led', name: 'LED Panel', category: 'AV', defaultProps: { w: 4, h: 2, d: 0.2 } },
+  { type: 'bg-wall-16ft', name: 'BG Wall (16ft)', category: 'Decor', defaultProps: { w: 4.87, h: 2.4, color: '#ffffff' } },
+  { type: 'bg-wall-20ft', name: 'BG Wall (20ft)', category: 'Decor', defaultProps: { w: 6.1, h: 3, color: '#ffffff' } },
+  { type: 'dec-pillar', name: 'Square Pillar', category: 'Decor', defaultProps: { w: 0.4, h: 2.5, color: '#ffffff' } },
+  { type: 'hanging-leaves', name: 'Hanging Leaves', category: 'Decor', defaultProps: { color: '#2d5a27' } },
+  { type: 'star-lights', name: 'Star Lights', category: 'Decor', defaultProps: { color: '#fff' } },
+  { type: 'marquee-tent', name: 'Marquee Tent', category: 'Structures', defaultProps: { w: 10, d: 5, segments: 1 } },
+  { type: 'transparent-marquee', name: 'Transparent Marquee', category: 'Structures', defaultProps: { w: 10, d: 5, segments: 1, isTransparent: true } },
+  { type: 'arabian-canopy', name: 'Arabian Canopy', category: 'Structures', defaultProps: { w: 10, d: 5, segments: 1 } },
+  { type: 'carpet', name: 'Custom Carpet', category: 'Structures', defaultProps: { w: 10, d: 2, color: CARPET_RED } },
+];
 
 // --- PRESETS ---
 const SHORT_AISLE: LayoutPreset = {
@@ -371,7 +397,7 @@ function AudioControlRoom({ x, z }: { x: number; z: number }) {
 
 function RedCarpet({ carpet, isSelected, onSelect }: { carpet: AssetDef; isSelected: boolean; onSelect: (id: string, e: ThreeEvent<MouseEvent>) => void }) {
   return (
-    <group onClick={(e) => { e.stopPropagation(); onSelect('carpet', e); }}>
+    <group onClick={(e) => { e.stopPropagation(); onSelect(carpet.id, e); }}>
       {isSelected && (
         <mesh position={[carpet.x, 0.03, carpet.z]} rotation={[-Math.PI / 2, 0, 0]}>
           <planeGeometry args={[(carpet.w || 10) + 0.4, (carpet.d || 1.5) + 0.4]} />
@@ -380,8 +406,165 @@ function RedCarpet({ carpet, isSelected, onSelect }: { carpet: AssetDef; isSelec
       )}
       <mesh position={[carpet.x, 0.01, carpet.z]} receiveShadow>
         <boxGeometry args={[carpet.w || 10, 0.02, carpet.d || 1.5]} />
-        <meshStandardMaterial color={CARPET_RED} roughness={0.9} />
+        <meshStandardMaterial color={carpet.color || CARPET_RED} roughness={0.9} />
       </mesh>
+    </group>
+  );
+}
+
+function SpeakerTripod({ asset }: { asset: AssetDef }) {
+  return (
+    <group position={[asset.x, 0, asset.z]}>
+      {/* Tripod legs */}
+      <mesh position={[0, 0.4, 0]}><cylinderGeometry args={[0.02, 0.02, 0.8, 8]} /><meshStandardMaterial color="#222" /></mesh>
+      <mesh position={[0.2, 0.15, 0.1]} rotation={[0.4, 0, 0.4]}><cylinderGeometry args={[0.015, 0.015, 0.4, 8]} /><meshStandardMaterial color="#222" /></mesh>
+      <mesh position={[-0.2, 0.15, 0.1]} rotation={[0.4, 0, -0.4]}><cylinderGeometry args={[0.015, 0.015, 0.4, 8]} /><meshStandardMaterial color="#222" /></mesh>
+      <mesh position={[0, 0.15, -0.22]} rotation={[-0.4, 0, 0]}><cylinderGeometry args={[0.015, 0.015, 0.4, 8]} /><meshStandardMaterial color="#222" /></mesh>
+      {/* Speaker box */}
+      <mesh position={[0, 1.2, 0]} castShadow>
+        <boxGeometry args={[0.3, 0.5, 0.25]} />
+        <meshStandardMaterial color="#111" />
+      </mesh>
+      <mesh position={[0, 1.2, 0.13]}>
+        <planeGeometry args={[0.24, 0.44]} />
+        <meshStandardMaterial color="#222" roughness={0.8} />
+      </mesh>
+    </group>
+  );
+}
+
+function RectTable6ft({ asset, isSelected, onSelect }: { asset: AssetDef, isSelected: boolean, onSelect: any }) {
+  return (
+    <group position={[asset.x, 0, asset.z]} onClick={(e) => { e.stopPropagation(); onSelect(asset.id, e); }}>
+      <SelectionGlow radius={asset.w || 1.8} isSelected={isSelected} />
+      <mesh position={[0, 0.375, 0]} castShadow>
+        <boxGeometry args={[asset.w || 1.8, 0.75, asset.d || 0.75]} />
+        <meshStandardMaterial color={asset.color || '#8b1a1a'} />
+      </mesh>
+    </group>
+  );
+}
+
+function CocktailTable({ asset, isSelected, onSelect }: { asset: AssetDef, isSelected: boolean, onSelect: any }) {
+  return (
+    <group position={[asset.x, 0, asset.z]} onClick={(e) => { e.stopPropagation(); onSelect(asset.id, e); }}>
+      <SelectionGlow radius={0.4} isSelected={isSelected} />
+      <mesh position={[0, 0.55, 0]}><cylinderGeometry args={[0.05, 0.05, 1.1, 8]} /><meshStandardMaterial color="#555" /></mesh>
+      <mesh position={[0, 1.1, 0]} castShadow><cylinderGeometry args={[0.35, 0.35, 0.05, 32]} /><meshStandardMaterial color={asset.color || '#fff'} /></mesh>
+      <mesh position={[0, 0.05, 0]}><cylinderGeometry args={[0.25, 0.25, 0.1, 32]} /><meshStandardMaterial color="#333" /></mesh>
+    </group>
+  );
+}
+
+function BackgroundWall({ asset, isSelected, onSelect }: { asset: AssetDef, isSelected: boolean, onSelect: any }) {
+  return (
+    <group position={[asset.x, 0, asset.z]} rotation={[0, asset.r || 0, 0]} onClick={(e) => { e.stopPropagation(); onSelect(asset.id, e); }}>
+      {isSelected && <mesh position={[0, 0.02, 0]} rotation={[-Math.PI/2, 0, 0]}><planeGeometry args={[asset.w || 5, (asset.d || 0.2) + 0.4]} /><meshBasicMaterial color="#00ff88" transparent opacity={0.4} /></mesh>}
+      <mesh position={[0, (asset.h || 2.4)/2, 0]} castShadow>
+        <boxGeometry args={[asset.w || 4.8, asset.h || 2.4, asset.d || 0.1]} />
+        <meshStandardMaterial color={asset.color || '#ffffff'} />
+      </mesh>
+    </group>
+  );
+}
+
+function TentModule({ asset, isSelected, onSelect }: { asset: AssetDef, isSelected: boolean, onSelect: any }) {
+  const segments = asset.segments || 1;
+  const w = asset.w || 10;
+  const d = asset.d || 5;
+  const totalLength = d * segments;
+  
+  return (
+    <group position={[asset.x, 0, asset.z]} rotation={[0, asset.r || 0, 0]} onClick={(e) => { e.stopPropagation(); onSelect(asset.id, e); }}>
+      {isSelected && <mesh position={[0, 0.02, 0]} rotation={[-Math.PI/2, 0, 0]}><planeGeometry args={[w + 0.5, totalLength + 0.5]} /><meshBasicMaterial color="#00ff88" transparent opacity={0.4} /></mesh>}
+      
+      {Array.from({ length: segments }).map((_, i) => (
+        <group key={i} position={[0, 0, (i - (segments-1)/2) * d]}>
+          {/* Main frame */}
+          {[[-w/2, -d/2], [w/2, -d/2], [-w/2, d/2], [w/2, d/2]].map((pos, j) => (
+            <mesh key={j} position={[pos[0], 2, pos[1]]}><cylinderGeometry args={[0.05, 0.05, 4, 8]} /><meshStandardMaterial color="#ddd" /></mesh>
+          ))}
+          {/* Roof */}
+          <mesh position={[0, 4.5, 0]} rotation={[0, 0, 0]}>
+            <coneGeometry args={[w/1.4, 1.5, 4]} />
+            <meshStandardMaterial color={asset.color || '#fff'} transparent={asset.isTransparent} opacity={asset.isTransparent ? 0.4 : 1} side={THREE.DoubleSide} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  );
+}
+
+function LEDPanelComponent({ asset, isSelected, onSelect }: { asset: AssetDef, isSelected: boolean, onSelect: any }) {
+  return (
+    <group position={[asset.x, 0, asset.z]} rotation={[0, asset.r || 0, 0]} onClick={(e) => { e.stopPropagation(); onSelect(asset.id, e); }}>
+      <mesh position={[0, (asset.h || 2)/2 + 0.5, 0]} castShadow>
+        <boxGeometry args={[asset.w || 4, asset.h || 2, 0.2]} />
+        <meshStandardMaterial color="#000" emissive="#222" />
+      </mesh>
+      <mesh position={[0, (asset.h || 2)/2 + 0.5, 0.11]}>
+        <planeGeometry args={[(asset.w || 4) * 0.95, (asset.h || 2) * 0.95]} />
+        <meshStandardMaterial color="#111" emissive="blue" emissiveIntensity={0.1} />
+      </mesh>
+      {/* Supports */}
+      <mesh position={[(asset.w || 4)/2 - 0.5, 0.25, 0]}><boxGeometry args={[0.1, 0.5, 0.1]} /><meshStandardMaterial color="#333" /></mesh>
+      <mesh position={[-(asset.w || 4)/2 + 0.5, 0.25, 0]}><boxGeometry args={[0.1, 0.5, 0.1]} /><meshStandardMaterial color="#333" /></mesh>
+    </group>
+  );
+}
+
+function BarCounter({ asset, isSelected, onSelect }: { asset: AssetDef, isSelected: boolean, onSelect: any }) {
+  return (
+    <group position={[asset.x, 0, asset.z]} rotation={[0, asset.r || 0, 0]} onClick={(e) => { e.stopPropagation(); onSelect(asset.id, e); }}>
+      {isSelected && <mesh position={[0, 0.02, 0]} rotation={[-Math.PI/2, 0, 0]}><planeGeometry args={[(asset.w || 2) + 0.4, (asset.d || 0.6) + 0.4]} /><meshBasicMaterial color="#00ff88" transparent opacity={0.4} /></mesh>}
+      {/* Base */}
+      <mesh position={[0, (asset.h || 1.1)/2, 0]} castShadow>
+        <boxGeometry args={[asset.w || 2, asset.h || 1.1, asset.d || 0.6]} />
+        <meshStandardMaterial color={asset.color || '#333'} />
+      </mesh>
+      {/* Countertop */}
+      <mesh position={[0, (asset.h || 1.1), 0]} castShadow>
+        <boxGeometry args={[(asset.w || 2) + 0.1, 0.05, (asset.d || 0.6) + 0.1]} />
+        <meshStandardMaterial color="#111" roughness={0.1} />
+      </mesh>
+    </group>
+  );
+}
+
+function DecorativePillar({ asset, isSelected, onSelect }: { asset: AssetDef, isSelected: boolean, onSelect: any }) {
+  return (
+    <group position={[asset.x, 0, asset.z]} onClick={(e) => { e.stopPropagation(); onSelect(asset.id, e); }}>
+      {isSelected && <mesh position={[0, 0.02, 0]} rotation={[-Math.PI/2, 0, 0]}><planeGeometry args={[0.8, 0.8]} /><meshBasicMaterial color="#00ff88" transparent opacity={0.4} /></mesh>}
+      <mesh position={[0, (asset.h || 2.5)/2, 0]} castShadow>
+        <boxGeometry args={[asset.w || 0.4, asset.h || 2.5, asset.d || 0.4]} />
+        <meshStandardMaterial color={asset.color || '#fff'} />
+      </mesh>
+    </group>
+  );
+}
+
+function HangingLeaves({ asset }: { asset: AssetDef }) {
+  return (
+    <group position={[asset.x, 4, asset.z]}>
+      {Array.from({ length: 8 }).map((_, i) => (
+        <mesh key={i} position={[Math.sin(i) * 0.2, -i * 0.1, Math.cos(i) * 0.2]} rotation={[0.5, i, 0.5]}>
+          <planeGeometry args={[0.2, 0.4]} />
+          <meshStandardMaterial color={asset.color || '#2d5a27'} side={THREE.DoubleSide} transparent opacity={0.8} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+function StarLights({ asset }: { asset: AssetDef }) {
+  return (
+    <group position={[asset.x, 3.8, asset.z]}>
+      {Array.from({ length: 20 }).map((_, i) => (
+        <mesh key={i} position={[(i % 5) - 2, 0, Math.floor(i / 5) - 2]}>
+          <sphereGeometry args={[0.02, 8, 8]} />
+          <meshStandardMaterial color={asset.color || '#fff'} emissive={asset.color || '#fff'} emissiveIntensity={2} />
+        </mesh>
+      ))}
     </group>
   );
 }
@@ -427,8 +610,10 @@ function VenueScene({
     () => layoutData.customAssets.filter((a) => a.type === 'guest' || a.type === 'bridal') as TableDef[],
     [layoutData.customAssets]
   );
-  const stage = layoutData.customAssets.find((a) => a.type === 'stage') as AssetDef;
-  const carpet = layoutData.customAssets.find((a) => a.type === 'carpet') as AssetDef;
+  const others = useMemo(
+    () => layoutData.customAssets.filter((a) => a.type !== 'guest' && a.type !== 'bridal') as AssetDef[],
+    [layoutData.customAssets]
+  );
 
   // Raycaster drag hook — moves all selected assets on an XZ plane
   useDragOnFloor({
@@ -444,13 +629,27 @@ function VenueScene({
 
       <HallFloor />
 
-      {stage && (
-        <VenueStage stage={stage} isSelected={selectedIds.includes('stage')} onSelect={onSelect} />
-      )}
-
-      {carpet && (
-        <RedCarpet carpet={carpet} isSelected={selectedIds.includes('carpet')} onSelect={onSelect} />
-      )}
+      {others.map(a => {
+        const isSel = selectedIds.includes(a.id);
+        switch(a.type) {
+          case 'stage': return <VenueStage key={a.id} stage={a} isSelected={isSel} onSelect={onSelect} />;
+          case 'carpet': return <RedCarpet key={a.id} carpet={a} isSelected={isSel} onSelect={onSelect} />;
+          case 'speaker-tripod': return <SpeakerTripod key={a.id} asset={a} />;
+          case 'rect-6ft': return <RectTable6ft key={a.id} asset={a} isSelected={isSel} onSelect={onSelect} />;
+          case 'cocktail': return <CocktailTable key={a.id} asset={a} isSelected={isSel} onSelect={onSelect} />;
+          case 'bar': return <BarCounter key={a.id} asset={a} isSelected={isSel} onSelect={onSelect} />;
+          case 'bg-wall-16ft':
+          case 'bg-wall-20ft': return <BackgroundWall key={a.id} asset={a} isSelected={isSel} onSelect={onSelect} />;
+          case 'marquee-tent':
+          case 'transparent-marquee':
+          case 'arabian-canopy': return <TentModule key={a.id} asset={a} isSelected={isSel} onSelect={onSelect} />;
+          case 'led': return <LEDPanelComponent key={a.id} asset={a} isSelected={isSel} onSelect={onSelect} />;
+          case 'dec-pillar': return <DecorativePillar key={a.id} asset={a} isSelected={isSel} onSelect={onSelect} />;
+          case 'hanging-leaves': return <HangingLeaves key={a.id} asset={a} />;
+          case 'star-lights': return <StarLights key={a.id} asset={a} />;
+          default: return null;
+        }
+      })}
 
       {tables.map((t) => (
         <WeddingTable
@@ -596,6 +795,34 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
     });
   };
 
+  const addAsset = (assetType: AssetType) => {
+    if (!layoutData) return;
+    const libItem = ASSET_LIBRARY.find(a => a.type === assetType);
+    if (!libItem) return;
+    const newAsset: AssetDef = {
+      id: `asset-${Date.now()}`,
+      type: assetType,
+      x: 0,
+      z: 0,
+      ...libItem.defaultProps
+    };
+    setLayoutData({ ...layoutData, customAssets: [...layoutData.customAssets, newAsset] });
+    setSelectedIds([newAsset.id]);
+  };
+
+  const removeSelected = () => {
+    if (!layoutData || selectedIds.length === 0) return;
+    const newAssets = layoutData.customAssets.filter(a => !selectedIds.includes(a.id));
+    setLayoutData({ ...layoutData, customAssets: newAssets as (TableDef | AssetDef)[] });
+    setSelectedIds([]);
+  };
+
+  const updateAssetProp = (id: string, prop: string, value: any) => {
+    if (!layoutData) return;
+    const newAssets = layoutData.customAssets.map(a => a.id === id ? { ...a, [prop]: value } : a);
+    setLayoutData({ ...layoutData, customAssets: newAssets as (TableDef | AssetDef)[] });
+  };
+
   if (loading) return <div className="flex items-center justify-center h-[60vh]"><i className="fa-solid fa-spinner fa-spin text-3xl text-amber-500" /></div>;
 
   const selectedCount = selectedIds.length;
@@ -697,42 +924,177 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
               <li className="flex gap-2"><span className="text-emerald-400">●</span> 右键/滚轮 旋转缩放视角</li>
             </ul>
           </div>
+
+          {/* Asset Library */}
+          <div className="bg-zinc-900 border border-white/5 rounded-2xl p-5 space-y-4">
+            <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest border-b border-white/5 pb-2">Asset Library</h3>
+            <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+              {['Furniture', 'AV', 'Decor', 'Structures'].map(cat => (
+                <div key={cat} className="space-y-2">
+                  <h4 className="text-[8px] font-black text-zinc-600 uppercase tracking-widest">{cat}</h4>
+                  <div className="grid grid-cols-1 gap-1">
+                    {ASSET_LIBRARY.filter(a => a.category === cat).map(a => (
+                      <button 
+                        key={a.type} 
+                        onClick={() => addAsset(a.type)}
+                        className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-left transition-all border border-transparent hover:border-white/10 group flex items-center justify-between"
+                      >
+                        <span className="text-[9px] font-black text-zinc-400 uppercase tracking-tight group-hover:text-amber-400">{a.name}</span>
+                        <i className="fa-solid fa-plus text-[8px] text-zinc-600 group-hover:text-amber-400" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
-        {/* 3D Viewport */}
-        <div className="flex-1 relative h-[72vh] bg-[#080808] rounded-3xl border border-white/5 overflow-hidden">
-          {isDragging && (
-            <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 px-4 py-1.5 bg-emerald-500/20 text-emerald-400 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-500/30 backdrop-blur-sm">
-              拖动中 • Dragging
-            </div>
-          )}
-          {layoutData ? (
-            <Canvas shadows dpr={[1, 2]} onPointerMissed={handleDeselect}>
-              <PerspectiveCamera makeDefault position={[0, 20, 15]} fov={50} />
-              <OrbitControls
-                makeDefault
-                enableDamping
-                dampingFactor={0.05}
-                maxPolarAngle={Math.PI / 2.15}
-                minDistance={5}
-                maxDistance={50}
-                enabled={!isDragging}
-                mouseButtons={{ LEFT: isDragging ? -1 : THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.ROTATE }}
-              />
-              <Suspense fallback={null}>
-                <VenueScene
-                  layoutData={layoutData}
-                  selectedIds={selectedIds}
-                  onSelect={handleSelect}
-                  onMoveSelected={moveSelected}
-                  onDragStateChange={handleDragStateChange}
+        {/* 3D Viewport & Context Sidebar */}
+        <div className="flex-1 flex gap-4 relative">
+          <div className="flex-1 relative h-[72vh] bg-[#080808] rounded-3xl border border-white/5 overflow-hidden">
+            {isDragging && (
+              <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 px-4 py-1.5 bg-emerald-500/20 text-emerald-400 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-500/30 backdrop-blur-sm">
+                拖动中 • Dragging
+              </div>
+            )}
+            {layoutData ? (
+              <Canvas shadows dpr={[1, 2]} onPointerMissed={handleDeselect}>
+                <PerspectiveCamera makeDefault position={[0, 20, 15]} fov={50} />
+                <OrbitControls
+                  makeDefault
+                  enableDamping
+                  dampingFactor={0.05}
+                  maxPolarAngle={Math.PI / 2.15}
+                  minDistance={5}
+                  maxDistance={50}
+                  enabled={!isDragging}
+                  mouseButtons={{ LEFT: isDragging ? -1 : THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.ROTATE } as any}
                 />
-              </Suspense>
-            </Canvas>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-full text-zinc-500 uppercase tracking-widest text-[10px]">
-              <i className="fa-solid fa-triangle-exclamation text-amber-500 mb-2 text-2xl" />
-              Failed to load spatial data.
+                <Suspense fallback={null}>
+                  <VenueScene
+                    layoutData={layoutData}
+                    selectedIds={selectedIds}
+                    onSelect={handleSelect}
+                    onMoveSelected={moveSelected}
+                    onDragStateChange={handleDragStateChange}
+                  />
+                </Suspense>
+              </Canvas>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full text-zinc-500 uppercase tracking-widest text-[10px]">
+                <i className="fa-solid fa-triangle-exclamation text-amber-500 mb-2 text-2xl" />
+                Failed to load spatial data.
+              </div>
+            )}
+          </div>
+
+          {/* Selected Asset Context Menu */}
+          {selectedIds.length > 0 && (
+            <div className="w-64 bg-zinc-900 border border-white/5 rounded-3xl p-6 space-y-6 flex-shrink-0 animate-in slide-in-from-right duration-300">
+              <div className="flex justify-between items-center">
+                <h3 className="text-[10px] font-black text-amber-500 uppercase tracking-widest">Properties</h3>
+                <button onClick={removeSelected} className="w-6 h-6 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center">
+                  <i className="fa-solid fa-trash-can text-[10px]" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {/* Find the first selected asset to show properties */}
+                {(() => {
+                  const item = layoutData?.customAssets.find(a => a.id === selectedIds[0]);
+                  if (!item) return null;
+                  
+                  const isTable = item.type === 'guest' || item.type === 'bridal';
+                  const asset = item as AssetDef; // Cast for property access
+
+                  return (
+                    <>
+                      <div className="space-y-1">
+                        <label className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">ID / Type</label>
+                        <p className="text-[10px] font-black text-white">{asset.id} <span className="text-zinc-600 ml-2">({asset.type})</span></p>
+                      </div>
+
+                      {/* Generic dimension controls for assets that support it */}
+                      {(!isTable && ['led', 'rect-6ft', 'bg-wall-16ft', 'bg-wall-20ft', 'dec-pillar', 'carpet'].includes(asset.type)) && (
+                        <>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1">
+                              <label className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Width (m)</label>
+                              <input 
+                                type="number" step="0.1" 
+                                value={asset.w || 0} 
+                                onChange={(e) => updateAssetProp(asset.id, 'w', parseFloat(e.target.value))}
+                                className="w-full bg-black border border-white/10 rounded-lg px-2 py-1 text-[10px] text-white"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Depth (m)</label>
+                              <input 
+                                type="number" step="0.1" 
+                                value={asset.d || 0} 
+                                onChange={(e) => updateAssetProp(asset.id, 'd', parseFloat(e.target.value))}
+                                className="w-full bg-black border border-white/10 rounded-lg px-2 py-1 text-[10px] text-white"
+                              />
+                            </div>
+                          </div>
+                          {asset.type !== 'carpet' && (
+                            <div className="space-y-1">
+                              <label className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Height (m)</label>
+                              <input 
+                                type="number" step="0.1" 
+                                value={asset.h || 0} 
+                                onChange={(e) => updateAssetProp(asset.id, 'h', parseFloat(e.target.value))}
+                                className="w-full bg-black border border-white/10 rounded-lg px-2 py-1 text-[10px] text-white"
+                              />
+                            </div>
+                          )}
+                        </>
+                      )}
+
+                      {/* Modular segments for tents */}
+                      {(!isTable && ['marquee-tent', 'transparent-marquee', 'arabian-canopy'].includes(asset.type)) && (
+                        <div className="space-y-2">
+                          <label className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Modules (Segments)</label>
+                          <div className="flex items-center gap-4">
+                            <button onClick={() => updateAssetProp(asset.id, 'segments', Math.max(1, (asset.segments || 1) - 1))} className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-white/10 transition-all">-</button>
+                            <span className="text-xl font-black text-white">{asset.segments || 1}</span>
+                            <button onClick={() => updateAssetProp(asset.id, 'segments', (asset.segments || 1) + 1)} className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-white/10 transition-all">+</button>
+                          </div>
+                          <p className="text-[8px] text-zinc-600 uppercase tracking-widest mt-1">Total: {((asset.segments || 1) * (asset.d || 5)).toFixed(1)}m x {asset.w || 10}m</p>
+                        </div>
+                      )}
+
+                      {/* Rotation */}
+                      {!isTable && (
+                        <div className="space-y-1">
+                          <label className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Rotation (Rad)</label>
+                          <input 
+                            type="range" min="0" max={Math.PI * 2} step="0.1"
+                            value={asset.r || 0} 
+                            onChange={(e) => updateAssetProp(asset.id, 'r', parseFloat(e.target.value))}
+                            className="w-full accent-amber-500"
+                          />
+                        </div>
+                      )}
+
+                      {/* Color Picker for specific asset */}
+                      {(!isTable && ['rect-6ft', 'cocktail', 'bar', 'bg-wall-16ft', 'bg-wall-20ft', 'dec-pillar', 'carpet', 'star-lights'].includes(asset.type)) && (
+                        <div className="space-y-2">
+                          <label className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Asset Color</label>
+                          <div className="flex flex-wrap gap-1.5">
+                            {CLOTH_OPTIONS.map(c => (
+                              <button key={c.hex} onClick={() => updateAssetProp(asset.id, 'color', c.hex)} className={`w-5 h-5 rounded-md border ${asset.color === c.hex ? 'border-white' : 'border-transparent'}`} style={{ backgroundColor: c.hex }} />
+                            ))}
+                            <button onClick={() => updateAssetProp(asset.id, 'color', '#ffffff')} className={`w-5 h-5 rounded-md border bg-white ${asset.color === '#ffffff' ? 'border-amber-500' : 'border-transparent'}`} />
+                            <button onClick={() => updateAssetProp(asset.id, 'color', '#333333')} className={`w-5 h-5 rounded-md border bg-zinc-800 ${asset.color === '#333333' ? 'border-amber-500' : 'border-transparent'}`} />
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
             </div>
           )}
         </div>
