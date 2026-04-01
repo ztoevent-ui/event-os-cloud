@@ -170,8 +170,12 @@ export default async function ProjectDashboard({ params }: { params: Promise<{ i
                     </div>
                 </Link>
 
-                {/* Quick Links 2x2 */}
-                <div className="grid grid-cols-2 gap-4">
+                {/* Quick Links */}
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <Link href={`/projects/${id}/registration`} className="bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl flex flex-col items-center justify-center gap-3 p-4 transition-colors min-h-[80px]">
+                        <i className="fa-solid fa-file-signature text-zinc-500 text-lg"></i>
+                        <span className="text-[9px] font-black tracking-widest uppercase text-zinc-600">Registration</span>
+                    </Link>
                     <Link href={`/projects/${id}/guests`} className="bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl flex flex-col items-center justify-center gap-3 p-4 transition-colors min-h-[80px]">
                         <i className="fa-solid fa-users text-zinc-500 text-lg"></i>
                         <span className="text-[9px] font-black tracking-widest uppercase text-zinc-600">Guests</span>

@@ -66,6 +66,7 @@ export default async function ProjectLayout({
                             <NavLink href={`/projects/${projectId}/budget`} theme={theme}>Budget</NavLink>
                             <NavLink href={`/projects/${projectId}/vendors`} theme={theme}>Vendors</NavLink>
                             <NavLink href={`/projects/${projectId}/venue-layout`} theme={theme}>Venue Layout</NavLink>
+                            <NavLink href={`/projects/${projectId}/registration`} theme={theme}>Registration</NavLink>
                         </div>
                         <div className="flex items-center gap-4">
                             <Link href="/projects" className="text-xs font-bold text-zinc-500 hover:text-white transition-colors flex items-center gap-2">
