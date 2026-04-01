@@ -13,7 +13,7 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default function RegistrationStudio() {
     const params = useParams();
-    const projectId = params.id as string;
+    const projectId = params?.id as string;
     
     const [activeTab, setActiveTab] = useState<'settings' | 'submissions'>('settings');
     const [isLoading, setIsLoading] = useState(true);
@@ -90,7 +90,7 @@ export default function RegistrationStudio() {
         }
     };
 
-    const publicRegistrationUrl = typeof window !== 'undefined' ? `${window.location.protocol}//www.ztoevent.com/register/${projectId}` : '';
+    const publicRegistrationUrl = projectId ? `https://www.ztoevent.com/register/${projectId}` : '';
 
     return (
         <div className="space-y-6">

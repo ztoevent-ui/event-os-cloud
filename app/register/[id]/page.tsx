@@ -14,7 +14,7 @@ const CATEGORIES = ['男双 A (MD A)', '男双 B (MD B)', '女双 A (WD A)', '�
 
 export default function RegistrationPage() {
     const params = useParams();
-    const projectId = params.id as string;
+    const projectId = params?.id as string;
 
     const [settings, setSettings] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
