@@ -1,15 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import Link from 'next/link';
 import { QRCodeSVG } from 'qrcode.react';
 import Swal from 'sweetalert2';
 import { useParams } from 'next/navigation';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+import { supabase } from '@/lib/supabaseClient';
 
 export default function RegistrationStudio() {
     const params = useParams();

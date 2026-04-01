@@ -6,9 +6,7 @@ import { useParams } from 'next/navigation';
 import Swal from 'sweetalert2';
 import { uploadICFile } from '@/app/actions/tournament-actions';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+import { supabase } from '@/lib/supabaseClient';
 
 const CATEGORIES = ['男双 A (MD A)', '男双 B (MD B)', '女双 A (WD A)', '女双 B (WD B)', '宿将组 (Veterans)'];
 
