@@ -22,11 +22,11 @@ ALTER TABLE public.tournament_settings ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Public can view settings" ON public.tournament_settings
     FOR SELECT USING (true);
 
-CREATE POLICY "Authenticated users can insert settings" ON public.tournament_settings
-    FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Public can insert settings" ON public.tournament_settings
+    FOR INSERT WITH CHECK (true);
 
-CREATE POLICY "Authenticated users can update settings" ON public.tournament_settings
-    FOR UPDATE TO authenticated USING (true);
+CREATE POLICY "Public can update settings" ON public.tournament_settings
+    FOR UPDATE USING (true);
 
 
 -- 2. Tournament Registrations Table
@@ -56,13 +56,13 @@ ALTER TABLE public.tournament_registrations ENABLE ROW LEVEL SECURITY;
 
 -- Policies for tournament_registrations
 CREATE POLICY "Public can insert registrations" ON public.tournament_registrations
-    FOR INSERT TO public WITH CHECK (true);
+    FOR INSERT WITH CHECK (true);
 
-CREATE POLICY "Authenticated users can view registrations" ON public.tournament_registrations
-    FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Public can view registrations" ON public.tournament_registrations
+    FOR SELECT USING (true);
 
-CREATE POLICY "Authenticated users can update registrations" ON public.tournament_registrations
-    FOR UPDATE TO authenticated USING (true);
+CREATE POLICY "Public can update registrations" ON public.tournament_registrations
+    FOR UPDATE USING (true);
 
-CREATE POLICY "Authenticated users can delete registrations" ON public.tournament_registrations
-    FOR DELETE TO authenticated USING (true);
+CREATE POLICY "Public can delete registrations" ON public.tournament_registrations
+    FOR DELETE USING (true);

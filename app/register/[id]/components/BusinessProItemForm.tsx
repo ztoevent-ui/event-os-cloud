@@ -1,0 +1,163 @@
+'use client';
+
+import { useState } from 'react';
+import Swal from 'sweetalert2';
+import { uploadICFile } from '@/app/actions/tournament-actions';
+import { supabase } from '@/lib/supabaseClient';
+import { DynamicPlayerFields } from './DynamicPlayerFields';
+
+type FormProps = {
+    projectId: string;
+    config: any;
+    onSuccess?: () => void;
+};
+
+export function BusinessProItemForm({ projectId, config, onSuccess }: FormProps) {
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Form State
+    const [organizationName, setOrganizationName] = useState(''); // Used as Team Name
+    const [captain, setCaptain] = useState<any>({ name: '', ic: '', file: null });
+    const [partner, setPartner] = useState<any>({ name: '', ic: '', file: null });
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        
+        // Validation
+        if (!organizationName || !captain.name || !captain.ic || !captain.file || !partner.name || !partner.ic || !partner.file) {
+            Swal.fire('Incomplete', 'Please fill in all team and player details including IC uploads.', 'warning');
+            return;
+        }
+
+        if (config.fields_config?.requires_gender) {
+            if (!captain.gender || !partner.gender) {
+                return Swal.fire('Incomplete', 'Please select a gender for both players.', 'warning');
+            }
+        }
+
+        setIsSubmitting(true);
+        Swal.fire({ title: 'Uploading & Submitting...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+        try {
+            // Upload Captain IC
+            const capData = new FormData();
+            capData.append('file', captain.file!);
+            capData.append('project_id', projectId);
+            const capUpload = await uploadICFile(capData);
+            if (!capUpload.success) throw new Error('Captain IC upload failed');
+
+            // Upload Partner IC
+            const partnerData = new FormData();
+            partnerData.append('file', partner.file!);
+            partnerData.append('project_id', projectId);
+            const partnerUpload = await uploadICFile(partnerData);
+            if (!partnerUpload.success) throw new Error('Partner IC upload failed');
+
+            // Insert Database Record
+            const { error } = await supabase.from('tournament_registrations').insert({
+                project_id: projectId,
+                organization_name: organizationName, // Usually 'Team Name' in BPO
+                captain_name: captain.name,
+                captain_ic: captain.ic,
+                captain_role: 'Captain',
+                captain_ic_url: capUpload.url,
+                captain_gender: captain.gender || null, // Shared across templates
+                players: [
+                    {
+                        name: partner.name,
+                        ic: partner.ic,
+                        ic_url: partnerUpload.url,
+                        category: 'Partner',
+                        player_id: 'P1',
+                        ...partner
+                    }
+                ]
+            });
+
+            if (error) throw error;
+
+            Swal.fire({ icon: 'success', title: 'Registration Successful!', text: 'Your team registration has been recorded.', background: '#18181b', color: '#fff' });
+            if (onSuccess) onSuccess();
+            
+        } catch (error: any) {
+            Swal.fire({ icon: 'error', title: 'Submission Failed', text: error.message, background: '#18181b', color: '#fff' });
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Team Settings */}
+            <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-3xl shadow-xl">
+                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-zinc-800">
+                    <div className="w-8 h-8 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center font-black">1</div>
+                    <h2 className="text-xl font-black text-white uppercase tracking-widest">Team Information</h2>
+                </div>
+                
+                <div>
+                    <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-2">Team Name *</label>
+                    <input type="text" required value={organizationName} onChange={e => setOrganizationName(e.target.value)} className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-white focus:border-amber-500 outline-none" placeholder="Enter Team Name" />
+                </div>
+            </div>
+
+            {/* Captain Player Form */}
+            <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-3xl shadow-xl">
+                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-zinc-800">
+                    <div className="w-8 h-8 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center font-black"><i className="fa-solid fa-crown text-sm" /></div>
+                    <h2 className="text-xl font-black text-white uppercase tracking-widest">Captain</h2>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-2">Full Name *</label>
+                        <input type="text" required value={captain.name} onChange={e => setCaptain({...captain, name: e.target.value})} className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-white focus:border-amber-500 outline-none" />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-2">IC Number *</label>
+                        <input type="text" required value={captain.ic} onChange={e => setCaptain({...captain, ic: e.target.value})} className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-white focus:border-amber-500 outline-none" placeholder="XXXXXX-XX-XXXX" />
+                    </div>
+                </div>
+                
+                <div className="mt-5">
+                    <label className="block text-[10px] text-zinc-500 mb-1 uppercase tracking-wider font-bold">Upload IC *</label>
+                    <input type="file" required accept="image/*" onChange={e => setCaptain({...captain, file: e.target.files?.[0] || null})} className="w-full text-xs text-zinc-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-zinc-800 file:text-zinc-300" />
+                </div>
+
+                <DynamicPlayerFields player={captain} onChange={(f, v) => setCaptain({ ...captain, [f]: v })} config={config.fields_config} isCaptain={true} />
+            </div>
+
+            {/* Partner Player Form */}
+            <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-3xl shadow-xl">
+                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-zinc-800">
+                    <div className="w-8 h-8 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center font-black"><i className="fa-solid fa-user text-sm" /></div>
+                    <h2 className="text-xl font-black text-white uppercase tracking-widest">Partner</h2>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-2">Full Name *</label>
+                        <input type="text" required value={partner.name} onChange={e => setPartner({...partner, name: e.target.value})} className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-white focus:border-amber-500 outline-none" />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-2">IC Number *</label>
+                        <input type="text" required value={partner.ic} onChange={e => setPartner({...partner, ic: e.target.value})} className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-white focus:border-amber-500 outline-none" placeholder="XXXXXX-XX-XXXX" />
+                    </div>
+                </div>
+
+                <div className="mt-5">
+                    <label className="block text-[10px] text-zinc-500 mb-1 uppercase tracking-wider font-bold">Upload IC *</label>
+                    <input type="file" required accept="image/*" onChange={e => setPartner({...partner, file: e.target.files?.[0] || null})} className="w-full text-xs text-zinc-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-zinc-800 file:text-zinc-300" />
+                </div>
+
+                <DynamicPlayerFields player={partner} onChange={(f, v) => setPartner({ ...partner, [f]: v })} config={config.fields_config} />
+            </div>
+
+            <div className="pt-6 border-t border-zinc-800 pb-12">
+                <button disabled={isSubmitting} type="submit" className="w-full bg-amber-500 hover:bg-amber-400 disabled:bg-zinc-800 disabled:text-zinc-600 disabled:shadow-none text-black font-black uppercase tracking-widest px-8 py-5 rounded-2xl transition-all shadow-[0_0_30px_rgba(245,158,11,0.3)] hover:shadow-[0_0_40px_rgba(245,158,11,0.5)] text-lg">
+                    {isSubmitting ? 'Uploading & Processing...' : 'Submit Team Registration'}
+                </button>
+            </div>
+        </form>
+    );
+}

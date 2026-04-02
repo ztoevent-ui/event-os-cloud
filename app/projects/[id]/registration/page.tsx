@@ -18,7 +18,16 @@ export default function RegistrationStudio() {
         logo_url: '',
         title_sponsor: '',
         sponsors: [],
-        co_organizers: []
+        co_organizers: [],
+        template_type: 'guild_team_item',
+        fields_config: {
+            requires_gender: true,
+            show_dupr: false,
+            show_medical: false,
+            show_city_state: false,
+            show_emergency_contact: false,
+            show_work_school: false
+        }
     });
     const [submissions, setSubmissions] = useState<any[]>([]);
 
@@ -38,7 +47,19 @@ export default function RegistrationStudio() {
                 .single();
             
             if (data) {
-                setSettings(data);
+                const loadedSettings = {
+                    ...data,
+                    template_type: data.template_type || 'guild_team_item',
+                    fields_config: data.fields_config || {
+                        requires_gender: true,
+                        show_dupr: false,
+                        show_medical: false,
+                        show_city_state: false,
+                        show_emergency_contact: false,
+                        show_work_school: false
+                    }
+                };
+                setSettings(loadedSettings);
             }
         } catch (error) {
             console.error('Error loading settings', error);
@@ -68,6 +89,8 @@ export default function RegistrationStudio() {
                     title_sponsor: settings.title_sponsor,
                     sponsors: settings.sponsors,
                     co_organizers: settings.co_organizers,
+                    template_type: settings.template_type,
+                    fields_config: settings.fields_config,
                     updated_at: new Date().toISOString()
                 }, { onConflict: 'project_id' });
 
@@ -123,6 +146,49 @@ export default function RegistrationStudio() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Form Settings */}
                     <div className="lg:col-span-2 space-y-6 bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-3xl shadow-xl">
+                        <div>
+                            <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-2">Registration Template</label>
+                            <select
+                                className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 appearance-none font-bold"
+                                value={settings.template_type}
+                                onChange={e => setSettings({...settings, template_type: e.target.value})}
+                            >
+                                <option value="guild_team_item">公会团体项目战 (Guild Team Item Battle)</option>
+                                <option value="guild_team_semi_free">公会团体半自由战 (Guild Team Semi-free Battle)</option>
+                                <option value="business_pro_item">商业职业项目战 (Business Pro Item Battle)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-2">Data Collection Fields</label>
+                            <div className="grid grid-cols-2 gap-4 bg-black/50 p-5 rounded-2xl border border-zinc-800">
+                                {[ 
+                                    { key: 'requires_gender', label: 'Gender Selection' },
+                                    { key: 'show_dupr', label: 'DUPR ID' },
+                                    { key: 'show_medical', label: 'Medical History' },
+                                    { key: 'show_city_state', label: 'City & State' },
+                                    { key: 'show_emergency_contact', label: 'Emergency Contact' },
+                                    { key: 'show_work_school', label: 'Work / School' },
+                                ].map(field => (
+                                    <label key={field.key} className="flex items-center gap-3 cursor-pointer group">
+                                        <div 
+                                            onClick={() => setSettings({
+                                                ...settings, 
+                                                fields_config: { 
+                                                    ...settings.fields_config, 
+                                                    [field.key]: !settings.fields_config[field.key] 
+                                                }
+                                            })}
+                                            className={`w-5 h-5 rounded flex items-center justify-center transition-all ${settings.fields_config[field.key] ? 'bg-amber-500 border-amber-500' : 'bg-zinc-900 border-zinc-700'} border`}
+                                        >
+                                            {settings.fields_config[field.key] && <i className="fa-solid fa-check text-black text-[10px]" />}
+                                        </div>
+                                        <span className="text-xs text-zinc-400 group-hover:text-amber-500 transition-colors uppercase tracking-wider font-bold">{field.label}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+
                         <div>
                             <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-2">Tournament Slogan</label>
                             <input
