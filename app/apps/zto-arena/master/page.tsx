@@ -94,13 +94,23 @@ function MasterConsoleContent() {
   const searchParams = useSearchParams();
   const eventId = searchParams.get('eventId') || 'BINTULU_OPEN_2026';
   
-  const [activeTab, setActiveTab] = useState<'SCORE' | 'ADS' | 'BRACKET' | 'GROUPS' | 'MUSIC'>('BRACKET');
+  const [activeTab, setActiveTab] = useState<'SCORE' | 'ADS' | 'BRACKET' | 'GROUPS' | 'MUSIC' | 'SCHEDULING' | 'JUDGING'>('BRACKET');
   const [screenMode, setScreenMode] = useState<ScreenMode>('SCORE');
   const [teamInputCount, setTeamInputCount] = useState(8);
 
   const [matchState, setMatchState] = useState<MatchState>({
     eventId, sportType: 'PICKLEBALL', teamA: { name: 'Player A', score: 0 }, teamB: { name: 'Player B', score: 0 }, currentSet: 1, isPaused: false, announcement: '',
   });
+
+  // Scheduling & Judging State
+  const [dispatchQueue, setDispatchQueue] = useState<{ id: string, name: string, status: string, scoreA: number, scoreB: number }[]>([
+      { id: 'M1', name: 'Court 1 - Finals (Bo5)', status: 'suggested', scoreA: 0, scoreB: 0 },
+      { id: 'M2', name: 'Court 2 - Semi-Finals', status: 'pending', scoreA: 0, scoreB: 0 },
+  ]);
+  const [judgingApprovals, setJudgingApprovals] = useState<{ id: string, name: string, status: string }[]>([
+      { id: 'P1', name: 'ZTO Alpha Team', status: 'pending' },
+      { id: 'P2', name: 'ZTO Beta Team', status: 'pending' },
+  ]);
 
   const [bracketState, setBracketState] = useState<BracketData>(() => generateFlexibleBracket(8));
   const [bracketVersion, setBracketVersion] = useState(0); // For forcing component reset
@@ -171,6 +181,42 @@ function MasterConsoleContent() {
       broadcastBracketUpdate(newState);
   };
 
+  // Scheduling & Judging Logic
+  const handleScoreUpdate = (id: string, team: 'A' | 'B', inc: number) => {
+      setDispatchQueue(prev => prev.map(m => {
+          if (m.id !== id) return m;
+          const scoreA = team === 'A' ? m.scoreA + inc : m.scoreA;
+          const scoreB = team === 'B' ? m.scoreB + inc : m.scoreB;
+          
+          // Best of 5 Early Stop Logic (3 wins)
+          let newStatus = m.status;
+          if (scoreA >= 3 || scoreB >= 3) {
+              newStatus = `early_stop_winner_${scoreA >= 3 ? 'A' : 'B'}`;
+          }
+          
+          return { ...m, scoreA, scoreB, status: newStatus };
+      }));
+  };
+
+  const drawRandomLots = () => {
+      const approved = judgingApprovals.filter(j => j.status === 'approved');
+      if (approved.length < 2) return alert('Need at least 2 approved teams/players to draw lots.');
+      setTeamInputCount(approved.length);
+      const newBracket = generateFlexibleBracket(approved.length);
+      
+      // Assign randomly
+      const shuffled = [...approved].sort(() => 0.5 - Math.random());
+      let pIdx = 0;
+      Object.values(newBracket.matches).forEach(m => {
+          if (m.round === 1) {
+              if (m.team1 !== 'BYE' && pIdx < shuffled.length) m.team1 = shuffled[pIdx++].name;
+              if (m.team2 !== 'BYE' && pIdx < shuffled.length) m.team2 = shuffled[pIdx++].name;
+          }
+      });
+      broadcastBracketUpdate(newBracket);
+      setActiveTab('BRACKET');
+  };
+
   const totalRounds = Math.ceil(Math.log2(bracketState.teamCount));
 
   return (
@@ -202,6 +248,8 @@ function MasterConsoleContent() {
               { id: 'SCORE', label: 'Score', icon: 'fa-stopwatch' },
               { id: 'BRACKET', label: 'Pro Bracket', icon: 'fa-sitemap' },
               { id: 'GROUPS', label: 'Group Stage', icon: 'fa-users' },
+              { id: 'SCHEDULING', label: '调度 (Dispatch)', icon: 'fa-calendar-check' },
+              { id: 'JUDGING', label: '评审室 (Judging)', icon: 'fa-gavel' },
               { id: 'ADS', label: 'Media', icon: 'fa-film' },
           ].map(tab => (
               <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`flex items-center gap-2 px-4 pb-4 border-b-2 transition-all ${activeTab === tab.id ? 'border-amber-500 text-amber-500' : 'border-transparent text-zinc-500'}`}>
@@ -318,6 +366,94 @@ function MasterConsoleContent() {
                                     ))}
                                 </tbody>
                             </table>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        )}
+
+        {activeTab === 'SCHEDULING' && (
+            <div className="p-8 flex-1 overflow-y-auto bg-zinc-950">
+                <h2 className="text-2xl font-black uppercase tracking-widest text-blue-500 italic mb-6">Semi-auto Dispatch (建议分派)</h2>
+                
+                <div className="space-y-4">
+                    {dispatchQueue.map(m => (
+                        <div key={m.id} className="bg-zinc-900 border border-white/10 rounded-2xl p-6 flex items-center justify-between">
+                            <div>
+                                <h3 className="text-lg font-bold">{m.name}</h3>
+                                <p className="text-xs text-zinc-500 mt-1 uppercase">Status: 
+                                    <span className={`ml-2 font-black ${m.status.includes('early_stop') ? 'text-red-500' : 'text-amber-500'}`}>
+                                        {m.status.replace(/_/g, ' ').toUpperCase()}
+                                    </span>
+                                </p>
+                            </div>
+                            <div className="flex items-center gap-6">
+                                <div className="text-center">
+                                    <span className="block text-[10px] font-black text-zinc-500 mb-1">TEAM A</span>
+                                    <div className="flex items-center gap-3">
+                                        <button onClick={() => handleScoreUpdate(m.id, 'A', -1)} className="w-8 h-8 rounded bg-zinc-800 text-white">-</button>
+                                        <span className="text-2xl font-black w-8">{m.scoreA}</span>
+                                        <button onClick={() => handleScoreUpdate(m.id, 'A', 1)} className="w-8 h-8 rounded bg-zinc-800 text-white">+</button>
+                                    </div>
+                                </div>
+                                <div className="text-center font-black text-xl px-4 text-zinc-600">VS</div>
+                                <div className="text-center">
+                                    <span className="block text-[10px] font-black text-zinc-500 mb-1">TEAM B</span>
+                                    <div className="flex items-center gap-3">
+                                        <button onClick={() => handleScoreUpdate(m.id, 'B', -1)} className="w-8 h-8 rounded bg-zinc-800 text-white">-</button>
+                                        <span className="text-2xl font-black w-8">{m.scoreB}</span>
+                                        <button onClick={() => handleScoreUpdate(m.id, 'B', 1)} className="w-8 h-8 rounded bg-zinc-800 text-white">+</button>
+                                    </div>
+                                </div>
+                                <div className="pl-6 border-l border-white/10">
+                                    <button 
+                                        onClick={() => setDispatchQueue(prev => prev.map(x => x.id === m.id ? { ...x, status: 'dispatched_to_court' } : x))}
+                                        disabled={m.status.includes('early_stop')}
+                                        className="bg-blue-600 disabled:opacity-50 hover:bg-blue-500 text-white px-6 py-3 rounded-xl text-[10px] font-black uppercase"
+                                    >
+                                        {m.status === 'suggested' ? 'Confirm Dispatch' : 'Active'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        )}
+
+        {activeTab === 'JUDGING' && (
+            <div className="p-8 flex-1 overflow-y-auto bg-zinc-950">
+                <div className="flex justify-between items-end mb-8">
+                    <div>
+                        <h2 className="text-2xl font-black uppercase tracking-widest text-purple-500 italic">Judging Room (评审室)</h2>
+                        <p className="text-zinc-500 text-xs mt-1 uppercase tracking-widest">Auto Approval & One-Click Lot Drawing</p>
+                    </div>
+                    <div className="flex gap-4">
+                        <button 
+                            onClick={() => setJudgingApprovals(prev => prev.map(p => ({...p, status: 'approved'})))} 
+                            className="bg-zinc-800 hover:bg-zinc-700 text-white px-6 py-2 rounded-xl text-[10px] font-black uppercase"
+                        >
+                            Approve All
+                        </button>
+                        <button 
+                            onClick={drawRandomLots} 
+                            className="bg-purple-600 hover:bg-purple-500 text-white px-6 py-2 rounded-xl text-[10px] font-black uppercase shadow-lg shadow-purple-500/20"
+                        >
+                            <i className="fa-solid fa-dice mr-2"></i> Random Draw Bracket
+                        </button>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {judgingApprovals.map(p => (
+                        <div key={p.id} className="bg-zinc-900 border border-white/10 rounded-2xl p-4 flex items-center justify-between">
+                            <span className="font-bold">{p.name}</span>
+                            <button 
+                                onClick={() => setJudgingApprovals(prev => prev.map(x => x.id === p.id ? { ...x, status: x.status === 'approved' ? 'pending' : 'approved' } : x))}
+                                className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase ${p.status === 'approved' ? 'bg-emerald-500/20 text-emerald-500' : 'bg-amber-500/20 text-amber-500'}`}
+                            >
+                                {p.status}
+                            </button>
                         </div>
                     ))}
                 </div>
