@@ -67,14 +67,7 @@ export default function Home() {
                         </Link>
 
 
-                        <Link href="/apps/zto-arena" className="group bg-zinc-900 p-6 rounded-2xl shadow-sm border border-zinc-800 hover:shadow-xl hover:border-amber-500 transition-all hover:-translate-y-1 relative overflow-hidden">
-                            <div className="absolute top-0 right-0 p-4 opacity-10"><i className="fa-solid fa-gamepad text-6xl text-amber-500"></i></div>
-                            <div className="w-12 h-12 bg-amber-500/20 text-amber-500 rounded-xl flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
-                                <i className="fa-solid fa-tablet-screen-button"></i>
-                            </div>
-                            <h3 className="font-bold text-lg text-white mb-2">ZTO Arena Hub</h3>
-                            <p className="text-zinc-400 text-sm">Tournament orchestration & master controls.</p>
-                        </Link>
+
 
                         <Link href="/apps/lucky-draw" className="group bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-purple-100 transition-all hover:-translate-y-1">
                             <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
@@ -116,18 +109,7 @@ export default function Home() {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <Link href="/apps/ticketing/bpo-2026" className="flex items-center gap-6 bg-zinc-950 p-8 rounded-[2rem] border border-amber-500/30 hover:shadow-[0_0_50px_rgba(245,158,11,0.15)] transition-all group overflow-hidden relative">
-                            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-20 transition-opacity"><i className="fa-solid fa-trophy text-8xl text-amber-500"></i></div>
-                            <div className="w-16 h-16 bg-amber-500 rounded-2xl flex items-center justify-center text-black text-3xl shadow-xl">
-                                <i className="fa-solid fa-id-card"></i>
-                            </div>
-                            <div>
-                                <h3 className="font-black text-2xl text-white tracking-widest uppercase">BPO <span className="text-amber-500 italic">2026</span></h3>
-                                <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest mt-1">Official Registration Portal</p>
-                            </div>
-                        </Link>
-
+                    <div className="grid grid-cols-1 gap-6">
                         <Link href="/public/consulting" className="flex items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
                             <div className="w-10 h-10 bg-teal-50 text-teal-600 rounded-full flex items-center justify-center text-xl">
                                 <i className="fa-solid fa-clipboard-question"></i>
@@ -154,7 +136,7 @@ export default function Home() {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <Link href="/apps/lucky-draw" className="flex items-center gap-4 bg-gray-900 p-4 rounded-xl hover:bg-gray-800 border border-gray-800 shadow-lg text-white group transition">
                             <div className="w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center text-yellow-500 group-hover:scale-110 transition text-xl">
                                 <i className="fa-solid fa-gift"></i>
@@ -162,16 +144,6 @@ export default function Home() {
                             <div>
                                 <div className="font-bold text-sm">Lucky Draw Display</div>
                                 <div className="text-xs text-gray-400">Full-screen confetti layer.</div>
-                            </div>
-                        </Link>
-
-                        <Link href="/apps/zto-arena/screen" className="flex items-center gap-4 bg-black p-4 rounded-xl hover:bg-zinc-900 border border-cyan-900/50 shadow-[0_0_15px_rgba(6,182,212,0.1)] text-white group transition">
-                            <div className="w-12 h-12 bg-cyan-500/20 rounded-lg flex items-center justify-center text-cyan-400 group-hover:scale-110 transition text-xl">
-                                <i className="fa-solid fa-display"></i>
-                            </div>
-                            <div>
-                                <div className="font-bold text-sm text-cyan-50">ZTO Arena Screen</div>
-                                <div className="text-xs text-cyan-500/70">Live LAN Sync Billboard.</div>
                             </div>
                         </Link>
                     </div>
