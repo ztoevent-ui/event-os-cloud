@@ -6,6 +6,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import Swal from 'sweetalert2';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function RegistrationStudio() {
     const params = useParams();
@@ -21,13 +22,25 @@ export default function RegistrationStudio() {
         co_organizers: [],
         template_type: 'guild_team_item',
         fields_config: {
-            requires_gender: true,
+            show_team_name: true,
+            show_team_dupr_average: false,
+            show_ic_passport: true,
+            show_phone: true,
+            show_email: true,
             show_dupr: false,
             show_medical: false,
             show_city_state: false,
             show_emergency_contact: false,
             show_work_school: false
-        }
+        },
+        medical_options: [
+            'Heart Disease / Penyakit Jantung',
+            'Asthma / Asma',
+            'Diabetes / Kencing Manis',
+            'High Blood Pressure / Darah Tinggi',
+            'Epilepsy / Sawan',
+            'Joint/Bone Injury / Kecederaan Sendi'
+        ]
     });
     const [submissions, setSubmissions] = useState<any[]>([]);
 
@@ -51,13 +64,25 @@ export default function RegistrationStudio() {
                     ...data,
                     template_type: data.template_type || 'guild_team_item',
                     fields_config: data.fields_config || {
-                        requires_gender: true,
+                        show_team_name: true,
+                        show_team_dupr_average: false,
+                        show_ic_passport: true,
+                        show_phone: true,
+                        show_email: true,
                         show_dupr: false,
                         show_medical: false,
                         show_city_state: false,
                         show_emergency_contact: false,
                         show_work_school: false
-                    }
+                    },
+                    medical_options: data.medical_options || [
+                        'Heart Disease / Penyakit Jantung',
+                        'Asthma / Asma',
+                        'Diabetes / Kencing Manis',
+                        'High Blood Pressure / Darah Tinggi',
+                        'Epilepsy / Sawan',
+                        'Joint/Bone Injury / Kecederaan Sendi'
+                    ]
                 };
                 setSettings(loadedSettings);
             }
@@ -91,6 +116,7 @@ export default function RegistrationStudio() {
                     co_organizers: settings.co_organizers,
                     template_type: settings.template_type,
                     fields_config: settings.fields_config,
+                    medical_options: settings.medical_options,
                     updated_at: new Date().toISOString()
                 }, { onConflict: 'project_id' });
 
@@ -160,15 +186,22 @@ export default function RegistrationStudio() {
                         </div>
 
                         <div>
-                            <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-2">Data Collection Fields</label>
+                            <div className="flex items-center justify-between mb-2">
+                                <label className="text-xs font-black tracking-widest uppercase text-zinc-400">Data Collection Fields</label>
+                                <span className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest">Toggle ON / OFF</span>
+                            </div>
                             <div className="grid grid-cols-2 gap-4 bg-black/50 p-5 rounded-2xl border border-zinc-800">
                                 {[ 
-                                    { key: 'requires_gender', label: 'Gender Selection' },
+                                    { key: 'show_team_name', label: 'Team Name' },
+                                    { key: 'show_team_dupr_average', label: 'Team Average DUPR' },
+                                    { key: 'show_ic_passport', label: 'IC / Passport' },
+                                    { key: 'show_phone', label: 'Phone Number' },
+                                    { key: 'show_email', label: 'Email Address' },
                                     { key: 'show_dupr', label: 'DUPR ID' },
-                                    { key: 'show_medical', label: 'Medical History' },
                                     { key: 'show_city_state', label: 'City & State' },
-                                    { key: 'show_emergency_contact', label: 'Emergency Contact' },
                                     { key: 'show_work_school', label: 'Work / School' },
+                                    { key: 'show_emergency_contact', label: 'Emergency Contact' },
+                                    { key: 'show_medical', label: 'Medical History' },
                                 ].map(field => (
                                     <label key={field.key} className="flex items-center gap-3 cursor-pointer group">
                                         <div 
@@ -179,15 +212,49 @@ export default function RegistrationStudio() {
                                                     [field.key]: !settings.fields_config[field.key] 
                                                 }
                                             })}
-                                            className={`w-5 h-5 rounded flex items-center justify-center transition-all ${settings.fields_config[field.key] ? 'bg-amber-500 border-amber-500' : 'bg-zinc-900 border-zinc-700'} border`}
+                                            className={`w-5 h-5 rounded flex items-center justify-center transition-all ${settings.fields_config[field.key] ? 'bg-amber-500 border-amber-500' : 'bg-zinc-900 border-zinc-700'} border shrink-0`}
                                         >
                                             {settings.fields_config[field.key] && <i className="fa-solid fa-check text-black text-[10px]" />}
                                         </div>
-                                        <span className="text-xs text-zinc-400 group-hover:text-amber-500 transition-colors uppercase tracking-wider font-bold">{field.label}</span>
+                                        <span className={`text-xs transition-colors uppercase tracking-wider font-bold ${settings.fields_config[field.key] ? 'text-amber-500' : 'text-zinc-500 group-hover:text-zinc-400'}`}>{field.label}</span>
                                     </label>
                                 ))}
                             </div>
                         </div>
+
+                        <AnimatePresence>
+                            {settings.fields_config.show_medical && (
+                                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
+                                    <div className="bg-zinc-950 border border-white/5 p-6 rounded-2xl">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <label className="text-xs font-black tracking-widest uppercase text-amber-500">Medical Conditions List</label>
+                                            <button onClick={() => setSettings({...settings, medical_options: [...settings.medical_options, 'New Condition']})} className="px-3 py-1.5 bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-black rounded-lg text-[9px] font-black uppercase tracking-widest transition-colors shadow-lg shadow-amber-500/20">
+                                                <i className="fa-solid fa-plus mr-2" /> Add Option
+                                            </button>
+                                        </div>
+                                        <div className="space-y-3">
+                                            {settings.medical_options.map((opt: string, i: number) => (
+                                                <div key={i} className="flex items-center gap-3">
+                                                    <input 
+                                                        value={opt} 
+                                                        onChange={e => {
+                                                            const newOpts = [...settings.medical_options];
+                                                            newOpts[i] = e.target.value;
+                                                            setSettings({...settings, medical_options: newOpts});
+                                                        }} 
+                                                        className="flex-1 bg-black border border-white/10 rounded-lg px-4 py-2 text-xs text-white focus:outline-none focus:border-amber-500" 
+                                                    />
+                                                    <button onClick={() => setSettings({...settings, medical_options: settings.medical_options.filter((_: any, idx: number) => idx !== i)})} className="w-8 h-8 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-colors">
+                                                        <i className="fa-solid fa-minus" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                            {settings.medical_options.length === 0 && <div className="text-xs text-zinc-600 font-medium italic">No conditions explicitly defined.</div>}
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
 
                         <div>
                             <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-2">Tournament Slogan</label>
