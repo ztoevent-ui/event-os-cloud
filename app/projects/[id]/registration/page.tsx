@@ -200,15 +200,55 @@ export default function RegistrationStudio() {
                             />
                         </div>
                         
-                        <div>
+                        <div className="space-y-3">
                             <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-2">Tournament Logo URL</label>
-                            <input
-                                type="text"
-                                className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500"
-                                value={settings.logo_url || ''}
-                                onChange={e => setSettings({...settings, logo_url: e.target.value})}
-                                placeholder="https://..."
-                            />
+                            
+                            <div className="flex items-center gap-4">
+                                <div className="flex-1 relative">
+                                    <input
+                                        type="text"
+                                        className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 pr-12"
+                                        value={settings.logo_url || ''}
+                                        onChange={e => setSettings({...settings, logo_url: e.target.value})}
+                                        placeholder="Enter URL or upload a PNG"
+                                    />
+                                    {settings.logo_url && (
+                                        <img src={settings.logo_url} alt="Logo" className="absolute right-3 top-1/2 transform -translate-y-1/2 h-8 w-8 object-contain rounded-md bg-white/5 p-1" />
+                                    )}
+                                </div>
+                                <div className="relative">
+                                    <input 
+                                        type="file" 
+                                        accept=".png,.jpeg,.jpg"
+                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                        onChange={async (e) => {
+                                            const file = e.target.files?.[0];
+                                            if (!file) return;
+                                            
+                                            Swal.fire({ title: 'Uploading Logo...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                                            try {
+                                                const formData = new FormData();
+                                                formData.append('file', file);
+                                                formData.append('project_id', projectId);
+                                                const { uploadLogoFile } = await import('@/app/actions/tournament-actions');
+                                                const res = await uploadLogoFile(formData);
+                                                
+                                                if (res.success) {
+                                                    setSettings({...settings, logo_url: res.url});
+                                                    Swal.close();
+                                                } else {
+                                                    throw new Error(res.error || 'Upload failed');
+                                                }
+                                            } catch (error: any) {
+                                                Swal.fire('Upload Failed', error.message, 'error');
+                                            }
+                                        }}
+                                    />
+                                    <button type="button" className="bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs uppercase tracking-widest px-6 py-3.5 rounded-xl transition-colors shrink-0">
+                                        <i className="fa-solid fa-upload lg:mr-2"></i><span className="hidden lg:inline">Upload</span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                         <div>
