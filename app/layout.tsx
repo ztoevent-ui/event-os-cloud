@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "EventOS | Project Hub",
+  title: "ZTO EventOS | v1.0.4.Arena",
   description: "Official Event Management Platform",
   icons: {
     icon: 'https://zihjzbweasaqqbwilshx.supabase.co/storage/v1/object/public/logo/icon.png.JPG',
