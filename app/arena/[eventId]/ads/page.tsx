@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 import { motion } from 'framer-motion';
@@ -14,8 +14,8 @@ const defaultAds = [
 ];
 
 function AdsPlacementContent() {
-  const searchParams = useSearchParams();
-  const eventId = searchParams.get('eventId') || 'BINTULU_OPEN_2026';
+  const params = useParams();
+  const eventId = (params.eventId as string) || 'BINTULU_OPEN_2026';
   
   const [activeAdId, setActiveAdId] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -49,7 +49,7 @@ function AdsPlacementContent() {
     <div className="min-h-screen bg-zinc-950 text-white font-sans flex flex-col relative overflow-hidden">
       <header className="z-10 bg-black border-b border-white/10 px-8 py-10 flex items-center justify-between">
         <div className="flex items-center gap-6">
-            <Link href="/apps/zto-arena" className="flex items-center gap-2 text-[10px] font-black uppercase text-zinc-600 hover:text-white transition-colors tracking-widest group">
+            <Link href={`/arena/${eventId}`} className="flex items-center gap-2 text-[10px] font-black uppercase text-zinc-600 hover:text-white transition-colors tracking-widest group">
                 <i className="fa-solid fa-arrow-left group-hover:-translate-x-1 transition-transform"></i>
                 Hub
             </Link>
@@ -119,7 +119,7 @@ function AdsPlacementContent() {
                         This session is isolated to <span className="text-emerald-500 font-black">{eventId}</span>. Only screens set to this specific ID will receive these media updates. To switch events, return to the Arena Hub.
                     </p>
                 </div>
-                <Link href="/apps/zto-arena" className="h-10 px-6 bg-white/5 hover:bg-white/10 text-zinc-400 rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/10 flex items-center justify-center transition-all">
+                <Link href={`/arena/${eventId}`} className="h-10 px-6 bg-white/5 hover:bg-white/10 text-zinc-400 rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/10 flex items-center justify-center transition-all">
                     Change Session
                 </Link>
             </div>

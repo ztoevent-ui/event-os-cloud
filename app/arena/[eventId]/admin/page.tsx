@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useRef, Suspense, useMemo } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -91,8 +91,8 @@ function generateFlexibleBracket(count: number): BracketData {
 // --- MAIN COMPONENTS ---
 
 function MasterConsoleContent() {
-  const searchParams = useSearchParams();
-  const eventId = searchParams.get('eventId') || 'BINTULU_OPEN_2026';
+  const params = useParams();
+  const eventId = (params.eventId as string) || 'BINTULU_OPEN_2026';
   
   const [activeTab, setActiveTab] = useState<'SCORE' | 'ADS' | 'BRACKET' | 'GROUPS' | 'MUSIC' | 'SCHEDULING' | 'JUDGING'>('BRACKET');
   const [screenMode, setScreenMode] = useState<ScreenMode>('SCORE');
@@ -223,7 +223,7 @@ function MasterConsoleContent() {
     <div className="min-h-screen bg-black text-white font-sans overflow-hidden flex flex-col select-none relative">
       <header className="z-20 bg-zinc-950 border-b border-white/10 px-6 py-4 flex items-center justify-between shadow-2xl">
         <div className="flex items-center gap-6">
-          <Link href="/apps/zto-arena" className="flex items-center gap-2 text-[10px] font-black uppercase text-zinc-600 hover:text-white transition-colors tracking-widest">
+          <Link href={`/arena/${eventId}`} className="flex items-center gap-2 text-[10px] font-black uppercase text-zinc-600 hover:text-white transition-colors tracking-widest">
             <i className="fa-solid fa-arrow-left"></i> Hub
           </Link>
           <div className="w-px h-6 bg-white/10" />

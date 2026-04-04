@@ -24,6 +24,7 @@ export default function RegistrationStudio() {
         fields_config: {
             show_team_name: true,
             show_team_dupr_average: false,
+            requires_gender: true,
             show_ic_passport: true,
             show_phone: true,
             show_email: true,
@@ -66,6 +67,7 @@ export default function RegistrationStudio() {
                     fields_config: data.fields_config || {
                         show_team_name: true,
                         show_team_dupr_average: false,
+                        requires_gender: true,
                         show_ic_passport: true,
                         show_phone: true,
                         show_email: true,
@@ -194,6 +196,7 @@ export default function RegistrationStudio() {
                                 {[ 
                                     { key: 'show_team_name', label: 'Team Name' },
                                     { key: 'show_team_dupr_average', label: 'Team Average DUPR' },
+                                    { key: 'requires_gender', label: 'Require Gender' },
                                     { key: 'show_ic_passport', label: 'IC / Passport' },
                                     { key: 'show_phone', label: 'Phone Number' },
                                     { key: 'show_email', label: 'Email Address' },

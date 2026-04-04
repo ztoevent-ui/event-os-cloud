@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabaseClient';
@@ -9,7 +10,7 @@ const modules = [
   { 
     title: 'Master Console', 
     desc: 'Main match control for scoring, sets, and game clock.', 
-    href: '/apps/zto-arena/master', 
+    href: '/admin', 
     icon: 'fa-gamepad',
     bg: 'bg-amber-500/10',
     text: 'text-amber-500',
@@ -19,7 +20,7 @@ const modules = [
   { 
     title: 'Ads Placement', 
     desc: 'Live media controller for multi-tenant ad rotation.', 
-    href: '/apps/zto-arena/ads', 
+    href: '/ads', 
     icon: 'fa-rectangle-ad',
     bg: 'bg-emerald-500/10',
     text: 'text-emerald-500',
@@ -29,7 +30,7 @@ const modules = [
   { 
     title: 'Referee Screen', 
     desc: 'Simplified high-contrast display for match officials.', 
-    href: '/apps/zto-arena/referee', 
+    href: '/referee', 
     icon: 'fa-eye',
     bg: 'bg-blue-500/10',
     text: 'text-blue-500',
@@ -37,9 +38,29 @@ const modules = [
     borderHover: 'hover:border-blue-500/40'
   },
   { 
+    title: 'Tournament Architect', 
+    desc: 'Configure round rules, tie templates, and scoring logic.', 
+    href: '/architect', 
+    icon: 'fa-vial-circle-check',
+    bg: 'bg-violet-500/10',
+    text: 'text-violet-500',
+    borderBase: 'border-violet-500/10',
+    borderHover: 'hover:border-violet-500/40'
+  },
+  { 
+    title: 'Director Dashboard', 
+    desc: 'Real-time overview of all courts and match statuses.', 
+    href: '/director', 
+    icon: 'fa-tower-observation',
+    bg: 'bg-rose-500/10',
+    text: 'text-rose-500',
+    borderBase: 'border-rose-500/10',
+    borderHover: 'hover:border-rose-500/40'
+  },
+  { 
     title: 'Arena Screen', 
     desc: 'Public billboard display with duo-mode visuals.', 
-    href: '/apps/zto-arena/screen', 
+    href: '/screen', 
     icon: 'fa-tv',
     fullWidth: true,
     bg: 'bg-indigo-500/10',
@@ -117,9 +138,11 @@ export default function ArenaHubPage() {
     }
   };
 
+  const params = useParams();
+  const eventId = params.eventId as string;
+
   const getUrl = (base: string) => {
-    if (!selectedTournament) return '#';
-    return `${base}?eventId=${selectedTournament.event_id_slug}&sport=${selectedTournament.sport_type}`;
+    return `/arena/${eventId}${base}`;
   };
 
   return (

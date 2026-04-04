@@ -49,12 +49,47 @@ export default async function proxy(request: NextRequest) {
 
     const path = request.nextUrl.pathname;
 
-    // 1. Admin Routes (/admin/*): Authentication Required
-    if (path.startsWith('/admin')) {
+    // 1. Admin Routes (/admin/*) & Arena Admin
+    if (path.startsWith('/admin') || (path.startsWith('/arena/') && path.endsWith('/admin'))) {
         if (!user) {
             return NextResponse.redirect(new URL('/auth', request.url));
         }
-        // Future: Check user role here
+        
+        // Fetch User Role from Profiles
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single();
+
+        if (!profile) {
+            // No profile = no access
+            return new NextResponse('403 Forbidden - No Profile Found', { status: 403 });
+        }
+
+        // Super Admin bypasses all
+        if (profile.role === 'SUPER_ADMIN') {
+            return response;
+        }
+
+        // Arena Admin specific Event ID check
+        if (path.startsWith('/arena/')) {
+            const pathParts = path.split('/');
+            const eventId = pathParts[2]; // /arena/[eventId]/admin
+
+            // Check if PM has access to this event
+            const { data: access } = await supabase
+                .from('project_access')
+                .select('*')
+                .eq('user_id', user.id)
+                .is('project_id', null) // TBD: Link eventId to projectId
+                .limit(1);
+
+            // Simple Role Check for V1 Phase 1 (Per user instructions)
+            if (profile.role !== 'PROJECT_MANAGER' && profile.role !== 'SUPER_ADMIN') {
+                return new NextResponse('403 Forbidden - Insufficient Permissions', { status: 403 });
+            }
+        }
     }
 
     // 2. Display Routes (/display/*): Public but separate logic (could be IP locked later, open for now)

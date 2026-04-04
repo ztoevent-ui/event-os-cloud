@@ -9,16 +9,20 @@ type FieldsConfig = {
     show_city_state?: boolean;
     show_emergency_contact?: boolean;
     show_work_school?: boolean;
+    show_ic_passport?: boolean;
+    show_phone?: boolean;
+    show_email?: boolean;
 };
 
 type DynamicPlayerFieldsProps = {
     player: any; // the state object for the player
     onChange: (field: string, value: any) => void;
     config: FieldsConfig;
+    medicalOptions?: string[]; // passed separately for clarity
     isCaptain?: boolean;
 };
 
-const MEDICAL_CONDITIONS = [
+const DEFAULT_MEDICAL_CONDITIONS = [
     'Heart Disease / Penyakit Jantung',
     'Asthma / Asma',
     'Diabetes / Kencing Manis',
@@ -35,14 +39,16 @@ const MALAYSIAN_STATES = [
     'W.P. Labuan', 'W.P. Putrajaya',
 ];
 
-export function DynamicPlayerFields({ player, onChange, config, isCaptain }: DynamicPlayerFieldsProps) {
+export function DynamicPlayerFields({ player, onChange, config, medicalOptions, isCaptain }: DynamicPlayerFieldsProps) {
     const handleMedicalToggle = (condition: string) => {
         const currentMeds = player.medical_conditions || [];
         let newList = [];
-        if (condition === 'None / Tiada') {
-            newList = ['None / Tiada'];
+        const noneOption = 'None / Tiada';
+        
+        if (condition === noneOption) {
+            newList = [noneOption];
         } else {
-            const listWithoutNone = currentMeds.filter((c: string) => c !== 'None / Tiada');
+            const listWithoutNone = currentMeds.filter((c: string) => c !== noneOption);
             if (currentMeds.includes(condition)) {
                 newList = listWithoutNone.filter((c: string) => c !== condition);
             } else {
@@ -56,6 +62,27 @@ export function DynamicPlayerFields({ player, onChange, config, isCaptain }: Dyn
 
     return (
         <div className="space-y-4 mt-3 pt-3 border-t border-zinc-800/50">
+            {config.show_ic_passport && (
+                <div>
+                    <label className="block text-[10px] text-zinc-500 mb-1 uppercase tracking-wider font-bold">IC / Passport Number <span className="text-red-500">*</span></label>
+                    <input type="text" required value={player.ic || ''} onChange={e => onChange('ic', e.target.value)} placeholder="e.g. 900101-13-5050" className="w-full bg-black border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:border-amber-500 outline-none" />
+                </div>
+            )}
+
+            {config.show_phone && (
+                <div>
+                    <label className="block text-[10px] text-zinc-500 mb-1 uppercase tracking-wider font-bold">Phone Number <span className="text-red-500">*</span></label>
+                    <input type="tel" required value={player.phone || ''} onChange={e => onChange('phone', e.target.value)} placeholder="e.g. +60123456789" className="w-full bg-black border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:border-amber-500 outline-none" />
+                </div>
+            )}
+
+            {config.show_email && (
+                <div>
+                    <label className="block text-[10px] text-zinc-500 mb-1 uppercase tracking-wider font-bold">Email Address <span className="text-red-500">*</span></label>
+                    <input type="email" required value={player.email || ''} onChange={e => onChange('email', e.target.value)} placeholder="e.g. player@example.com" className="w-full bg-black border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:border-amber-500 outline-none" />
+                </div>
+            )}
+
             {config.requires_gender && (
                 <div>
                     <label className="block text-[10px] text-zinc-500 mb-1 uppercase tracking-wider font-bold">Gender <span className="text-red-500">*</span></label>
@@ -106,7 +133,8 @@ export function DynamicPlayerFields({ player, onChange, config, isCaptain }: Dyn
                 <div>
                     <label className="block text-[10px] text-zinc-500 mb-1 uppercase tracking-wider font-bold">Medical History <span className="text-red-500">*</span></label>
                     <div className="flex flex-wrap gap-1.5">
-                        {MEDICAL_CONDITIONS.map(cond => {
+                        {[...(medicalOptions || DEFAULT_MEDICAL_CONDITIONS)].map(cond => {
+                            if (cond === 'None / Tiada') return null; // Handle manually at end
                             const isSelected = (player.medical_conditions || []).includes(cond);
                             return (
                                 <button key={cond} type="button" onClick={() => handleMedicalToggle(cond)} className={`px-2 py-1 rounded text-[9px] font-bold border transition-all ${isSelected ? 'bg-amber-500 text-black border-amber-500' : 'bg-zinc-900 border-zinc-700 text-zinc-400'}`}>
@@ -114,6 +142,14 @@ export function DynamicPlayerFields({ player, onChange, config, isCaptain }: Dyn
                                 </button>
                             );
                         })}
+                        {/* None Option */}
+                        <button 
+                            type="button" 
+                            onClick={() => handleMedicalToggle('None / Tiada')} 
+                            className={`px-2 py-1 rounded text-[9px] font-bold border transition-all ${(player.medical_conditions || []).includes('None / Tiada') ? 'bg-amber-500 text-black border-amber-500' : 'bg-zinc-900 border-zinc-700 text-zinc-400'}`}
+                        >
+                            None / Tiada
+                        </button>
                     </div>
                 </div>
             )}

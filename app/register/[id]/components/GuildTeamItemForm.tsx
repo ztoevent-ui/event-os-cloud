@@ -16,9 +16,11 @@ type FormProps = {
 
 export function GuildTeamItemForm({ projectId, config, onSuccess }: FormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const fieldsConfig = config.fields_config || {};
 
     // Form State
     const [organizationName, setOrganizationName] = useState('');
+    const [teamName, setTeamName] = useState('');
     const [captain, setCaptain] = useState<any>({ name: '', ic: '', role: '', file: null });
     
     // Players Tracker (5 pairs = 10 players)
@@ -67,72 +69,79 @@ export function GuildTeamItemForm({ projectId, config, onSuccess }: FormProps) {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         
-        // Basic Validation
-        if (!organizationName || !captain.name || !captain.ic || !captain.file) {
-            Swal.fire('Incomplete', 'Please fill in all organization and captain details including IC upload.', 'warning');
-            return;
+        // 1. Validation Logic
+        if (!captain.name) return Swal.fire('Incomplete', 'Please enter Captain Name.', 'warning');
+        if (fieldsConfig.show_team_name && !organizationName) return Swal.fire('Incomplete', 'Please enter Organization/Team Name.', 'warning');
+        
+        // IC/Passport check
+        if (fieldsConfig.show_ic_passport) {
+            if (!captain.ic || !captain.file) return Swal.fire('Incomplete', 'Captain IC Number and Image are required.', 'warning');
+            const missingPlayerIC = pairs.some(p => !p.player1.ic || !p.player1.file || !p.player2.ic || !p.player2.file);
+            if (missingPlayerIC) return Swal.fire('Incomplete', 'All players must have IC details and uploads completed.', 'warning');
+        }
+
+        // Gender check
+        if (fieldsConfig.requires_gender) {
+            if (!captain.gender) return Swal.fire('Incomplete', 'Captain Gender is required.', 'warning');
+            const missingGender = pairs.some(p => !p.player1.gender || !p.player2.gender);
+            if (missingGender) return Swal.fire('Incomplete', 'All players must have gender selected.', 'warning');
         }
 
         const unselectedCategory = pairs.some(p => !p.category);
-        if (unselectedCategory) {
-            Swal.fire('Incomplete', 'Please select a category for all 5 pairs.', 'warning');
-            return;
-        }
-
-        const missingPlayerInfo = pairs.some(p => 
-            !p.player1.name || !p.player1.ic || !p.player1.file || 
-            !p.player2.name || !p.player2.ic || !p.player2.file
-        );
-        if (missingPlayerInfo) {
-            Swal.fire('Incomplete', 'Please complete all player details and upload ICs for all 10 players.', 'warning');
-            return;
-        }
-
-        if (config.fields_config?.requires_gender) {
-            if (!captain.gender) return Swal.fire('Incomplete', 'Please select a gender for the Captain.', 'warning');
-            if (pairs.some(p => !p.player1.gender || !p.player2.gender)) return Swal.fire('Incomplete', 'Please select a gender for all players.', 'warning');
-        }
+        if (unselectedCategory) return Swal.fire('Incomplete', 'Please select a category for all pairs.', 'warning');
 
         setIsSubmitting(true);
         Swal.fire({ title: 'Uploading & Submitting...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
         try {
-            // Upload Captain IC
-            const capData = new FormData();
-            capData.append('file', captain.file!);
-            capData.append('project_id', projectId);
-            const capUpload = await uploadICFile(capData);
-            if (!capUpload.success) throw new Error('Captain IC upload failed');
+            // Upload Captain IC if enabled
+            let capIcUrl = null;
+            if (fieldsConfig.show_ic_passport && captain.file) {
+                const capData = new FormData();
+                capData.append('file', captain.file!);
+                capData.append('project_id', projectId);
+                const capUpload = await uploadICFile(capData);
+                if (!capUpload.success) throw new Error('Captain IC upload failed');
+                capIcUrl = capUpload.url;
+            }
 
-            // Upload Player ICs & Formatting
+            // Players Formatting
             const playersData = [];
             for (const pair of pairs) {
                 // Player 1
-                const p1Data = new FormData();
-                p1Data.append('file', pair.player1.file!);
-                p1Data.append('project_id', projectId);
-                const p1Upload = await uploadICFile(p1Data);
-                if (!p1Upload.success) throw new Error(`Player ${pair.player1.name} IC upload failed`);
+                let p1IcUrl = null;
+                if (fieldsConfig.show_ic_passport && pair.player1.file) {
+                    const p1Data = new FormData();
+                    p1Data.append('file', pair.player1.file!);
+                    p1Data.append('project_id', projectId);
+                    const res = await uploadICFile(p1Data);
+                    if (!res.success) throw new Error(`IC upload failed for ${pair.player1.name}`);
+                    p1IcUrl = res.url;
+                }
                 
                 const { file: f1, ...p1Details } = pair.player1;
                 playersData.push({
                     ...p1Details,
-                    ic_url: p1Upload.url, 
+                    ic_url: p1IcUrl, 
                     category: pair.category, 
                     pair_id: pair.id
                 });
 
                 // Player 2
-                const p2Data = new FormData();
-                p2Data.append('file', pair.player2.file!);
-                p2Data.append('project_id', projectId);
-                const p2Upload = await uploadICFile(p2Data);
-                if (!p2Upload.success) throw new Error(`Player ${pair.player2.name} IC upload failed`);
+                let p2IcUrl = null;
+                if (fieldsConfig.show_ic_passport && pair.player2.file) {
+                    const p2Data = new FormData();
+                    p2Data.append('file', pair.player2.file!);
+                    p2Data.append('project_id', projectId);
+                    const res = await uploadICFile(p2Data);
+                    if (!res.success) throw new Error(`IC upload failed for ${pair.player2.name}`);
+                    p2IcUrl = res.url;
+                }
                 
                 const { file: f2, ...p2Details } = pair.player2;
                 playersData.push({
                     ...p2Details,
-                    ic_url: p2Upload.url, 
+                    ic_url: p2IcUrl, 
                     category: pair.category, 
                     pair_id: pair.id
                 });
@@ -142,11 +151,14 @@ export function GuildTeamItemForm({ projectId, config, onSuccess }: FormProps) {
             const { error } = await supabase.from('tournament_registrations').insert({
                 project_id: projectId,
                 organization_name: organizationName,
+                team_name: teamName || null,
                 captain_name: captain.name,
-                captain_ic: captain.ic,
-                captain_role: captain.role,
-                captain_ic_url: capUpload.url,
-                captain_gender: captain.gender || null, // Special field added
+                captain_ic: captain.ic || null,
+                captain_role: captain.role || null,
+                captain_ic_url: capIcUrl,
+                captain_gender: captain.gender || null,
+                captain_phone: captain.phone || null,
+                captain_email: captain.email || null,
                 players: playersData
             });
 
@@ -172,38 +184,45 @@ export function GuildTeamItemForm({ projectId, config, onSuccess }: FormProps) {
                 </div>
                 
                 <div className="space-y-5">
-                    <div>
-                        <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-2">参赛公会全称 (Organization Name) *</label>
-                        <input type="text" required value={organizationName} onChange={e => setOrganizationName(e.target.value)} className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-white focus:border-amber-500 outline-none" placeholder="Enter Full Organization Name" />
-                    </div>
+                    {fieldsConfig.show_team_name && (
+                        <div>
+                            <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-2">参赛公会全称 (Organization / Team Name) *</label>
+                            <input type="text" required value={organizationName} onChange={e => setOrganizationName(e.target.value)} className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-white focus:border-amber-500 outline-none" placeholder="Enter Full Organization Name" />
+                        </div>
+                    )}
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <div>
+                        <div className={fieldsConfig.show_ic_passport ? "" : "md:col-span-2"}>
                             <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-2">领队名字 (Captain Name) *</label>
                             <input type="text" required value={captain.name} onChange={e => setCaptain({...captain, name: e.target.value})} className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-white focus:border-amber-500 outline-none" />
                         </div>
-                        <div>
-                            <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-2">身分证号 (IC Number) *</label>
-                            <input type="text" required value={captain.ic} onChange={e => setCaptain({...captain, ic: e.target.value})} className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-white focus:border-amber-500 outline-none" placeholder="XXXXXX-XX-XXXX" />
-                        </div>
+                        {fieldsConfig.show_ic_passport && (
+                            <div>
+                                <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-2">身分证号 (IC Number) *</label>
+                                <input type="text" required value={captain.ic} onChange={e => setCaptain({...captain, ic: e.target.value})} className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-white focus:border-amber-500 outline-none" placeholder="XXXXXX-XX-XXXX" />
+                            </div>
+                        )}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div>
-                            <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-2">公会职务 (Role in Org) *</label>
-                            <input type="text" required value={captain.role} onChange={e => setCaptain({...captain, role: e.target.value})} className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-white focus:border-amber-500 outline-none" placeholder="e.g. Chairman, Secretary" />
+                            <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-2">领队职务 (Role in Org)</label>
+                            <input type="text" value={captain.role} onChange={e => setCaptain({...captain, role: e.target.value})} className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-white focus:border-amber-500 outline-none" placeholder="e.g. Chairman, Secretary" />
                         </div>
-                        <div>
-                            <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-2">上传 IC (Upload IC) *</label>
-                            <input type="file" required accept="image/*" onChange={e => setCaptain({...captain, file: e.target.files?.[0] || null})} className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-2.5 text-white file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-amber-500/10 file:text-amber-500 hover:file:bg-amber-500/20" />
-                        </div>
+                        {fieldsConfig.show_ic_passport && (
+                            <div>
+                                <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-2">上传 IC (Upload IC) *</label>
+                                <input type="file" required accept="image/*" onChange={e => setCaptain({...captain, file: e.target.files?.[0] || null})} className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-2.5 text-white file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-amber-500/10 file:text-amber-500 hover:file:bg-amber-500/20" />
+                            </div>
+                        )}
                     </div>
 
                     {/* Dynamic Fields */}
                     <DynamicPlayerFields
                         player={captain}
                         onChange={(f, v) => setCaptain({ ...captain, [f]: v })}
-                        config={config.fields_config}
+                        config={fieldsConfig}
+                        medicalOptions={config.medical_options}
                         isCaptain={true}
                     />
                 </div>
@@ -244,12 +263,16 @@ export function GuildTeamItemForm({ projectId, config, onSuccess }: FormProps) {
                                     <h4 className="text-sm font-bold text-white border-b border-zinc-800 pb-2">Player 1</h4>
                                     <div>
                                         <input type="text" required placeholder="Name *" value={pair.player1.name || ''} onChange={e => handlePlayerDetailsChange(pair.id, 1, 'name', e.target.value)} className="w-full bg-black border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:border-amber-500 outline-none mb-3" />
-                                        <input type="text" required placeholder="IC Number *" value={pair.player1.ic || ''} onChange={e => handlePlayerDetailsChange(pair.id, 1, 'ic', e.target.value)} className="w-full bg-black border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:border-amber-500 outline-none mb-3" />
                                         
-                                        <label className="block text-[10px] text-zinc-500 mb-1 uppercase tracking-wider font-bold">Upload IC</label>
-                                        <input type="file" required accept="image/*" onChange={e => handlePlayerDetailsChange(pair.id, 1, 'file', e.target.files?.[0] || null)} className="w-full text-xs text-zinc-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-zinc-800 file:text-zinc-300" />
+                                        {fieldsConfig.show_ic_passport && (
+                                            <>
+                                                <input type="text" required placeholder="IC Number *" value={pair.player1.ic || ''} onChange={e => handlePlayerDetailsChange(pair.id, 1, 'ic', e.target.value)} className="w-full bg-black border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:border-amber-500 outline-none mb-3" />
+                                                <label className="block text-[10px] text-zinc-500 mb-1 uppercase tracking-wider font-bold">Upload IC</label>
+                                                <input type="file" required accept="image/*" onChange={e => handlePlayerDetailsChange(pair.id, 1, 'file', e.target.files?.[0] || null)} className="w-full text-xs text-zinc-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-zinc-800 file:text-zinc-300" />
+                                            </>
+                                        )}
                                         
-                                        <DynamicPlayerFields player={pair.player1} onChange={(f, v) => handlePlayerDetailsChange(pair.id, 1, f, v)} config={config.fields_config} />
+                                        <DynamicPlayerFields player={pair.player1} onChange={(f, v) => handlePlayerDetailsChange(pair.id, 1, f, v)} config={fieldsConfig} medicalOptions={config.medical_options} />
                                     </div>
                                 </div>
                                 {/* Player 2 */}
@@ -257,12 +280,16 @@ export function GuildTeamItemForm({ projectId, config, onSuccess }: FormProps) {
                                     <h4 className="text-sm font-bold text-white border-b border-zinc-800 pb-2">Player 2</h4>
                                     <div>
                                         <input type="text" required placeholder="Name *" value={pair.player2.name || ''} onChange={e => handlePlayerDetailsChange(pair.id, 2, 'name', e.target.value)} className="w-full bg-black border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:border-amber-500 outline-none mb-3" />
-                                        <input type="text" required placeholder="IC Number *" value={pair.player2.ic || ''} onChange={e => handlePlayerDetailsChange(pair.id, 2, 'ic', e.target.value)} className="w-full bg-black border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:border-amber-500 outline-none mb-3" />
                                         
-                                        <label className="block text-[10px] text-zinc-500 mb-1 uppercase tracking-wider font-bold">Upload IC</label>
-                                        <input type="file" required accept="image/*" onChange={e => handlePlayerDetailsChange(pair.id, 2, 'file', e.target.files?.[0] || null)} className="w-full text-xs text-zinc-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-zinc-800 file:text-zinc-300" />
+                                        {fieldsConfig.show_ic_passport && (
+                                            <>
+                                                <input type="text" required placeholder="IC Number *" value={pair.player2.ic || ''} onChange={e => handlePlayerDetailsChange(pair.id, 2, 'ic', e.target.value)} className="w-full bg-black border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:border-amber-500 outline-none mb-3" />
+                                                <label className="block text-[10px] text-zinc-500 mb-1 uppercase tracking-wider font-bold">Upload IC</label>
+                                                <input type="file" required accept="image/*" onChange={e => handlePlayerDetailsChange(pair.id, 2, 'file', e.target.files?.[0] || null)} className="w-full text-xs text-zinc-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-zinc-800 file:text-zinc-300" />
+                                            </>
+                                        )}
                                         
-                                        <DynamicPlayerFields player={pair.player2} onChange={(f, v) => handlePlayerDetailsChange(pair.id, 2, f, v)} config={config.fields_config} />
+                                        <DynamicPlayerFields player={pair.player2} onChange={(f, v) => handlePlayerDetailsChange(pair.id, 2, f, v)} config={fieldsConfig} medicalOptions={config.medical_options} />
                                     </div>
                                 </div>
                             </div>
@@ -279,3 +306,4 @@ export function GuildTeamItemForm({ projectId, config, onSuccess }: FormProps) {
         </form>
     );
 }
+

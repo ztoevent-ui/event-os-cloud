@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, Suspense, useMemo } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -144,8 +144,8 @@ const BracketBoardView = ({ bracketState }: { bracketState: BracketState | null 
 };
 
 function ArenaScreenContent() {
-  const searchParams = useSearchParams();
-  const urlEventId = searchParams.get('eventId') || 'BINTULU_OPEN_2026';
+  const params = useParams();
+  const urlEventId = (params.eventId as string) || 'BINTULU_OPEN_2026';
 
   const [screenMode, setScreenMode] = useState<ScreenMode>('SCORE');
   const [matchState, setMatchState] = useState<MatchState | null>(null);
