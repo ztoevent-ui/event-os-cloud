@@ -145,7 +145,7 @@ export default function DirectorDashboardPage() {
       const { data: t } = await supabase
         .from('arena_tournaments')
         .select('*')
-        .eq('event_id_slug', eventId)
+        .or(`id.eq.${eventId},event_id_slug.eq.${eventId}`)
         .single();
 
       if (!t) { setLoading(false); return; }

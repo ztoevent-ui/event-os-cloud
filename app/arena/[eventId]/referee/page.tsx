@@ -43,7 +43,7 @@ function MatchSelector({
       const { data: t } = await supabase
         .from('arena_tournaments')
         .select('id')
-        .eq('event_id_slug', eventId)
+        .or(`id.eq.${eventId},event_id_slug.eq.${eventId}`)
         .single();
 
       if (!t) { setLoading(false); return; }
@@ -81,10 +81,10 @@ function MatchSelector({
 
     // Load round rule
     const { data: tData } = await supabase
-      .from('arena_tournaments')
-      .select('id')
-      .eq('event_id_slug', eventId)
-      .single();
+        .from('arena_tournaments')
+        .select('id')
+        .or(`id.eq.${eventId},event_id_slug.eq.${eventId}`)
+        .single();
 
     const { data: rule } = await supabase
       .from('arena_round_rules')
@@ -704,7 +704,7 @@ function RefereeContent() {
         const { data: match } = await supabase.from('arena_matches').select('*').eq('id', matchIdParam).single();
         if (!match) return;
 
-        const { data: t } = await supabase.from('arena_tournaments').select('id').eq('event_id_slug', eventId).single();
+        const { data: t } = await supabase.from('arena_tournaments').select('id').or(`id.eq.${eventId},event_id_slug.eq.${eventId}`).single();
         if (!t) return;
 
         const { data: rule } = await supabase.from('arena_round_rules').select('*').eq('tournament_id', t.id).eq('round_type', match.round_type).single();
