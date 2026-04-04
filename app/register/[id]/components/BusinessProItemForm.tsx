@@ -79,6 +79,17 @@ export function BusinessProItemForm({ projectId, config, onSuccess }: FormProps)
                 captain_gender: captain.gender || null,
                 captain_phone: captain.phone || null,
                 captain_email: captain.email || null,
+                captain_details: {
+                    medical_conditions: captain.medical_conditions || [],
+                    work_school: captain.work_school || null,
+                    city: captain.city || null,
+                    state: captain.state || null,
+                    emergency_contact: {
+                        name: captain.emergency_contact_name || null,
+                        phone: captain.emergency_contact_phone || null,
+                        relationship: captain.emergency_contact_relationship || null
+                    }
+                },
                 players: [
                     {
                         name: partner.name,
