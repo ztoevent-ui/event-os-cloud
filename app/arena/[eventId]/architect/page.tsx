@@ -320,11 +320,11 @@ export default function ArchitectPage() {
       <header className="bg-zinc-950 border-b border-white/5 px-6 py-4 flex items-center justify-between sticky top-0 z-30">
         <div className="flex items-center gap-6">
           <Link
-            href={`/arena/${eventId}`}
+            href="/apps/zto-arena"
             className="flex items-center gap-2 text-[10px] font-black uppercase text-zinc-600 hover:text-white transition-colors tracking-widest group"
           >
             <i className="fa-solid fa-arrow-left group-hover:-translate-x-1 transition-transform" />
-            Hub
+            Arena Hub
           </Link>
           <div className="w-px h-6 bg-white/10" />
           <div className="flex items-center gap-3">

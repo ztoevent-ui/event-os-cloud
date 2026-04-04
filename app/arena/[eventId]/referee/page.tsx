@@ -174,10 +174,10 @@ function MatchSelector({
         )}
 
         <Link
-          href={`/arena/${eventId}`}
+          href="/apps/zto-arena"
           className="block text-center mt-8 text-zinc-600 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors"
         >
-          ← Back to Hub
+          ← Back to Arena Hub
         </Link>
       </div>
     </div>
