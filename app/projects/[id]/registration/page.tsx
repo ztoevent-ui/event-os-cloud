@@ -18,6 +18,7 @@ export default function RegistrationStudio() {
         slogan: '',
         logo_url: '',
         title_sponsor: '',
+        title_sponsor_label: 'Title Sponsor / 冠名商',
         sponsors: [],
         co_organizers: [],
         template_type: 'guild_team_item',
@@ -84,7 +85,8 @@ export default function RegistrationStudio() {
                         'High Blood Pressure / Darah Tinggi',
                         'Epilepsy / Sawan',
                         'Joint/Bone Injury / Kecederaan Sendi'
-                    ]
+                    ],
+                    title_sponsor_label: data.title_sponsor_label || 'Title Sponsor / 冠名商'
                 };
                 setSettings(loadedSettings);
             }
@@ -119,6 +121,7 @@ export default function RegistrationStudio() {
                     template_type: settings.template_type,
                     fields_config: settings.fields_config,
                     medical_options: settings.medical_options,
+                    title_sponsor_label: settings.title_sponsor_label,
                     updated_at: new Date().toISOString()
                 }, { onConflict: 'project_id' });
 
@@ -321,14 +324,27 @@ export default function RegistrationStudio() {
                             </div>
                         </div>
 
-                        <div>
-                            <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-2">Title Sponsor / 冠名商</label>
-                            <input
-                                type="text"
-                                className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500"
-                                value={settings.title_sponsor || ''}
-                                onChange={e => setSettings({...settings, title_sponsor: e.target.value})}
-                            />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-4 border-b border-zinc-800/50">
+                            <div>
+                                <label className="block text-[10px] font-black tracking-widest uppercase text-amber-500 mb-2">Label for Sponsor Field</label>
+                                <input
+                                    type="text"
+                                    className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500"
+                                    value={settings.title_sponsor_label || ''}
+                                    onChange={e => setSettings({...settings, title_sponsor_label: e.target.value})}
+                                    placeholder="e.g. Official Sponsorship"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-black tracking-widest uppercase text-zinc-400 mb-2">Sponsor Name / 赞助商名字</label>
+                                <input
+                                    type="text"
+                                    className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500"
+                                    value={settings.title_sponsor || ''}
+                                    onChange={e => setSettings({...settings, title_sponsor: e.target.value})}
+                                    placeholder="Enter Name"
+                                />
+                            </div>
                         </div>
 
                         <div className="pt-4 border-t border-zinc-800 text-right">

@@ -80,7 +80,7 @@ export default function RegistrationPage() {
                     
                     {settings.title_sponsor && (
                         <div className="mt-6 text-amber-500 font-bold tracking-widest text-sm uppercase">
-                            Title Sponsor: <span className="text-white">{settings.title_sponsor}</span>
+                            {settings.title_sponsor_label || 'Title Sponsor'}: <span className="text-white">{settings.title_sponsor}</span>
                         </div>
                     )}
                 </div>
