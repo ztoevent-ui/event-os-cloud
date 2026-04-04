@@ -19,11 +19,12 @@ const STATUS_CONFIG: Record<MatchStatus, {
   COMPLETED:   { label: 'Completed',   dot: 'bg-blue-400',    bg: 'bg-zinc-950',     border: 'border-blue-500/10',       text: 'text-blue-400' },
 };
 
-const ROUND_COLORS: Record<RoundType, string> = {
-  GROUP:      'text-emerald-400',
-  KNOCKOUT:   'text-amber-400',
-  SEMIFINALS: 'text-orange-400',
-  FINALS:     'text-yellow-400',
+const ROUND_COLORS: Record<string, string> = {
+  GROUP:       'text-emerald-400',
+  KNOCKOUT:    'text-amber-400',
+  SEMIFINALS:  'text-orange-400',
+  THIRD_PLACE: 'text-sky-400',
+  FINALS:      'text-yellow-400',
 };
 
 // ——————————————————————————————————————————————————

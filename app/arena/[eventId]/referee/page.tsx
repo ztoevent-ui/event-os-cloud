@@ -109,6 +109,7 @@ function MatchSelector({
     GROUP: 'text-emerald-400 border-emerald-500/20',
     KNOCKOUT: 'text-amber-400 border-amber-500/20',
     SEMIFINALS: 'text-orange-400 border-orange-500/20',
+    THIRD_PLACE: 'text-sky-400 border-sky-500/20',
     FINALS: 'text-yellow-400 border-yellow-500/20',
   };
 
@@ -510,7 +511,7 @@ function ScoringScreen({
     : false;
 
   const roundColors: Record<string, string> = {
-    GROUP: 'bg-emerald-500', KNOCKOUT: 'bg-amber-500', SEMIFINALS: 'bg-orange-500', FINALS: 'bg-yellow-500',
+    GROUP: 'bg-emerald-500', KNOCKOUT: 'bg-amber-500', SEMIFINALS: 'bg-orange-500', THIRD_PLACE: 'bg-sky-500', FINALS: 'bg-yellow-500',
   };
 
   return (

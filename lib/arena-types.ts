@@ -5,10 +5,11 @@
 
 export type ScoringType = 'RALLY' | 'SIDE_OUT';
 export type MatchStatus = 'PENDING' | 'LIVE' | 'SIDE_SWITCH' | 'COMPLETED';
-export type RoundType = 'GROUP' | 'KNOCKOUT' | 'SEMIFINALS' | 'FINALS';
+export type RoundType = 'GROUP' | 'KNOCKOUT' | 'SEMIFINALS' | 'THIRD_PLACE' | 'FINALS';
 export type TeamSlot = 'A' | 'B';
+export type CompletionMode = 'EARLY' | 'FULL';
 export type TournamentStatus = 'SETUP' | 'REGISTRATION' | 'GROUP_STAGE' | 'KNOCKOUT' | 'COMPLETED';
-export type TournamentFormat = 'SINGLES' | 'TIE_TEAM';
+export type TournamentFormat = 'SINGLES' | 'TIE_TEAM' | 'INDIVIDUAL';
 
 export interface RoundRule {
   id: string;
@@ -20,6 +21,7 @@ export interface RoundRule {
   sets_to_win: number;
   max_sets: number;
   freeze_at: number | null;
+  completion_mode: CompletionMode; // EARLY = stop at wins_required, FULL = play all
 }
 
 export interface TieTemplateEvent {
@@ -106,6 +108,8 @@ export interface ArenaTournament {
   current_round: RoundType;
   bracket_json: Record<string, any>;
   format: TournamentFormat;
+  has_third_place: boolean;
+  linked_project_id: string | null;
   created_at: string;
   updated_at: string;
 }
