@@ -53,7 +53,9 @@ function MatchSelector({
         .select('*')
         .eq('tournament_id', t.id)
         .in('status', ['PENDING', 'LIVE'])
-        .order('court_number');
+        .order('bracket_match_id', { ascending: true }) // group by tie instance
+        .order('sequence_order', { ascending: true })   // follow the tie template order
+        .order('court_number', { ascending: true });
 
       setMatches((data as ArenaMatch[]) || []);
       setLoading(false);
@@ -224,12 +226,22 @@ function SideSwitchModal({ onConfirm }: { onConfirm: () => void }) {
 // ——————————————————————————————————————————————————
 // MATCH END OVERLAY
 // ——————————————————————————————————————————————————
-function MatchEndOverlay({ winner, countdown }: { winner: string; countdown: number }) {
+function MatchEndOverlay({ 
+  winner, 
+  countdown, 
+  isTieExperience, 
+  nextInTie 
+}: { 
+  winner: string; 
+  countdown: number;
+  isTieExperience?: boolean;
+  nextInTie?: string;
+}) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center text-center"
+      className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center text-center px-12"
     >
       <motion.div
         initial={{ scale: 0, rotate: -180 }}
@@ -240,10 +252,22 @@ function MatchEndOverlay({ winner, countdown }: { winner: string; countdown: num
           <i className="fa-solid fa-trophy text-5xl text-black" />
         </div>
       </motion.div>
-      <h1 className="text-3xl font-black text-zinc-400 uppercase tracking-widest mb-2">Winner</h1>
+      <h1 className="text-3xl font-black text-zinc-400 uppercase tracking-widest mb-2">Match Winner</h1>
       <h2 className="text-6xl font-black text-white uppercase tracking-widest mb-8 max-w-lg">{winner}</h2>
+      
+      {isTieExperience && nextInTie && (
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8 p-6 bg-blue-600/10 border border-blue-500/20 rounded-3xl"
+        >
+          <div className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-2 italic">Corporate Full Session</div>
+          <div className="text-xl font-bold text-white uppercase tracking-wide">Next Up: {nextInTie}</div>
+        </motion.div>
+      )}
+
       <p className="text-zinc-500 text-lg font-bold uppercase tracking-widest">
-        Auto-submitting in <span className="text-emerald-400 font-black text-2xl">{countdown}</span>s
+        {isTieExperience && nextInTie ? "Queuing next match in" : "Auto-submitting in"} <span className="text-emerald-400 font-black text-2xl">{countdown}</span>s
       </p>
     </motion.div>
   );
@@ -267,8 +291,33 @@ function ScoringScreen({
   const [countdown, setCountdown] = useState(3);
   const [isOnline, setIsOnline] = useState(true);
   const [offlineCount, setOfflineCount] = useState(0);
+  const [tieContext, setTieContext] = useState<{ mode: string; nextLabel?: string } | null>(null);
   const channelRef = useRef<any>(null);
   const scoringFrozen = phase !== 'SCORING';
+
+  // Load Tie context for automatic queuing
+  useEffect(() => {
+    async function loadTie() {
+      if (!match.tie_id) return;
+      const { data: template } = await supabase
+        .from('arena_tie_templates')
+        .select('completion_mode, arena_tie_template_events(event_label, sequence_order)')
+        .eq('id', match.tie_id)
+        .single();
+      
+      if (template) {
+        // Find next event label in sequence
+        const currentSeq = (match as any).sequence_order || 0;
+        const sortedEvents = (template as any).arena_tie_template_events.sort((a: any, b: any) => a.sequence_order - b.sequence_order);
+        const nextEvent = sortedEvents.find((e: any) => e.sequence_order > currentSeq);
+        setTieContext({
+          mode: template.completion_mode,
+          nextLabel: nextEvent?.event_label
+        });
+      }
+    }
+    loadTie();
+  }, [match.tie_id]);
 
   // Online/offline detection + replay
   useEffect(() => {
@@ -468,7 +517,14 @@ function ScoringScreen({
     <div className="min-h-screen bg-zinc-950 text-white font-sans flex flex-col select-none overflow-hidden relative">
       <AnimatePresence>
         {phase === 'SIDE_SWITCH' && <SideSwitchModal onConfirm={handleSideSwitchConfirmed} />}
-        {phase === 'MATCH_END' && <MatchEndOverlay winner={winnerName} countdown={countdown} />}
+        {phase === 'MATCH_END' && (
+          <MatchEndOverlay 
+            winner={winnerName} 
+            countdown={countdown} 
+            isTieExperience={tieContext?.mode === 'FULL'}
+            nextInTie={tieContext?.nextLabel}
+          />
+        )}
       </AnimatePresence>
 
       {/* Header strip */}

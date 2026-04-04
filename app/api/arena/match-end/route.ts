@@ -45,34 +45,86 @@ export async function POST(req: NextRequest) {
     const winnerName = winnerId === 'A' ? match.team_a_name : match.team_b_name;
     const loserName = winnerId === 'A' ? match.team_b_name : match.team_a_name;
 
-    // 3. Auto-progression — advance winner to next bracket slot
+    // 3. Auto-progression — handle Tie-level settlement if applicable
     if (match.next_match_id && match.next_team_slot) {
-      const updateField = match.next_team_slot === 'A'
-        ? { team_a_name: winnerName }
-        : { team_b_name: winnerName };
+      let shouldAdvance = true;
+      let tieWinnerName = winnerName;
 
-      const { error: slotErr } = await supabase
-        .from('arena_matches')
-        .update({ ...updateField, updated_at: new Date().toISOString() })
-        .eq('id', match.next_match_id);
+      // If it's a Tie-team match, we need to check the Tie Template rules
+      if (match.tie_id) {
+        const { data: template } = await supabase
+          .from('arena_tie_templates')
+          .select('wins_required, total_matches, completion_mode')
+          .eq('id', match.tie_id)
+          .single();
 
-      if (slotErr) {
-        console.error('[match-end] Failed to advance winner:', slotErr);
+        if (template) {
+          // Identify all matches in this specific Tie instance
+          // Grouped by bracket_match_id or group_id + team names
+          const query = supabase
+            .from('arena_matches')
+            .select('winner, status')
+            .eq('tournament_id', match.tournament_id)
+            .eq('team_a_name', match.team_a_name)
+            .eq('team_b_name', match.team_b_name);
+          
+          if (match.bracket_match_id) query.eq('bracket_match_id', match.bracket_match_id);
+          if (match.group_id) query.eq('group_id', match.group_id);
+
+          const { data: tieMatches } = await query;
+
+          if (tieMatches) {
+            const winsA = tieMatches.filter(m => m.winner === 'A').length;
+            const winsB = tieMatches.filter(m => m.winner === 'B').length;
+            const completedCount = tieMatches.filter(m => m.status === 'COMPLETED').length;
+            const isTieWinnerDetermined = winsA >= template.wins_required || winsB >= template.wins_required;
+
+            if (template.completion_mode === 'FULL') {
+              // Experience Mode: All matches must be played
+              if (completedCount < template.total_matches) {
+                shouldAdvance = false;
+              } else {
+                tieWinnerName = winsA > winsB ? match.team_a_name : match.team_b_name;
+              }
+            } else {
+              // Competitive Mode (EARLY): Stop when winner reached
+              if (!isTieWinnerDetermined) {
+                shouldAdvance = false;
+              } else {
+                tieWinnerName = winsA >= template.wins_required ? match.team_a_name : match.team_b_name;
+              }
+            }
+          }
+        }
       }
 
-      // Change next match status from PENDING → PENDING (it's now slotted)
-      // (Status remains PENDING until both teams are filled)
-      const { data: nextMatch } = await supabase
-        .from('arena_matches')
-        .select('team_a_name, team_b_name')
-        .eq('id', match.next_match_id)
-        .single();
+      if (shouldAdvance) {
+        const updateField = match.next_team_slot === 'A'
+          ? { team_a_name: tieWinnerName }
+          : { team_b_name: tieWinnerName };
 
-      if (nextMatch && nextMatch.team_a_name !== 'TBD' && nextMatch.team_b_name !== 'TBD') {
-        await supabase
+        const { error: slotErr } = await supabase
           .from('arena_matches')
-          .update({ status: 'PENDING', updated_at: new Date().toISOString() })
+          .update({ ...updateField, updated_at: new Date().toISOString() })
           .eq('id', match.next_match_id);
+
+        if (slotErr) {
+          console.error('[match-end] Failed to advance winner:', slotErr);
+        }
+
+        // Change next match status from PENDING → PENDING (it's now slotted)
+        const { data: nextMatch } = await supabase
+          .from('arena_matches')
+          .select('team_a_name, team_b_name')
+          .eq('id', match.next_match_id)
+          .single();
+
+        if (nextMatch && nextMatch.team_a_name !== 'TBD' && nextMatch.team_b_name !== 'TBD') {
+          await supabase
+            .from('arena_matches')
+            .update({ status: 'PENDING', updated_at: new Date().toISOString() })
+            .eq('id', match.next_match_id);
+        }
       }
     }
 

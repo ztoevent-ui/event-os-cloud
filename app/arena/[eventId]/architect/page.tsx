@@ -159,10 +159,17 @@ export default function ArchitectPage() {
   const [saved, setSaved] = useState(false);
 
   // Tie Template state
-  const [ties, setTies] = useState({
+  const [ties, setTies] = useState<{
+    name: string;
+    wins_required: number;
+    total_matches: number;
+    completion_mode: 'EARLY' | 'FULL';
+    events: { sequence_order: number; event_type: string; event_label: string }[];
+  }>({
     name: 'Standard Tie',
     wins_required: 3,
     total_matches: 5,
+    completion_mode: 'EARLY',
     events: EVENT_TYPES.slice(0, 5).map((et, idx) => ({
       sequence_order: idx + 1,
       event_type: et.id,
@@ -181,6 +188,24 @@ export default function ArchitectPage() {
 
       if (t) {
         setTournament(t);
+        
+        // Load existing tie template
+        const { data: existingTie } = await supabase
+          .from('arena_tie_templates')
+          .select('*, events:arena_tie_template_events(*)')
+          .eq('tournament_id', t.id)
+          .maybeSingle();
+
+        if (existingTie) {
+          setTies({
+            name: existingTie.name,
+            wins_required: existingTie.wins_required,
+            total_matches: existingTie.total_matches,
+            completion_mode: existingTie.completion_mode || 'EARLY',
+            events: existingTie.events.sort((a: any, b: any) => a.sequence_order - b.sequence_order),
+          });
+        }
+
         // Load existing round rules
         const { data: existingRules } = await supabase
           .from('arena_round_rules')
@@ -263,6 +288,7 @@ export default function ArchitectPage() {
         name: ties.name,
         wins_required: ties.wins_required,
         total_matches: ties.events.length,
+        completion_mode: ties.completion_mode,
       })
       .select()
       .single();
@@ -438,8 +464,41 @@ export default function ArchitectPage() {
                 <div className="flex items-end">
                   <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-4 w-full text-center">
                     <div className="text-[10px] font-black text-purple-400 uppercase tracking-widest mb-1">Format</div>
-                    <div className="text-white font-black">Best of {ties.events.length} — {ties.wins_required} to Win</div>
+                    <div className="text-white font-black">
+                      {ties.completion_mode === 'FULL' ? 'Experience Mode' : 'Competitive Mode'}
+                    </div>
                   </div>
+                </div>
+              </div>
+
+              {/* Completion Mode Toggle */}
+              <div className="mb-8 p-4 bg-zinc-900 border-2 border-violet-500/20 rounded-3xl flex items-center justify-between gap-6">
+                <div>
+                  <h3 className="font-black text-sm uppercase tracking-widest text-white">Completion Mode</h3>
+                  <p className="text-[10px] text-zinc-500 uppercase tracking-wider mt-1">
+                    {ties.completion_mode === 'FULL' 
+                      ? "FULL SESSION: iPad won't stop at 3 wins. All 5 matches must be played." 
+                      : "EARLY STOP: System ends the Tie as soon as a winner is determined."}
+                  </p>
+                </div>
+                <div className="flex bg-black p-1 rounded-2xl border border-white/5">
+                  {[
+                    { id: 'EARLY', label: 'Early Stop', icon: 'fa-bolt' },
+                    { id: 'FULL', label: 'Full Session', icon: 'fa-calendar-check' },
+                  ].map((mode) => (
+                    <button
+                      key={mode.id}
+                      onClick={() => setTies(p => ({ ...p, completion_mode: mode.id as any }))}
+                      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                        ties.completion_mode === mode.id
+                          ? 'bg-violet-600 text-white shadow-lg'
+                          : 'bg-transparent text-zinc-600 hover:text-zinc-400'
+                      }`}
+                    >
+                      <i className={`fa-solid ${mode.icon}`} />
+                      {mode.label}
+                    </button>
+                  ))}
                 </div>
               </div>
 
