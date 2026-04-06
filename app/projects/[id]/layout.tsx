@@ -15,6 +15,7 @@ export default async function ProjectLayout({
 
     const { data: project } = await supabase.from('projects').select('type').eq('id', projectId).single();
     const isWedding = project?.type === 'wedding' || project?.type === 'wedding_fair';
+    const isTournament = project?.type === 'sports' || project?.type === 'tournament';
     
     // Theme configs
     const theme = isWedding ? {
@@ -67,6 +68,11 @@ export default async function ProjectLayout({
                             <NavLink href={`/projects/${projectId}/vendors`} theme={theme}>Vendors</NavLink>
                             <NavLink href={`/projects/${projectId}/venue-layout`} theme={theme}>Venue Layout</NavLink>
                             <NavLink href={`/projects/${projectId}/registration`} theme={theme}>Registration</NavLink>
+                            {isTournament && (
+                                <NavLink href={`/projects/${projectId}/registration#tournament`} theme={theme}>
+                                    <i className="fa-solid fa-globe mr-1 text-[10px]" />Page
+                                </NavLink>
+                            )}
                         </div>
                         <div className="flex items-center gap-4">
                             <Link href="/projects" className="text-xs font-bold text-zinc-500 hover:text-white transition-colors flex items-center gap-2">

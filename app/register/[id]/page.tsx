@@ -8,22 +8,43 @@ import { GuildTeamItemForm } from './components/GuildTeamItemForm';
 import { GuildTeamSemiFreeForm } from './components/GuildTeamSemiFreeForm';
 import { BusinessProItemForm } from './components/BusinessProItemForm';
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export default function RegistrationPage() {
     const params = useParams();
-    const projectId = params?.id as string;
+    const rawId = params?.id as string;
 
     const [settings, setSettings] = useState<any>(null);
+    const [resolvedProjectId, setResolvedProjectId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isSuccess, setIsSuccess] = useState(false);
 
     useEffect(() => {
-        if (projectId) loadSettings();
-    }, [projectId]);
+        if (rawId) resolveAndLoad(rawId);
+    }, [rawId]);
 
-    const loadSettings = async () => {
+    const resolveAndLoad = async (idOrSlug: string) => {
+        let projectId = idOrSlug;
+
+        // If it's not a UUID, treat it as a readable slug
+        if (!UUID_REGEX.test(idOrSlug)) {
+            const { data: slugData } = await supabase
+                .from('tournament_settings')
+                .select('project_id')
+                .eq('page_slug', idOrSlug)
+                .single();
+
+            if (!slugData) {
+                setIsLoading(false);
+                return;
+            }
+            projectId = slugData.project_id;
+        }
+
+        setResolvedProjectId(projectId);
+
         const { data } = await supabase.from('tournament_settings').select('*').eq('project_id', projectId).single();
         if (data) {
-            // Apply defaults if they are missing
             const config = {
                 ...data,
                 template_type: data.template_type || 'guild_team_item',
@@ -88,13 +109,13 @@ export default function RegistrationPage() {
 
             <main className="max-w-3xl mx-auto px-4 sm:px-6 -mt-8 relative z-30">
                 {settings.template_type === 'guild_team_item' && (
-                    <GuildTeamItemForm projectId={projectId} config={settings} onSuccess={() => setIsSuccess(true)} />
+                    <GuildTeamItemForm projectId={resolvedProjectId!} config={settings} onSuccess={() => setIsSuccess(true)} />
                 )}
                 {settings.template_type === 'guild_team_semi_free' && (
-                    <GuildTeamSemiFreeForm projectId={projectId} config={settings} onSuccess={() => setIsSuccess(true)} />
+                    <GuildTeamSemiFreeForm projectId={resolvedProjectId!} config={settings} onSuccess={() => setIsSuccess(true)} />
                 )}
                 {settings.template_type === 'business_pro_item' && (
-                    <BusinessProItemForm projectId={projectId} config={settings} onSuccess={() => setIsSuccess(true)} />
+                    <BusinessProItemForm projectId={resolvedProjectId!} config={settings} onSuccess={() => setIsSuccess(true)} />
                 )}
             </main>
         </div>
