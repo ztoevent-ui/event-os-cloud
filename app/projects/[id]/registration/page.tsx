@@ -191,11 +191,11 @@ export default function RegistrationStudio() {
     };
 
     const publicRegUrl = settings.page_slug
-        ? `https://www.ztoevent.com/register/${settings.page_slug}`
-        : projectId ? `https://www.ztoevent.com/register/${projectId}` : '';
+        ? `https://ztoevent.com/register/${settings.page_slug}`
+        : projectId ? `https://ztoevent.com/register/${projectId}` : '';
 
     const publicPageUrl = settings.page_slug
-        ? `https://www.ztoevent.com/t/${settings.page_slug}`
+        ? `https://ztoevent.com/t/${settings.page_slug}`
         : '';
 
     // ── Repeatable list helpers ───────────────────────────────

@@ -39,7 +39,7 @@ export default async function TournamentPublicPage({ params }: { params: Promise
     const categories: any[] = ts.categories || [];
     const schedule: any[] = ts.event_schedule || [];
     const social: any = ts.social_links || {};
-    const regUrl = ts.page_slug ? `https://www.ztoevent.com/register/${ts.page_slug}` : `https://www.ztoevent.com/register/${project?.id}`;
+    const regUrl = ts.page_slug ? `https://ztoevent.com/register/${ts.page_slug}` : `https://ztoevent.com/register/${project?.id}`;
 
     // Format dates for display
     const formatDate = (d: string | null) => {
