@@ -99,6 +99,14 @@ export default function Home() {
                             <h3 className="font-bold text-lg text-gray-900 mb-2">Registration Admin</h3>
                             <p className="text-gray-400 text-sm">Manage form fields, branding, sponsors & T&C.</p>
                         </Link>
+
+                        <Link href="/admin/users" className="group bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-violet-100 transition-all hover:-translate-y-1">
+                            <div className="w-12 h-12 bg-violet-50 text-violet-600 rounded-xl flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
+                                <i className="fa-solid fa-users-gear"></i>
+                            </div>
+                            <h3 className="font-bold text-lg text-gray-900 mb-2">User Management</h3>
+                            <p className="text-gray-400 text-sm">Add, edit &amp; manage permanent and temporary user accounts.</p>
+                        </Link>
                     </div>
                 </section>
 
