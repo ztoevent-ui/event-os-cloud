@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 import Swal from 'sweetalert2';
+import { ImageUploadField } from '@/app/components/ImageUploadField';
 
 type SponsorItem = { name: string; logo_url: string; tier?: string };
 type OrgItem = { name: string; logo_url: string };
@@ -145,41 +146,78 @@ export default function RegistrationAdminPage() {
                         <div className="grid grid-cols-2 gap-5">
                             <AdminField label="Event Name" value={selected.event_name} onChange={v => update('event_name', v)} />
                             <AdminField label="Subtitle" value={selected.event_subtitle || ''} onChange={v => update('event_subtitle', v)} />
-                            <AdminField label="Logo URL" value={selected.logo_url || ''} onChange={v => update('logo_url', v)} placeholder="https://..." />
-                            <AdminField label="Background Image URL" value={selected.background_url || ''} onChange={v => update('background_url', v)} placeholder="https://..." />
+
+                            {/* Event Logo — with upload */}
+                            <ImageUploadField
+                                label="Event Logo"
+                                value={selected.logo_url || ''}
+                                onChange={v => update('logo_url', v)}
+                                bucket="logo"
+                                folder={selected.id || 'events'}
+                                placeholder="https://... or upload →"
+                                preview="thumbnail"
+                            />
+
+                            {/* Background Image — with upload */}
+                            <ImageUploadField
+                                label="Background / Banner Image"
+                                value={selected.background_url || ''}
+                                onChange={v => update('background_url', v)}
+                                bucket="tournament-banners"
+                                folder={selected.id || 'events'}
+                                placeholder="https://... or upload →"
+                                preview="thumbnail"
+                            />
+
                             <div>
                                 <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-2">Primary Color</label>
                                 <div className="flex items-center gap-3">
                                     <input type="color" value={selected.primary_color || '#f59e0b'} onChange={e => update('primary_color', e.target.value)} className="w-10 h-10 rounded-lg border border-white/10 bg-transparent cursor-pointer" />
-                                    <input type="text" value={selected.primary_color || ''} onChange={e => update('primary_color', e.target.value)} className="flex-1 bg-zinc-900 border border-white/10 rounded-xl px-4 py-2
-                                     text-white text-sm font-mono focus:outline-none focus:border-amber-500" />
+                                    <input type="text" value={selected.primary_color || ''} onChange={e => update('primary_color', e.target.value)} className="flex-1 bg-zinc-900 border border-white/10 rounded-xl px-4 py-2 text-white text-sm font-mono focus:outline-none focus:border-amber-500" />
                                 </div>
                             </div>
                         </div>
+
+                        {/* Banner preview if URL set */}
+                        {selected.background_url && (
+                            <div className="mt-4 rounded-2xl overflow-hidden h-40 border border-zinc-800">
+                                <img src={selected.background_url} alt="Background preview" className="w-full h-full object-cover" />
+                            </div>
+                        )}
                     </Section>
 
                     {/* Organizers */}
                     <Section title="Organizers" icon="fa-building">
-                        <OrgList items={selected.organizers || []} onAdd={() => addOrgItem('organizers')} onRemove={(i) => removeOrgItem('organizers', i)} onUpdate={(i, k, v) => updateOrgItem('organizers', i, k, v)} />
+                        <OrgList items={selected.organizers || []} onAdd={() => addOrgItem('organizers')} onRemove={(i) => removeOrgItem('organizers', i)} onUpdate={(i, k, v) => updateOrgItem('organizers', i, k, v)} bucket="event-assets" folderPrefix={`organizers/${selected.id}`} />
                     </Section>
 
                     {/* Co-Organizers */}
                     <Section title="Co-Organizers" icon="fa-handshake">
-                        <OrgList items={selected.co_organizers || []} onAdd={() => addOrgItem('co_organizers')} onRemove={(i) => removeOrgItem('co_organizers', i)} onUpdate={(i, k, v) => updateOrgItem('co_organizers', i, k, v)} />
+                        <OrgList items={selected.co_organizers || []} onAdd={() => addOrgItem('co_organizers')} onRemove={(i) => removeOrgItem('co_organizers', i)} onUpdate={(i, k, v) => updateOrgItem('co_organizers', i, k, v)} bucket="event-assets" folderPrefix={`co-organizers/${selected.id}`} />
                     </Section>
 
                     {/* Sponsors */}
                     <Section title="Sponsors" icon="fa-medal">
                         {(selected.sponsors || []).map((s: SponsorItem, i: number) => (
-                            <div key={i} className="flex items-center gap-3 mb-3">
-                                <select value={s.tier || 'bronze'} onChange={e => updateSponsor(i, 'tier', e.target.value)} className="bg-zinc-900 border border-white/10 rounded-lg px-3 py-2 text-xs font-bold text-white appearance-none cursor-pointer w-28">
-                                    <option value="gold">🥇 Gold</option>
-                                    <option value="silver">🥈 Silver</option>
-                                    <option value="bronze">🥉 Bronze</option>
-                                </select>
-                                <input value={s.name} onChange={e => updateSponsor(i, 'name', e.target.value)} className="flex-1 bg-zinc-900 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500" placeholder="Sponsor Name" />
-                                <input value={s.logo_url} onChange={e => updateSponsor(i, 'logo_url', e.target.value)} className="flex-1 bg-zinc-900 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500" placeholder="Logo URL" />
-                                <button onClick={() => removeSponsor(i)} className="text-red-500 hover:text-red-400 p-2"><i className="fa-solid fa-trash" /></button>
+                            <div key={i} className="bg-zinc-900/50 border border-white/5 rounded-xl p-4 mb-3 space-y-3">
+                                <div className="flex items-center gap-3">
+                                    <select value={s.tier || 'bronze'} onChange={e => updateSponsor(i, 'tier', e.target.value)} className="bg-zinc-900 border border-white/10 rounded-lg px-3 py-2 text-xs font-bold text-white appearance-none cursor-pointer w-28">
+                                        <option value="gold">🥇 Gold</option>
+                                        <option value="silver">🥈 Silver</option>
+                                        <option value="bronze">🥉 Bronze</option>
+                                    </select>
+                                    <input value={s.name} onChange={e => updateSponsor(i, 'name', e.target.value)} className="flex-1 bg-zinc-900 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500" placeholder="Sponsor Name" />
+                                    <button onClick={() => removeSponsor(i)} className="text-red-500 hover:text-red-400 p-2 shrink-0"><i className="fa-solid fa-trash" /></button>
+                                </div>
+                                <ImageUploadField
+                                    value={s.logo_url || ''}
+                                    onChange={v => updateSponsor(i, 'logo_url', v)}
+                                    bucket="event-assets"
+                                    folder={`sponsors/${selected.id || 'events'}`}
+                                    placeholder="Sponsor logo URL or upload →"
+                                    preview="thumbnail"
+                                    label="Sponsor Logo"
+                                />
                             </div>
                         ))}
                         <button onClick={addSponsor} className="mt-2 px-4 py-2 border border-dashed border-white/10 rounded-xl text-zinc-500 text-xs font-black uppercase tracking-widest hover:border-amber-500 hover:text-amber-500 transition-all w-full">+ Add Sponsor</button>
@@ -246,14 +284,31 @@ function AdminField({ label, value, onChange, placeholder }: { label: string; va
     );
 }
 
-function OrgList({ items, onAdd, onRemove, onUpdate }: { items: OrgItem[]; onAdd: () => void; onRemove: (i: number) => void; onUpdate: (i: number, key: string, value: string) => void }) {
+function OrgList({ items, onAdd, onRemove, onUpdate, bucket, folderPrefix }: {
+    items: OrgItem[];
+    onAdd: () => void;
+    onRemove: (i: number) => void;
+    onUpdate: (i: number, key: string, value: string) => void;
+    bucket?: string;
+    folderPrefix?: string;
+}) {
     return (
         <div>
             {items.map((item: OrgItem, i: number) => (
-                <div key={i} className="flex items-center gap-3 mb-3">
-                    <input value={item.name} onChange={e => onUpdate(i, 'name', e.target.value)} className="flex-1 bg-zinc-900 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500" placeholder="Organization Name" />
-                    <input value={item.logo_url} onChange={e => onUpdate(i, 'logo_url', e.target.value)} className="flex-1 bg-zinc-900 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500" placeholder="Logo URL (optional)" />
-                    <button onClick={() => onRemove(i)} className="text-red-500 hover:text-red-400 p-2"><i className="fa-solid fa-trash" /></button>
+                <div key={i} className="bg-zinc-900/50 border border-white/5 rounded-xl p-4 mb-3 space-y-3">
+                    <div className="flex items-center gap-3">
+                        <input value={item.name} onChange={e => onUpdate(i, 'name', e.target.value)} className="flex-1 bg-zinc-900 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500" placeholder="Organization Name" />
+                        <button onClick={() => onRemove(i)} className="text-red-500 hover:text-red-400 p-2 shrink-0"><i className="fa-solid fa-trash" /></button>
+                    </div>
+                    <ImageUploadField
+                        value={item.logo_url || ''}
+                        onChange={v => onUpdate(i, 'logo_url', v)}
+                        bucket={bucket || 'event-assets'}
+                        folder={folderPrefix || 'organizers'}
+                        placeholder="Logo URL or upload →"
+                        preview="thumbnail"
+                        label="Logo"
+                    />
                 </div>
             ))}
             <button onClick={onAdd} className="mt-2 px-4 py-2 border border-dashed border-white/10 rounded-xl text-zinc-500 text-xs font-black uppercase tracking-widest hover:border-amber-500 hover:text-amber-500 transition-all w-full">+ Add</button>

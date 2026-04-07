@@ -4,12 +4,14 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import Swal from 'sweetalert2';
+import { ImageUploadField } from '@/app/components/ImageUploadField';
 
 type Profile = {
     id: string;
     email?: string;
     full_name?: string;
     display_name?: string;
+    avatar_url?: string;
     role: string;
     user_type: 'permanent' | 'temporary';
     active_from: string | null;
@@ -59,6 +61,7 @@ export default function AdminUsersPage() {
         user_type: 'permanent' as 'permanent' | 'temporary',
         active_from: '',
         active_until: '',
+        avatar_url: '',
     });
 
     useEffect(() => {
@@ -95,7 +98,7 @@ export default function AdminUsersPage() {
 
     const openAddModal = () => {
         setEditTarget(null);
-        setForm({ display_name: '', full_name: '', email: '', password: '', role: 'REFEREE', user_type: 'permanent', active_from: '', active_until: '' });
+        setForm({ display_name: '', full_name: '', email: '', password: '', role: 'REFEREE', user_type: 'permanent', active_from: '', active_until: '', avatar_url: '' });
         setShowModal(true);
     };
 
@@ -110,6 +113,7 @@ export default function AdminUsersPage() {
             user_type: p.user_type || 'permanent',
             active_from: p.active_from ? p.active_from.split('T')[0] : '',
             active_until: p.active_until ? p.active_until.split('T')[0] : '',
+            avatar_url: p.avatar_url || '',
         });
         setShowModal(true);
     };
@@ -132,6 +136,7 @@ export default function AdminUsersPage() {
                     user_type: form.user_type,
                     active_from: form.user_type === 'temporary' && form.active_from ? form.active_from : null,
                     active_until: form.user_type === 'temporary' && form.active_until ? form.active_until : null,
+                    avatar_url: form.avatar_url || null,
                     updated_at: new Date().toISOString(),
                 }).eq('id', editTarget.id);
 
@@ -144,7 +149,7 @@ export default function AdminUsersPage() {
                     email: form.email,
                     password: form.password,
                     options: {
-                        data: { full_name: form.display_name || form.full_name }
+                        data: { full_name: form.display_name || form.full_name, avatar_url: form.avatar_url || null }
                     }
                 });
 
@@ -160,6 +165,7 @@ export default function AdminUsersPage() {
                     user_type: form.user_type,
                     active_from: form.user_type === 'temporary' && form.active_from ? form.active_from : null,
                     active_until: form.user_type === 'temporary' && form.active_until ? form.active_until : null,
+                    avatar_url: form.avatar_url || null,
                 }, { onConflict: 'id' });
 
                 Swal.fire({ title: 'User Created!', text: 'A confirmation email has been sent.', icon: 'success', background: '#18181b', color: '#fff', confirmButtonColor: '#f59e0b' });
@@ -255,9 +261,13 @@ export default function AdminUsersPage() {
                                             {/* User */}
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 font-black text-sm shrink-0">
-                                                        {(profile.display_name || profile.full_name || profile.email || '?')[0].toUpperCase()}
-                                                    </div>
+                                                    {profile.avatar_url ? (
+                                                        <img src={profile.avatar_url} alt="Avatar" className="w-9 h-9 rounded-xl object-cover shrink-0 border border-white/10" />
+                                                    ) : (
+                                                        <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 font-black text-sm shrink-0">
+                                                            {(profile.display_name || profile.full_name || profile.email || '?')[0].toUpperCase()}
+                                                        </div>
+                                                    )}
                                                     <div>
                                                         <div className="text-sm font-bold text-white">
                                                             {profile.display_name || profile.full_name || '—'}
@@ -339,6 +349,18 @@ export default function AdminUsersPage() {
                         <p className="text-white/30 text-sm mb-6">{editTarget ? 'Update access settings and role.' : 'Create a permanent or temporary user account.'}</p>
 
                         <div className="space-y-4">
+                            {/* Avatar */}
+                            <div>
+                                <ImageUploadField
+                                    label="Profile Avatar"
+                                    value={form.avatar_url}
+                                    onChange={v => setForm({ ...form, avatar_url: v })}
+                                    bucket="user-avatars"
+                                    folder="profiles"
+                                    placeholder="Avatar URL or upload →"
+                                />
+                            </div>
+
                             {/* Display Name */}
                             <div>
                                 <label className="block text-[10px] font-black tracking-widest uppercase text-white/40 mb-2">Display Name</label>

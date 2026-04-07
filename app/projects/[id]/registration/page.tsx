@@ -7,6 +7,7 @@ import Swal from 'sweetalert2';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ImageUploadField } from '@/app/components/ImageUploadField';
 
 // ── Preset theme colors ──────────────────────────────────────
 const THEME_PRESETS = [
@@ -488,12 +489,14 @@ export default function RegistrationStudio() {
                         <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl">
                             <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-2">Hero Banner Image</label>
                             <p className="text-zinc-500 text-xs mb-4">Full-width background for the top of your tournament page. Recommended: 1920×1080px.</p>
-                            <input type="text" className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 mb-3" value={settings.hero_banner_url || ''} onChange={e => setSettings({ ...settings, hero_banner_url: e.target.value })} placeholder="https://... (paste image URL)" />
-                            {settings.hero_banner_url && (
-                                <div className="rounded-xl overflow-hidden h-32 w-full">
-                                    <img src={settings.hero_banner_url} alt="Hero preview" className="w-full h-full object-cover" />
-                                </div>
-                            )}
+                            <ImageUploadField
+                                value={settings.hero_banner_url || ''}
+                                onChange={v => setSettings({ ...settings, hero_banner_url: v })}
+                                bucket="tournament-banners"
+                                folder={projectId}
+                                placeholder="https://... (paste URL or upload)"
+                                preview="banner"
+                            />
                         </div>
 
                         {/* ── Event Description ────────────────────── */}
