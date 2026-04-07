@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 
 import { GuildTeamItemForm } from './components/GuildTeamItemForm';
@@ -12,6 +12,7 @@ const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12
 
 export default function RegistrationPage() {
     const params = useParams();
+    const router = useRouter();
     const rawId = params?.id as string;
 
     const [settings, setSettings] = useState<any>(null);
@@ -64,6 +65,34 @@ export default function RegistrationPage() {
 
     if (isLoading) return <div className="min-h-screen bg-black flex justify-center items-center text-zinc-500"><i className="fa-solid fa-spinner fa-spin mr-3"/> Loading Tournament Details...</div>;
     if (!settings) return <div className="min-h-screen bg-black flex justify-center items-center text-zinc-500 text-xl font-bold">Registration not found or inactive.</div>;
+
+    const now = new Date();
+    if (settings.reg_open_date && now < new Date(settings.reg_open_date)) {
+        const openDate = new Date(settings.reg_open_date).toLocaleDateString('en-MY', { day: 'numeric', month: 'long', year: 'numeric' });
+        return (
+            <div className="min-h-screen bg-black flex flex-col justify-center items-center text-zinc-300 p-6">
+                <div className="text-center bg-zinc-900 border border-zinc-800 p-10 rounded-3xl shadow-2xl max-w-lg w-full">
+                    <i className="fa-regular fa-calendar text-5xl text-amber-500 mb-6" />
+                    <h2 className="text-2xl font-black text-white uppercase tracking-widest mb-3">Not Yet Open</h2>
+                    <p className="text-zinc-500">Registration for this event will open on <span className="text-white font-bold">{openDate}</span>.</p>
+                    <button onClick={() => router.push(`/t/${settings.page_slug || resolvedProjectId}`)} className="mt-8 px-6 py-2 border border-white/10 rounded-xl hover:bg-white/5 transition-colors text-xs uppercase tracking-widest font-black">Back to Event Page</button>
+                </div>
+            </div>
+        );
+    }
+    
+    if (settings.reg_close_date && now > new Date(settings.reg_close_date)) {
+        return (
+            <div className="min-h-screen bg-black flex flex-col justify-center items-center text-zinc-300 p-6">
+                <div className="text-center bg-zinc-900 border border-zinc-800 p-10 rounded-3xl shadow-2xl max-w-lg w-full">
+                    <i className="fa-solid fa-lock text-5xl text-red-500/80 mb-6" />
+                    <h2 className="text-2xl font-black text-white uppercase tracking-widest mb-3">Registration Closed</h2>
+                    <p className="text-zinc-500">The registration window for this event has ended.</p>
+                    <button onClick={() => router.push(`/t/${settings.page_slug || resolvedProjectId}`)} className="mt-8 px-6 py-2 border border-white/10 rounded-xl hover:bg-white/5 transition-colors text-xs uppercase tracking-widest font-black">Back to Event Page</button>
+                </div>
+            </div>
+        );
+    }
 
     if (isSuccess) {
         return (

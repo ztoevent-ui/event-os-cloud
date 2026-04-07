@@ -382,8 +382,6 @@ export default async function TournamentPublicPage({ params }: { params: Promise
                             <i className="fa-solid fa-pen-to-square" /> Register Now
                         </a>
                     )}
-
-                    <p className="mt-5 text-white/20 text-xs font-mono">{regUrl}</p>
                 </div>
             </section>
 

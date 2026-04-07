@@ -67,17 +67,18 @@ export default function AuthPage() {
                 // Role-based redirection using DB profile
                 const role = profile?.role || data.user?.user_metadata?.role;
                 if (role === 'admin') {
-                    router.push('/admin/users');
+                    window.location.href = '/admin/users';
                 } else if (role === 'client') {
-                    router.push('/apps/wedding-hub');
+                    window.location.href = '/apps/wedding-hub';
                 } else {
-                    router.push('/');
+                    window.location.href = '/';
                 }
+                // Do NOT set loading = false here, keep the loading state until page unloads
+                return;
             }
         } catch (error: Error | any) {
             console.error(error);
             setMessage(error.message || 'An error occurred');
-        } finally {
             setLoading(false);
         }
     };
@@ -183,15 +184,6 @@ export default function AuthPage() {
                             </button>
                         )}
                     </div>
-                </div>
-
-                <div className="text-center">
-                    <a
-                        href="https://www.ztoevent.com/"
-                        className="text-xs text-white/20 hover:text-white/40 transition-colors"
-                    >
-                        <i className="fa-solid fa-globe mr-1" /> ztoevent.com
-                    </a>
                 </div>
             </div>
         </div>
