@@ -69,7 +69,7 @@ export default function AdminUsersPage() {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) { router.push('/auth'); return; }
 
-            const { data: prof } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+            const { data: prof } = await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle();
             if (!prof || prof.role !== 'admin') {
                 router.push(prof?.role === 'client' ? '/apps/wedding-hub' : '/');
                 return;

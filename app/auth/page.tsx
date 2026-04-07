@@ -39,7 +39,7 @@ export default function AuthPage() {
                     .from('profiles')
                     .select('role, user_type, active_from, active_until, display_name')
                     .eq('id', data.user.id)
-                    .single();
+                    .maybeSingle();
 
                 if (profile?.user_type === 'temporary') {
                     const now = new Date();
