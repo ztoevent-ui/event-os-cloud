@@ -4,10 +4,9 @@ import React, { useState, useEffect, use } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabaseClient';
 import { PrintReportButton } from '../../components/ProjectModals';
-import { PrintBreakTrigger } from '../../components/PrintBreakTrigger';
 import { usePrint } from '../../components/PrintContext';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, horizontalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
 interface ProgramColumn {
@@ -72,7 +71,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
     setProject(projData);
 
     const { data: settingsData } = await supabase.from('tournament_settings').select('program_columns').eq('project_id', projectId).single();
-    if (settingsData?.program_columns) {
+    if (settingsData?.program_columns && settingsData.program_columns.length > 0) {
       setColumns(settingsData.program_columns);
     }
   };
@@ -103,15 +102,24 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
     text70: 'text-amber-500/70', text80: 'text-amber-500/80', bgFocus: 'focus:bg-amber-500/5', bgHover: 'hover:bg-amber-500'
   };
 
-  // --- Modifications (Local State) --- //
+  // --- Dual-Axis Drag Logic --- //
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    if (over && active.id !== over.id) {
+    if (!over || active.id === over.id) return;
+
+    const idStr = String(active.id);
+    if (idStr.startsWith('col_')) {
+      setColumns((items) => {
+        const oldIndex = items.findIndex(i => `col_${i.id}` === active.id);
+        const newIndex = items.findIndex(i => `col_${i.id}` === over.id);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+      setHasChanges(true);
+    } else {
       setRows((items) => {
         const oldIndex = items.findIndex(i => i.id === active.id);
         const newIndex = items.findIndex(i => i.id === over.id);
         const reordered = arrayMove(items, oldIndex, newIndex);
-        // Update sort_order explicitly
         return reordered.map((item, index) => ({ ...item, sort_order: index }));
       });
       setHasChanges(true);
@@ -129,6 +137,11 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
     setHasChanges(true);
   };
 
+  const updateColumnWidth = (colId: string, newWidth: string) => {
+    setColumns(columns.map(c => c.id === colId ? { ...c, width: newWidth } : c));
+    setHasChanges(true);
+  };
+
   const addRow = () => {
     const newId = `temp_${Date.now()}`;
     const newRow: ProgramRow = {
@@ -140,28 +153,28 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
   };
 
   const removeRow = (id: string) => {
-    if (!confirm('确定要删除这一行吗？(Are you sure you want to delete this row?)')) return;
+    if (!confirm('确定删除这行吗？(Confirm row deletion?)')) return;
     setRows(rows.filter(r => r.id !== id));
     setHasChanges(true);
   };
 
   const addColumn = () => {
-    const colName = prompt('What is the name of the new column? (新列的名称)');
+    const colName = prompt('新列名称 (New column name)');
     if (!colName) return;
     const newColId = `custom_${Date.now()}`;
-    setColumns([...columns, { id: newColId, label: colName, isCustom: true }]);
+    setColumns([...columns, { id: newColId, label: colName, isCustom: true, width: '150px' }]);
     setHasChanges(true);
   };
 
   const removeColumn = (colId: string) => {
-    if (!confirm('This will delete the column and all its data. Confirm? (确认删除该列及所有数据？)')) return;
+    if (!confirm('确认删除该列及所有数据？(Confirm column deletion?)')) return;
     setColumns(columns.filter(c => c.id !== colId));
     setHasChanges(true);
   };
 
   const toggleEditMode = () => {
     if (editMode && hasChanges) {
-       alert("You have unsaved changes. Please click 'SAVE SCRIPT' or discard changes first.");
+       alert("未保存修改，请先点击 SAVE SCRIPT。");
        return;
     }
     setEditMode(!editMode);
@@ -171,16 +184,14 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
   const saveScript = async () => {
     setIsSaving(true);
     
-    // 1. Save Columns Format to Settings safely (Handling projects without existing settings)
     const { data: updateData, error: updateError } = await supabase.from('tournament_settings').update({ program_columns: columns }).eq('project_id', projectId).select();
     if (!updateError && (!updateData || updateData.length === 0)) {
         const { error: insertError } = await supabase.from('tournament_settings').insert({ project_id: projectId, program_columns: columns });
-        if (insertError) alert(`Column Config Error: ${insertError.message}`);
+        if (insertError) alert(`Config Error: ${insertError.message}`);
     } else if (updateError) {
-        alert(`Settings Update Error: ${updateError.message}`);
+        alert(`Config Update Error: ${updateError.message}`);
     }
 
-    // 2. Identify Rows to Insert/Update and Delete
     const { data: existingDbRows } = await supabase.from('program_items').select('id').eq('project_id', projectId);
     const existingIds = new Set(existingDbRows?.map(r => r.id) || []);
     
@@ -191,27 +202,18 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
       await supabase.from('program_items').delete().in('id', idsToDelete);
     }
 
-    // 3. Split remaining rows into Updates and Inserts to avoid Supabase schema mismatch
     const indexedRows = rows.map((row, index) => ({ ...row, sort_order: index }));
-    
     const rowsToUpdate = indexedRows.filter(r => !r.id.startsWith('temp_'));
     const rowsToInsert = indexedRows.filter(r => r.id.startsWith('temp_')).map(r => {
       const payload = { ...r };
-      delete (payload as any).id; // Remove the temp ID so the database can generate a true UUID
+      delete (payload as any).id; 
       return payload;
     });
 
-    if (rowsToUpdate.length > 0) {
-      const { error } = await supabase.from('program_items').upsert(rowsToUpdate);
-      if (error) alert(`Error updating rows: ${error.message}`);
-    }
+    if (rowsToUpdate.length > 0) await supabase.from('program_items').upsert(rowsToUpdate);
+    if (rowsToInsert.length > 0) await supabase.from('program_items').insert(rowsToInsert);
 
-    if (rowsToInsert.length > 0) {
-      const { error } = await supabase.from('program_items').insert(rowsToInsert);
-      if (error) alert(`Error inserting new rows: ${error.message}`);
-    }
-
-    await fetchProgram(); // Re-sync local state with DB IDs
+    await fetchProgram(); 
     setEditMode(false);
     setIsSaving(false);
   };
@@ -230,7 +232,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
       
       {isKiosk && (
           <div className="fixed bottom-8 right-8 z-[200]">
-              <button onClick={() => setIsKiosk(false)} className="h-14 px-8 bg-red-600 hover:bg-red-500 text-white rounded-full font-black text-xs tracking-widest flex items-center gap-3 shadow-[0_0_30px_rgba(220,38,38,0.5)] transition-all">
+              <button onClick={() => setIsKiosk(false)} className="h-14 px-8 bg-black hover:bg-zinc-900 border border-red-500 text-red-500 rounded-full font-black text-xs tracking-widest flex items-center gap-3 transition-all">
                   <i className="fa-solid fa-compress"></i> EXIT KIOSK
               </button>
           </div>
@@ -260,7 +262,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
             )}
             {editMode && hasChanges && (
                 <button 
-                  onClick={() => { fetchProgram(); setColumns(DEFAULT_COLUMNS); setEditMode(false); }}
+                  onClick={() => { fetchProjectAndSettings(); fetchProgram(); setEditMode(false); }}
                   className="h-12 px-6 text-xs font-black rounded-full text-zinc-400 hover:text-white transition-all underline tracking-widest print:hidden"
                 >
                   DISCARD
@@ -278,65 +280,50 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
         </div>
       </div>
 
-      {/* Modern Table Container */}
       <div className="bg-[#050505] rounded-[2.5rem] border border-white/5 overflow-hidden shadow-2xl relative">
         <div className="overflow-x-auto print:overflow-visible print:w-full">
-          <table className="w-full text-left border-collapse min-w-[1200px] print:min-w-full print:w-full">
-            <thead>
-              <tr className="bg-zinc-900/40 border-b border-white/5 text-[10px] uppercase font-black tracking-[0.2em] text-zinc-500">
-                {editMode && <th className="p-6 w-20 text-center">Ctrls</th>}
-                {columns.map(col => (
-                   <th key={col.id} className={`p-4 border-r border-white/5 relative group ${editMode ? 'resize-x overflow-auto min-w-[80px]' : ''}`} style={{ width: col.width || 'auto' }}>
-                     {col.label}
-                     {editMode && col.isCustom && (
-                        <button onClick={() => removeColumn(col.id)} className="absolute right-4 top-1/2 -translate-y-1/2 text-red-500/50 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <i className="fa-solid fa-times"></i>
-                        </button>
-                     )}
-                   </th>
-                ))}
-                {editMode && (
-                   <th className="p-6 w-32 border-r border-white/5 text-center">
-                     <button onClick={addColumn} className={`text-xs ${theme.text} font-black hover:scale-110 transition-transform`}><i className="fa-solid fa-plus mr-2"></i>ADD COL</button>
-                   </th>
-                )}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <table className="w-full text-left border-collapse min-w-[1200px] print:min-w-full print:w-full table-fixed">
+              <thead>
+                <tr className="bg-zinc-900/40 border-b border-white/5 text-[10px] uppercase font-black tracking-[0.2em] text-zinc-500">
+                  {editMode && <th className="p-4 w-20 text-center">Ctrls</th>}
+                  <SortableContext items={columns.map(c => `col_${c.id}`)} strategy={horizontalListSortingStrategy}>
+                    {columns.map(col => (
+                      <SortableColumnHeader key={`col_${col.id}`} col={col} editMode={editMode} removeColumn={removeColumn} updateColumnWidth={updateColumnWidth} theme={theme} />
+                    ))}
+                  </SortableContext>
+                  {editMode && (
+                    <th className="p-4 w-32 border-l border-white/5 text-center">
+                      <button onClick={addColumn} className={`text-[10px] ${theme.text} font-black hover:scale-110 transition-transform`}><i className="fa-solid fa-plus mr-1"></i>ADD COL</button>
+                    </th>
+                  )}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
                 <SortableContext items={rows.map(r => r.id)} strategy={verticalListSortingStrategy}>
                   <AnimatePresence initial={false}>
-                    {rows.map((row, index) => (
+                    {rows.map(row => (
                       <SortableRow key={row.id} row={row} columns={columns} editMode={editMode} updateCell={updateCell} removeRow={removeRow} theme={theme} isPageBreak={pageBreakIds.includes(row.id)} fontSize={fontSize} />
                     ))}
                   </AnimatePresence>
                 </SortableContext>
-              </DndContext>
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+          </DndContext>
           
           {(rows.length === 0 && !loading) && (
-            <div className="py-32 flex flex-col items-center justify-center border-2 border-dashed border-white/5 rounded-[3rem] bg-white/[0.02] group hover:border-white/10 transition-all mx-8 my-8">
-              <div className="relative mb-8">
-                <div className={`absolute inset-0 blur-3xl opacity-20 ${theme.bg}`}></div>
-                <i className={`fa-solid fa-layer-group text-7xl relative z-10 ${theme.text} opacity-30 group-hover:scale-110 transition-transform duration-700`}></i>
-              </div>
+            <div className="py-32 flex flex-col items-center justify-center bg-white/[0.02] border-t border-white/5">
               <h3 className="text-2xl font-black text-zinc-400 uppercase tracking-[0.3em] mb-3 italic">No Sequence Defined</h3>
-              <p className="text-zinc-600 font-medium text-xs max-w-sm text-center border-t border-white/5 pt-6 mt-2 tracking-widest leading-loose uppercase">
-                Your live production script is currently blank. <br/>
-                Initialize the sequence to generate automated cues.
-              </p>
+              <p className="text-zinc-600 font-medium text-xs mt-2 uppercase tracking-widest">Initialize the sequence.</p>
               <div className="mt-10 print:hidden">
-                <button onClick={addRow} className={`h-14 px-12 bg-zinc-900 ${theme.text} rounded-2xl border ${theme.border} text-[10px] font-black uppercase tracking-[0.3em] shadow-2xl hover:bg-white hover:text-black transition-all`}>
-                   Initialize First Row
-                </button>
+                <button onClick={addRow} className={`h-14 px-12 bg-zinc-900 ${theme.text} rounded-2xl border ${theme.border} text-[10px] font-black uppercase tracking-[0.3em]`}>Initialize First Row</button>
               </div>
             </div>
           )}
           
           {editMode && rows.length > 0 && (
             <div className="p-8 bg-zinc-900/20 border-t border-white/5 flex justify-center">
-              <button onClick={addRow} className={`h-14 px-12 bg-zinc-800 text-white ${theme.bgHover} hover:scale-105 active:scale-95 text-[10px] uppercase tracking-[0.3em] font-black rounded-full transition-all flex items-center gap-4 shadow-2xl`}>
+              <button onClick={addRow} className={`h-14 px-12 bg-zinc-800 text-white ${theme.bgHover} active:scale-95 text-[10px] uppercase tracking-[0.3em] font-black rounded-full transition-all flex items-center gap-4 shadow-2xl`}>
                 <i className="fa-solid fa-plus-circle text-lg"></i> Append Sequence Row
               </button>
             </div>
@@ -358,13 +345,13 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
           nav, button, .print\\:hidden { display: none !important; }
           body { background: white !important; color: black !important; }
           .bg-zinc-900, .bg-\\[\\#0a0a0a\\]\\/80, .bg-\\[\\#050505\\] { background: transparent !important; color: black !important; }
-          .border-white\\/5, .border-r { border-color: #eee !important; }
+          .border-white\\/5, .border-r, .border-l { border-color: #eee !important; }
           .text-zinc-500, .text-zinc-400, .text-zinc-700 { color: #666 !important; }
           .text-white, .text-zinc-100, .text-zinc-200 { color: black !important; }
           .print-page-break, .print\\:break-before-page { break-before: page !important; }
           table { width: 100% !important; border-collapse: collapse !important; }
           th { background: #f5f5f5 !important; color: black !important; -webkit-print-color-adjust: exact; }
-          td, th { border: 1px solid #eee !important; padding: 12px !important; }
+          td, th { border: 1px solid #eee !important; padding: 8px !important; }
           .rounded-\\[2rem\\], .rounded-\\[2\\.5rem\\], .rounded-xl { border-radius: 0 !important; }
           .shadow-2xl, .shadow-xl { box-shadow: none !important; }
         }
@@ -373,13 +360,103 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
   );
 }
 
-function SortableRow({ row, columns, editMode, updateCell, removeRow, theme, isPageBreak, fontSize }: any) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: row.id });
+// ------ Horizontal Sortable Column Component ------ //
+function SortableColumnHeader({ col, editMode, removeColumn, updateColumnWidth, theme }: any) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: `col_${col.id}` });
   
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    ...(isDragging ? { zIndex: 50, position: 'relative' as any, opacity: 0.8, background: '#111' } : {})
+    ...(isDragging ? { zIndex: 100, background: '#111', opacity: 0.9, position: 'relative' as any } : {}),
+    width: col.width || 'auto'
+  };
+
+  const handleResizeStart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const startX = e.clientX;
+    const th = (e.target as HTMLElement).closest('th');
+    const startWidth = th?.getBoundingClientRect().width || 150;
+
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      const deltaX = moveEvent.clientX - startX;
+      updateColumnWidth(col.id, `${Math.max(60, startWidth + deltaX)}px`);
+    };
+
+    const onMouseUp = () => {
+       document.removeEventListener('mousemove', onMouseMove);
+       document.removeEventListener('mouseup', onMouseUp);
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  };
+
+  return (
+    <th ref={setNodeRef} style={style} className={`p-4 border-r border-white/5 relative group align-middle ${editMode ? 'hover:bg-white/[0.02]' : ''}`}>
+      <div className="flex items-center justify-between gap-2 h-full">
+        <div className="flex-1 flex items-center gap-2">
+           {editMode && (
+             <button {...attributes} {...listeners} className="text-zinc-600 hover:text-white cursor-grab active:cursor-grabbing print:hidden">
+               <i className="fa-solid fa-grip-dots-vertical text-[10px]"></i>
+             </button>
+           )}
+           <span className="truncate">{col.label}</span>
+        </div>
+        
+        {editMode && col.isCustom && (
+           <button onClick={() => removeColumn(col.id)} className="text-zinc-700 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity print:hidden shrink-0">
+             <i className="fa-solid fa-times text-xs"></i>
+           </button>
+        )}
+      </div>
+
+      {/* Invisible Custom Vertical Drag Handle for Width Setting */}
+      {editMode && (
+        <div
+            onMouseDown={handleResizeStart}
+            className={`absolute right-0 top-0 bottom-0 w-2 cursor-col-resize hover:bg-white/20 transition-colors z-10`}
+        />
+      )}
+    </th>
+  );
+}
+
+// ------ Vertical Sortable Row Component ------ //
+function SortableRow({ row, columns, editMode, updateCell, removeRow, theme, isPageBreak, fontSize }: any) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: row.id });
+  
+  // Custom height logic based on JSONB property
+  const rowHeight = row.custom_data?.rowHeight || 'auto';
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    height: rowHeight,
+    // When absolute sizing is applied, ensure minimal height constraints
+    ...(isDragging ? { zIndex: 50, position: 'relative' as any, opacity: 0.8, shadow: '0 10px 30px rgba(0,0,0,0.5)', background: 'black' } : {})
+  };
+
+  const handleResizeStart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const startY = e.clientY;
+    const tr = (e.target as HTMLElement).closest('tr');
+    const startHeight = tr?.getBoundingClientRect().height || 50;
+
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      const deltaY = moveEvent.clientY - startY;
+      const newHeight = Math.max(30, startHeight + deltaY);
+      updateCell(row.id, 'rowHeight', `${newHeight}px`, true);
+    };
+
+    const onMouseUp = () => {
+       document.removeEventListener('mousemove', onMouseMove);
+       document.removeEventListener('mouseup', onMouseUp);
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
   };
 
   return (
@@ -389,10 +466,18 @@ function SortableRow({ row, columns, editMode, updateCell, removeRow, theme, isP
       className={`group transition-colors relative ${row.is_important ? 'bg-red-500/5' : 'hover:bg-white/[0.02]'} ${isPageBreak ? 'print:break-before-page' : ''}`}
     >
       {editMode && (
-        <td className="p-4 border-r border-white/5 text-center bg-[#050505]/50 align-top">
-           <div className="flex flex-col gap-3 items-center justify-center pt-2">
+        <td className="p-0 border-r border-white/5 text-center bg-[#050505]/50 align-top relative min-h-full">
+           <div className="flex flex-col gap-3 items-center pt-4 relative z-10 h-full">
               <button {...attributes} {...listeners} className="text-zinc-600 hover:text-white cursor-grab active:cursor-grabbing p-2"><i className="fa-solid fa-grip-lines"></i></button>
-              <button onClick={() => removeRow(row.id)} className="text-zinc-700 hover:text-red-500 p-2 rounded-xl hover:bg-red-500/10 transition-all"><i className="fa-solid fa-trash-can"></i></button>
+              <button onClick={() => removeRow(row.id)} className="text-zinc-700 hover:text-red-500 p-2 rounded-xl transition-all"><i className="fa-solid fa-trash-can"></i></button>
+           </div>
+           {/* Invisible Custom Horizontal Drag Handle for Height Setting placed ONLY on this first column cell! */}
+           <div 
+             onMouseDown={handleResizeStart}
+             title="Drag to resize row height"
+             className="absolute bottom-0 left-0 right-0 h-3 cursor-row-resize hover:bg-white/10 z-20 transition-all flex items-center justify-center print:hidden border-b border-transparent hover:border-white/20"
+           >
+              <div className="w-4 h-0.5 bg-zinc-600 opacity-50 rounded-full" />
            </div>
         </td>
       )}
@@ -405,7 +490,7 @@ function SortableRow({ row, columns, editMode, updateCell, removeRow, theme, isP
               <textarea
                 value={val}
                 onChange={(e) => updateCell(row.id, col.id, e.target.value, col.isCustom)}
-                className={`w-full min-h-[40px] p-3 md:p-4 bg-transparent resize-y outline-none ${theme.bgFocus} ${fontSize} font-bold ${row.is_important && col.id === 'activities' ? 'text-red-500' : 'text-zinc-300'} placeholder-zinc-800 transition-colors`}
+                className={`w-full h-full min-h-[40px] p-3 md:p-4 bg-transparent resize-none outline-none ${theme.bgFocus} ${fontSize} font-bold ${row.is_important && col.id === 'activities' ? 'text-red-500' : 'text-zinc-300'} placeholder-zinc-800 transition-colors`}
                 placeholder={col.label.toUpperCase()}
               />
             ) : (
@@ -416,18 +501,6 @@ function SortableRow({ row, columns, editMode, updateCell, removeRow, theme, isP
           </td>
         );
       })}
-      
-      {editMode && (
-         <td className="p-0 bg-zinc-950/20 align-top text-zinc-800 italic flex items-center justify-center pt-8 text-xs border-r border-white/5 relative">
-            {/* Empty space for adding col aligner */}
-            {row.is_important && (
-                 <button onClick={() => updateCell(row.id, 'is_important', 'false', false)} className="absolute bottom-2 right-2 text-red-500 text-[10px] font-black tracking-widest bg-red-500/10 px-2 py-1 rounded">UNMARK</button>
-            )}
-            {!row.is_important && (
-                 <button onClick={() => updateCell(row.id, 'is_important', 'true', false)} className="absolute bottom-2 right-2 text-zinc-500 hover:text-white text-[10px] font-black tracking-widest bg-zinc-800 px-2 py-1 rounded">MARK</button>
-            )}
-         </td>
-      )}
     </motion.tr>
   );
 }
