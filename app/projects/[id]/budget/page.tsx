@@ -59,7 +59,7 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
             {/* Print Only Header */}
             <div className="hidden print:flex items-center justify-between border-b-2 border-zinc-200 pb-6 print:pb-2 mb-8 print:mb-2 relative">
                 <div className="flex items-center gap-3">
-                    <img src="https://zihjzbweasaqqbwilshx.supabase.co/storage/v1/object/public/logo/icon.png.JPG" alt="ZTO Logo" className="w-12 h-12 print:w-8 print:h-8 object-contain" />
+                    <img src="https://zihjzbweasaqqbwilshx.supabase.co/storage/v1/object/public/logo/icon.png.JPG" alt="ZTO Logo" crossOrigin="anonymous" className="w-12 h-12 print:w-8 print:h-8 object-contain" />
                     <span className="font-black text-xl print:text-sm text-zinc-900 tracking-tighter uppercase">ZTO Event OS</span>
                 </div>
                 <div className="text-center">
@@ -68,7 +68,7 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
                 </div>
                 <div className="flex items-center justify-end">
                     {logoUrl ? (
-                        <img src={logoUrl} alt="Event Logo" className="w-16 h-16 print:w-10 print:h-10 object-contain" />
+                        <img src={logoUrl} alt="Event Logo" crossOrigin="anonymous" className="w-16 h-16 print:w-10 print:h-10 object-contain" />
                     ) : (
                         <div className="w-16 h-16 print:w-10 print:h-10 bg-zinc-100 rounded-lg border border-zinc-200 flex items-center justify-center text-[8px] print:text-[6px] text-zinc-400 font-bold uppercase text-center p-2">Project Logo</div>
                     )}
