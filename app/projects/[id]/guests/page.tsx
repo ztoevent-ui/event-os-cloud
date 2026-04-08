@@ -1,9 +1,11 @@
 'use client';
-
+import React, { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
+import { PrintReportButton } from '../../components/ProjectModals';
+import { PrintBreakTrigger } from '../../components/PrintBreakTrigger';
+import { usePrint } from '../../components/PrintContext';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://zihjzbweasaqqbwilshx.supabase.co';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppaGp6YndlYXNhcXFid2lsc2h4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4OTQ5MTYsImV4cCI6MjA4MTQ3MDkxNn0.ilHqOs75eUA6p2n-h1rgfulwNwq_hPQyptFg-kcjbv4';
@@ -14,6 +16,7 @@ export default function GuestListPage() {
     const [attendees, setAttendees] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [project, setProject] = useState<any>(null);
+    const { pageBreakIds } = usePrint();
     const projectId = Array.isArray(id) ? id[0] : id;
 
     useEffect(() => {
@@ -91,10 +94,11 @@ export default function GuestListPage() {
                     <p className="text-zinc-400 font-medium">Manage attendees and ticket holders.</p>
                 </div>
                 <div className="flex gap-4">
+                    <PrintReportButton title="Guest List" />
                     <a 
                         href={`/apps/ticketing/registration?project_id=${projectId}`} 
                         target="_blank" 
-                        className={`px-5 py-2.5 rounded-xl text-sm font-black uppercase tracking-wider ${theme.bg} text-black ${theme.hover} transition shadow-lg`}
+                        className={`px-5 py-2.5 rounded-xl text-sm font-black uppercase tracking-wider ${theme.bg} text-black ${theme.hover} transition shadow-lg print:hidden`}
                     >
                         <i className="fa-solid fa-link mr-2"></i> Registration Link
                     </a>
@@ -119,36 +123,70 @@ export default function GuestListPage() {
                             <tr><td colSpan={5} className="text-center py-12 text-zinc-500 italic">No guests registered yet.</td></tr>
                         ) : (
                             attendees.map((guest) => (
-                                <tr key={guest.id} className="hover:bg-white/5 transition group">
-                                    <td className="px-8 py-5 font-bold text-white group-hover:text-zinc-200">{guest.name}</td>
-                                    <td className="px-8 py-5 text-zinc-500 font-mono text-xs">{guest.phone || '-'}</td>
-                                    <td className="px-8 py-5">
-                                        <span className={`font-mono ${theme.accentText} ${theme.accentBg} ${theme.accentBorder} border rounded-lg text-xs px-2.5 py-1.5 font-bold`}>
-                                            {guest.ticket_code}
-                                        </span>
-                                    </td>
-                                    <td className="px-8 py-5">
-                                        {guest.checked_in ? (
-                                            <span className="bg-emerald-500/10 text-emerald-500 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-500/30">
-                                                Checked In
+                                <React.Fragment key={guest.id}>
+                                    <tr className={`hover:bg-white/5 transition group ${pageBreakIds.includes(guest.id) ? 'print:break-before-page' : ''}`}>
+                                        <td className="px-8 py-5 font-bold text-white group-hover:text-zinc-200 print:text-black">{guest.name}</td>
+                                        <td className="px-8 py-5 text-zinc-500 font-mono text-xs print:text-black">{guest.phone || '-'}</td>
+                                        <td className="px-8 py-5">
+                                            <span className={`font-mono ${theme.accentText} ${theme.accentBg} ${theme.accentBorder} border rounded-lg text-xs px-2.5 py-1.5 font-bold print:text-black print:bg-white print:border-zinc-200`}>
+                                                {guest.ticket_code}
                                             </span>
-                                        ) : (
-                                            <span className="bg-zinc-800 text-zinc-500 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-zinc-700">
-                                                Registered
-                                            </span>
-                                        )}
-                                    </td>
-                                    <td className="px-8 py-5 text-right">
-                                        <button onClick={() => handleDelete(guest.id)} className="text-zinc-600 hover:text-red-500 transition-colors p-2">
-                                            <i className="fa-solid fa-trash text-sm"></i>
-                                        </button>
-                                    </td>
-                                </tr>
+                                        </td>
+                                        <td className="px-8 py-5">
+                                            {guest.checked_in ? (
+                                                <span className="bg-emerald-500/10 text-emerald-500 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-500/30 print:text-black print:border-zinc-200">
+                                                    Checked In
+                                                </span>
+                                            ) : (
+                                                <span className="bg-zinc-800 text-zinc-500 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-zinc-700 print:text-black print:border-zinc-200">
+                                                    Registered
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td className="px-8 py-5 text-right print:hidden">
+                                            <button onClick={() => handleDelete(guest.id)} className="text-zinc-600 hover:text-red-500 transition-colors p-2">
+                                                <i className="fa-solid fa-trash text-sm"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr className="print:hidden">
+                                        <td colSpan={5} className="p-0">
+                                            <PrintBreakTrigger id={guest.id} />
+                                        </td>
+                                    </tr>
+                                </React.Fragment>
                             ))
                         )}
                     </tbody>
                 </table>
             </div>
+
+            <style jsx global>{`
+                @media print {
+                    @page { margin: 15mm; }
+                    html, body, main {
+                        background: white !important;
+                        color: black !important;
+                    }
+                    .print\\:hidden, nav, header, footer, button {
+                        display: none !important;
+                    }
+                    .bg-zinc-900, .bg-zinc-800 {
+                        background: transparent !important;
+                        color: black !important;
+                        border-color: #eee !important;
+                    }
+                    .text-white, .text-zinc-400, .text-zinc-500 {
+                        color: black !important;
+                    }
+                    .print\\:break-before-page {
+                        break-before: page !important;
+                    }
+                    table { width: 100% !important; border-collapse: collapse !important; }
+                    th, td { border: 1px solid #eee !important; padding: 8px !important; color: black !important; font-size: 10pt !important; }
+                    thead { display: table-header-group !important; }
+                }
+            `}</style>
         </div>
     );
 }

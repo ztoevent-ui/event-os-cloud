@@ -1,15 +1,62 @@
+'use client';
 
-import { createClient } from '@supabase/supabase-js';
+import React, { useState, useEffect, use } from 'react';
+import { supabase } from '@/lib/supabaseClient';
 import Link from 'next/link';
+import { PrintReportButton } from '../components/ProjectModals';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://zihjzbweasaqqbwilshx.supabase.co';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppaGp6YndlYXNhcXFid2lsc2h4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4OTQ5MTYsImV4cCI6MjA4MTQ3MDkxNn0.ilHqOs75eUA6p2n-h1rgfulwNwq_hPQyptFg-kcjbv4';
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export default function ProjectDashboard({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = use(params);
+    const [project, setProject] = useState<any>(null);
+    const [stats, setStats] = useState<any>({
+        pendingTasks: 0,
+        criticalTasks: 0,
+        expenses: 0,
+        consultations: 0
+    });
+    const [loading, setLoading] = useState(true);
 
-export default async function ProjectDashboard({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params;
+    useEffect(() => {
+        fetchData();
+    }, [id]);
 
-    const { data: project } = await supabase.from('projects').select('*').eq('id', id).single();
+    const fetchData = async () => {
+        setLoading(true);
+        const { data: projectData } = await supabase.from('projects').select('*').eq('id', id).single();
+        setProject(projectData);
+
+        const { count: pending } = await supabase
+            .from('tasks')
+            .select('*', { count: 'exact', head: true })
+            .eq('project_id', id)
+            .neq('status', 'done');
+
+        const { count: critical } = await supabase
+            .from('tasks')
+            .select('*', { count: 'exact', head: true })
+            .eq('project_id', id)
+            .eq('priority', 'critical')
+            .neq('status', 'done');
+
+        const { data: budgetItems } = await supabase.from('budgets').select('*').eq('project_id', id);
+        const exp = budgetItems?.filter((b: any) => b.type === 'expense').reduce((sum: number, b: any) => sum + Number(b.amount), 0) || 0;
+
+        const { count: cons } = await supabase
+            .from('consulting_forms')
+            .select('*', { count: 'exact', head: true })
+            .eq('project_id', id);
+
+        setStats({
+            pendingTasks: pending || 0,
+            criticalTasks: critical || 0,
+            expenses: exp,
+            consultations: cons || 0
+        });
+        setLoading(false);
+    };
+
+    if (loading) return <div className="p-20 text-center animate-pulse">Synchronizing Project Data...</div>;
+
     const isWedding = project?.type === 'wedding' || project?.type === 'wedding_fair';
     const theme = isWedding ? {
         primary: 'text-pink-500',
@@ -27,22 +74,6 @@ export default async function ProjectDashboard({ params }: { params: Promise<{ i
         shadow: 'shadow-[0_0_25px_rgba(245,158,11,0.2)]'
     };
     
-    const { count: pendingTasksCount } = await supabase
-        .from('tasks')
-        .select('*', { count: 'exact', head: true })
-        .eq('project_id', id)
-        .neq('status', 'done');
-
-    const { count: criticalTasksCount } = await supabase
-        .from('tasks')
-        .select('*', { count: 'exact', head: true })
-        .eq('project_id', id)
-        .eq('priority', 'critical')
-        .neq('status', 'done');
-
-    const { data: budgetItems } = await supabase.from('budgets').select('*').eq('project_id', id);
-    const expenses = budgetItems?.filter((b: any) => b.type === 'expense').reduce((sum: number, b: any) => sum + Number(b.amount), 0) || 0;
-
     const today = new Date();
     const endDate = project?.end_date ? new Date(project.end_date) : null;
     let daysLeft = 'TBD';
@@ -52,47 +83,46 @@ export default async function ProjectDashboard({ params }: { params: Promise<{ i
         daysLeft = diffDays > 0 ? diffDays.toString() : 'Ended';
     }
 
-    const { count: consultationCount } = await supabase
-        .from('consulting_forms')
-        .select('*', { count: 'exact', head: true })
-        .eq('project_id', id);
-
     return (
         <div className="space-y-8 pb-16">
+            <div className="flex justify-end print:hidden">
+                <PrintReportButton title="Project Summary" />
+            </div>
+
             {/* Hero Banner */}
-            <div className="relative rounded-3xl overflow-hidden bg-zinc-900 border border-zinc-800 shadow-2xl">
+            <div className="relative rounded-3xl overflow-hidden bg-zinc-900 border border-zinc-800 shadow-2xl print:bg-white print:border-zinc-200">
                 <div
-                    className="absolute inset-0 bg-cover bg-center opacity-15"
+                    className="absolute inset-0 bg-cover bg-center opacity-15 print:hidden"
                     style={{ backgroundImage: `url(${isWedding ? 'https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=2070&auto=format&fit=crop' : 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=2069&auto=format&fit=crop'})` }}
                 ></div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/60"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/60 print:hidden"></div>
 
-                <div className="relative z-10 p-10 md:p-16">
+                <div className="relative z-10 p-10 md:p-16 print:p-8">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
                         <div>
-                            <div className={`inline-flex items-center gap-2 px-4 py-1.5 mb-5 border ${theme.border} rounded-full ${theme.pill} ${theme.primary} text-[10px] font-black tracking-[0.2em] uppercase`}>
-                                <span className={`w-1.5 h-1.5 ${theme.bg} rounded-full animate-pulse`}></span>
+                            <div className={`inline-flex items-center gap-2 px-4 py-1.5 mb-5 border ${theme.border} rounded-full ${theme.pill} ${theme.primary} text-[10px] font-black tracking-[0.2em] uppercase print:border-black print:text-black`}>
+                                <span className={`w-1.5 h-1.5 ${theme.bg} rounded-full animate-pulse print:bg-black`}></span>
                                 {project?.status || 'Active Operation'}
                             </div>
-                            <h1 className="text-4xl md:text-6xl font-black text-white mb-3 tracking-tighter uppercase italic">
+                            <h1 className="text-4xl md:text-6xl font-black text-white mb-3 tracking-tighter uppercase italic print:text-black print:not-italic">
                                 {project?.name || 'ZTO Event'}
                             </h1>
-                            <p className="text-base text-zinc-500 font-medium">
-                                Event ID: <span className="text-zinc-300 font-mono text-sm">{id}</span>
+                            <p className="text-base text-zinc-500 font-medium print:text-zinc-600">
+                                Event ID: <span className="text-zinc-300 font-mono text-sm print:text-black">{id}</span>
                                 {project?.type && <span> • {project.type.replace(/_/g, ' ')}</span>}
                             </p>
                         </div>
 
-                        <div className="flex flex-col items-end shrink-0">
-                            <div className="text-zinc-600 text-[10px] font-black tracking-[0.3em] uppercase mb-1">Countdown</div>
-                            <div className="text-5xl font-black text-white tabular-nums tracking-tighter">
-                                {daysLeft}<span className="text-xl text-zinc-500 ml-2 italic font-medium">DAYS</span>
+                        <div className="flex flex-col items-end shrink-0 print:items-start print:mt-4">
+                            <div className="text-zinc-600 text-[10px] font-black tracking-[0.3em] uppercase mb-1 print:text-zinc-500">Countdown</div>
+                            <div className="text-5xl font-black text-white tabular-nums tracking-tighter print:text-black">
+                                {daysLeft}<span className="text-xl text-zinc-500 ml-2 italic font-medium print:text-zinc-600">DAYS</span>
                             </div>
                         </div>
                     </div>
 
                     {/* Quick Action Buttons */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-10">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-10 print:hidden">
                         <Link href={`/projects/${id}/program`}>
                             <div className={`px-8 py-4 ${theme.bg} ${theme.hover} text-black font-black rounded-2xl transition-all flex items-center justify-between ${theme.shadow}`}>
                                 <span className="uppercase tracking-widest text-xs">Run Live Program</span>
@@ -119,81 +149,68 @@ export default async function ProjectDashboard({ params }: { params: Promise<{ i
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
                 {/* Tasks */}
-                <Link href={`/projects/${id}/tasks`} className="block group">
-                    <div className={`h-full bg-zinc-900/50 border border-white/5 p-8 rounded-3xl ${isWedding ? 'hover:border-pink-500/30' : 'hover:border-amber-500/30'} transition-all cursor-pointer`}>
-                        <div className="flex items-center justify-between mb-6">
-                            <div className={`w-12 h-12 ${theme.pill} rounded-xl flex items-center justify-center ${theme.primary}`}>
-                                <i className="fa-solid fa-check-double text-xl"></i>
-                            </div>
-                            <span className="text-[10px] font-black text-zinc-600 tracking-widest">TASKS</span>
+                <div className={`bg-zinc-900/50 border border-white/5 p-8 rounded-3xl transition-all print:bg-white print:border-zinc-200 print:shadow-none`}>
+                    <div className="flex items-center justify-between mb-6">
+                        <div className={`w-12 h-12 ${theme.pill} rounded-xl flex items-center justify-center ${theme.primary} print:bg-zinc-100 print:text-black`}>
+                            <i className="fa-solid fa-check-double text-xl"></i>
                         </div>
-                        <div className="text-4xl font-black text-white mb-1">{pendingTasksCount || 0}</div>
-                        <div className="text-[10px] font-bold text-zinc-500 tracking-widest uppercase mb-4">Pending Actions</div>
-                        <div className="w-full bg-white/5 h-1 rounded-full overflow-hidden">
-                            <div className={`${theme.bg} h-full w-2/5`}></div>
-                        </div>
-                        <div className="text-[10px] text-zinc-600 mt-2">{criticalTasksCount || 0} Critical Items</div>
+                        <span className="text-[10px] font-black text-zinc-600 tracking-widest print:text-zinc-500">TASKS</span>
                     </div>
-                </Link>
+                    <div className="text-4xl font-black text-white mb-1 print:text-black">{stats.pendingTasks}</div>
+                    <div className="text-[10px] font-bold text-zinc-500 tracking-widest uppercase mb-4 print:text-zinc-600">Pending Actions</div>
+                    <div className="text-[10px] text-zinc-600 mt-2 print:text-black">{stats.criticalTasks} Critical Items</div>
+                </div>
 
                 {/* Budget */}
-                <Link href={`/projects/${id}/budget`} className="block group">
-                    <div className="h-full bg-zinc-900/50 border border-white/5 p-8 rounded-3xl hover:border-emerald-500/30 transition-all cursor-pointer">
-                        <div className="flex items-center justify-between mb-6">
-                            <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-500">
-                                <i className="fa-solid fa-receipt text-xl"></i>
-                            </div>
-                            <span className="text-[10px] font-black text-zinc-600 tracking-widest">BUDGET</span>
+                <div className="bg-zinc-900/50 border border-white/5 p-8 rounded-3xl transition-all print:bg-white print:border-zinc-200 print:shadow-none">
+                    <div className="flex items-center justify-between mb-6">
+                        <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-500 print:bg-zinc-100 print:text-black">
+                            <i className="fa-solid fa-receipt text-xl"></i>
                         </div>
-                        <div className="text-3xl font-black text-white mb-1">RM {expenses.toLocaleString()}</div>
-                        <div className="text-[10px] font-bold text-zinc-500 tracking-widest uppercase mb-4">Current Spend</div>
-                        <div className="text-[10px] font-black text-emerald-500">
-                            <i className="fa-solid fa-check mr-1"></i> Within Allocation
-                        </div>
+                        <span className="text-[10px] font-black text-zinc-600 tracking-widest print:text-zinc-500">BUDGET</span>
                     </div>
-                </Link>
+                    <div className="text-3xl font-black text-white mb-1 print:text-black">RM {stats.expenses.toLocaleString()}</div>
+                    <div className="text-[10px] font-bold text-zinc-500 tracking-widest uppercase mb-4 print:text-zinc-600">Current Spend</div>
+                </div>
 
                 {/* Consultations */}
-                <Link href={`/projects/${id}/consultation`} className="block group">
-                    <div className={`h-full bg-zinc-900/50 border border-white/5 p-8 rounded-3xl ${isWedding ? 'hover:border-pink-500/30' : 'hover:border-cyan-500/30'} transition-all cursor-pointer`}>
-                        <div className="flex items-center justify-between mb-6">
-                            <div className={`w-12 h-12 ${isWedding ? 'bg-pink-500/10 text-pink-500' : 'bg-cyan-500/10 text-cyan-500'} rounded-xl flex items-center justify-center`}>
-                                <i className="fa-solid fa-wand-magic-sparkles text-xl"></i>
-                            </div>
-                            <span className="text-[10px] font-black text-zinc-600 tracking-widest">REPORTS</span>
+                <div className={`bg-zinc-900/50 border border-white/5 p-8 rounded-3xl transition-all print:bg-white print:border-zinc-200 print:shadow-none`}>
+                    <div className="flex items-center justify-between mb-6">
+                        <div className={`w-12 h-12 ${isWedding ? 'bg-pink-500/10 text-pink-500' : 'bg-cyan-500/10 text-cyan-500'} rounded-xl flex items-center justify-center print:bg-zinc-100 print:text-black`}>
+                            <i className="fa-solid fa-wand-magic-sparkles text-xl"></i>
                         </div>
-                        <div className="text-4xl font-black text-white mb-1">{consultationCount || 0}</div>
-                        <div className="text-[10px] font-bold text-zinc-500 tracking-widest uppercase mb-4">Client Submissions</div>
-                        <div className={`text-[10px] font-black ${isWedding ? 'text-pink-500' : 'text-cyan-500'}`}>
-                            <span className={`inline-block w-2 h-2 ${isWedding ? 'bg-pink-500' : 'bg-cyan-500'} rounded-full mr-2`}></span>AI Summaries Ready
-                        </div>
+                        <span className="text-[10px] font-black text-zinc-600 tracking-widest print:text-zinc-500">REPORTS</span>
                     </div>
-                </Link>
+                    <div className="text-4xl font-black text-white mb-1 print:text-black">{stats.consultations}</div>
+                    <div className="text-[10px] font-bold text-zinc-500 tracking-widest uppercase mb-4 print:text-zinc-600">Client Submissions</div>
+                </div>
 
-                {/* Quick Links */}
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    <Link href={`/projects/${id}/registration`} className="bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl flex flex-col items-center justify-center gap-3 p-4 transition-colors min-h-[80px]">
-                        <i className="fa-solid fa-file-signature text-zinc-500 text-lg"></i>
-                        <span className="text-[9px] font-black tracking-widest uppercase text-zinc-600">Registration</span>
-                    </Link>
-                    <Link href={`/projects/${id}/guests`} className="bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl flex flex-col items-center justify-center gap-3 p-4 transition-colors min-h-[80px]">
-                        <i className="fa-solid fa-users text-zinc-500 text-lg"></i>
-                        <span className="text-[9px] font-black tracking-widest uppercase text-zinc-600">Guests</span>
-                    </Link>
-                    <Link href={`/projects/${id}/tickets`} className="bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl flex flex-col items-center justify-center gap-3 p-4 transition-colors min-h-[80px]">
-                        <i className="fa-solid fa-ticket text-zinc-500 text-lg"></i>
-                        <span className="text-[9px] font-black tracking-widest uppercase text-zinc-600">Tickets</span>
-                    </Link>
-                    <Link href={`/projects/${id}/vendors`} className="bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl flex flex-col items-center justify-center gap-3 p-4 transition-colors min-h-[80px]">
-                        <i className="fa-solid fa-handshake-angle text-zinc-500 text-lg"></i>
-                        <span className="text-[9px] font-black tracking-widest uppercase text-zinc-600">Vendors</span>
-                    </Link>
-                    <Link href={`/projects/${id}/team`} className="bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl flex flex-col items-center justify-center gap-3 p-4 transition-colors min-h-[80px]">
-                        <i className="fa-solid fa-user-group text-zinc-500 text-lg"></i>
-                        <span className="text-[9px] font-black tracking-widest uppercase text-zinc-600">Team</span>
-                    </Link>
+                {/* Placeholder for Print info */}
+                <div className="hidden print:block bg-white border border-zinc-200 p-8 rounded-3xl">
+                     <div className="text-[10px] font-black text-zinc-400 tracking-widest uppercase mb-2">Generated On</div>
+                     <div className="text-sm font-bold text-black">{new Date().toLocaleString()}</div>
+                     <div className="mt-4 pt-4 border-t border-zinc-100">
+                        <div className="text-[10px] font-black text-zinc-400 tracking-widest uppercase mb-1">Official Project Report</div>
+                        <div className="text-[8px] text-zinc-500 italic">ZTO Event OS • Powered by AI</div>
+                     </div>
                 </div>
             </div>
+
+            <style jsx global>{`
+                @media print {
+                    @page { margin: 15mm; }
+                    html, body, main {
+                        background: white !important;
+                        color: black !important;
+                    }
+                    .print\\:hidden, nav, header, footer, button {
+                        display: none !important;
+                    }
+                    .bg-zinc-900, .bg-zinc-900\\/50 {
+                        background: transparent !important;
+                    }
+                }
+            `}</style>
         </div>
     );
 }

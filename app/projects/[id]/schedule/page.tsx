@@ -2,6 +2,10 @@
 
 import React, { useState, useEffect, use } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import { PrintReportButton } from '../../components/ProjectModals';
+import { PrintBreakTrigger } from '../../components/PrintBreakTrigger';
+import { usePrint } from '../../components/PrintContext';
+
 
 interface ScheduleItem {
   id: string;
@@ -18,6 +22,7 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
   const [project, setProject] = useState<any>(null);
+  const { pageBreakIds } = usePrint();
 
   useEffect(() => {
     fetchProject();
@@ -180,9 +185,7 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
             <i className={`fa-solid ${editMode ? 'fa-check' : 'fa-pencil'}`}></i>
             {editMode ? 'Finish' : 'Edit'}
           </button>
-          <button className="px-6 py-3 bg-zinc-900 border border-white/5 text-zinc-400 hover:text-white font-black text-xs uppercase tracking-widest rounded-full transition-all flex items-center gap-2">
-            <i className="fa-solid fa-print"></i> PRINT
-          </button>
+          <PrintReportButton title="Production Schedule" />
         </div>
       </div>
 
@@ -192,79 +195,81 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
         
         <div className="relative z-10 space-y-4">
           {schedule.map((item, index) => (
-            <div key={item.id} className={`flex items-stretch gap-6 group transition-all duration-300 ${item.status === 'DONE' && !editMode ? 'opacity-50' : ''}`}>
-              
-              {/* Timeline Connector */}
-              <div className="flex flex-col items-center min-w-[60px]">
-                <div className={`w-3 h-3 rounded-full mt-6 shadow-[0_0_10px_rgba(0,0,0,0.5)] z-10 transition-colors ${item.status === 'DONE' ? 'bg-emerald-500' : item.status === 'IN_PROGRESS' ? '${theme.bg} ${theme.shadow}' : 'bg-zinc-700'}`}></div>
-                {index !== schedule.length - 1 && (
-                  <div className={`w-0.5 flex-1 mt-2 mb-2 transition-colors ${item.status === 'DONE' ? 'bg-emerald-900/50' : 'bg-zinc-800'}`}></div>
-                )}
-              </div>
+            <div key={item.id} className={`flex flex-col group transition-all duration-300 ${item.status === 'DONE' && !editMode ? 'opacity-50' : ''}`}>
+              <div className={`flex items-stretch gap-6 ${pageBreakIds.includes(item.id) ? 'print:break-before-page' : ''}`}>
+                
+                {/* Timeline Connector */}
+                <div className="flex flex-col items-center min-w-[60px] print:hidden">
+                  <div className={`w-3 h-3 rounded-full mt-6 shadow-[0_0_10px_rgba(0,0,0,0.5)] z-10 transition-colors ${item.status === 'DONE' ? 'bg-emerald-500' : item.status === 'IN_PROGRESS' ? '${theme.bg} ${theme.shadow}' : 'bg-zinc-700'}`}></div>
+                  {index !== schedule.length - 1 && (
+                    <div className={`w-0.5 flex-1 mt-2 mb-2 transition-colors ${item.status === 'DONE' ? 'bg-emerald-900/50' : 'bg-zinc-800'}`}></div>
+                  )}
+                </div>
 
-              {/* Event Card */}
-              <div className={`flex-1 bg-zinc-900/60 backdrop-blur-md border border-zinc-800/80 ${theme.hoverBorder900_50} rounded-2xl p-6 transition-all group-hover:bg-zinc-900/90 shadow-lg`}>
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="flex items-center gap-6 flex-1">
-                    <div className="w-24 shrink-0">
-                      {editMode ? (
-                        <input 
-                          type="text" 
-                          defaultValue={item.time} 
-                          onBlur={(e) => handleFieldChange(item.id, 'time', e.target.value)}
-                          className={`w-full bg-transparent border-b border-zinc-800 ${theme.text} font-black focus:${theme.border} outline-none text-xl tabular-nums`}
-                        />
-                      ) : (
-                        <div className={`text-xl font-black tabular-nums ${theme.text80} tracking-wider`}>
-                          {item.time || 'TBD'}
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      {editMode ? (
-                        <input 
-                          type="text" 
-                          defaultValue={item.title} 
-                          onBlur={(e) => handleFieldChange(item.id, 'title', e.target.value)}
-                          className={`w-full bg-transparent border-b border-zinc-800 text-zinc-100 font-bold focus:${theme.border} outline-none text-lg`}
-                        />
-                      ) : (
-                        <h3 className={`text-lg font-bold tracking-wide transition-colors ${item.status === 'DONE' ? 'text-zinc-500 line-through' : 'text-zinc-100'}`}>
-                          {item.title}
-                        </h3>
-                      )}
-                      <div className="flex items-center gap-2 mt-2 text-sm text-zinc-500">
-                        <i className="fa-solid fa-user-gear"></i> 
+                {/* Event Card */}
+                <div className={`flex-1 bg-zinc-900/60 backdrop-blur-md border border-zinc-800/80 ${theme.hoverBorder900_50} rounded-2xl p-6 transition-all group-hover:bg-zinc-900/90 shadow-lg print:bg-white print:border-zinc-200 print:text-black print:shadow-none print:rounded-none print:m-0`}>
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="flex items-center gap-6 flex-1">
+                      <div className="w-24 shrink-0">
                         {editMode ? (
                           <input 
                             type="text" 
-                            defaultValue={item.assignee} 
-                            onBlur={(e) => handleFieldChange(item.id, 'assignee', e.target.value)}
-                            className={`bg-transparent border-b border-zinc-800 focus:${theme.border} outline-none w-32`}
+                            defaultValue={item.time} 
+                            onBlur={(e) => handleFieldChange(item.id, 'time', e.target.value)}
+                            className={`w-full bg-transparent border-b border-zinc-800 ${theme.text} font-black focus:${theme.border} outline-none text-xl tabular-nums`}
                           />
                         ) : (
-                          item.assignee
+                          <div className={`text-xl font-black tabular-nums ${theme.text80} tracking-wider print:text-black`}>
+                            {item.time || 'TBD'}
+                          </div>
                         )}
                       </div>
+                      <div className="flex-1">
+                        {editMode ? (
+                          <input 
+                            type="text" 
+                            defaultValue={item.title} 
+                            onBlur={(e) => handleFieldChange(item.id, 'title', e.target.value)}
+                            className={`w-full bg-transparent border-b border-zinc-800 text-zinc-100 font-bold focus:${theme.border} outline-none text-lg`}
+                          />
+                        ) : (
+                          <h3 className={`text-lg font-bold tracking-wide transition-colors ${item.status === 'DONE' ? 'text-zinc-500 line-through' : 'text-zinc-100'} print:text-black`}>
+                            {item.title}
+                          </h3>
+                        )}
+                        <div className="flex items-center gap-2 mt-2 text-sm text-zinc-500 print:text-zinc-500">
+                          <i className="fa-solid fa-user-gear"></i> 
+                          {editMode ? (
+                            <input 
+                              type="text" 
+                              defaultValue={item.assignee} 
+                              onBlur={(e) => handleFieldChange(item.id, 'assignee', e.target.value)}
+                              className={`bg-transparent border-b border-zinc-800 focus:${theme.border} outline-none w-32`}
+                            />
+                          ) : (
+                            item.assignee
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="flex items-center gap-3">
-                    {editMode && (
-                      <button onClick={() => removeItem(item.id)} className="text-zinc-700 hover:text-red-500 p-2 transition-colors">
-                        <i className="fa-solid fa-trash-can"></i>
+                    <div className="flex items-center gap-3 print:hidden">
+                      {editMode && (
+                        <button onClick={() => removeItem(item.id)} className="text-zinc-700 hover:text-red-500 p-2 transition-colors">
+                          <i className="fa-solid fa-trash-can"></i>
+                        </button>
+                      )}
+                      <button 
+                        onClick={() => cycleStatus(item.id, item.status)}
+                        className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest border transition-all hover:scale-105 active:scale-95 cursor-pointer ${getStatusColor(item.status)}`}
+                      >
+                        {getStatusLabel(item.status)}
                       </button>
-                    )}
-                    <button 
-                      onClick={() => cycleStatus(item.id, item.status)}
-                      className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest border transition-all hover:scale-105 active:scale-95 cursor-pointer ${getStatusColor(item.status)}`}
-                    >
-                      {getStatusLabel(item.status)}
-                    </button>
+                    </div>
                   </div>
                 </div>
               </div>
-
+              <PrintBreakTrigger id={item.id} />
             </div>
           ))}
           
@@ -287,6 +292,24 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
           )}
         </div>
       </div>
+
+      <style jsx global>{`
+        @media print {
+          @page { margin: 15mm; }
+          nav, button, .print\\:hidden { display: none !important; }
+          body { background: white !important; color: black !important; padding: 0 !important; }
+          .bg-zinc-950\\/80, .bg-zinc-900\\/60, .bg-black\\/40 { background: transparent !important; color: black !important; }
+          .border-amber-900\\/30, .border-amber-900\\/20, .border-zinc-800\\/80, .border-zinc-800 { border-color: #eee !important; }
+          .border-pink-900\\/30, .border-pink-900\\/20 { border-color: #eee !important; }
+          .text-zinc-500, .text-zinc-600 { color: #666 !important; }
+          .text-white, .text-zinc-100, .text-zinc-200 { color: black !important; }
+          .shadow-2xl, .shadow-lg { box-shadow: none !important; }
+          .rounded-3xl, .rounded-2xl { border-radius: 0 !important; }
+          .print\\:break-before-page { break-before: page !important; }
+          .max-w-7xl { max-width: none !important; width: 100% !important; margin: 0 !important; }
+          main { padding: 0 !important; }
+        }
+      `}</style>
     </div>
   );
 }

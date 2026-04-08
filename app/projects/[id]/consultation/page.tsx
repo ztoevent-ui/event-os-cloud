@@ -1,17 +1,38 @@
-
-import { createClient } from '@supabase/supabase-js';
+'use client';
+import React, { useState, useEffect, use } from 'react';
+import { supabase } from '@/lib/supabaseClient';
 import ConsultingForm from '../../components/ConsultingForm';
 import ConsultationList from '../../components/ConsultationList';
 import Link from 'next/link';
+import { PrintReportButton } from '../../components/ProjectModals';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://zihjzbweasaqqbwilshx.supabase.co';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppaGp6YndlYXNhcXFid2lsc2h4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4OTQ5MTYsImV4cCI6MjA4MTQ3MDkxNn0.ilHqOs75eUA6p2n-h1rgfulwNwq_hPQyptFg-kcjbv4';
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export default function ConsultationPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = use(params);
+    const [project, setProject] = useState<any>(null);
+    const [consultations, setConsultations] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
 
-export default async function ConsultationPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params;
+    useEffect(() => {
+        fetchData();
+    }, [id]);
 
-    const { data: project } = await supabase.from('projects').select('type').eq('id', id).single();
+    const fetchData = async () => {
+        setLoading(true);
+        const { data: projectData } = await supabase.from('projects').select('type').eq('id', id).single();
+        setProject(projectData);
+
+        const { data: consultationsData } = await supabase
+            .from('consulting_forms')
+            .select('*')
+            .eq('project_id', id)
+            .order('created_at', { ascending: false });
+        
+        setConsultations(consultationsData || []);
+        setLoading(false);
+    };
+
+    if (loading) return <div className="p-20 text-center animate-pulse">Syncing Consultation Archive...</div>;
+
     const isWedding = project?.type === 'wedding' || project?.type === 'wedding_fair';
     const theme = isWedding ? {
         border: 'border-pink-500/30',
@@ -22,17 +43,6 @@ export default async function ConsultationPage({ params }: { params: Promise<{ i
         primary: 'bg-white hover:bg-zinc-200 text-black',
         text: 'text-white'
     };
-
-    // Fetch existing consultations for this project
-    const { data: consultations, error } = await supabase
-        .from('consulting_forms')
-        .select('*')
-        .eq('project_id', id)
-        .order('created_at', { ascending: false });
-
-    if (error) {
-        return <div className="text-red-500">Error fetching consultations: {error.message}</div>;
-    }
 
     if (!consultations || consultations.length === 0) {
         return (
@@ -48,24 +58,47 @@ export default async function ConsultationPage({ params }: { params: Promise<{ i
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500 pb-20 max-w-7xl mx-auto">
-            <div className={`flex justify-between items-end mb-8 border-b ${theme.border} pb-4`}>
+            <div className={`flex justify-between items-end mb-8 border-b ${theme.border} pb-4 print:hidden`}>
                 <div>
                     <h1 className="text-3xl font-serif text-white mb-2">Consultation Reports</h1>
                     <p className="text-zinc-400 font-medium">AI-Powered summaries and client details.</p>
                 </div>
-                <Link
-                    href={`/public/consulting?project_id=${id}`}
-                    target="_blank"
-                    className={`${theme.primary} px-4 py-2 rounded-xl text-sm font-black uppercase tracking-wider transition-all flex items-center gap-2 shadow-lg`}
-                >
-                    <i className="fa-solid fa-arrow-up-right-from-square"></i> Public Link
-                </Link>
+                <div className="flex gap-4">
+                    <PrintReportButton title="Consultations" />
+                    <Link
+                        href={`/public/consulting?project_id=${id}`}
+                        target="_blank"
+                        className={`${theme.primary} px-4 py-2 rounded-xl text-sm font-black uppercase tracking-wider transition-all flex items-center gap-2 shadow-lg`}
+                    >
+                        <i className="fa-solid fa-arrow-up-right-from-square"></i> Public Link
+                    </Link>
+                </div>
             </div>
 
             <ConsultationList initialConsultations={consultations} />
 
-            {/* Manual Add Button (opens modal or new page, currently just link or section) */}
-            {/* For now we just list them, user can use the public link to simulate adding one */}
+            <style jsx global>{`
+                @media print {
+                    @page { margin: 15mm; }
+                    html, body, main {
+                        background: white !important;
+                        color: black !important;
+                    }
+                    .print\\:hidden, nav, header, footer, button {
+                        display: none !important;
+                    }
+                    .bg-zinc-900, .bg-zinc-800 {
+                        background: transparent !important;
+                        color: black !important;
+                    }
+                    .text-white, .text-zinc-400, .text-zinc-500 {
+                        color: black !important;
+                    }
+                    .print\\:break-before-page {
+                        break-before: page !important;
+                    }
+                }
+            `}</style>
         </div>
     );
 }

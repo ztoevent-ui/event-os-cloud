@@ -4,6 +4,9 @@ import { createClient } from '@supabase/supabase-js';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
+import { PrintReportButton } from '../../components/ProjectModals';
+import { PrintBreakTrigger } from '../../components/PrintBreakTrigger';
+import { usePrint } from '../../components/PrintContext';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://zihjzbweasaqqbwilshx.supabase.co';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppaGp6YndlYXNhcXFid2lsc2h4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4OTQ5MTYsImV4cCI6MjA4MTQ3MDkxNn0.ilHqOs75eUA6p2n-h1rgfulwNwq_hPQyptFg-kcjbv4';
@@ -15,6 +18,7 @@ export default function TicketManagerPage() {
     const [tickets, setTickets] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [project, setProject] = useState<any>(null);
+    const { pageBreakIds } = usePrint();
 
     const [formVisible, setFormVisible] = useState(false);
     const [formData, setFormData] = useState({ name: '', price: 0, description: '', quantity: 100, status: 'active' });
@@ -99,13 +103,14 @@ export default function TicketManagerPage() {
                     <p className="text-zinc-400 font-medium">Configure ticket tiers and pricing.</p>
                 </div>
                 <div className="flex gap-4">
+                    <PrintReportButton title="Ticket Tiers" />
                     <button
                         onClick={() => setFormVisible(!formVisible)}
-                        className={`px-5 py-2.5 rounded-xl text-sm font-black uppercase tracking-wider text-black ${theme.bg} ${theme.hoverBg} transition shadow-lg`}
+                        className={`px-5 py-2.5 rounded-xl text-sm font-black uppercase tracking-wider text-black ${theme.bg} ${theme.hoverBg} transition shadow-lg print:hidden`}
                     >
                         <i className="fa-solid fa-plus mr-2"></i> New Tier
                     </button>
-                    <a href={`/public/tickets/${projectId}`} target="_blank" className={`px-5 py-2.5 rounded-xl text-sm font-black uppercase tracking-wider ${theme.accentText} ${theme.accentBg} ${theme.accentBorder} border hover:bg-white/5 transition`}>
+                    <a href={`/public/tickets/${projectId}`} target="_blank" className={`px-5 py-2.5 rounded-xl text-sm font-black uppercase tracking-wider ${theme.accentText} ${theme.accentBg} ${theme.accentBorder} border hover:bg-white/5 transition print:hidden`}>
                         <i className="fa-solid fa-eye mr-2"></i> Public Page
                     </a>
                 </div>
@@ -125,29 +130,32 @@ export default function TicketManagerPage() {
                     )}
 
                     {tickets.map(t => (
-                        <div key={t.id} className={`bg-zinc-900 p-6 rounded-2xl shadow-sm border border-zinc-800 flex justify-between items-center group hover:border-zinc-700 transition`}>
-                            <div>
-                                <div className="flex items-center gap-3">
-                                    <h3 className="text-lg font-bold text-white">{t.name}</h3>
-                                    <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${t.status === 'active' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-zinc-800 text-zinc-500 border border-zinc-700'}`}>{t.status}</span>
+                        <div key={t.id} className={`${pageBreakIds.includes(t.id) ? 'print:break-before-page' : ''}`}>
+                            <div className={`bg-zinc-900 p-6 rounded-2xl shadow-sm border border-zinc-800 flex justify-between items-center group hover:border-zinc-700 transition print:bg-white print:border-zinc-200 print:text-black print:shadow-none print:p-4 mb-4`}>
+                                <div>
+                                    <div className="flex items-center gap-3">
+                                        <h3 className="text-lg font-bold text-white print:text-black">{t.name}</h3>
+                                        <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${t.status === 'active' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-zinc-800 text-zinc-500 border border-zinc-700'} print:text-black print:border-zinc-200`}>{t.status}</span>
+                                    </div>
+                                    <p className="text-zinc-500 text-sm mt-1 print:text-zinc-600">{t.description}</p>
+                                    <div className="flex items-center gap-4 mt-3 text-sm">
+                                        <span className={`font-mono font-bold ${theme.accentText} ${theme.accentBg} border ${theme.accentBorder} px-2 py-1 rounded-lg print:text-black print:bg-white print:border-zinc-200`}>RM {Number(t.price).toFixed(2)}</span>
+                                        <span className="text-zinc-500 font-mono text-xs print:text-black">Sold: <span className="text-white font-bold print:text-black">{t.quantity_sold || 0}</span> / {t.quantity_total}</span>
+                                    </div>
                                 </div>
-                                <p className="text-zinc-500 text-sm mt-1">{t.description}</p>
-                                <div className="flex items-center gap-4 mt-3 text-sm">
-                                    <span className={`font-mono font-bold ${theme.accentText} ${theme.accentBg} border ${theme.accentBorder} px-2 py-1 rounded-lg`}>RM {Number(t.price).toFixed(2)}</span>
-                                    <span className="text-zinc-500 font-mono text-xs">Sold: <span className="text-white font-bold">{t.quantity_sold || 0}</span> / {t.quantity_total}</span>
+                                <div className="flex gap-2 opacity-50 group-hover:opacity-100 transition print:hidden">
+                                    <button onClick={() => toggleStatus(t)} className="w-10 h-10 rounded-full bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white transition-colors" title="Toggle Status">
+                                        <i className={`fa-solid ${t.status === 'active' ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                                    </button>
                                 </div>
                             </div>
-                            <div className="flex gap-2 opacity-50 group-hover:opacity-100 transition">
-                                <button onClick={() => toggleStatus(t)} className="w-10 h-10 rounded-full bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white transition-colors" title="Toggle Status">
-                                    <i className={`fa-solid ${t.status === 'active' ? 'fa-eye-slash' : 'fa-eye'}`}></i>
-                                </button>
-                            </div>
+                            <PrintBreakTrigger id={t.id} />
                         </div>
                     ))}
                 </div>
 
                 {/* Form */}
-                <div className={`lg:col-span-1 transition-all duration-300 ${formVisible ? 'opacity-100 translate-x-0' : 'opacity-50 translate-x-10 pointer-events-none lg:opacity-100 lg:translate-x-0 lg:pointer-events-auto'}`}>
+                <div className={`lg:col-span-1 transition-all duration-300 print:hidden ${formVisible ? 'opacity-100 translate-x-0' : 'opacity-50 translate-x-10 pointer-events-none lg:opacity-100 lg:translate-x-0 lg:pointer-events-auto'}`}>
                     <div className="bg-zinc-900 p-6 rounded-2xl shadow-xl border border-zinc-800 sticky top-8">
                         <h3 className="font-bold text-white mb-6 flex items-center gap-2">
                             <i className={`fa-solid fa-pen-nib ${theme.primary}`}></i> Configure Ticket
@@ -176,6 +184,30 @@ export default function TicketManagerPage() {
                     </div>
                 </div>
             </div>
+
+            <style jsx global>{`
+                @media print {
+                    @page { margin: 15mm; }
+                    html, body, main {
+                        background: white !important;
+                        color: black !important;
+                    }
+                    .print\\:hidden, nav, header, footer, button {
+                        display: none !important;
+                    }
+                    .bg-zinc-900, .bg-zinc-800, .bg-zinc-950 {
+                        background: transparent !important;
+                        color: black !important;
+                        border-color: #eee !important;
+                    }
+                    .text-white, .text-zinc-400, .text-zinc-500 {
+                        color: black !important;
+                    }
+                    .print\\:break-before-page {
+                        break-before: page !important;
+                    }
+                }
+            `}</style>
         </div>
     );
 }

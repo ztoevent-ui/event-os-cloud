@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { QRCodeSVG } from 'qrcode.react';
 import Swal from 'sweetalert2';
@@ -8,6 +8,9 @@ import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ImageUploadField } from '@/app/components/ImageUploadField';
+import { PrintReportButton } from '../../components/ProjectModals';
+import { PrintBreakTrigger } from '../../components/PrintBreakTrigger';
+import { usePrint } from '../../components/PrintContext';
 
 // ── Preset theme colors ──────────────────────────────────────
 const THEME_PRESETS = [
@@ -35,6 +38,7 @@ export default function RegistrationStudio() {
     const [slugTaken, setSlugTaken] = useState(false);
     const [slugChecking, setSlugChecking] = useState(false);
     const slugTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const { pageBreakIds } = usePrint();
 
     const [settings, setSettings] = useState<any>({
         slogan: '',
@@ -222,6 +226,11 @@ export default function RegistrationStudio() {
                     <h1 className="text-3xl font-black text-white italic uppercase tracking-tighter">Registration Studio</h1>
                     <p className="text-zinc-500">Design your form, build your tournament page & manage submissions</p>
                 </div>
+                {activeTab === 'submissions' && (
+                    <div className="print:hidden">
+                        <PrintReportButton title="Registration Submissions" />
+                    </div>
+                )}
             </div>
 
             {/* ── Tabs ──────────────────────────────────────────────── */}
@@ -707,12 +716,19 @@ export default function RegistrationStudio() {
                                     <tr><td colSpan={4} className="px-6 py-12 text-center text-zinc-600 font-medium">No registrations received yet.</td></tr>
                                 ) : (
                                     submissions.map(sub => (
-                                        <tr key={sub.id} className="border-b border-zinc-800/50 hover:bg-white/5 transition-colors">
-                                            <td className="px-6 py-4 text-xs text-zinc-400">{new Date(sub.created_at).toLocaleDateString()}</td>
-                                            <td className="px-6 py-4 text-sm font-bold text-white">{sub.organization_name}</td>
-                                            <td className="px-6 py-4"><div className="text-sm text-zinc-200">{sub.captain_name}</div><div className="text-xs text-zinc-500">{sub.captain_role}</div></td>
-                                            <td className="px-6 py-4 text-sm text-zinc-400">{sub.players?.length / 2 || 0} Pairs</td>
-                                        </tr>
+                                        <React.Fragment key={sub.id}>
+                                            <tr className={`border-b border-zinc-800/50 hover:bg-white/5 transition-colors print:bg-white print:border-zinc-200 print:text-black ${pageBreakIds.includes(sub.id) ? 'print:break-before-page pt-8' : ''}`}>
+                                                <td className="px-6 py-4 text-xs text-zinc-400 print:text-zinc-600 font-mono">{new Date(sub.created_at).toLocaleDateString()}</td>
+                                                <td className="px-6 py-4 text-sm font-bold text-white print:text-black">{sub.organization_name}</td>
+                                                <td className="px-6 py-4"><div className="text-sm text-zinc-200 print:text-black">{sub.captain_name}</div><div className="text-xs text-zinc-500 print:text-zinc-600">{sub.captain_role}</div></td>
+                                                <td className="px-6 py-4 text-sm text-zinc-400 print:text-black">{(sub.players?.length / 2) || 0} Pairs</td>
+                                            </tr>
+                                            <tr className="print:hidden">
+                                                <td colSpan={4} className="p-0">
+                                                    <PrintBreakTrigger id={sub.id} />
+                                                </td>
+                                            </tr>
+                                        </React.Fragment>
                                     ))
                                 )}
                             </tbody>
@@ -720,6 +736,29 @@ export default function RegistrationStudio() {
                     </div>
                 </div>
             )}
+
+            <style jsx global>{`
+                @media print {
+                    @page { margin: 15mm; }
+                    html, body, main {
+                        background: white !important;
+                        color: black !important;
+                    }
+                    .print\\:hidden, nav, header, footer, button, .flex.gap-1.border-b {
+                        display: none !important;
+                    }
+                    .bg-zinc-900, .bg-black\\/50, .bg-zinc-950 {
+                        background: transparent !important;
+                        border-color: #eee !important;
+                    }
+                    .text-white, .text-zinc-200, .text-zinc-400, .text-zinc-500 {
+                        color: black !important;
+                    }
+                    .print\\:break-before-page {
+                        break-before: page !important;
+                    }
+                }
+            `}</style>
         </div>
     );
 }

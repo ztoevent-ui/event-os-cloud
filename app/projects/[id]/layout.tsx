@@ -2,6 +2,7 @@
 import { ReactNode } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
+import { PrintProvider } from '../components/PrintContext';
 
 export default async function ProjectLayout({
     children,
@@ -10,9 +11,8 @@ export default async function ProjectLayout({
     children: ReactNode;
     params: Promise<{ id: string }>;
 }) {
-    const { id } = await params;
-    const projectId = id;
-
+    const { id: projectId } = await params;
+    
     const { data: project } = await supabase.from('projects').select('type').eq('id', projectId).single();
     const isWedding = project?.type === 'wedding' || project?.type === 'wedding_fair';
     const isTournament = project?.type === 'sports' || project?.type === 'tournament';
@@ -41,7 +41,8 @@ export default async function ProjectLayout({
     };
 
     return (
-        <div className={`min-h-screen bg-black ${theme.primary} font-sans ${theme.selection} selection:text-black`}>
+        <PrintProvider>
+            <div className={`min-h-screen bg-black ${theme.primary} font-sans ${theme.selection} selection:text-black`}>
             {/* Navigation Bar */}
             <nav className={`fixed top-0 w-full z-50 bg-black/90 backdrop-blur-md border-b ${theme.navBorder}`}>
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -92,6 +93,7 @@ export default async function ProjectLayout({
                 {children}
             </main>
         </div>
+    </PrintProvider>
     );
 }
 

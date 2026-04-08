@@ -5,6 +5,8 @@ import { Canvas, useThree, ThreeEvent, useFrame } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera, ContactShadows, Environment, Html, Text as DreiText } from '@react-three/drei';
 import { supabase } from '@/lib/supabaseClient';
 import * as THREE from 'three';
+import { PrintReportButton } from '../../components/ProjectModals';
+import { usePrint } from '../../components/PrintContext';
 
 // --- TYPES ---
 type TableDef = {
@@ -719,6 +721,7 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const { orientation } = usePrint();
 
   useEffect(() => {
     const load = async () => {
@@ -886,21 +889,22 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
           </h1>
           <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] mt-1">Interactive 3D Spatial Designer</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 print:hidden">
           {selectedCount > 0 && (
             <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-lg text-[10px] font-black uppercase tracking-widest border border-emerald-500/30">
               {selectedCount} Selected
             </span>
           )}
+          <PrintReportButton title="Venue Layout" />
           <button onClick={saveLayout} disabled={saving} className="px-5 py-2 bg-emerald-500 text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-400 transition-all disabled:opacity-50">
             {saving ? 'Saving...' : 'Save Changes'}
           </button>
         </div>
       </div>
 
-      <div className="flex flex-col xl:flex-row gap-4 px-6">
+      <div className="flex flex-col xl:flex-row gap-4 px-6 print:px-0">
         {/* Sidebar Controls */}
-        <div className="w-full xl:w-64 space-y-4 flex-shrink-0">
+        <div className="w-full xl:w-64 space-y-4 flex-shrink-0 print:hidden">
           {/* Layout Base */}
           <div className="bg-zinc-900 border border-white/5 rounded-2xl p-5 space-y-4">
             <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest border-b border-white/5 pb-2">Layout Base</h3>
@@ -1176,8 +1180,35 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
               </div>
             </div>
           )}
-        </div>
+         </div>
       </div>
+
+      <style jsx global>{`
+        @media print {
+            @page { 
+                margin: 0; 
+                size: ${orientation === 'landscape' ? 'landscape' : 'portrait'};
+            }
+            html, body, main {
+                background: white !important;
+                color: black !important;
+                height: 100vh;
+                overflow: hidden;
+            }
+            .print\\:hidden, nav, header, footer, button, .xl\\:w-64 {
+                display: none !important;
+            }
+            /* Ensure the canvas fills the page */
+            .px-6.pt-2, .px-6 {
+                padding: 0 !important;
+            }
+            canvas {
+                width: 100vw !important;
+                height: 100vh !important;
+                background: white !important;
+            }
+        }
+      `}</style>
     </div>
   );
 }

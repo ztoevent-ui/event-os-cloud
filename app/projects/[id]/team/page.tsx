@@ -4,6 +4,9 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
+import { PrintReportButton } from '../../components/ProjectModals';
+import { PrintBreakTrigger } from '../../components/PrintBreakTrigger';
+import { usePrint } from '../../components/PrintContext';
 
 type TeamMember = {
     id: string;
@@ -30,6 +33,7 @@ export default function TeamManagementPage() {
     const [isInviting, setIsInviting] = useState(false);
     const [newMember, setNewMember] = useState({ email: '', role: 'PROJECT_MANAGER' });
     const [isGeneratingCode, setIsGeneratingCode] = useState(false);
+    const { pageBreakIds } = usePrint();
 
     useEffect(() => {
         fetchTeamData();
@@ -123,7 +127,8 @@ export default function TeamManagementPage() {
                     <p className="text-zinc-500 text-sm mt-1 max-w-md">Manage roles, project isolation, and tournament officials.</p>
                 </div>
 
-                <div className="flex gap-4 mt-6 md:mt-0 relative z-10">
+                <div className="flex gap-4 mt-6 md:mt-0 relative z-10 print:hidden">
+                    <PrintReportButton title="Team Roster" />
                     <button 
                         onClick={() => setIsInviting(true)}
                         className="px-8 py-3 bg-white text-black font-black rounded-2xl text-[11px] uppercase tracking-widest hover:bg-zinc-200 transition-all transform hover:scale-105 shadow-xl shadow-white/5"
@@ -152,41 +157,45 @@ export default function TeamManagementPage() {
                                 </div>
                             )}
                             {members.map((member) => (
-                                <motion.div 
-                                    key={member.id}
-                                    initial={{ opacity: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    className="bg-zinc-900 border border-white/5 p-6 rounded-3xl flex items-center gap-5 hover:border-white/10 transition-all group"
-                                >
-                                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-zinc-800 to-black border border-white/10 flex items-center justify-center text-2xl font-black text-amber-500 overflow-hidden shadow-2xl transition-transform group-hover:scale-105">
-                                        {member.avatar_url ? <img src={member.avatar_url} className="w-full h-full object-cover" /> : member.full_name[0]}
-                                    </div>
-                                    <div className="flex-1">
-                                        <h3 className="font-black text-white text-lg tracking-tight leading-none mb-1">{member.full_name}</h3>
-                                        <div className="flex items-center gap-2">
-                                            <span className={`text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-widest ${
-                                                member.role === 'SUPER_ADMIN' ? 'bg-purple-500/10 text-purple-500' : 
-                                                member.role === 'PROJECT_MANAGER' ? 'bg-amber-500/10 text-amber-500' : 
-                                                'bg-zinc-500/10 text-zinc-500'
-                                            }`}>
-                                                {member.role.replace('_', ' ')}
-                                            </span>
-                                            {member.role === 'PROJECT_MANAGER' && <span className="text-[9px] text-zinc-600 font-bold uppercase tracking-tighter underline decoration-zinc-800">Isolated Access</span>}
+                                <React.Fragment key={member.id}>
+                                    <motion.div 
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        className={`bg-zinc-900 border border-white/5 p-6 rounded-3xl flex items-center gap-5 hover:border-white/10 transition-all group print:bg-white print:border-zinc-200 print:text-black ${pageBreakIds.includes(member.id) ? 'print:break-before-page pt-8' : ''}`}
+                                    >
+                                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-zinc-800 to-black border border-white/10 flex items-center justify-center text-2xl font-black text-amber-500 overflow-hidden shadow-2xl transition-transform group-hover:scale-105 print:hidden">
+                                            {member.avatar_url ? <img src={member.avatar_url} className="w-full h-full object-cover" /> : member.full_name[0]}
                                         </div>
+                                        <div className="flex-1">
+                                            <h3 className="font-black text-white text-lg tracking-tight leading-none mb-1 print:text-black">{member.full_name}</h3>
+                                            <div className="flex items-center gap-2">
+                                                <span className={`text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-widest ${
+                                                    member.role === 'SUPER_ADMIN' ? 'bg-purple-500/10 text-purple-500' : 
+                                                    member.role === 'PROJECT_MANAGER' ? 'bg-amber-500/10 text-amber-500' : 
+                                                    'bg-zinc-500/10 text-zinc-500'
+                                                } print:text-black print:border-zinc-200`}>
+                                                    {member.role.replace('_', ' ')}
+                                                </span>
+                                                {member.role === 'PROJECT_MANAGER' && <span className="text-[9px] text-zinc-600 font-bold uppercase tracking-tighter underline decoration-zinc-800 print:text-black">Isolated Access</span>}
+                                            </div>
+                                        </div>
+                                        <button className="opacity-0 group-hover:opacity-100 p-3 text-zinc-600 hover:text-red-500 transition-all print:hidden">
+                                            <i className="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </motion.div>
+                                    <div className="print:hidden">
+                                        <PrintBreakTrigger id={member.id} />
                                     </div>
-                                    <button className="opacity-0 group-hover:opacity-100 p-3 text-zinc-600 hover:text-red-500 transition-all">
-                                        <i className="fa-solid fa-trash-can"></i>
-                                    </button>
-                                </motion.div>
+                                </React.Fragment>
                             ))}
                         </AnimatePresence>
                     </div>
                 </div>
 
                 {/* Referee Access Codes */}
-                <div className="space-y-6">
-                    <h2 className="text-xs font-black uppercase tracking-[0.4em] text-zinc-600 ml-4">Referee Quick Codes</h2>
-                    <div className="bg-zinc-900 border border-white/5 rounded-[2.5rem] p-8 space-y-6">
+                <div className="space-y-6 print:break-before-page print:mt-8">
+                    <h2 className="text-xs font-black uppercase tracking-[0.4em] text-zinc-600 ml-4 print:text-black">Referee Quick Codes</h2>
+                    <div className="bg-zinc-900 border border-white/5 rounded-[2.5rem] p-8 space-y-6 print:bg-white print:border-zinc-200">
                         <div className="bg-amber-500/5 border border-amber-500/10 p-5 rounded-2xl">
                             <p className="text-[10px] text-amber-500 leading-relaxed font-bold uppercase tracking-wider italic">
                                 codes allow temporary, account-free access to the Referee Dashboard for this event. Expiring codes recommended for BPO 2026.
@@ -277,6 +286,30 @@ export default function TeamManagementPage() {
                     </div>
                 )}
             </AnimatePresence>
+
+            <style jsx global>{`
+                @media print {
+                    @page { margin: 15mm; }
+                    html, body, main {
+                        background: white !important;
+                        color: black !important;
+                    }
+                    .print\\:hidden, nav, header, footer, button {
+                        display: none !important;
+                    }
+                    .bg-zinc-900, .bg-zinc-800 {
+                        background: transparent !important;
+                        color: black !important;
+                        border-color: #eee !important;
+                    }
+                    .text-white, .text-zinc-400, .text-zinc-500 {
+                        color: black !important;
+                    }
+                    .print\\:break-before-page {
+                        break-before: page !important;
+                    }
+                }
+            `}</style>
         </div>
     );
 }

@@ -3,6 +3,10 @@
 import React, { useState, useEffect, use } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabaseClient';
+import { PrintReportButton } from '../../components/ProjectModals';
+import { PrintBreakTrigger } from '../../components/PrintBreakTrigger';
+import { usePrint } from '../../components/PrintContext';
+
 
 interface ProgramRow {
   id: string;
@@ -22,6 +26,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
   const [project, setProject] = useState<any>(null);
+  const { pageBreakIds } = usePrint();
 
   useEffect(() => {
     fetchProject();
@@ -159,9 +164,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
               <i className={`fa-solid ${editMode ? 'fa-check' : 'fa-pencil'}`}></i>
               {editMode ? 'SAVE SCRIPT' : 'MODIFY SEQUENCE'}
             </button>
-            <button className="h-12 px-8 bg-zinc-900 border border-white/5 text-zinc-400 hover:text-white rounded-full text-xs font-black tracking-widest hover:bg-zinc-800 transition-all flex items-center gap-3">
-              <i className="fa-solid fa-file-export"></i> EXPORT XLSX
-            </button>
+            <PrintReportButton title="Event Program" />
         </div>
       </div>
 
@@ -183,128 +186,135 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
             <tbody className="divide-y divide-white/5">
               <AnimatePresence initial={false}>
                 {rows.map((row, index) => (
-                  <motion.tr 
-                    key={row.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.02 }}
-                    className={`group transition-colors relative ${row.is_important ? 'bg-red-500/5' : 'hover:bg-white/[0.02]'}`}
-                  >
-                    {editMode && (
-                      <td className="p-4 border-r border-white/5 text-center">
-                        <button onClick={() => removeRow(row.id)} className="text-zinc-700 hover:text-red-500 p-3 rounded-2xl hover:bg-red-500/10 transition-all">
-                          <i className="fa-solid fa-trash-can"></i>
-                        </button>
+                  <React.Fragment key={row.id}>
+                    <motion.tr 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.02 }}
+                      className={`group transition-colors relative ${row.is_important ? 'bg-red-500/5' : 'hover:bg-white/[0.02]'} ${pageBreakIds.includes(row.id) ? 'print:break-before-page' : ''}`}
+                    >
+                      {editMode && (
+                        <td className="p-4 border-r border-white/5 text-center">
+                          <button onClick={() => removeRow(row.id)} className="text-zinc-700 hover:text-red-500 p-3 rounded-2xl hover:bg-red-500/10 transition-all">
+                            <i className="fa-solid fa-trash-can"></i>
+                          </button>
+                        </td>
+                      )}
+                      
+                      {/* Time */}
+                      <td className="p-0 border-r border-white/5 align-top">
+                        <div className="relative group/cell">
+                          {editMode ? (
+                            <textarea
+                              defaultValue={row.time}
+                              onBlur={(e) => {
+                                if (e.target.value !== row.time) handleFieldChange(row.id, 'time', e.target.value)
+                              }}
+                              className={`w-full h-full p-6 min-h-[80px] bg-transparent resize-none outline-none ${theme.bgFocus} text-sm font-black ${theme.text80} placeholder-zinc-800 transition-colors`}
+                              placeholder="TIME"
+                            />
+                          ) : (
+                            <div className={`p-6 text-sm font-black ${theme.text70} tabular-nums whitespace-pre-wrap leading-relaxed`}>{row.time}</div>
+                          )}
+                        </div>
                       </td>
-                    )}
-                    
-                    {/* Time */}
-                    <td className="p-0 border-r border-white/5 align-top">
-                      <div className="relative group/cell">
+
+                      {/* Activities */}
+                      <td className="p-0 border-r border-white/5 align-top relative">
+                        {editMode && (
+                          <button 
+                            onClick={() => handleFieldChange(row.id, 'is_important', !row.is_important)}
+                            className={`absolute top-4 right-4 text-[10px] px-3 py-1 rounded-full z-10 transition-all font-black tracking-widest ${row.is_important ? 'text-red-500 bg-red-950/40 border border-red-500/30' : 'text-zinc-600 border border-transparent hover:border-zinc-800 hover:bg-zinc-900'}`}
+                          >
+                            {row.is_important ? 'IMPORTANT' : 'MARK'}
+                          </button>
+                        )}
                         {editMode ? (
                           <textarea
-                            defaultValue={row.time}
+                            defaultValue={row.activities}
                             onBlur={(e) => {
-                              if (e.target.value !== row.time) handleFieldChange(row.id, 'time', e.target.value)
+                              if (e.target.value !== row.activities) handleFieldChange(row.id, 'activities', e.target.value)
                             }}
-                            className={`w-full h-full p-6 min-h-[80px] bg-transparent resize-none outline-none ${theme.bgFocus} text-sm font-black ${theme.text80} placeholder-zinc-800 transition-colors`}
-                            placeholder="TIME"
+                            className={`w-full h-full p-6 min-h-[80px] bg-transparent resize-none outline-none ${theme.bgFocus} text-sm font-bold placeholder-zinc-800 transition-colors ${row.is_important ? 'text-red-500' : 'text-zinc-100'}`}
+                            placeholder="ACTIVITY"
                           />
                         ) : (
-                          <div className={`p-6 text-sm font-black ${theme.text70} tabular-nums whitespace-pre-wrap leading-relaxed`}>{row.time}</div>
+                          <div className={`p-6 text-sm whitespace-pre-wrap leading-relaxed font-bold ${row.is_important ? 'text-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.4)]' : 'text-zinc-200'}`}>{row.activities}</div>
                         )}
-                      </div>
-                    </td>
+                      </td>
 
-                    {/* Activities */}
-                    <td className="p-0 border-r border-white/5 align-top relative">
-                      {editMode && (
-                        <button 
-                          onClick={() => handleFieldChange(row.id, 'is_important', !row.is_important)}
-                          className={`absolute top-4 right-4 text-[10px] px-3 py-1 rounded-full z-10 transition-all font-black tracking-widest ${row.is_important ? 'text-red-500 bg-red-950/40 border border-red-500/30' : 'text-zinc-600 border border-transparent hover:border-zinc-800 hover:bg-zinc-900'}`}
-                        >
-                          {row.is_important ? 'IMPORTANT' : 'MARK'}
-                        </button>
-                      )}
-                      {editMode ? (
-                        <textarea
-                          defaultValue={row.activities}
-                          onBlur={(e) => {
-                            if (e.target.value !== row.activities) handleFieldChange(row.id, 'activities', e.target.value)
-                          }}
-                          className={`w-full h-full p-6 min-h-[80px] bg-transparent resize-none outline-none ${theme.bgFocus} text-sm font-bold placeholder-zinc-800 transition-colors ${row.is_important ? 'text-red-500' : 'text-zinc-100'}`}
-                          placeholder="ACTIVITY"
-                        />
-                      ) : (
-                        <div className={`p-6 text-sm whitespace-pre-wrap leading-relaxed font-bold ${row.is_important ? 'text-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.4)]' : 'text-zinc-200'}`}>{row.activities}</div>
-                      )}
-                    </td>
+                      {/* Movement */}
+                      <td className="p-0 border-r border-white/5 align-top">
+                        {editMode ? (
+                          <textarea
+                            defaultValue={row.movement}
+                            onBlur={(e) => {
+                              if (e.target.value !== row.movement) handleFieldChange(row.id, 'movement', e.target.value)
+                            }}
+                            className={`w-full h-full p-6 min-h-[80px] bg-transparent resize-none outline-none ${theme.bgFocus} text-sm text-zinc-400 placeholder-zinc-800 font-medium transition-colors`}
+                            placeholder="MOVEMENT"
+                          />
+                        ) : (
+                          <div className="p-6 text-sm text-zinc-400 font-medium leading-relaxed whitespace-pre-wrap">{row.movement}</div>
+                        )}
+                      </td>
 
-                    {/* Movement */}
-                    <td className="p-0 border-r border-white/5 align-top">
-                      {editMode ? (
-                        <textarea
-                          defaultValue={row.movement}
-                          onBlur={(e) => {
-                            if (e.target.value !== row.movement) handleFieldChange(row.id, 'movement', e.target.value)
-                          }}
-                          className={`w-full h-full p-6 min-h-[80px] bg-transparent resize-none outline-none ${theme.bgFocus} text-sm text-zinc-400 placeholder-zinc-800 font-medium transition-colors`}
-                          placeholder="MOVEMENT"
-                        />
-                      ) : (
-                        <div className="p-6 text-sm text-zinc-400 font-medium leading-relaxed whitespace-pre-wrap">{row.movement}</div>
-                      )}
-                    </td>
+                      {/* Cues */}
+                      <td className="p-0 border-r border-white/5 align-top">
+                        {editMode ? (
+                          <textarea
+                            defaultValue={row.cues}
+                            onBlur={(e) => {
+                              if (e.target.value !== row.cues) handleFieldChange(row.id, 'cues', e.target.value)
+                            }}
+                            className={`w-full h-full p-6 min-h-[80px] bg-transparent resize-none outline-none ${theme.bgFocus} text-sm text-zinc-500 placeholder-zinc-800 italic transition-colors`}
+                            placeholder="CUES / CUST"
+                          />
+                        ) : (
+                          <div className="p-6 text-sm text-zinc-500 italic leading-relaxed whitespace-pre-wrap">{row.cues}</div>
+                        )}
+                      </td>
 
-                    {/* Cues */}
-                    <td className="p-0 border-r border-white/5 align-top">
-                      {editMode ? (
-                        <textarea
-                          defaultValue={row.cues}
-                          onBlur={(e) => {
-                            if (e.target.value !== row.cues) handleFieldChange(row.id, 'cues', e.target.value)
-                          }}
-                          className={`w-full h-full p-6 min-h-[80px] bg-transparent resize-none outline-none ${theme.bgFocus} text-sm text-zinc-500 placeholder-zinc-800 italic transition-colors`}
-                          placeholder="CUES / CUST"
-                        />
-                      ) : (
-                        <div className="p-6 text-sm text-zinc-500 italic leading-relaxed whitespace-pre-wrap">{row.cues}</div>
-                      )}
-                    </td>
+                      {/* Song */}
+                      <td className="p-0 border-r border-white/5 align-top">
+                        {editMode ? (
+                          <textarea
+                            defaultValue={row.song}
+                            onBlur={(e) => {
+                              if (e.target.value !== row.song) handleFieldChange(row.id, 'song', e.target.value)
+                            }}
+                            className={`w-full h-full p-6 min-h-[80px] bg-transparent resize-none outline-none ${theme.bgFocus} text-sm text-blue-400/80 font-black placeholder-zinc-800 tracking-wide transition-colors`}
+                            placeholder="SONG / BGM"
+                          />
+                        ) : (
+                          <div className="p-6 text-sm text-blue-400/80 font-black tracking-wide leading-relaxed whitespace-pre-wrap italic">{row.song}</div>
+                        )}
+                      </td>
 
-                    {/* Song */}
-                    <td className="p-0 border-r border-white/5 align-top">
-                      {editMode ? (
-                        <textarea
-                          defaultValue={row.song}
-                          onBlur={(e) => {
-                            if (e.target.value !== row.song) handleFieldChange(row.id, 'song', e.target.value)
-                          }}
-                          className={`w-full h-full p-6 min-h-[80px] bg-transparent resize-none outline-none ${theme.bgFocus} text-sm text-blue-400/80 font-black placeholder-zinc-800 tracking-wide transition-colors`}
-                          placeholder="SONG / BGM"
-                        />
-                      ) : (
-                        <div className="p-6 text-sm text-blue-400/80 font-black tracking-wide leading-relaxed whitespace-pre-wrap italic">{row.song}</div>
-                      )}
-                    </td>
-
-                    {/* Volume */}
-                    <td className="p-0 align-top text-center w-24">
-                      {editMode ? (
-                        <input
-                          type="text"
-                          defaultValue={row.volume}
-                          onBlur={(e) => {
-                            if (e.target.value !== row.volume) handleFieldChange(row.id, 'volume', e.target.value)
-                          }}
-                          className={`w-full h-full p-6 min-h-[80px] bg-transparent outline-none ${theme.bgFocus} text-sm text-zinc-500 font-black text-center placeholder-zinc-800 transition-colors`}
-                          placeholder="%"
-                        />
-                      ) : (
-                        <div className="p-6 text-sm text-zinc-600 font-black tabular-nums">{row.volume}</div>
-                      )}
-                    </td>
-                  </motion.tr>
+                      {/* Volume */}
+                      <td className="p-0 align-top text-center w-24">
+                        {editMode ? (
+                          <input
+                            type="text"
+                            defaultValue={row.volume}
+                            onBlur={(e) => {
+                              if (e.target.value !== row.volume) handleFieldChange(row.id, 'volume', e.target.value)
+                            }}
+                            className={`w-full h-full p-6 min-h-[80px] bg-transparent outline-none ${theme.bgFocus} text-sm text-zinc-500 font-black text-center placeholder-zinc-800 transition-colors`}
+                            placeholder="%"
+                          />
+                        ) : (
+                          <div className="p-6 text-sm text-zinc-600 font-black tabular-nums">{row.volume}</div>
+                        )}
+                      </td>
+                    </motion.tr>
+                    {/* Page Break Trigger */}
+                    <tr>
+                      <td colSpan={7} className="p-0 border-none">
+                        <PrintBreakTrigger id={row.id} />
+                      </td>
+                    </tr>
+                  </React.Fragment>
                 ))}
               </AnimatePresence>
             </tbody>
@@ -331,10 +341,27 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
       </div>
       
       {/* Visual Footer */}
-      <div className="flex justify-between items-center px-8 text-[10px] font-black tracking-[0.4em] text-zinc-800 uppercase pointer-events-none">
+      <div className="flex justify-between items-center px-8 text-[10px] font-black tracking-[0.4em] text-zinc-800 uppercase print:text-zinc-400 sticky bottom-0 bg-black/80 backdrop-blur-md py-4">
          <div>ZTO Operational Protocol • 2026</div>
          <div>Strictly Confidential • Production Use Only</div>
       </div>
+
+      <style jsx global>{`
+        @media print {
+          nav, button, .print\\:hidden { display: none !important; }
+          body { background: white !important; color: black !important; }
+          .bg-zinc-900, .bg-\\[\\#0a0a0a\\]\\/80, .bg-\\[\\#050505\\] { background: transparent !important; color: black !important; }
+          .border-white\\/5, .border-r { border-color: #eee !important; }
+          .text-zinc-500, .text-zinc-400, .text-zinc-700 { color: #666 !important; }
+          .text-white, .text-zinc-100, .text-zinc-200 { color: black !important; }
+          .print-page-break, .print\\:break-before-page { break-before: page !important; }
+          table { width: 100% !important; border-collapse: collapse !important; }
+          th { background: #f5f5f5 !important; color: black !important; -webkit-print-color-adjust: exact; }
+          td, th { border: 1px solid #eee !important; padding: 12px !important; }
+          .rounded-\\[2rem\\], .rounded-\\[2\\.5rem\\], .rounded-xl { border-radius: 0 !important; }
+          .shadow-2xl, .shadow-xl { box-shadow: none !important; }
+        }
+      `}</style>
     </div>
   );
 }

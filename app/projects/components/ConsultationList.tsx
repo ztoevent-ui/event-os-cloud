@@ -1,9 +1,12 @@
 'use client';
 import { useState } from 'react';
 import ConsultationCard from '../../components/ConsultationCard';
+import { PrintBreakTrigger } from './PrintBreakTrigger';
+import { usePrint } from './PrintContext';
 
 export default function ConsultationList({ initialConsultations }: { initialConsultations: any[] }) {
     const [consultations, setConsultations] = useState(initialConsultations);
+    const { pageBreakIds } = usePrint();
 
     const handleDelete = (id: string) => {
         setConsultations(prev => prev.filter(c => c.id !== id));
@@ -24,14 +27,16 @@ export default function ConsultationList({ initialConsultations }: { initialCons
     }
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 print:grid-cols-1">
             {consultations.map((c: any) => (
-                <ConsultationCard
-                    key={c.id}
-                    consultation={c}
-                    onDelete={handleDelete}
-                    onUpdate={handleUpdate}
-                />
+                <div key={c.id} className={pageBreakIds.includes(c.id) ? 'print:break-before-page' : ''}>
+                    <ConsultationCard
+                        consultation={c}
+                        onDelete={handleDelete}
+                        onUpdate={handleUpdate}
+                    />
+                    <PrintBreakTrigger id={c.id} />
+                </div>
             ))}
         </div>
     );

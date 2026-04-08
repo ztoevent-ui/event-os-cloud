@@ -4,6 +4,9 @@
 import React, { useState } from 'react';
 import { createTask, updateTask, deleteTask, createTimeline, deleteTimeline, createBudget, deleteBudget, createVendor, deleteVendor } from '../actions';
 import { useRouter } from 'next/navigation';
+import { PrintOptionsModal } from './PrintOptionsModal';
+import { usePrint } from './PrintContext';
+
 
 // --- SHARED UI COMPONENTS ---
 
@@ -354,5 +357,24 @@ export function DeleteVendorButton({ id, projectId }: { id: string, projectId: s
                 <i className="fa-solid fa-trash text-xs"></i>
             </button>
         </form>
+    );
+}
+
+export function PrintReportButton({ title = "General Report" }: { title?: string }) {
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    return (
+        <>
+            <button 
+                onClick={() => setIsModalOpen(true)}
+                className="px-6 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-full transition-all flex items-center gap-2 border border-zinc-700"
+            >
+                <i className="fa-solid fa-file-invoice-dollar"></i> Report
+            </button>
+            <PrintOptionsModal 
+                isOpen={isModalOpen} 
+                onClose={() => setIsModalOpen(false)} 
+                title={title}
+            />
+        </>
     );
 }

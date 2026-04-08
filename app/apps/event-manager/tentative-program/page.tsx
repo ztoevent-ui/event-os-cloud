@@ -115,15 +115,37 @@ export default function TentativeProgramPage() {
               <i className={`fa-solid ${editMode ? 'fa-check' : 'fa-pencil'}`} />
               {editMode ? 'Save & Lock' : 'Edit Mode'}
             </button>
+            <button 
+              onClick={() => window.print()}
+              className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-white text-sm font-bold rounded-lg transition-colors flex items-center gap-2"
+            >
+              <i className="fa-solid fa-file-export" />
+              Export
+            </button>
           </div>
         </div>
       </header>
 
       <main className="flex-1 w-full max-w-[1400px] mx-auto px-4 lg:px-8 py-8">
+        {/* Print Branding Header */}
+        <div className="hidden print:flex justify-between items-end border-b-2 border-zinc-900 pb-4 mb-8">
+            <div className="flex items-center gap-4">
+                <img src="/logo-black.png" alt="" className="w-10 h-10 object-contain hidden" />
+                <div>
+                    <h1 className="text-3xl font-black text-zinc-900 uppercase tracking-tighter italic">ZTO Event OS</h1>
+                    <p className="text-[10px] font-black text-zinc-400 tracking-[0.2em] uppercase mt-0.5">Professional Event Management</p>
+                </div>
+            </div>
+            <div className="text-right">
+                <h2 className="text-xl font-bold text-zinc-900 uppercase">Tentative Program</h2>
+                <p className="text-xs font-bold text-zinc-500">Event Scope: {eventId}</p>
+            </div>
+        </div>
+
         {loading ? (
              <div className="flex items-center justify-center h-64"><i className="fa-solid fa-spinner fa-spin text-4xl text-blue-500" /></div>
         ) : (
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden print:border-none print:shadow-none">
                 <table className="w-full text-left border-collapse min-w-[1000px]">
                 <thead>
                     <tr className="bg-gray-100/80 border-b border-gray-200 text-[10px] uppercase tracking-wider text-gray-500 font-bold">
@@ -179,6 +201,29 @@ export default function TentativeProgramPage() {
             </div>
         )}
       </main>
+
+      {/* Print Styles */}
+      <style jsx global>{`
+        @media print {
+            @page { margin: 15mm; size: landscape; }
+            header, footer, .print\\:hidden, button { display: none !important; }
+            body { background: white !important; padding: 0 !important; margin: 0 !important; }
+            main { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+            table { width: 100% !important; border-collapse: collapse !important; font-size: 10pt !important; }
+            th, td { border: 1px solid #ddd !important; padding: 8px !important; }
+            th { background-color: #f9f9f9 !important; -webkit-print-color-adjust: exact; }
+            .bg-gray-50\\/20 { background-color: transparent !important; }
+            .text-blue-500, .text-red-500, .text-red-600 { color: black !important; }
+            .font-bold { font-weight: bold !important; }
+            .divide-y > * + * { border-top-width: 1px !important; }
+        }
+      `}</style>
+
+      {/* Print Footer */}
+      <div className="hidden print:block fixed bottom-0 left-0 right-0 py-4 border-t border-zinc-200 text-[10px] font-bold text-zinc-400 flex justify-between uppercase tracking-widest px-8">
+          <div>ZTO Event OS - Tentative Program</div>
+          <div>Exported At: {new Date().toLocaleString()}</div>
+      </div>
     </div>
   );
 }
