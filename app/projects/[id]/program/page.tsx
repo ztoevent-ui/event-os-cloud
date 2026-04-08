@@ -251,8 +251,8 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
 
       {/* Modern Table Container */}
       <div className="bg-[#050505] rounded-[2.5rem] border border-white/5 overflow-hidden shadow-2xl relative">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[1200px]">
+        <div className="overflow-x-auto print:overflow-visible print:w-full">
+          <table className="w-full text-left border-collapse min-w-[1200px] print:min-w-full print:w-full">
             <thead>
               <tr className="bg-zinc-900/40 border-b border-white/5 text-[10px] uppercase font-black tracking-[0.2em] text-zinc-500">
                 {editMode && <th className="p-6 w-20 text-center">Ctrls</th>}
