@@ -286,7 +286,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
               <tr className="bg-zinc-900/40 border-b border-white/5 text-[10px] uppercase font-black tracking-[0.2em] text-zinc-500">
                 {editMode && <th className="p-6 w-20 text-center">Ctrls</th>}
                 {columns.map(col => (
-                   <th key={col.id} className="p-6 border-r border-white/5 relative group" style={{ width: col.width || 'auto' }}>
+                   <th key={col.id} className={`p-4 border-r border-white/5 relative group ${editMode ? 'resize-x overflow-auto min-w-[80px]' : ''}`} style={{ width: col.width || 'auto' }}>
                      {col.label}
                      {editMode && col.isCustom && (
                         <button onClick={() => removeColumn(col.id)} className="absolute right-4 top-1/2 -translate-y-1/2 text-red-500/50 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -405,11 +405,11 @@ function SortableRow({ row, columns, editMode, updateCell, removeRow, theme, isP
               <textarea
                 value={val}
                 onChange={(e) => updateCell(row.id, col.id, e.target.value, col.isCustom)}
-                className={`w-full min-h-[100px] p-6 bg-transparent resize-y outline-none ${theme.bgFocus} ${fontSize} font-bold ${row.is_important && col.id === 'activities' ? 'text-red-500' : 'text-zinc-300'} placeholder-zinc-800 transition-colors`}
+                className={`w-full min-h-[40px] p-3 md:p-4 bg-transparent resize-y outline-none ${theme.bgFocus} ${fontSize} font-bold ${row.is_important && col.id === 'activities' ? 'text-red-500' : 'text-zinc-300'} placeholder-zinc-800 transition-colors`}
                 placeholder={col.label.toUpperCase()}
               />
             ) : (
-              <div className={`p-6 ${fontSize} whitespace-pre-wrap leading-relaxed font-bold ${row.is_important && col.id === 'activities' ? 'text-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.4)]' : 'text-zinc-300'}`}>
+              <div className={`p-3 md:p-4 ${fontSize} whitespace-pre-wrap leading-relaxed font-bold ${row.is_important && col.id === 'activities' ? 'text-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.4)]' : 'text-zinc-300'}`}>
                 {val}
               </div>
             )}
