@@ -446,7 +446,7 @@ function SortableRow({ row, columns, editMode, updateCell, removeRow, theme, isP
 
     const onMouseMove = (moveEvent: MouseEvent) => {
       const deltaY = moveEvent.clientY - startY;
-      const newHeight = Math.max(30, startHeight + deltaY);
+      const newHeight = Math.max(20, startHeight + deltaY);
       updateCell(row.id, 'rowHeight', `${newHeight}px`, true);
     };
 
@@ -490,11 +490,11 @@ function SortableRow({ row, columns, editMode, updateCell, removeRow, theme, isP
               <textarea
                 value={val}
                 onChange={(e) => updateCell(row.id, col.id, e.target.value, col.isCustom)}
-                className={`w-full h-full min-h-[40px] p-3 md:p-4 bg-transparent resize-none outline-none ${theme.bgFocus} ${fontSize} font-bold ${row.is_important && col.id === 'activities' ? 'text-red-500' : 'text-zinc-300'} placeholder-zinc-800 transition-colors`}
+                className={`w-full h-full min-h-0 p-1 md:p-2 bg-transparent resize-none outline-none ${theme.bgFocus} ${fontSize} font-bold ${row.is_important && col.id === 'activities' ? 'text-red-500' : 'text-zinc-300'} placeholder-zinc-800 transition-colors`}
                 placeholder={col.label.toUpperCase()}
               />
             ) : (
-              <div className={`p-3 md:p-4 ${fontSize} whitespace-pre-wrap leading-relaxed font-bold ${row.is_important && col.id === 'activities' ? 'text-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.4)]' : 'text-zinc-300'}`}>
+              <div className={`p-1 md:p-2 ${fontSize} whitespace-pre-wrap leading-relaxed font-bold ${row.is_important && col.id === 'activities' ? 'text-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.4)]' : 'text-zinc-300'}`}>
                 {val}
               </div>
             )}
