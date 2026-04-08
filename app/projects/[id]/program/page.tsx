@@ -361,7 +361,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
 
 // ------ Horizontal Column Header Component (Manual Arrow Ordering) ------ //
 function ColumnHeader({ col, editMode, removeColumn, updateColumnWidth, moveColumn, theme }: any) {
-  const style = { width: col.width || 'auto' };
+  const style = { width: col.width || 'auto', minWidth: col.width || 'auto', maxWidth: col.width || 'auto' };
 
   const handleResizeStart = (e: React.MouseEvent) => {
     e.preventDefault();
