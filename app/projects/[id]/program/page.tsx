@@ -181,17 +181,24 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
       await supabase.from('program_items').delete().in('id', idsToDelete);
     }
 
-    // Upsert remaining rows
-    const upsertPayload = rows.map((row, index) => {
-      const payload = { ...row, sort_order: index };
-      if (payload.id.startsWith('temp_')) {
-        delete (payload as any).id; // Let DB generate ID
-      }
+    // 3. Split remaining rows into Updates and Inserts to avoid Supabase schema mismatch
+    const indexedRows = rows.map((row, index) => ({ ...row, sort_order: index }));
+    
+    const rowsToUpdate = indexedRows.filter(r => !r.id.startsWith('temp_'));
+    const rowsToInsert = indexedRows.filter(r => r.id.startsWith('temp_')).map(r => {
+      const payload = { ...r };
+      delete (payload as any).id; // Remove the temp ID so the database can generate a true UUID
       return payload;
     });
 
-    if (upsertPayload.length > 0) {
-      await supabase.from('program_items').upsert(upsertPayload);
+    if (rowsToUpdate.length > 0) {
+      const { error } = await supabase.from('program_items').upsert(rowsToUpdate);
+      if (error) alert(`Error updating rows: ${error.message}`);
+    }
+
+    if (rowsToInsert.length > 0) {
+      const { error } = await supabase.from('program_items').insert(rowsToInsert);
+      if (error) alert(`Error inserting new rows: ${error.message}`);
     }
 
     await fetchProgram(); // Re-sync local state with DB IDs
