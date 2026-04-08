@@ -107,23 +107,13 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    const idStr = String(active.id);
-    if (idStr.startsWith('col_')) {
-      setColumns((items) => {
-        const oldIndex = items.findIndex(i => `col_${i.id}` === active.id);
-        const newIndex = items.findIndex(i => `col_${i.id}` === over.id);
-        return arrayMove(items, oldIndex, newIndex);
-      });
-      setHasChanges(true);
-    } else {
-      setRows((items) => {
-        const oldIndex = items.findIndex(i => i.id === active.id);
-        const newIndex = items.findIndex(i => i.id === over.id);
-        const reordered = arrayMove(items, oldIndex, newIndex);
-        return reordered.map((item, index) => ({ ...item, sort_order: index }));
-      });
-      setHasChanges(true);
-    }
+    setRows((items) => {
+      const oldIndex = items.findIndex(i => i.id === active.id);
+      const newIndex = items.findIndex(i => i.id === over.id);
+      const reordered = arrayMove(items, oldIndex, newIndex);
+      return reordered.map((item, index) => ({ ...item, sort_order: index }));
+    });
+    setHasChanges(true);
   };
 
   const updateCell = (rowId: string, colId: string, value: string, isCustom: boolean) => {
@@ -139,6 +129,17 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
 
   const updateColumnWidth = (colId: string, newWidth: string) => {
     setColumns(columns.map(c => c.id === colId ? { ...c, width: newWidth } : c));
+    setHasChanges(true);
+  };
+
+  const moveColumn = (colId: string, direction: 'left' | 'right') => {
+    setColumns((prev) => {
+      const idx = prev.findIndex(c => c.id === colId);
+      if (idx === -1) return prev;
+      if (direction === 'left' && idx > 0) return arrayMove(prev, idx, idx - 1);
+      if (direction === 'right' && idx < prev.length - 1) return arrayMove(prev, idx, idx + 1);
+      return prev;
+    });
     setHasChanges(true);
   };
 
@@ -283,15 +284,13 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
       <div className="bg-[#050505] rounded-[2.5rem] border border-white/5 overflow-hidden shadow-2xl relative">
         <div className="overflow-x-auto print:overflow-visible print:w-full">
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <table className="w-full text-left border-collapse min-w-[1200px] print:min-w-full print:w-full table-fixed">
+            <table className="w-full text-left border-collapse min-w-[1200px] print:min-w-full print:w-full">
               <thead>
                 <tr className="bg-zinc-900/40 border-b border-white/5 text-[10px] uppercase font-black tracking-[0.2em] text-zinc-500">
                   {editMode && <th className="p-4 w-20 text-center">Ctrls</th>}
-                  <SortableContext items={columns.map(c => `col_${c.id}`)} strategy={horizontalListSortingStrategy}>
-                    {columns.map(col => (
-                      <SortableColumnHeader key={`col_${col.id}`} col={col} editMode={editMode} removeColumn={removeColumn} updateColumnWidth={updateColumnWidth} theme={theme} />
-                    ))}
-                  </SortableContext>
+                  {columns.map(col => (
+                    <ColumnHeader key={`col_${col.id}`} col={col} editMode={editMode} removeColumn={removeColumn} updateColumnWidth={updateColumnWidth} moveColumn={moveColumn} theme={theme} />
+                  ))}
                   {editMode && (
                     <th className="p-4 w-32 border-l border-white/5 text-center">
                       <button onClick={addColumn} className={`text-[10px] ${theme.text} font-black hover:scale-110 transition-transform`}><i className="fa-solid fa-plus mr-1"></i>ADD COL</button>
@@ -360,16 +359,9 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
   );
 }
 
-// ------ Horizontal Sortable Column Component ------ //
-function SortableColumnHeader({ col, editMode, removeColumn, updateColumnWidth, theme }: any) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: `col_${col.id}` });
-  
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    ...(isDragging ? { zIndex: 100, background: '#111', opacity: 0.9, position: 'relative' as any } : {}),
-    width: col.width || 'auto'
-  };
+// ------ Horizontal Column Header Component (Manual Arrow Ordering) ------ //
+function ColumnHeader({ col, editMode, removeColumn, updateColumnWidth, moveColumn, theme }: any) {
+  const style = { width: col.width || 'auto' };
 
   const handleResizeStart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -393,13 +385,14 @@ function SortableColumnHeader({ col, editMode, removeColumn, updateColumnWidth, 
   };
 
   return (
-    <th ref={setNodeRef} style={style} className={`p-4 border-r border-white/5 relative group align-middle ${editMode ? 'hover:bg-white/[0.02]' : ''}`}>
+    <th style={style} className={`p-4 border-r border-white/5 relative group align-middle ${editMode ? 'hover:bg-white/[0.02]' : ''}`}>
       <div className="flex items-center justify-between gap-2 h-full">
-        <div className="flex-1 flex items-center gap-2">
+        <div className="flex-1 flex items-center gap-3">
            {editMode && (
-             <button {...attributes} {...listeners} className="text-zinc-600 hover:text-white cursor-grab active:cursor-grabbing print:hidden">
-               <i className="fa-solid fa-grip-dots-vertical text-[10px]"></i>
-             </button>
+             <div className="flex gap-1 print:hidden opacity-30 group-hover:opacity-100 transition-opacity">
+               <button onClick={() => moveColumn(col.id, 'left')} className="w-5 h-5 rounded hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white"><i className="fa-solid fa-chevron-left text-[8px]"></i></button>
+               <button onClick={() => moveColumn(col.id, 'right')} className="w-5 h-5 rounded hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white"><i className="fa-solid fa-chevron-right text-[8px]"></i></button>
+             </div>
            )}
            <span className="truncate">{col.label}</span>
         </div>
