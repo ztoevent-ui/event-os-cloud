@@ -50,6 +50,10 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
   const [hasChanges, setHasChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   
+  // Custom Display Modes
+  const [isKiosk, setIsKiosk] = useState(false);
+  const [fontSize, setFontSize] = useState<'text-xs' | 'text-sm' | 'text-base' | 'text-lg' | 'text-xl' | 'text-2xl'>('text-sm');
+  
   const [project, setProject] = useState<any>(null);
   const { pageBreakIds } = usePrint();
 
@@ -216,9 +220,18 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
   }
 
   return (
-    <div className="space-y-6 max-w-[1500px] mx-auto pb-20 overflow-x-hidden">
+    <div className={isKiosk ? "fixed inset-0 z-[100] bg-[#050505] h-screen w-screen overflow-y-auto px-4 py-8 md:px-12 md:py-12 pb-32 transition-all duration-500 print:relative print:inset-auto" : "space-y-6 max-w-[1500px] mx-auto pb-20 overflow-x-hidden transition-all duration-500"}>
+      
+      {isKiosk && (
+          <div className="fixed bottom-8 right-8 z-[200]">
+              <button onClick={() => setIsKiosk(false)} className="h-14 px-8 bg-red-600 hover:bg-red-500 text-white rounded-full font-black text-xs tracking-widest flex items-center gap-3 shadow-[0_0_30px_rgba(220,38,38,0.5)] transition-all">
+                  <i className="fa-solid fa-compress"></i> EXIT KIOSK
+              </button>
+          </div>
+      )}
+
       {/* Premium Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-[#0a0a0a]/80 backdrop-blur-2xl p-8 rounded-[2rem] border border-white/5 shadow-2xl relative z-20">
+      <div className={`flex flex-col xl:flex-row justify-between items-start xl:items-center bg-[#0a0a0a]/80 backdrop-blur-2xl p-8 rounded-[2rem] border border-white/5 shadow-2xl relative z-20 ${isKiosk ? 'mb-8' : ''}`}>
         <div>
           <div className="flex items-center gap-3">
              <div className={`w-10 h-10 ${theme.bg} rounded-xl flex items-center justify-center text-black`}>
@@ -228,11 +241,21 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
           </div>
           <p className="text-zinc-500 mt-2 font-medium tracking-wide">Live event sequence control and production cues</p>
         </div>
-        <div className="flex items-center gap-4 mt-6 md:mt-0">
+        <div className="flex items-center gap-4 mt-6 xl:mt-0 flex-wrap">
+            <div className="flex items-center gap-1 bg-zinc-900/50 p-1.5 rounded-full border border-white/5 mr-2 print:hidden">
+              <button onClick={() => setFontSize('text-xs')} title="Small Text" className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${fontSize === 'text-xs' ? 'bg-white text-black' : 'text-zinc-500 hover:text-white'}`}>A-</button>
+              <button onClick={() => setFontSize('text-base')} title="Medium Text" className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${fontSize === 'text-base' ? 'bg-white text-black' : 'text-zinc-500 hover:text-white'}`}>A</button>
+              <button onClick={() => setFontSize('text-xl')} title="Large Text" className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-base ${fontSize === 'text-xl' ? 'bg-white text-black' : 'text-zinc-500 hover:text-white'}`}>A+</button>
+            </div>
+            {!isKiosk && (
+                <button onClick={() => setIsKiosk(true)} className="h-12 px-6 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white rounded-full font-black text-[10px] tracking-widest flex items-center gap-3 border border-white/5 transition-all print:hidden">
+                    <i className="fa-solid fa-expand"></i> KIOSK
+                </button>
+            )}
             {editMode && hasChanges && (
                 <button 
                   onClick={() => { fetchProgram(); setColumns(DEFAULT_COLUMNS); setEditMode(false); }}
-                  className="h-12 px-6 text-xs font-black rounded-full text-zinc-400 hover:text-white transition-all underline tracking-widest"
+                  className="h-12 px-6 text-xs font-black rounded-full text-zinc-400 hover:text-white transition-all underline tracking-widest print:hidden"
                 >
                   DISCARD
                 </button>
@@ -240,7 +263,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
             <button 
               onClick={editMode ? saveScript : toggleEditMode}
               disabled={isSaving}
-              className={`h-12 px-8 text-xs font-black rounded-full transition-all flex items-center gap-3 border tracking-widest ${editMode ? `${theme.bg} text-black ${theme.border} ${theme.shadow} hover:scale-105 active:scale-95` : `bg-white/5 ${theme.text} border-white/10 hover:bg-white/10`}`}
+              className={`h-12 px-8 text-xs font-black rounded-full transition-all flex items-center gap-3 border tracking-widest print:hidden ${editMode ? `${theme.bg} text-black ${theme.border} ${theme.shadow} hover:scale-105 active:scale-95` : `bg-white/5 ${theme.text} border-white/10 hover:bg-white/10`}`}
             >
               <i className={`fa-solid ${isSaving ? 'fa-spinner fa-spin' : editMode ? 'fa-save' : 'fa-pencil'}`}></i>
               {isSaving ? 'SAVING...' : editMode ? 'SAVE SCRIPT' : 'MODIFY SEQUENCE'}
@@ -278,7 +301,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
                 <SortableContext items={rows.map(r => r.id)} strategy={verticalListSortingStrategy}>
                   <AnimatePresence initial={false}>
                     {rows.map((row, index) => (
-                      <SortableRow key={row.id} row={row} columns={columns} editMode={editMode} updateCell={updateCell} removeRow={removeRow} theme={theme} isPageBreak={pageBreakIds.includes(row.id)} />
+                      <SortableRow key={row.id} row={row} columns={columns} editMode={editMode} updateCell={updateCell} removeRow={removeRow} theme={theme} isPageBreak={pageBreakIds.includes(row.id)} fontSize={fontSize} />
                     ))}
                   </AnimatePresence>
                 </SortableContext>
@@ -344,7 +367,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
   );
 }
 
-function SortableRow({ row, columns, editMode, updateCell, removeRow, theme, isPageBreak }: any) {
+function SortableRow({ row, columns, editMode, updateCell, removeRow, theme, isPageBreak, fontSize }: any) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: row.id });
   
   const style = {
@@ -376,11 +399,11 @@ function SortableRow({ row, columns, editMode, updateCell, removeRow, theme, isP
               <textarea
                 value={val}
                 onChange={(e) => updateCell(row.id, col.id, e.target.value, col.isCustom)}
-                className={`w-full h-full p-6 min-h-[100px] bg-transparent resize-none outline-none ${theme.bgFocus} text-sm font-bold ${row.is_important && col.id === 'activities' ? 'text-red-500' : 'text-zinc-300'} placeholder-zinc-800 transition-colors`}
+                className={`w-full min-h-[100px] p-6 bg-transparent resize-y outline-none ${theme.bgFocus} ${fontSize} font-bold ${row.is_important && col.id === 'activities' ? 'text-red-500' : 'text-zinc-300'} placeholder-zinc-800 transition-colors`}
                 placeholder={col.label.toUpperCase()}
               />
             ) : (
-              <div className={`p-6 text-sm whitespace-pre-wrap leading-relaxed font-bold ${row.is_important && col.id === 'activities' ? 'text-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.4)]' : 'text-zinc-300'}`}>
+              <div className={`p-6 ${fontSize} whitespace-pre-wrap leading-relaxed font-bold ${row.is_important && col.id === 'activities' ? 'text-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.4)]' : 'text-zinc-300'}`}>
                 {val}
               </div>
             )}
