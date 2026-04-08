@@ -9,6 +9,7 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
     const { id } = use(params);
     const [budgetItems, setBudgetItems] = useState<any[]>([]);
     const [project, setProject] = useState<any>(null);
+    const [logoUrl, setLogoUrl] = useState<string>('');
     const [loading, setLoading] = useState(true);
     const { pageBreakIds } = usePrint();
 
@@ -20,6 +21,9 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
         setLoading(true);
         const { data: projectData } = await supabase.from('projects').select('type').eq('id', id).single();
         setProject(projectData);
+
+        const { data: settingsData } = await supabase.from('tournament_settings').select('logo_url').eq('project_id', id).single();
+        if (settingsData?.logo_url) setLogoUrl(settingsData.logo_url);
 
         const { data: budgetData } = await supabase
             .from('budgets')
@@ -53,14 +57,21 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
             {/* Print Only Header */}
-            <div className="hidden print:flex items-start border-b-2 border-zinc-900 pb-4 mb-8 relative">
-                <div className="flex items-center gap-2 absolute left-0 top-0">
-                    <img src="/zto-logo.png" alt="ZTO Logo" className="w-10 h-10 object-contain" />
-                    <span className="font-bold text-lg text-zinc-700 tracking-tight">ZTO Event OS</span>
+            <div className="hidden print:flex items-center justify-between border-b-2 border-zinc-200 pb-6 mb-8 relative">
+                <div className="flex items-center gap-3">
+                    <img src="https://zihjzbweasaqqbwilshx.supabase.co/storage/v1/object/public/logo/icon.png.JPG" alt="ZTO Logo" className="w-12 h-12 object-contain" />
+                    <span className="font-black text-xl text-zinc-900 tracking-tighter uppercase">ZTO Event OS</span>
                 </div>
-                <div className="flex-1 flex flex-col items-center justify-center">
-                    <img src="/bpo-2026-logo.png" alt="Event Logo" className="w-24 h-24 object-contain mb-2" />
-                    <p className="text-xl font-black text-zinc-900 uppercase tracking-widest">Budget Report</p>
+                <div className="text-center">
+                    <p className="text-2xl font-black text-zinc-900 uppercase tracking-[0.2em] italic">Budget Report</p>
+                    <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">Operational Financial Disclosure</p>
+                </div>
+                <div className="flex items-center justify-end">
+                    {logoUrl ? (
+                        <img src={logoUrl} alt="Event Logo" className="w-16 h-16 object-contain" />
+                    ) : (
+                        <div className="w-16 h-16 bg-zinc-100 rounded-lg border border-zinc-200 flex items-center justify-center text-[8px] text-zinc-400 font-bold uppercase text-center p-2">Project Logo</div>
+                    )}
                 </div>
             </div>
 
@@ -75,76 +86,91 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
                 </div>
             </div>
 
-            {/* Overview Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-zinc-900/50 border border-zinc-800 p-6 rounded-2xl print:bg-white print:border-zinc-300">
-                    <h3 className="text-zinc-400 mb-2 font-bold text-xs uppercase tracking-widest print:text-zinc-500">Total Expenses</h3>
-                    <div className="text-3xl font-mono text-white print:text-black">RM {totalSpends.toFixed(2)}</div>
+            {/* Overview Cards - Fixed for Print Col Order */}
+            <div className="grid grid-cols-1 md:grid-cols-3 print:grid-cols-3 gap-6 print:gap-4">
+                <div className="bg-zinc-900/50 border border-zinc-800 p-6 print:p-4 rounded-2xl print:bg-white print:border-zinc-200 shadow-sm transition-all">
+                    <h3 className="text-zinc-400 mb-2 font-black text-[10px] uppercase tracking-widest print:text-zinc-500">Total Expenses</h3>
+                    <div className="text-3xl print:text-2xl font-mono font-black text-white print:text-red-600">RM {totalSpends.toFixed(2)}</div>
                 </div>
-                <div className="bg-zinc-900/50 border border-zinc-800 p-6 rounded-2xl print:bg-white print:border-zinc-300">
-                    <h3 className="text-zinc-400 mb-2 font-bold text-xs uppercase tracking-widest print:text-zinc-500">Projected Income</h3>
-                    <div className="text-3xl font-mono text-green-400 print:text-black">RM {totalIncome.toFixed(2)}</div>
+                <div className="bg-zinc-900/50 border border-zinc-800 p-6 print:p-4 rounded-2xl print:bg-white print:border-zinc-200 shadow-sm transition-all">
+                    <h3 className="text-zinc-400 mb-2 font-black text-[10px] uppercase tracking-widest print:text-zinc-500">Projected Income</h3>
+                    <div className="text-3xl print:text-2xl font-mono font-black text-green-400 print:text-emerald-600">RM {totalIncome.toFixed(2)}</div>
                 </div>
-                <div className="bg-zinc-900/50 border border-zinc-800 p-6 rounded-2xl print:bg-white print:border-zinc-300">
-                    <h3 className="text-zinc-400 mb-2 font-bold text-xs uppercase tracking-widest print:text-zinc-500">Net Balance</h3>
-                    <div className={`text-3xl font-mono ${totalIncome - totalSpends >= 0 ? 'text-blue-400' : 'text-red-400'} print:text-black`}>
+                <div className="bg-zinc-900/50 border border-zinc-800 p-6 print:p-4 rounded-2xl print:bg-white print:border-zinc-200 shadow-sm transition-all">
+                    <h3 className="text-zinc-400 mb-2 font-black text-[10px] uppercase tracking-widest print:text-zinc-500">Net Balance</h3>
+                    <div className={`text-3xl print:text-2xl font-mono font-black ${totalIncome - totalSpends >= 0 ? 'text-blue-400 print:text-blue-600' : 'text-red-400 print:text-red-600'}`}>
                         RM {(totalIncome - totalSpends).toFixed(2)}
                     </div>
                 </div>
             </div>
 
-            {/* Debit/Credit Columns */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden print:bg-white print:border-zinc-300">
-                <div className="p-6 border-b border-zinc-800 flex justify-between items-center print:bg-white print:border-zinc-300">
-                    <h3 className="text-xl font-bold text-white print:text-zinc-900">Transactions</h3>
+            {/* Debit/Credit Columns - Forced Side-by-Side in Print */}
+            <div className="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden print:bg-white print:border-zinc-200 print:rounded-2xl">
+                <div className="p-6 print:p-4 border-b border-zinc-800 print:border-zinc-200 flex justify-between items-center bg-black/20 print:bg-zinc-50">
+                    <h3 className="text-xl font-black text-white uppercase italic tracking-tight print:text-zinc-900 print:not-italic">Transactional Ledger</h3>
                     <span className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">{budgetItems?.length || 0} Records</span>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-zinc-800 print:divide-zinc-300">
+                <div className="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 divide-y md:divide-y-0 md:divide-x print:divide-y-0 print:divide-x divide-zinc-800 print:divide-zinc-200">
                     {/* Debit (Expenses) */}
-                    <div className="p-4">
-                        <h4 className="text-lg font-bold text-red-500 mb-2 print:text-red-700">Debit (Expenses)</h4>
-                        {expenses.length === 0 && <div className="text-zinc-500">No expenses.</div>}
-                        {expenses.map(item => (
-                          <div key={item.id} className={pageBreakIds.includes(item.id) ? 'print:break-before-page' : ''}>
-                             <div className="flex justify-between items-center py-2 border-b border-dashed border-zinc-700 print:border-zinc-300 last:border-b-0">
-                                <div>
-                                    <div className="font-bold text-zinc-200 print:text-zinc-900">{item.item}</div>
-                                    <div className="text-xs text-zinc-500 print:text-zinc-500">{item.category}</div>
-                                </div>
-                                <div className="text-right flex items-center gap-4">
-                                    <div>
-                                        <div className="font-mono font-bold text-red-400 print:text-red-700">- RM {Number(item.amount).toFixed(2)}</div>
-                                        <span className="text-xs px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-500 print:bg-zinc-200 print:text-zinc-700">{item.status}</span>
+                    <div className="p-6 print:p-4">
+                        <div className="flex items-center gap-2 mb-6 print:mb-4">
+                            <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse print:hidden"></div>
+                            <h4 className="text-xs font-black text-red-500 uppercase tracking-[0.3em] print:text-red-700">Debit (Expenses)</h4>
+                        </div>
+                        {expenses.length === 0 && <div className="text-zinc-500 text-xs italic py-8 text-center uppercase tracking-widest">No expenses recorded</div>}
+                        <div className="space-y-4 print:space-y-2">
+                            {expenses.map(item => (
+                            <div key={item.id} className={pageBreakIds.includes(item.id) ? 'print:break-before-page pt-4 border-t border-zinc-200 mt-4' : ''}>
+                                <div className="flex justify-between items-start py-3 print:py-1 border-b border-zinc-800/50 print:border-zinc-100 last:border-b-0 group">
+                                    <div className="flex-1">
+                                        <div className="font-bold text-zinc-100 print:text-zinc-900 text-sm print:text-[11px] leading-tight">{item.item}</div>
+                                        <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">{item.category}</div>
                                     </div>
-                                    <DeleteBudgetButton id={item.id} projectId={id} />
+                                    <div className="text-right flex items-center gap-4">
+                                        <div className="flex flex-col items-end">
+                                            <div className="font-mono font-black text-red-400 print:text-red-700 text-sm print:text-[11px]">- RM {Number(item.amount).toFixed(2)}</div>
+                                            <span className="text-[9px] font-black px-2 py-0.5 rounded-md bg-zinc-800 text-zinc-500 uppercase tracking-tighter mt-1 print:hidden">{item.status}</span>
+                                        </div>
+                                        <div className="print:hidden">
+                                            <DeleteBudgetButton id={item.id} projectId={id} />
+                                        </div>
+                                    </div>
                                 </div>
-                             </div>
-                             <PrintBreakTrigger id={item.id} />
-                          </div>
-                        ))}
+                                <PrintBreakTrigger id={item.id} />
+                            </div>
+                            ))}
+                        </div>
                     </div>
+
                     {/* Credit (Income) */}
-                    <div className="p-4">
-                        <h4 className="text-lg font-bold text-green-500 mb-2 print:text-green-700">Credit (Income)</h4>
-                        {income.length === 0 && <div className="text-zinc-500">No income.</div>}
-                        {income.map(item => (
-                          <div key={item.id} className={pageBreakIds.includes(item.id) ? 'print:break-before-page' : ''}>
-                             <div className="flex justify-between items-center py-2 border-b border-dashed border-zinc-700 print:border-zinc-300 last:border-b-0">
-                                <div>
-                                    <div className="font-bold text-zinc-200 print:text-zinc-900">{item.item}</div>
-                                    <div className="text-xs text-zinc-500 print:text-zinc-500">{item.category}</div>
-                                </div>
-                                <div className="text-right flex items-center gap-4">
-                                    <div>
-                                        <div className="font-mono font-bold text-green-400 print:text-green-700">+ RM {Number(item.amount).toFixed(2)}</div>
-                                        <span className="text-xs px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-500 print:bg-zinc-200 print:text-zinc-700">{item.status}</span>
+                    <div className="p-6 print:p-4">
+                        <div className="flex items-center gap-2 mb-6 print:mb-4">
+                            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse print:hidden"></div>
+                            <h4 className="text-xs font-black text-green-500 uppercase tracking-[0.3em] print:text-emerald-700">Credit (Income)</h4>
+                        </div>
+                        {income.length === 0 && <div className="text-zinc-500 text-xs italic py-8 text-center uppercase tracking-widest">No income recorded</div>}
+                        <div className="space-y-4 print:space-y-2">
+                            {income.map(item => (
+                            <div key={item.id} className={pageBreakIds.includes(item.id) ? 'print:break-before-page pt-4 border-t border-zinc-200 mt-4' : ''}>
+                                <div className="flex justify-between items-start py-3 print:py-1 border-b border-zinc-800/50 print:border-zinc-100 last:border-b-0 group">
+                                    <div className="flex-1">
+                                        <div className="font-bold text-zinc-100 print:text-zinc-900 text-sm print:text-[11px] leading-tight">{item.item}</div>
+                                        <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">{item.category}</div>
                                     </div>
-                                    <DeleteBudgetButton id={item.id} projectId={id} />
+                                    <div className="text-right flex items-center gap-4">
+                                        <div className="flex flex-col items-end">
+                                            <div className="font-mono font-black text-green-400 print:text-emerald-700 text-sm print:text-[11px]">+ RM {Number(item.amount).toFixed(2)}</div>
+                                            <span className="text-[9px] font-black px-2 py-0.5 rounded-md bg-zinc-800 text-zinc-500 uppercase tracking-tighter mt-1 print:hidden">{item.status}</span>
+                                        </div>
+                                        <div className="print:hidden">
+                                            <DeleteBudgetButton id={item.id} projectId={id} />
+                                        </div>
+                                    </div>
                                 </div>
-                             </div>
-                             <PrintBreakTrigger id={item.id} />
-                          </div>
-                        ))}
+                                <PrintBreakTrigger id={item.id} />
+                            </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -152,20 +178,34 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
             {/* Print Styles */}
             <style jsx global>{`
                 @media print {
-                    @page { margin: 15mm; }
+                    @page { 
+                        size: A4 portrait;
+                        margin: 10mm;
+                    }
                     html, body, main {
                         background: white !important;
                         color: black !important;
+                        padding: 0 !important;
+                        margin: 0 !important;
                     }
                     .print\\:hidden, nav, header, footer, button {
                         display: none !important;
                     }
-                    .bg-zinc-900, .bg-zinc-900\\/50 {
+                    .bg-zinc-900, .bg-zinc-900\\/50, .bg-black\\/20 {
                         background: transparent !important;
                         color: black !important;
                     }
-                    .text-white, .text-zinc-200, .text-zinc-400 {
+                    .text-white, .text-zinc-100, .text-zinc-200, .text-zinc-400, .text-zinc-500 {
                         color: black !important;
+                    }
+                    .border-zinc-800, .border-zinc-900, .border-zinc-800\\/50 {
+                        border-color: #eee !important;
+                    }
+                    .shadow-sm, .shadow-2xl {
+                        box-shadow: none !important;
+                    }
+                    .rounded-3xl, .rounded-2xl {
+                        border-radius: 8px !important;
                     }
                     .print\\:break-before-page {
                         break-before: page !important;
@@ -174,9 +214,12 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
             `}</style>
 
             {/* Print Footer */}
-            <div className="hidden print:flex fixed bottom-0 left-0 right-0 py-4 border-t border-zinc-200 text-[10px] font-bold text-zinc-400 justify-between uppercase tracking-widest bg-white z-50">
-                <div>ZTO Event OS - Budget Insights</div>
-                <div>Generated: {new Date().toLocaleString()}</div>
+            <div className="hidden print:flex fixed bottom-0 left-0 right-0 py-2 border-t border-zinc-200 text-[8px] font-black text-zinc-400 justify-between uppercase tracking-widest bg-white z-50">
+                <div className="flex items-center gap-2">
+                    <img src="https://zihjzbweasaqqbwilshx.supabase.co/storage/v1/object/public/logo/icon.png.JPG" alt="ZTO" className="w-4 h-4 grayscale" />
+                    <span>ZTO Event OS • Official Budget Insights</span>
+                </div>
+                <div>Project ID: {id.slice(0, 8)} • Generated: {new Date().toLocaleString()}</div>
             </div>
         </div>
     );

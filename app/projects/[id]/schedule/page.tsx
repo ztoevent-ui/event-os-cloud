@@ -284,10 +284,22 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
             </div>
           )}
 
-          {(schedule.length === 0 && !loading) && (
-            <div className="py-20 text-center text-zinc-700">
-              <i className="fa-solid fa-calendar-day text-5xl mb-4 opacity-20"></i>
-              <p className="font-black text-xs uppercase tracking-widest opacity-30">No Schedule Items Recorded</p>
+          {schedule.length === 0 && !loading && (
+            <div className="py-32 flex flex-col items-center justify-center border-2 border-dashed border-zinc-800 rounded-[3rem] bg-zinc-950/20 group hover:border-zinc-700 transition-all duration-500">
+              <div className="relative mb-8">
+                <div className={`absolute inset-0 blur-3xl opacity-20 ${theme.bg}`}></div>
+                <i className={`fa-solid fa-calendar-xmark text-6xl relative z-10 ${theme.text} opacity-40 group-hover:scale-110 transition-transform duration-700`}></i>
+              </div>
+              <h3 className="text-xl font-bold text-zinc-400 uppercase tracking-widest mb-2 italic">No Sequence Defined</h3>
+              <p className="text-zinc-600 font-medium text-xs max-w-xs text-center border-t border-zinc-900 pt-4 mt-2">Initialize your event timeline to generate a high-performance tentative program.</p>
+              <div className="mt-8 print:hidden">
+                <button 
+                  onClick={addItem}
+                  className={`px-8 py-3 bg-zinc-900 ${theme.text} rounded-2xl border ${theme.border} text-[10px] font-black uppercase tracking-[0.2em] shadow-2xl hover:bg-white hover:text-black transition-all`}
+                >
+                   Create First Entry
+                </button>
+              </div>
             </div>
           )}
         </div>

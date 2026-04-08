@@ -320,21 +320,25 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
             </tbody>
           </table>
           
-          {(rows.length === 0 && !loading) && (
-            <div className="py-32 flex flex-col items-center justify-center text-zinc-800">
-              <i className="fa-solid fa-layer-group text-8xl mb-6 opacity-20"></i>
-              <p className="font-black text-xl uppercase tracking-[0.5em] opacity-30">No Sequence Defined</p>
-            </div>
-          )}
-          
-          {editMode && (
-            <div className="p-8 bg-zinc-900/20 border-t border-white/5 flex justify-center">
-              <button 
-                onClick={addRow}
-                className="h-14 px-12 bg-zinc-800 text-white hover:bg-white hover:text-black hover:scale-105 active:scale-95 text-[10px] uppercase tracking-[0.3em] font-black rounded-full transition-all flex items-center gap-4 shadow-2xl"
-              >
-                <i className="fa-solid fa-plus-circle text-lg"></i> Append Sequence Row
-              </button>
+          {rows.length === 0 && !loading && (
+            <div className="py-32 flex flex-col items-center justify-center border-2 border-dashed border-white/5 rounded-[3rem] bg-white/[0.02] group hover:border-white/10 transition-all duration-500 mx-8 my-8">
+              <div className="relative mb-8">
+                <div className={`absolute inset-0 blur-3xl opacity-20 ${theme.bg}`}></div>
+                <i className={`fa-solid fa-layer-group text-7xl relative z-10 ${theme.text} opacity-30 group-hover:scale-110 transition-transform duration-700`}></i>
+              </div>
+              <h3 className="text-2xl font-black text-zinc-400 uppercase tracking-[0.3em] mb-3 italic">No Sequence Defined</h3>
+              <p className="text-zinc-600 font-medium text-xs max-w-sm text-center border-t border-white/5 pt-6 mt-2 tracking-widest leading-loose uppercase">
+                Your live production script is currently blank. <br/>
+                Initialize the sequence to generate automated cues.
+              </p>
+              <div className="mt-10 print:hidden">
+                <button 
+                  onClick={addRow}
+                  className={`h-14 px-12 bg-zinc-900 ${theme.text} rounded-2xl border ${theme.border} text-[10px] font-black uppercase tracking-[0.3em] shadow-2xl hover:bg-white hover:text-black transition-all`}
+                >
+                   Initialize First Row
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -342,7 +346,10 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
       
       {/* Visual Footer */}
       <div className="flex justify-between items-center px-8 text-[10px] font-black tracking-[0.4em] text-zinc-800 uppercase print:text-zinc-400 sticky bottom-0 bg-black/80 backdrop-blur-md py-4">
-         <div>ZTO Operational Protocol • 2026</div>
+         <div className="flex items-center gap-3">
+            <img src="https://zihjzbweasaqqbwilshx.supabase.co/storage/v1/object/public/logo/icon.png.JPG" alt="ZTO" className="w-4 h-4 grayscale opacity-30" />
+            <span>ZTO Operational Protocol • 2026</span>
+         </div>
          <div>Strictly Confidential • Production Use Only</div>
       </div>
 
