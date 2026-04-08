@@ -171,8 +171,14 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
   const saveScript = async () => {
     setIsSaving(true);
     
-    // 1. Save Columns Format to Settings
-    await supabase.from('tournament_settings').update({ program_columns: columns }).eq('project_id', projectId);
+    // 1. Save Columns Format to Settings safely (Handling projects without existing settings)
+    const { data: updateData, error: updateError } = await supabase.from('tournament_settings').update({ program_columns: columns }).eq('project_id', projectId).select();
+    if (!updateError && (!updateData || updateData.length === 0)) {
+        const { error: insertError } = await supabase.from('tournament_settings').insert({ project_id: projectId, program_columns: columns });
+        if (insertError) alert(`Column Config Error: ${insertError.message}`);
+    } else if (updateError) {
+        alert(`Settings Update Error: ${updateError.message}`);
+    }
 
     // 2. Identify Rows to Insert/Update and Delete
     const { data: existingDbRows } = await supabase.from('program_items').select('id').eq('project_id', projectId);
