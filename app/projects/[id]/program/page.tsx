@@ -353,6 +353,8 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
           td, th { border: 1px solid #eee !important; padding: 8px !important; }
           .rounded-\\[2rem\\], .rounded-\\[2\\.5rem\\], .rounded-xl { border-radius: 0 !important; }
           .shadow-2xl, .shadow-xl { box-shadow: none !important; }
+          /* Ensure columns fit to page width */
+          th, td { width: auto !important; min-width: 0 !important; max-width: none !important; }
         }
       `}</style>
     </div>
@@ -361,7 +363,9 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
 
 // ------ Horizontal Column Header Component (Manual Arrow Ordering) ------ //
 function ColumnHeader({ col, editMode, removeColumn, updateColumnWidth, moveColumn, theme }: any) {
-  const style = { width: col.width || 'auto', minWidth: col.width || 'auto', maxWidth: col.width || 'auto' };
+  const style = { 
+    '--col-width': col.width || 'auto' 
+  } as React.CSSProperties;
 
   const handleResizeStart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -385,7 +389,7 @@ function ColumnHeader({ col, editMode, removeColumn, updateColumnWidth, moveColu
   };
 
   return (
-    <th style={style} className={`p-4 border-r border-white/5 relative group align-middle ${editMode ? 'hover:bg-white/[0.02]' : ''}`}>
+    <th style={style} className={`p-4 border-r border-white/5 relative group align-middle w-[var(--col-width)] min-w-[var(--col-width)] max-w-[var(--col-width)] print:w-auto print:min-w-0 print:max-w-none ${editMode ? 'hover:bg-white/[0.02]' : ''}`}>
       <div className="flex items-center justify-between gap-2 h-full">
         <div className="flex-1 flex items-center gap-3">
            {editMode && (

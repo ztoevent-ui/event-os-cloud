@@ -76,11 +76,11 @@ export function PrintOptionsModal({ isOpen, onClose, title }: PrintOptionsModalP
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md animate-in fade-in">
-      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl w-full max-w-lg p-8 shadow-2xl relative animate-in zoom-in-95">
-        <div className="flex justify-between items-center mb-8">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl w-full max-w-lg p-6 md:p-8 shadow-2xl relative animate-in zoom-in-95 max-h-[90vh] overflow-y-auto scrollbar-hide">
+        <div className="flex justify-between items-center mb-6 md:mb-8 sticky top-0 bg-zinc-900 z-10 py-2">
           <div>
-            <h3 className="text-2xl font-black text-white uppercase italic tracking-wider">Export PDF</h3>
+            <h3 className="text-xl md:text-2xl font-black text-white uppercase italic tracking-wider">Export PDF</h3>
             <p className="text-zinc-500 text-sm mt-1">{title}</p>
           </div>
           <button onClick={onClose} disabled={isDownloading} className="w-10 h-10 flex items-center justify-center rounded-full bg-zinc-800 text-zinc-400 hover:text-white transition-colors disabled:opacity-50">
