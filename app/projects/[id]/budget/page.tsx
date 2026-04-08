@@ -57,20 +57,20 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
             {/* Print Only Header */}
-            <div className="hidden print:flex items-center justify-between border-b-2 border-zinc-200 pb-6 mb-8 relative">
+            <div className="hidden print:flex items-center justify-between border-b-2 border-zinc-200 pb-6 print:pb-2 mb-8 print:mb-2 relative">
                 <div className="flex items-center gap-3">
-                    <img src="https://zihjzbweasaqqbwilshx.supabase.co/storage/v1/object/public/logo/icon.png.JPG" alt="ZTO Logo" className="w-12 h-12 object-contain" />
-                    <span className="font-black text-xl text-zinc-900 tracking-tighter uppercase">ZTO Event OS</span>
+                    <img src="https://zihjzbweasaqqbwilshx.supabase.co/storage/v1/object/public/logo/icon.png.JPG" alt="ZTO Logo" className="w-12 h-12 print:w-8 print:h-8 object-contain" />
+                    <span className="font-black text-xl print:text-sm text-zinc-900 tracking-tighter uppercase">ZTO Event OS</span>
                 </div>
                 <div className="text-center">
-                    <p className="text-2xl font-black text-zinc-900 uppercase tracking-[0.2em] italic">Budget Report</p>
-                    <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">Operational Financial Disclosure</p>
+                    <p className="text-2xl print:text-lg font-black text-zinc-900 uppercase tracking-[0.2em] italic">Budget Report</p>
+                    <p className="text-[10px] print:text-[8px] text-zinc-500 font-bold uppercase tracking-widest mt-1 print:mt-0">Operational Financial Disclosure</p>
                 </div>
                 <div className="flex items-center justify-end">
                     {logoUrl ? (
-                        <img src={logoUrl} alt="Event Logo" className="w-16 h-16 object-contain" />
+                        <img src={logoUrl} alt="Event Logo" className="w-16 h-16 print:w-10 print:h-10 object-contain" />
                     ) : (
-                        <div className="w-16 h-16 bg-zinc-100 rounded-lg border border-zinc-200 flex items-center justify-center text-[8px] text-zinc-400 font-bold uppercase text-center p-2">Project Logo</div>
+                        <div className="w-16 h-16 print:w-10 print:h-10 bg-zinc-100 rounded-lg border border-zinc-200 flex items-center justify-center text-[8px] print:text-[6px] text-zinc-400 font-bold uppercase text-center p-2">Project Logo</div>
                     )}
                 </div>
             </div>
@@ -87,18 +87,18 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
             </div>
 
             {/* Overview Cards - Fixed for Print Col Order */}
-            <div className="grid grid-cols-1 md:grid-cols-3 print:flex print:flex-row print:w-full gap-6 print:gap-4">
-                <div className="bg-zinc-900/50 border border-zinc-800 p-6 print:p-4 rounded-2xl print:bg-white print:border-zinc-200 shadow-sm transition-all print:w-1/3 print:shrink-0">
-                    <h3 className="text-zinc-400 mb-2 font-black text-[10px] uppercase tracking-widest print:text-zinc-500">Total Expenses</h3>
-                    <div className="text-3xl print:text-2xl font-mono font-black text-white print:text-red-600">RM {totalSpends.toFixed(2)}</div>
+            <div className="grid grid-cols-1 md:grid-cols-3 print:flex print:flex-row print:w-full gap-6 print:gap-2">
+                <div className="bg-zinc-900/50 border border-zinc-800 p-6 print:p-2 rounded-2xl print:bg-white print:border-zinc-200 shadow-sm transition-all print:w-1/3 print:shrink-0">
+                    <h3 className="text-zinc-400 mb-2 font-black text-[10px] print:text-[7px] uppercase tracking-widest print:text-zinc-500">Total Expenses</h3>
+                    <div className="text-3xl print:text-base font-mono font-black text-white print:text-red-600">RM {totalSpends.toFixed(2)}</div>
                 </div>
-                <div className="bg-zinc-900/50 border border-zinc-800 p-6 print:p-4 rounded-2xl print:bg-white print:border-zinc-200 shadow-sm transition-all print:w-1/3 print:shrink-0">
-                    <h3 className="text-zinc-400 mb-2 font-black text-[10px] uppercase tracking-widest print:text-zinc-500">Projected Income</h3>
-                    <div className="text-3xl print:text-2xl font-mono font-black text-green-400 print:text-emerald-600">RM {totalIncome.toFixed(2)}</div>
+                <div className="bg-zinc-900/50 border border-zinc-800 p-6 print:p-2 rounded-2xl print:bg-white print:border-zinc-200 shadow-sm transition-all print:w-1/3 print:shrink-0">
+                    <h3 className="text-zinc-400 mb-2 font-black text-[10px] print:text-[7px] uppercase tracking-widest print:text-zinc-500">Projected Income</h3>
+                    <div className="text-3xl print:text-base font-mono font-black text-green-400 print:text-emerald-600">RM {totalIncome.toFixed(2)}</div>
                 </div>
-                <div className="bg-zinc-900/50 border border-zinc-800 p-6 print:p-4 rounded-2xl print:bg-white print:border-zinc-200 shadow-sm transition-all print:w-1/3 print:shrink-0">
-                    <h3 className="text-zinc-400 mb-2 font-black text-[10px] uppercase tracking-widest print:text-zinc-500">Net Balance</h3>
-                    <div className={`text-3xl print:text-2xl font-mono font-black ${totalIncome - totalSpends >= 0 ? 'text-blue-400 print:text-blue-600' : 'text-red-400 print:text-red-600'}`}>
+                <div className="bg-zinc-900/50 border border-zinc-800 p-6 print:p-2 rounded-2xl print:bg-white print:border-zinc-200 shadow-sm transition-all print:w-1/3 print:shrink-0">
+                    <h3 className="text-zinc-400 mb-2 font-black text-[10px] print:text-[7px] uppercase tracking-widest print:text-zinc-500">Net Balance</h3>
+                    <div className={`text-3xl print:text-base font-mono font-black ${totalIncome - totalSpends >= 0 ? 'text-blue-400 print:text-blue-600' : 'text-red-400 print:text-red-600'}`}>
                         RM {(totalIncome - totalSpends).toFixed(2)}
                     </div>
                 </div>
@@ -106,29 +106,29 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
 
             {/* Debit/Credit Columns - Forced Side-by-Side in Print */}
             <div className="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden print:bg-white print:border-zinc-200 print:rounded-2xl">
-                <div className="p-6 print:p-4 border-b border-zinc-800 print:border-zinc-200 flex justify-between items-center bg-black/20 print:bg-zinc-50">
-                    <h3 className="text-xl font-black text-white uppercase italic tracking-tight print:text-zinc-900 print:not-italic">Transactional Ledger</h3>
-                    <span className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">{budgetItems?.length || 0} Records</span>
+                <div className="p-6 print:p-2 border-b border-zinc-800 print:border-zinc-200 flex justify-between items-center bg-black/20 print:bg-zinc-50">
+                    <h3 className="text-xl print:text-[10px] font-black text-white uppercase italic tracking-tight print:text-zinc-900 print:not-italic">Transactional Ledger</h3>
+                    <span className="text-[10px] print:text-[8px] font-black text-zinc-500 uppercase tracking-[0.2em]">{budgetItems?.length || 0} Records</span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 print:flex print:flex-row print:w-full print:items-start divide-y md:divide-y-0 md:divide-x print:divide-y-0 print:divide-x divide-zinc-800 print:divide-zinc-200">
                     {/* Debit (Expenses) */}
-                    <div className="p-6 print:p-4 print:w-1/2 print:shrink-0">
-                        <div className="flex items-center gap-2 mb-6 print:mb-4">
+                    <div className="p-6 print:p-2 print:w-1/2 print:shrink-0">
+                        <div className="flex items-center gap-2 mb-6 print:mb-2 border-b border-dashed border-red-500/20 print:pb-1">
                             <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse print:hidden"></div>
-                            <h4 className="text-xs font-black text-red-500 uppercase tracking-[0.3em] print:text-red-700">Debit (Expenses)</h4>
+                            <h4 className="text-xs print:text-[8px] font-black text-red-500 uppercase tracking-[0.3em] print:text-red-700">Debit (Expenses)</h4>
                         </div>
-                        {expenses.length === 0 && <div className="text-zinc-500 text-xs italic py-8 text-center uppercase tracking-widest">No expenses recorded</div>}
-                        <div className="space-y-4 print:space-y-2">
+                        {expenses.length === 0 && <div className="text-zinc-500 text-xs italic py-8 text-center uppercase tracking-widest print:py-2">No expenses recorded</div>}
+                        <div className="space-y-4 print:space-y-0.5">
                             {expenses.map(item => (
                             <div key={item.id} className={pageBreakIds.includes(item.id) ? 'print:break-before-page pt-4 border-t border-zinc-200 mt-4' : ''}>
-                                <div className="flex justify-between items-start py-3 print:py-1 border-b border-zinc-800/50 print:border-zinc-100 last:border-b-0 group">
+                                <div className="flex justify-between items-center py-3 print:py-0.5 border-b border-zinc-800/50 print:border-zinc-100 last:border-b-0 group">
                                     <div className="flex-1">
-                                        <div className="font-bold text-zinc-100 print:text-zinc-900 text-sm print:text-[11px] leading-tight">{item.item}</div>
-                                        <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">{item.category}</div>
+                                        <div className="font-bold text-zinc-100 print:text-zinc-900 text-sm print:text-[8px] leading-tight">{item.item}</div>
+                                        <div className="text-[10px] print:text-[6px] text-zinc-500 font-bold uppercase tracking-widest mt-1 print:mt-0">{item.category}</div>
                                     </div>
                                     <div className="text-right flex items-center gap-4">
                                         <div className="flex flex-col items-end">
-                                            <div className="font-mono font-black text-red-400 print:text-red-700 text-sm print:text-[11px]">- RM {Number(item.amount).toFixed(2)}</div>
+                                            <div className="font-mono font-black text-red-400 print:text-red-700 text-sm print:text-[8px]">- RM {Number(item.amount).toFixed(2)}</div>
                                             <span className="text-[9px] font-black px-2 py-0.5 rounded-md bg-zinc-800 text-zinc-500 uppercase tracking-tighter mt-1 print:hidden">{item.status}</span>
                                         </div>
                                         <div className="print:hidden">
@@ -143,23 +143,23 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
                     </div>
 
                     {/* Credit (Income) */}
-                    <div className="p-6 print:p-4 print:w-1/2 print:shrink-0">
-                        <div className="flex items-center gap-2 mb-6 print:mb-4">
+                    <div className="p-6 print:p-2 print:w-1/2 print:shrink-0">
+                        <div className="flex items-center gap-2 mb-6 print:mb-2 border-b border-dashed border-green-500/20 print:pb-1">
                             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse print:hidden"></div>
-                            <h4 className="text-xs font-black text-green-500 uppercase tracking-[0.3em] print:text-emerald-700">Credit (Income)</h4>
+                            <h4 className="text-xs print:text-[8px] font-black text-green-500 uppercase tracking-[0.3em] print:text-emerald-700">Credit (Income)</h4>
                         </div>
-                        {income.length === 0 && <div className="text-zinc-500 text-xs italic py-8 text-center uppercase tracking-widest">No income recorded</div>}
-                        <div className="space-y-4 print:space-y-2">
+                        {income.length === 0 && <div className="text-zinc-500 text-xs italic py-8 text-center uppercase tracking-widest print:py-2">No income recorded</div>}
+                        <div className="space-y-4 print:space-y-0.5">
                             {income.map(item => (
                             <div key={item.id} className={pageBreakIds.includes(item.id) ? 'print:break-before-page pt-4 border-t border-zinc-200 mt-4' : ''}>
-                                <div className="flex justify-between items-start py-3 print:py-1 border-b border-zinc-800/50 print:border-zinc-100 last:border-b-0 group">
+                                <div className="flex justify-between items-center py-3 print:py-0.5 border-b border-zinc-800/50 print:border-zinc-100 last:border-b-0 group">
                                     <div className="flex-1">
-                                        <div className="font-bold text-zinc-100 print:text-zinc-900 text-sm print:text-[11px] leading-tight">{item.item}</div>
-                                        <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">{item.category}</div>
+                                        <div className="font-bold text-zinc-100 print:text-zinc-900 text-sm print:text-[8px] leading-tight">{item.item}</div>
+                                        <div className="text-[10px] print:text-[6px] text-zinc-500 font-bold uppercase tracking-widest mt-1 print:mt-0">{item.category}</div>
                                     </div>
                                     <div className="text-right flex items-center gap-4">
                                         <div className="flex flex-col items-end">
-                                            <div className="font-mono font-black text-green-400 print:text-emerald-700 text-sm print:text-[11px]">+ RM {Number(item.amount).toFixed(2)}</div>
+                                            <div className="font-mono font-black text-green-400 print:text-emerald-700 text-sm print:text-[8px]">+ RM {Number(item.amount).toFixed(2)}</div>
                                             <span className="text-[9px] font-black px-2 py-0.5 rounded-md bg-zinc-800 text-zinc-500 uppercase tracking-tighter mt-1 print:hidden">{item.status}</span>
                                         </div>
                                         <div className="print:hidden">
