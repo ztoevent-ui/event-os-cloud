@@ -87,16 +87,16 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
             </div>
 
             {/* Overview Cards - Fixed for Print Col Order */}
-            <div className="grid grid-cols-1 md:grid-cols-3 print:grid-cols-3 gap-6 print:gap-4">
-                <div className="bg-zinc-900/50 border border-zinc-800 p-6 print:p-4 rounded-2xl print:bg-white print:border-zinc-200 shadow-sm transition-all">
+            <div className="grid grid-cols-1 md:grid-cols-3 print:flex print:flex-row print:w-full gap-6 print:gap-4">
+                <div className="bg-zinc-900/50 border border-zinc-800 p-6 print:p-4 rounded-2xl print:bg-white print:border-zinc-200 shadow-sm transition-all print:w-1/3 print:shrink-0">
                     <h3 className="text-zinc-400 mb-2 font-black text-[10px] uppercase tracking-widest print:text-zinc-500">Total Expenses</h3>
                     <div className="text-3xl print:text-2xl font-mono font-black text-white print:text-red-600">RM {totalSpends.toFixed(2)}</div>
                 </div>
-                <div className="bg-zinc-900/50 border border-zinc-800 p-6 print:p-4 rounded-2xl print:bg-white print:border-zinc-200 shadow-sm transition-all">
+                <div className="bg-zinc-900/50 border border-zinc-800 p-6 print:p-4 rounded-2xl print:bg-white print:border-zinc-200 shadow-sm transition-all print:w-1/3 print:shrink-0">
                     <h3 className="text-zinc-400 mb-2 font-black text-[10px] uppercase tracking-widest print:text-zinc-500">Projected Income</h3>
                     <div className="text-3xl print:text-2xl font-mono font-black text-green-400 print:text-emerald-600">RM {totalIncome.toFixed(2)}</div>
                 </div>
-                <div className="bg-zinc-900/50 border border-zinc-800 p-6 print:p-4 rounded-2xl print:bg-white print:border-zinc-200 shadow-sm transition-all">
+                <div className="bg-zinc-900/50 border border-zinc-800 p-6 print:p-4 rounded-2xl print:bg-white print:border-zinc-200 shadow-sm transition-all print:w-1/3 print:shrink-0">
                     <h3 className="text-zinc-400 mb-2 font-black text-[10px] uppercase tracking-widest print:text-zinc-500">Net Balance</h3>
                     <div className={`text-3xl print:text-2xl font-mono font-black ${totalIncome - totalSpends >= 0 ? 'text-blue-400 print:text-blue-600' : 'text-red-400 print:text-red-600'}`}>
                         RM {(totalIncome - totalSpends).toFixed(2)}
@@ -110,9 +110,9 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
                     <h3 className="text-xl font-black text-white uppercase italic tracking-tight print:text-zinc-900 print:not-italic">Transactional Ledger</h3>
                     <span className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">{budgetItems?.length || 0} Records</span>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 divide-y md:divide-y-0 md:divide-x print:divide-y-0 print:divide-x divide-zinc-800 print:divide-zinc-200">
+                <div className="grid grid-cols-1 md:grid-cols-2 print:flex print:flex-row print:w-full print:items-start divide-y md:divide-y-0 md:divide-x print:divide-y-0 print:divide-x divide-zinc-800 print:divide-zinc-200">
                     {/* Debit (Expenses) */}
-                    <div className="p-6 print:p-4">
+                    <div className="p-6 print:p-4 print:w-1/2 print:shrink-0">
                         <div className="flex items-center gap-2 mb-6 print:mb-4">
                             <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse print:hidden"></div>
                             <h4 className="text-xs font-black text-red-500 uppercase tracking-[0.3em] print:text-red-700">Debit (Expenses)</h4>
@@ -143,7 +143,7 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
                     </div>
 
                     {/* Credit (Income) */}
-                    <div className="p-6 print:p-4">
+                    <div className="p-6 print:p-4 print:w-1/2 print:shrink-0">
                         <div className="flex items-center gap-2 mb-6 print:mb-4">
                             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse print:hidden"></div>
                             <h4 className="text-xs font-black text-green-500 uppercase tracking-[0.3em] print:text-emerald-700">Credit (Income)</h4>
