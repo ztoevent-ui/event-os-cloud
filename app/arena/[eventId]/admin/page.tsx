@@ -1,11 +1,9 @@
 'use client';
 
-import React, { useEffect, useState, useRef, Suspense, useMemo } from 'react';
+import React, { useEffect, useState, useRef, Suspense } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
-import { motion, AnimatePresence } from 'framer-motion';
-import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 
 // --- TYPES & CONFIG ---
 
@@ -98,11 +96,7 @@ function MasterConsoleContent() {
 
   const [teamInputCount, setTeamInputCount] = useState(8);
   const [bracketState, setBracketState] = useState<BracketData>(() => generateFlexibleBracket(8));
-  const [bracketVersion, setBracketVersion] = useState(0); 
-
   const [dispatchQueue, setDispatchQueue] = useState<{ id: string, name: string, status: string, scoreA: number, scoreB: number, teamA?: string, teamB?: string }[]>([]);
-  const [judgingApprovals, setJudgingApprovals] = useState<{ id: string, name: string, status: string }[]>([]);
-
   const [activeAdId, setActiveAdId] = useState<string | null>(null);
   const [activeBgm, setActiveBgm] = useState<string | null>(null);
 
@@ -163,7 +157,6 @@ function MasterConsoleContent() {
       if (isNaN(count) || count < 2) return;
       const newBracket = generateFlexibleBracket(count);
       setBracketState(newBracket);
-      setBracketVersion(prev => prev + 1); 
   };
 
   const renderSimulatedMonitor = (scene: string) => {
