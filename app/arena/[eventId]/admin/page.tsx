@@ -281,6 +281,105 @@ function MasterConsoleContent() {
       </div>
 
       <main className="flex-1 overflow-hidden flex flex-col relative">
+        {activeTab === 'SCORE' && (
+            <div className="p-8 flex flex-col gap-6 flex-1 overflow-y-auto w-full max-w-5xl mx-auto">
+                <h2 className="text-2xl font-black uppercase tracking-widest text-emerald-500 italic mb-4">Scoreboard Display Controller</h2>
+                
+                <div className="flex gap-12">
+                   <div className="flex-1 bg-zinc-900 border border-white/10 p-6 rounded-2xl">
+                       <h3 className="text-zinc-500 font-bold uppercase text-[10px] mb-4 tracking-widest">TEAM A</h3>
+                       <input className="w-full bg-black border border-white/10 rounded-lg p-3 text-white focus:border-amber-500" value={matchState.teamA.name} onChange={(e) => setMatchState({...matchState, teamA: {...matchState.teamA, name: e.target.value}})} placeholder="Team A Name" />
+                       <div className="flex items-center gap-4 mt-6 justify-center">
+                           <button onClick={() => setMatchState({...matchState, teamA: {...matchState.teamA, score: Math.max(0, matchState.teamA.score - 1)}})} className="w-12 h-12 bg-zinc-800 rounded-xl font-black hover:bg-zinc-700 transition-colors">-</button>
+                           <div className="text-5xl font-black tabular-nums w-20 text-center">{matchState.teamA.score}</div>
+                           <button onClick={() => setMatchState({...matchState, teamA: {...matchState.teamA, score: matchState.teamA.score + 1}})} className="w-12 h-12 bg-zinc-800 rounded-xl font-black hover:bg-zinc-700 transition-colors">+</button>
+                       </div>
+                   </div>
+                   
+                   <div className="flex-1 bg-zinc-900 border border-white/10 p-6 rounded-2xl">
+                       <h3 className="text-zinc-500 font-bold uppercase text-[10px] mb-4 tracking-widest">TEAM B</h3>
+                       <input className="w-full bg-black border border-white/10 rounded-lg p-3 text-white focus:border-amber-500" value={matchState.teamB.name} onChange={(e) => setMatchState({...matchState, teamB: {...matchState.teamB, name: e.target.value}})} placeholder="Team B Name" />
+                       <div className="flex items-center gap-4 mt-6 justify-center">
+                           <button onClick={() => setMatchState({...matchState, teamB: {...matchState.teamB, score: Math.max(0, matchState.teamB.score - 1)}})} className="w-12 h-12 bg-zinc-800 rounded-xl font-black hover:bg-zinc-700 transition-colors">-</button>
+                           <div className="text-5xl font-black tabular-nums w-20 text-center">{matchState.teamB.score}</div>
+                           <button onClick={() => setMatchState({...matchState, teamB: {...matchState.teamB, score: matchState.teamB.score + 1}})} className="w-12 h-12 bg-zinc-800 rounded-xl font-black hover:bg-zinc-700 transition-colors">+</button>
+                       </div>
+                   </div>
+                </div>
+
+                <div className="flex justify-between items-center bg-zinc-900 border border-white/10 p-6 rounded-2xl mt-4 shadow-xl">
+                    <div className="flex items-center gap-4">
+                       <span className="text-zinc-500 font-bold uppercase text-[10px] tracking-widest">SET NUMBER:</span>
+                       <input type="number" min="1" className="w-20 bg-black border border-white/10 rounded-lg p-2 text-white font-black text-center focus:outline-none focus:border-amber-500" value={matchState.currentSet} onChange={(e) => setMatchState({...matchState, currentSet: parseInt(e.target.value) || 1})} />
+                    </div>
+                    
+                    <button onClick={() => {
+                         channelRef.current?.send({ type: 'broadcast', event: 'match-update', payload: matchState });
+                         import('sweetalert2').then((Swal) => {
+                             Swal.default.fire({ title: 'Synced!', icon: 'success', toast: true, position: 'top-end', timer: 1500, showConfirmButton: false, background: '#18181b', color: '#fff' });
+                         });
+                    }} className="bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-3.5 rounded-xl text-[11px] font-black uppercase tracking-widest shadow-[0_0_20px_rgba(5,150,105,0.4)] transition-all">
+                        <i className="fa-solid fa-satellite-dish mr-2"></i> PUSH TO PUBLIC SCREEN
+                    </button>
+                </div>
+            </div>
+        )}
+
+        {activeTab === 'ADS' && (
+            <div className="p-8 flex flex-col gap-6 flex-1 overflow-y-auto w-full max-w-5xl mx-auto">
+                <h2 className="text-2xl font-black uppercase tracking-widest text-fuchsia-500 italic mb-4">Media & BGM Controller</h2>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-zinc-900 border border-white/10 p-6 rounded-2xl shadow-xl">
+                        <h3 className="text-white font-black uppercase tracking-widest mb-2 flex items-center gap-2"><i className="fa-solid fa-tv text-fuchsia-500"></i> Video & Ads Display</h3>
+                        <p className="text-zinc-500 text-xs mb-6">Pushes a media element to the Public Screen when Active Mode = ADS.</p>
+
+                        <div className="space-y-4">
+                            {[
+                                {id: 'sponsor1', title: 'Main Sponsor Video Ad', url: 'https://images.unsplash.com/photo-1622279457486-62dcc4aab31b?q=80&w=3000&auto=format&fit=crop'},
+                                {id: 'zto_promo', title: 'ZTO Event OS Reel', url: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=3000&auto=format&fit=crop'},
+                                {id: 'stats_ad', title: 'Live Analytics Sponsor', url: 'https://images.unsplash.com/photo-1540317580384-e5d43616b9aa?q=80&w=3000&auto=format&fit=crop'},
+                            ].map(ad => (
+                                <div key={ad.id} className="flex items-center justify-between bg-black p-4 rounded-xl border border-white/5 hover:border-white/10 transition-colors">
+                                    <span className="font-bold text-sm tracking-wide">{ad.title}</span>
+                                    <button onClick={() => {
+                                        setActiveAdId(ad.id);
+                                        channelRef.current?.send({ type: 'broadcast', event: 'ad-update', payload: { activeAd: ad } });
+                                    }} className={`px-6 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeAdId === ad.id ? 'bg-fuchsia-500 text-white shadow-[0_0_15px_rgba(217,70,239,0.5)]' : 'bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700'}`}>
+                                        Push Ad
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="bg-zinc-900 border border-white/10 p-6 rounded-2xl shadow-xl">
+                        <h3 className="text-white font-black uppercase tracking-widest mb-2 flex items-center gap-2"><i className="fa-solid fa-music text-blue-500"></i> Arena BGM (Background Music)</h3>
+                        <p className="text-zinc-500 text-xs mb-6">Triggers stadium audio tracks synced to the public screens & court speakers.</p>
+
+                        <div className="space-y-4">
+                            {[
+                                {id: 'walkin', title: 'Walk-int Anthem (Epic)'},
+                                {id: 'suspense', title: 'Match Point Suspense'},
+                                {id: 'winner', title: 'Winner Celebration BGM'},
+                            ].map(track => (
+                                <div key={track.id} className="flex items-center justify-between bg-black p-4 rounded-xl border border-white/5 hover:border-white/10 transition-colors">
+                                    <span className="font-bold text-sm tracking-wide">{track.title}</span>
+                                    <button onClick={() => {
+                                         import('sweetalert2').then((Swal) => {
+                                             Swal.default.fire({ title: 'BGM Triggered: ' + track.title, icon: 'info', toast: true, position: 'top-end', timer: 1500, showConfirmButton: false, background: '#18181b', color: '#fff' });
+                                         });
+                                    }} className="px-6 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest bg-zinc-800 text-zinc-400 hover:text-white hover:bg-blue-600 transition-colors">
+                                        <i className="fa-solid fa-play mr-2"></i> Play
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )}
+
         {activeTab === 'BRACKET' && (
             <div className="flex-1 flex flex-col">
                 {/* Control Toolstrip */}
