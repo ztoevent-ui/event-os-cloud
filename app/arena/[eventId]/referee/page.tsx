@@ -54,7 +54,7 @@ function MatchSelector({
         .eq('tournament_id', t.id)
         .in('status', ['PENDING', 'LIVE'])
         .order('bracket_match_id', { ascending: true }) // group by tie instance
-        .order('sequence_order', { ascending: true })   // follow the tie template order
+        .order('created_at', { ascending: true })   // follow the creation order
         .order('court_number', { ascending: true });
 
       setMatches((data as ArenaMatch[]) || []);

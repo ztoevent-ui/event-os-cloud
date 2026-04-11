@@ -103,14 +103,8 @@ function MasterConsoleContent() {
   });
 
   // Scheduling & Judging State
-  const [dispatchQueue, setDispatchQueue] = useState<{ id: string, name: string, status: string, scoreA: number, scoreB: number }[]>([
-      { id: 'M1', name: 'Court 1 - Finals (Bo5)', status: 'suggested', scoreA: 0, scoreB: 0 },
-      { id: 'M2', name: 'Court 2 - Semi-Finals', status: 'pending', scoreA: 0, scoreB: 0 },
-  ]);
-  const [judgingApprovals, setJudgingApprovals] = useState<{ id: string, name: string, status: string }[]>([
-      { id: 'P1', name: 'ZTO Alpha Team', status: 'pending' },
-      { id: 'P2', name: 'ZTO Beta Team', status: 'pending' },
-  ]);
+  const [dispatchQueue, setDispatchQueue] = useState<{ id: string, name: string, status: string, scoreA: number, scoreB: number, teamA?: string, teamB?: string }[]>([]);
+  const [judgingApprovals, setJudgingApprovals] = useState<{ id: string, name: string, status: string }[]>([]);
 
   const [bracketState, setBracketState] = useState<BracketData>(() => generateFlexibleBracket(8));
   const [bracketVersion, setBracketVersion] = useState(0); // For forcing component reset
@@ -118,6 +112,33 @@ function MasterConsoleContent() {
   const [isConnected, setIsConnected] = useState(false);
   const [locked, setLocked] = useState(false);
   const channelRef = useRef<any>(null);
+
+  useEffect(() => {
+    async function loadRealData() {
+        if (!eventId) return;
+        const { data: t } = await supabase.from('arena_tournaments').select('id, bracket_json').eq('event_id_slug', eventId).single();
+        if (t) {
+            if (t.bracket_json && t.bracket_json.events) {
+                const firstEvt = Object.keys(t.bracket_json.events)[0];
+                if (firstEvt) setBracketState(t.bracket_json.events[firstEvt]);
+            }
+            const { data: matches } = await supabase.from('arena_matches').select('*').eq('tournament_id', t.id).order('court_number');
+            if (matches) {
+                const live = matches.filter((m: any) => m.status === 'LIVE' || m.status === 'PENDING').map((m: any) => ({
+                    id: m.id,
+                    name: `Court ${m.court_number || '?'} - ${m.round_type}`,
+                    status: m.status,
+                    scoreA: m.score_a,
+                    scoreB: m.score_b,
+                    teamA: m.team_a_name,
+                    teamB: m.team_b_name,
+                }));
+                setDispatchQueue(live);
+            }
+        }
+    }
+    loadRealData();
+  }, [eventId]);
 
   useEffect(() => {
     const channel = supabase.channel(`zto-arena-${eventId}`, { config: { broadcast: { ack: true } } });
@@ -389,7 +410,7 @@ function MasterConsoleContent() {
                             </div>
                             <div className="flex items-center gap-6">
                                 <div className="text-center">
-                                    <span className="block text-[10px] font-black text-zinc-500 mb-1">TEAM A</span>
+                                    <span className="block text-[10px] font-black text-zinc-500 mb-1">{m.teamA || 'TEAM A'}</span>
                                     <div className="flex items-center gap-3">
                                         <button onClick={() => handleScoreUpdate(m.id, 'A', -1)} className="w-8 h-8 rounded bg-zinc-800 text-white">-</button>
                                         <span className="text-2xl font-black w-8">{m.scoreA}</span>
@@ -398,7 +419,7 @@ function MasterConsoleContent() {
                                 </div>
                                 <div className="text-center font-black text-xl px-4 text-zinc-600">VS</div>
                                 <div className="text-center">
-                                    <span className="block text-[10px] font-black text-zinc-500 mb-1">TEAM B</span>
+                                    <span className="block text-[10px] font-black text-zinc-500 mb-1">{m.teamB || 'TEAM B'}</span>
                                     <div className="flex items-center gap-3">
                                         <button onClick={() => handleScoreUpdate(m.id, 'B', -1)} className="w-8 h-8 rounded bg-zinc-800 text-white">-</button>
                                         <span className="text-2xl font-black w-8">{m.scoreB}</span>
