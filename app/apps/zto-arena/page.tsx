@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabaseClient';
 
 const modules = [
+  { title: 'Master Console',       desc: 'OBS-style studio for direct big-screen stream control.', path: '/admin',     icon: 'fa-tv',     bg: 'bg-amber-500/10',    text: 'text-amber-400',    borderBase: 'border-amber-500/10',    borderHover: 'hover:border-amber-500/40' },
   { title: 'Tournament Architect', desc: 'Configure round rules, tie templates & scoring logic.', path: '/architect', icon: 'fa-wrench', bg: 'bg-violet-500/10', text: 'text-violet-400', borderBase: 'border-violet-500/10', borderHover: 'hover:border-violet-500/40' },
   { title: 'Referee Panel',        desc: 'Simplified scoring engine for match officials.',       path: '/referee',   icon: 'fa-eye',    bg: 'bg-blue-500/10',   text: 'text-blue-400',   borderBase: 'border-blue-500/10',   borderHover: 'hover:border-blue-500/40'   },
   { title: 'Director Dashboard',   desc: 'Real-time overview of all courts & match statuses.',  path: '/director',  icon: 'fa-tower-observation', bg: 'bg-rose-500/10', text: 'text-rose-400', borderBase: 'border-rose-500/10', borderHover: 'hover:border-rose-500/40' },
@@ -245,7 +246,7 @@ export default function ArenaHubRoot() {
         </motion.div>
 
         {/* Module Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {modules.map((mod, idx) => (
             <motion.div key={mod.title} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 * idx }}>
               <Link
