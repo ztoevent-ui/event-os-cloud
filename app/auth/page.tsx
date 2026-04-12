@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 
-export default function AuthPage() {
+function AuthContent() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -12,6 +12,8 @@ export default function AuthPage() {
     const [isResetPassword, setIsResetPassword] = useState(false);
     const [message, setMessage] = useState('');
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const returnTo = searchParams.get('returnTo') || null;
 
     const handleAuth = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -64,20 +66,21 @@ export default function AuthPage() {
                 }
                 // ──────────────────────────────────────────────────────────
 
-                // Role-based redirection using DB profile
-                // Note: if profile is null (RLS timing issue), loggedInUser.email is used as fallback
+                // If redirected here from a protected page, go back there
+                if (returnTo) {
+                    window.location.replace(returnTo);
+                    return;
+                }
+
+                // Role-based default destination
                 const role = profile?.role ?? data.user?.user_metadata?.role ?? '';
-                console.log('[Auth] profile role:', role, '| profile:', profile);
-                
-                if (role === 'admin') {
-                    // Use replace to avoid back-button loop; /admin/users has its own guard
-                    window.location.replace('/');
-                } else if (role === 'client') {
+                if (role === 'client') {
                     window.location.replace('/apps/wedding-hub');
                 } else {
+                    // admin + all others go to home (Arena Hub visible from there)
                     window.location.replace('/');
                 }
-                // Do NOT set loading = false here, keep the loading state until page unloads
+                // Do NOT set loading = false — keep spinner until page unloads
                 return;
             }
         } catch (error: Error | any) {
@@ -191,5 +194,13 @@ export default function AuthPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function AuthPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen bg-[#0a0a0a]" />}>
+            <AuthContent />
+        </Suspense>
     );
 }

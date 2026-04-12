@@ -67,7 +67,7 @@ export default function AdminUsersPage() {
     useEffect(() => {
         const checkAdmin = async () => {
             const { data: { user } } = await supabase.auth.getUser();
-            if (!user) { router.push('/auth'); return; }
+            if (!user) { router.push('/auth?returnTo=/admin/users'); return; }
 
             const { data: prof } = await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle();
             if (!prof || prof.role !== 'admin') {
@@ -79,6 +79,7 @@ export default function AdminUsersPage() {
         };
         checkAdmin();
     }, [router]);
+
 
     const fetchProfiles = async () => {
         setLoading(true);
