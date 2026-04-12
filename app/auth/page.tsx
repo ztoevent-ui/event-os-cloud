@@ -65,13 +65,17 @@ export default function AuthPage() {
                 // ──────────────────────────────────────────────────────────
 
                 // Role-based redirection using DB profile
-                const role = profile?.role || data.user?.user_metadata?.role;
+                // Note: if profile is null (RLS timing issue), loggedInUser.email is used as fallback
+                const role = profile?.role ?? data.user?.user_metadata?.role ?? '';
+                console.log('[Auth] profile role:', role, '| profile:', profile);
+                
                 if (role === 'admin') {
-                    window.location.href = '/admin/users';
+                    // Use replace to avoid back-button loop; /admin/users has its own guard
+                    window.location.replace('/');
                 } else if (role === 'client') {
-                    window.location.href = '/apps/wedding-hub';
+                    window.location.replace('/apps/wedding-hub');
                 } else {
-                    window.location.href = '/';
+                    window.location.replace('/');
                 }
                 // Do NOT set loading = false here, keep the loading state until page unloads
                 return;
