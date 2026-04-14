@@ -67,7 +67,10 @@ export function ImageUploadField({
             const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(path);
             onChange(publicUrl);
         } catch (e: any) {
-            setError(e.message || 'Upload failed');
+            console.error('[ImageUploadField] Error:', e);
+            const msg = e.message || e.error_description || 'Upload failed';
+            const code = e.code ? ` (${e.code})` : '';
+            setError(`${msg}${code}`);
         } finally {
             setUploading(false);
         }

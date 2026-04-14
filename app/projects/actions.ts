@@ -115,6 +115,47 @@ export async function createBudget(formData: FormData) {
     revalidatePath(`/projects/${project_id}`);
 }
 
+export async function copyBudget(formData: FormData) {
+    const fromProjectId = formData.get('fromProjectId') as string;
+    const toProjectId = formData.get('toProjectId') as string;
+
+    // 1. Fetch source budget items
+    const { data: sourceItems, error: fetchError } = await supabase
+        .from('budgets')
+        .select('*')
+        .eq('project_id', fromProjectId);
+
+    if (fetchError) {
+        console.error('Error fetching source budget:', fetchError);
+        return { success: false, error: fetchError.message };
+    }
+
+    if (!sourceItems || sourceItems.length === 0) {
+        return { success: true, count: 0 };
+    }
+
+    // 2. Prepare new items (exclude id and created_at)
+    const newItems = sourceItems.map(({ id, created_at, ...rest }) => ({
+        ...rest,
+        project_id: toProjectId,
+        status: 'planned' // Reset status for new project
+    }));
+
+    // 3. Batch insert
+    const { error: insertError } = await supabase
+        .from('budgets')
+        .insert(newItems);
+
+    if (insertError) {
+        console.error('Error copying budget:', insertError);
+        return { success: false, error: insertError.message };
+    }
+
+    revalidatePath(`/projects/${toProjectId}/budget`);
+    revalidatePath(`/projects/${toProjectId}`);
+    return { success: true, count: newItems.length };
+}
+
 export async function deleteBudget(formData: FormData) {
     const id = formData.get('id') as string;
     const project_id = formData.get('project_id') as string;
@@ -151,12 +192,66 @@ export async function createVendor(formData: FormData) {
     revalidatePath(`/projects/${project_id}`);
 }
 
-export async function deleteVendor(formData: FormData) {
-    const id = formData.get('id') as string;
-    const project_id = formData.get('project_id') as string;
-
+export async function deleteVendor(id: string, project_id: string) {
     const { error } = await supabase.from('vendors').delete().eq('id', id);
     if (error) console.error('Error deleting vendor:', error);
     revalidatePath(`/projects/${project_id}/vendors`);
     revalidatePath(`/projects/${project_id}`);
+}
+
+export async function copyProgram(formData: FormData) {
+    const fromProjectId = formData.get('fromProjectId') as string;
+    const toProjectId = formData.get('toProjectId') as string;
+
+    // 1. Copy Column Settings
+    const { data: sourceSettings } = await supabase
+        .from('tournament_settings')
+        .select('program_columns')
+        .eq('project_id', fromProjectId)
+        .single();
+    
+    if (sourceSettings?.program_columns) {
+        await supabase
+            .from('tournament_settings')
+            .upsert({ 
+                project_id: toProjectId, 
+                program_columns: sourceSettings.program_columns 
+            }, { onConflict: 'project_id' });
+    }
+
+    // 2. Copy Program Items
+    const { data: items, error: fetchError } = await supabase
+        .from('program_items')
+        .select('*')
+        .eq('project_id', fromProjectId)
+        .order('sort_order', { ascending: true });
+
+    if (fetchError) {
+        console.error('Error fetching source program:', fetchError);
+        return { success: false, error: fetchError.message };
+    }
+
+    if (!items || items.length === 0) {
+        return { success: true, count: 0 };
+    }
+
+    // 3. Prepare new items (exclude id and created_at)
+    const newItems = items.map(({ id, created_at, ...rest }) => ({
+        ...rest,
+        project_id: toProjectId
+    }));
+
+    // 4. Batch insert
+    const { error: insertError } = await supabase
+        .from('program_items')
+        .insert(newItems);
+
+    if (insertError) {
+        console.error('Error copying program:', insertError);
+        return { success: false, error: insertError.message };
+    }
+
+    revalidatePath(`/projects/${toProjectId}/program`);
+    revalidatePath(`/projects/${toProjectId}`);
+    return { success: true, count: newItems.length };
 }

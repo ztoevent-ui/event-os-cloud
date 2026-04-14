@@ -35,6 +35,7 @@ export default function RegistrationStudio() {
 
     const [activeTab, setActiveTab] = useState<'settings' | 'tournament' | 'submissions'>('settings');
     const [isLoading, setIsLoading] = useState(true);
+    const [isLinking, setIsLinking] = useState(false);
     const [slugTaken, setSlugTaken] = useState(false);
     const [slugChecking, setSlugChecking] = useState(false);
     const slugTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -195,6 +196,38 @@ export default function RegistrationStudio() {
         }
     };
 
+    const handleLinkArena = async () => {
+        const { value: tournamentId } = await Swal.fire({
+            title: 'Link to Arena Tournament',
+            input: 'text',
+            inputLabel: 'Enter Tournament ID',
+            inputValue: settings.linked_tournament_id || '',
+            showCancelButton: true,
+            background: '#18181b',
+            color: '#fff',
+            confirmButtonColor: '#f59e0b',
+            inputPlaceholder: '00000000-0000-0000-0000-000000000000'
+        });
+
+        if (tournamentId) {
+            setIsLinking(true);
+            try {
+                const { linkTournamentToProject } = await import('@/app/actions/tournament-actions');
+                const res = await linkTournamentToProject(tournamentId, projectId);
+                if (res.success) {
+                    setSettings({ ...settings, linked_tournament_id: tournamentId });
+                    Swal.fire('Linked!', 'Tournament successfully associated with this project.', 'success');
+                } else {
+                    Swal.fire('Failed', res.error, 'error');
+                }
+            } catch (e: any) {
+                Swal.fire('Error', e.message, 'error');
+            } finally {
+                setIsLinking(false);
+            }
+        }
+    };
+
     const publicRegUrl = settings.page_slug
         ? `https://ztoevent.com/register/${settings.page_slug}`
         : projectId ? `https://ztoevent.com/register/${projectId}` : '';
@@ -343,31 +376,15 @@ export default function RegistrationStudio() {
                         </div>
 
                         {/* Logo */}
-                        <div className="space-y-3">
-                            <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-2">Tournament Logo URL</label>
-                            <div className="flex items-center gap-4">
-                                <div className="flex-1 relative">
-                                    <input type="text" className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 pr-12" value={settings.logo_url || ''} onChange={e => setSettings({ ...settings, logo_url: e.target.value })} placeholder="Enter URL or upload" />
-                                    {settings.logo_url && <img src={settings.logo_url} alt="Logo" className="absolute right-3 top-1/2 transform -translate-y-1/2 h-8 w-8 object-contain rounded-md bg-white/5 p-1" />}
-                                </div>
-                                <div className="relative">
-                                    <input type="file" accept=".png,.jpeg,.jpg" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onChange={async (e) => {
-                                        const file = e.target.files?.[0]; if (!file) return;
-                                        Swal.fire({ title: 'Uploading...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-                                        try {
-                                            const formData = new FormData(); formData.append('file', file); formData.append('project_id', projectId);
-                                            const { uploadLogoFile } = await import('@/app/actions/tournament-actions');
-                                            const res = await uploadLogoFile(formData);
-                                            if (res.success) { setSettings({ ...settings, logo_url: res.url }); Swal.close(); }
-                                            else throw new Error(res.error || 'Upload failed');
-                                        } catch (err: any) { Swal.fire('Upload Failed', err.message, 'error'); }
-                                    }} />
-                                    <button type="button" className="bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs uppercase tracking-widest px-6 py-3.5 rounded-xl transition-colors shrink-0">
-                                        <i className="fa-solid fa-upload lg:mr-2" /><span className="hidden lg:inline">Upload</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+                        <ImageUploadField
+                            label="Tournament Logo URL"
+                            value={settings.logo_url || ''}
+                            onChange={v => setSettings({ ...settings, logo_url: v })}
+                            bucket="logo"
+                            folder={projectId}
+                            placeholder="Enter URL or upload"
+                            preview="thumbnail"
+                        />
 
                         {/* Sponsor */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-4 border-b border-zinc-800/50">
@@ -416,6 +433,44 @@ export default function RegistrationStudio() {
                                     </div>
                                 )}
                             </div>
+                        </div>
+
+                        {/* Arena Connection */}
+                        <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl shadow-xl">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-8 h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center text-emerald-500">
+                                    <i className="fa-solid fa-link" />
+                                </div>
+                                <h3 className="text-sm font-black tracking-widest uppercase text-zinc-400">Arena Connection</h3>
+                            </div>
+                            <p className="text-[10px] text-zinc-500 mb-4 leading-relaxed">
+                                Link this project to an Arena Tournament to enable team synchronization and match management.
+                            </p>
+                            
+                            {settings.linked_tournament_id ? (
+                                <div className="space-y-4">
+                                    <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl">
+                                        <div className="text-[9px] font-black uppercase text-emerald-500 mb-1">Status: CONNECTED</div>
+                                        <div className="text-[10px] text-zinc-400 font-mono truncate">{settings.linked_tournament_id}</div>
+                                    </div>
+                                    <button 
+                                        onClick={handleLinkArena}
+                                        disabled={isLinking}
+                                        className="w-full py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                                    >
+                                        Change Connection
+                                    </button>
+                                </div>
+                            ) : (
+                                <button 
+                                    onClick={handleLinkArena}
+                                    disabled={isLinking}
+                                    className="w-full py-4 border-2 border-dashed border-zinc-800 hover:border-emerald-500/50 hover:bg-emerald-500/5 text-zinc-500 hover:text-emerald-500 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex flex-col items-center gap-2"
+                                >
+                                    <i className="fa-solid fa-plus-circle text-lg" />
+                                    {isLinking ? 'Connecting...' : 'Link Tournament'}
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>

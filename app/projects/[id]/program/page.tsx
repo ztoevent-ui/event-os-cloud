@@ -3,7 +3,7 @@
 import React, { useState, useEffect, use } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabaseClient';
-import { PrintReportButton } from '../../components/ProjectModals';
+import { PrintReportButton, CopyProgramButton } from '../../components/ProjectModals';
 import { usePrint } from '../../components/PrintContext';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, horizontalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
@@ -67,7 +67,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
   }, [projectId]);
 
   const fetchProjectAndSettings = async () => {
-    const { data: projData } = await supabase.from('projects').select('type').eq('id', projectId).single();
+    const { data: projData } = await supabase.from('projects').select('type, name').eq('id', projectId).single();
     setProject(projData);
 
     const { data: settingsData } = await supabase.from('tournament_settings').select('program_columns').eq('project_id', projectId).single();
@@ -239,8 +239,16 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
           </div>
       )}
 
-      {/* Premium Header */}
-      <div className={`flex flex-col xl:flex-row justify-between items-start xl:items-center bg-[#0a0a0a]/80 backdrop-blur-2xl p-8 rounded-[2rem] border border-white/5 shadow-2xl relative z-20 ${isKiosk ? 'mb-8' : ''}`}>
+      {/* Print-only compact header */}
+      <div className="hidden print:block mb-2">
+        <h1 style={{ fontSize: '10pt', fontWeight: 900, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'black', fontStyle: 'italic', margin: 0 }}>
+          Tentative Program: {project?.name || ''}
+        </h1>
+        <div style={{ height: '1px', background: '#ccc', marginTop: '3px' }} />
+      </div>
+
+      {/* Premium Header — hidden on print */}
+      <div className={`print:hidden flex flex-col xl:flex-row justify-between items-start xl:items-center bg-[#0a0a0a]/80 backdrop-blur-2xl p-8 rounded-[2rem] border border-white/5 shadow-2xl relative z-20 ${isKiosk ? 'mb-8' : ''}`}>
         <div>
           <div className="flex items-center gap-3">
              <div className={`w-10 h-10 ${theme.bg} rounded-xl flex items-center justify-center text-black`}>
@@ -251,20 +259,20 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
           <p className="text-zinc-500 mt-2 font-medium tracking-wide">Live event sequence control and production cues</p>
         </div>
         <div className="flex items-center gap-4 mt-6 xl:mt-0 flex-wrap">
-            <div className="flex items-center gap-1 bg-zinc-900/50 p-1.5 rounded-full border border-white/5 mr-2 print:hidden">
+            <div className="flex items-center gap-1 bg-zinc-900/50 p-1.5 rounded-full border border-white/5 mr-2">
               <button onClick={() => setFontSize('text-xs')} title="Small Text" className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${fontSize === 'text-xs' ? 'bg-white text-black' : 'text-zinc-500 hover:text-white'}`}>A-</button>
               <button onClick={() => setFontSize('text-base')} title="Medium Text" className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${fontSize === 'text-base' ? 'bg-white text-black' : 'text-zinc-500 hover:text-white'}`}>A</button>
               <button onClick={() => setFontSize('text-xl')} title="Large Text" className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-base ${fontSize === 'text-xl' ? 'bg-white text-black' : 'text-zinc-500 hover:text-white'}`}>A+</button>
             </div>
             {!isKiosk && (
-                <button onClick={() => setIsKiosk(true)} className="h-12 px-6 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white rounded-full font-black text-[10px] tracking-widest flex items-center gap-3 border border-white/5 transition-all print:hidden">
+                <button onClick={() => setIsKiosk(true)} className="h-12 px-6 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white rounded-full font-black text-[10px] tracking-widest flex items-center gap-3 border border-white/5 transition-all">
                     <i className="fa-solid fa-expand"></i> KIOSK
                 </button>
             )}
             {editMode && hasChanges && (
                 <button 
                   onClick={() => { fetchProjectAndSettings(); fetchProgram(); setEditMode(false); }}
-                  className="h-12 px-6 text-xs font-black rounded-full text-zinc-400 hover:text-white transition-all underline tracking-widest print:hidden"
+                  className="h-12 px-6 text-xs font-black rounded-full text-zinc-400 hover:text-white transition-all underline tracking-widest"
                 >
                   DISCARD
                 </button>
@@ -272,11 +280,12 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
             <button 
               onClick={editMode ? saveScript : toggleEditMode}
               disabled={isSaving}
-              className={`h-12 px-8 text-xs font-black rounded-full transition-all flex items-center gap-3 border tracking-widest print:hidden ${editMode ? `${theme.bg} text-black ${theme.border} ${theme.shadow} hover:scale-105 active:scale-95` : `bg-white/5 ${theme.text} border-white/10 hover:bg-white/10`}`}
+              className={`h-12 px-8 text-xs font-black rounded-full transition-all flex items-center gap-3 border tracking-widest ${editMode ? `${theme.bg} text-black ${theme.border} ${theme.shadow} hover:scale-105 active:scale-95` : `bg-white/5 ${theme.text} border-white/10 hover:bg-white/10`}`}
             >
               <i className={`fa-solid ${isSaving ? 'fa-spinner fa-spin' : editMode ? 'fa-save' : 'fa-pencil'}`}></i>
               {isSaving ? 'SAVING...' : editMode ? 'SAVE SCRIPT' : 'MODIFY SEQUENCE'}
             </button>
+            <CopyProgramButton projectId={projectId} />
             <PrintReportButton title="Event Program" />
         </div>
       </div>
@@ -330,8 +339,8 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
         </div>
       </div>
       
-      {/* Visual Footer */}
-      <div className="flex justify-between items-center px-8 text-[10px] font-black tracking-[0.4em] text-zinc-800 uppercase print:text-zinc-400 sticky bottom-0 bg-black/80 backdrop-blur-md py-4 z-20">
+      {/* Visual Footer — hidden on print */}
+      <div className="print:hidden flex justify-between items-center px-8 text-[10px] font-black tracking-[0.4em] text-zinc-800 uppercase sticky bottom-0 bg-black/80 backdrop-blur-md py-4 z-20">
          <div className="flex items-center gap-3">
             <img src="https://zihjzbweasaqqbwilshx.supabase.co/storage/v1/object/public/logo/icon.png.JPG" alt="ZTO" crossOrigin="anonymous" className="w-4 h-4 grayscale opacity-30" />
             <span>ZTO Operational Protocol • 2026</span>
@@ -340,21 +349,54 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
       </div>
 
       <style jsx global>{`
+        @page {
+          size: A4 landscape;
+          margin: 6mm 8mm;
+        }
         @media print {
-          nav, button, .print\\:hidden { display: none !important; }
-          body { background: white !important; color: black !important; }
-          .bg-zinc-900, .bg-\\[\\#0a0a0a\\]\\/80, .bg-\\[\\#050505\\] { background: transparent !important; color: black !important; }
-          .border-white\\/5, .border-r, .border-l { border-color: #eee !important; }
-          .text-zinc-500, .text-zinc-400, .text-zinc-700 { color: #666 !important; }
-          .text-white, .text-zinc-100, .text-zinc-200 { color: black !important; }
+          /* Hide all UI chrome */
+          nav, button, .print\\:hidden,
+          header, footer { display: none !important; }
+
+          /* Reset page background */
+          html, body { background: white !important; color: black !important; margin: 0 !important; padding: 0 !important; }
+
+          /* Show print-only header */
+          .print\\:block { display: block !important; }
+          .hidden.print\\:block { display: block !important; }
+
+          /* Remove dark backgrounds */
+          * { background: transparent !important; color: black !important;
+              box-shadow: none !important; border-radius: 0 !important;
+              -webkit-print-color-adjust: exact; }
+
+          /* Table layout */
+          table { width: 100% !important; border-collapse: collapse !important;
+                  table-layout: fixed !important; }
+
+          /* Column widths: auto-distribute */
+          th, td { width: auto !important; min-width: 0 !important; max-width: none !important;
+                   border: 0.5pt solid #bbb !important;
+                   padding: 2px 3px !important;
+                   font-size: 7pt !important;
+                   line-height: 1.3 !important;
+                   word-wrap: break-word !important;
+                   white-space: pre-wrap !important; }
+
+          /* Header row */
+          th { background: #efefef !important; font-weight: 900 !important;
+               font-size: 6pt !important; text-transform: uppercase; letter-spacing: 0.05em; }
+
+          /* No page breaks by default; force everything on one page */
+          * { break-inside: avoid !important; }
           .print-page-break, .print\\:break-before-page { break-before: page !important; }
-          table { width: 100% !important; border-collapse: collapse !important; }
-          th { background: #f5f5f5 !important; color: black !important; -webkit-print-color-adjust: exact; }
-          td, th { border: 1px solid #eee !important; padding: 8px !important; }
-          .rounded-\\[2rem\\], .rounded-\\[2\\.5rem\\], .rounded-xl { border-radius: 0 !important; }
-          .shadow-2xl, .shadow-xl { box-shadow: none !important; }
-          /* Ensure columns fit to page width */
-          th, td { width: auto !important; min-width: 0 !important; max-width: none !important; }
+
+          /* Container tweaks */
+          .overflow-x-auto { overflow: visible !important; }
+          .min-w-\\[1200px\\] { min-width: 0 !important; }
+
+          /* Shrink to fit */
+          body > * { zoom: 0.85; }
         }
       `}</style>
     </div>

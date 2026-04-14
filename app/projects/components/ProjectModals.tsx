@@ -1,11 +1,13 @@
 
 'use client'
 
-import React, { useState } from 'react';
-import { createTask, updateTask, deleteTask, createTimeline, deleteTimeline, createBudget, deleteBudget, createVendor, deleteVendor } from '../actions';
+import React, { useState, useEffect } from 'react';
+import { createTask, updateTask, deleteTask, createTimeline, deleteTimeline, createBudget, deleteBudget, createVendor, deleteVendor, copyBudget, copyProgram } from '../actions';
+import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import { PrintOptionsModal } from './PrintOptionsModal';
 import { usePrint } from './PrintContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
 
 // --- SHARED UI COMPONENTS ---
@@ -271,6 +273,95 @@ export function AddBudgetButton({ projectId, isWedding }: { projectId: string; i
     );
 }
 
+export function CopyBudgetButton({ projectId }: { projectId: string }) {
+    const [isOpen, setIsOpen] = useState(false);
+    const [projects, setProjects] = useState<any[]>([]);
+    const [search, setSearch] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [isCopying, setIsCopying] = useState(false);
+
+    useEffect(() => {
+        if (isOpen) {
+            fetchProjects();
+        }
+    }, [isOpen]);
+
+    const fetchProjects = async () => {
+        setIsLoading(true);
+        const { data } = await supabase
+            .from('projects')
+            .select('id, name')
+            .neq('id', projectId)
+            .order('created_at', { ascending: false });
+        setProjects(data || []);
+        setIsLoading(false);
+    };
+
+    const filteredProjects = projects.filter(p => 
+        p.name.toLowerCase().includes(search.toLowerCase())
+    );
+
+    return (
+        <>
+            <button 
+                onClick={() => setIsOpen(true)} 
+                className="px-6 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-full transition-all flex items-center gap-2 border border-zinc-700 shadow-lg"
+            >
+                <i className="fa-solid fa-copy"></i> Copy From
+            </button>
+            <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title="Copy Budget From">
+                <div className="space-y-4">
+                    <p className="text-sm text-zinc-400">Select a project to clone its budget items into this tournament.</p>
+                    <div className="relative">
+                        <i className="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"></i>
+                        <input 
+                            type="text" 
+                            placeholder="Search projects..." 
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="w-full bg-zinc-800 border border-zinc-700 rounded-xl py-2 pl-10 pr-4 text-white focus:outline-none focus:border-amber-500 transition-colors"
+                        />
+                    </div>
+                    <div className="max-h-60 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                        {isLoading ? (
+                            <div className="text-center py-8 text-zinc-500 animate-pulse">Scanning Archive...</div>
+                        ) : filteredProjects.length === 0 ? (
+                            <div className="text-center py-8 text-zinc-500 italic uppercase text-[10px] tracking-widest font-bold">No projects found</div>
+                        ) : (
+                            filteredProjects.map(project => (
+                                <button
+                                    key={project.id}
+                                    onClick={async () => {
+                                        if (confirm(`Copy all budget items from "${project.name}"? This will add them to your current list.`)) {
+                                            setIsCopying(true);
+                                            const formData = new FormData();
+                                            formData.append('fromProjectId', project.id);
+                                            formData.append('toProjectId', projectId);
+                                            const res = await copyBudget(formData);
+                                            setIsCopying(false);
+                                            if (res.success) {
+                                                setIsOpen(false);
+                                                alert(`Successfully copied ${res.count} items!`);
+                                            } else {
+                                                alert('Failed to copy budget: ' + res.error);
+                                            }
+                                        }
+                                    }}
+                                    disabled={isCopying}
+                                    className="w-full text-left p-4 rounded-xl bg-zinc-800/50 border border-zinc-700/50 hover:bg-zinc-800 hover:border-amber-500/50 transition-all group"
+                                >
+                                    <div className="font-bold text-zinc-100 group-hover:text-amber-400 transition-colors">{project.name}</div>
+                                    <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">Project ID: {project.id.slice(0, 8)}</div>
+                                </button>
+                            ))
+                        )}
+                    </div>
+                </div>
+            </Modal>
+        </>
+    );
+}
+
 export function DeleteBudgetButton({ id, projectId }: { id: string, projectId: string }) {
     return (
         <form action={deleteBudget}>
@@ -375,6 +466,120 @@ export function PrintReportButton({ title = "General Report" }: { title?: string
                 onClose={() => setIsModalOpen(false)} 
                 title={title}
             />
+        </>
+    );
+}
+
+export function CopyProgramButton({ projectId }: { projectId: string }) {
+    const [isOpen, setIsOpen] = useState(false);
+    const [projects, setProjects] = useState<any[]>([]);
+    const [search, setSearch] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [isCopying, setIsCopying] = useState(false);
+
+    useEffect(() => {
+        if (isOpen) {
+            fetchProjects();
+        }
+    }, [isOpen]);
+
+    const fetchProjects = async () => {
+        setIsLoading(true);
+        const { data } = await supabase
+            .from('projects')
+            .select('id, name')
+            .neq('id', projectId)
+            .order('created_at', { ascending: false });
+        setProjects(data || []);
+        setIsLoading(false);
+    };
+
+    const filteredProjects = projects.filter(p => 
+        p.name.toLowerCase().includes(search.toLowerCase())
+    );
+
+    return (
+        <>
+            <button 
+                onClick={() => setIsOpen(true)} 
+                className="px-6 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-full transition-all flex items-center gap-2 border border-zinc-700 shadow-lg"
+            >
+                <i className="fa-solid fa-clone"></i> Copy Program
+            </button>
+            <AnimatePresence>
+                {isOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="bg-zinc-950 border border-white/10 w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl"
+                        >
+                            <div className="p-8 border-b border-white/5 bg-zinc-900/50">
+                                <div className="flex justify-between items-center mb-6">
+                                    <h3 className="text-xl font-black text-white italic uppercase tracking-tighter">Copy Program From</h3>
+                                    <button onClick={() => setIsOpen(false)} className="text-zinc-500 hover:text-white transition-colors">
+                                        <i className="fa-solid fa-xmark text-xl"></i>
+                                    </button>
+                                </div>
+                                <div className="relative">
+                                    <i className="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-sm"></i>
+                                    <input 
+                                        type="text" 
+                                        placeholder="Search projects..."
+                                        className="w-full bg-black border border-white/10 rounded-2xl pl-12 pr-4 py-3 text-sm text-white focus:outline-none focus:border-amber-500 transition-all font-medium"
+                                        value={search}
+                                        onChange={(e) => setSearch(e.target.value)}
+                                        autoFocus
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="max-h-[400px] overflow-y-auto p-4 space-y-2 custom-scrollbar">
+                                {isLoading ? (
+                                    <div className="py-20 text-center text-zinc-500 font-bold animate-pulse uppercase tracking-widest text-xs flex flex-col items-center gap-3">
+                                        <i className="fa-solid fa-circle-notch fa-spin text-xl text-amber-500"></i>
+                                        Scanning projects...
+                                    </div>
+                                ) : filteredProjects.length === 0 ? (
+                                    <div className="py-20 text-center text-zinc-600 font-bold uppercase tracking-widest text-[10px]">No projects found</div>
+                                ) : (
+                                    filteredProjects.map(project => (
+                                        <button 
+                                            key={project.id}
+                                            onClick={async () => {
+                                                if (confirm(`Copy all program sequences and column settings from "${project.name}"? This will add them to your current list.`)) {
+                                                    setIsCopying(true);
+                                                    const formData = new FormData();
+                                                    formData.append('fromProjectId', project.id);
+                                                    formData.append('toProjectId', projectId);
+                                                    const res = await copyProgram(formData);
+                                                    setIsCopying(false);
+                                                    if (res.success) {
+                                                        setIsOpen(false);
+                                                        alert(`Successfully copied ${res.count} items!`);
+                                                        window.location.reload();
+                                                    } else {
+                                                        alert('Failed to copy program: ' + res.error);
+                                                    }
+                                                }
+                                            }}
+                                            disabled={isCopying}
+                                            className="w-full group flex items-center justify-between p-4 bg-white/5 hover:bg-amber-500 rounded-2xl transition-all border border-transparent hover:border-amber-400"
+                                        >
+                                            <div className="text-left flex-1 min-w-0">
+                                                <div className="text-sm font-black text-white group-hover:text-black uppercase italic tracking-tight truncate">{project.name}</div>
+                                                <div className="text-[9px] text-zinc-500 group-hover:text-black/60 font-bold uppercase tracking-widest truncate">{project.id}</div>
+                                            </div>
+                                            <i className="fa-solid fa-arrow-right-long text-zinc-700 group-hover:text-black group-hover:translate-x-1 transition-all ml-4"></i>
+                                        </button>
+                                    ))
+                                )}
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </>
     );
 }

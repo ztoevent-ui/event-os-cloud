@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect, use } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { AddBudgetButton, DeleteBudgetButton, PrintReportButton } from '../../components/ProjectModals';
+import { AddBudgetButton, DeleteBudgetButton, PrintReportButton, CopyBudgetButton } from '../../components/ProjectModals';
 import { PrintBreakTrigger } from '../../components/PrintBreakTrigger';
 import { usePrint } from '../../components/PrintContext';
 
@@ -82,6 +82,7 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
                 </div>
                 <div className="flex gap-4">
                     <PrintReportButton title="Budget Report" />
+                    <CopyBudgetButton projectId={id} />
                     <AddBudgetButton projectId={id} isWedding={isWedding} />
                 </div>
             </div>

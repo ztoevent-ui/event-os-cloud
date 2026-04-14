@@ -69,3 +69,17 @@ export async function uploadLogoFile(formData: FormData): Promise<{ success: boo
         return { success: false, error: e.message };
     }
 }
+
+export async function linkTournamentToProject(tournamentId: string, projectId: string) {
+    const { data, error } = await supabase
+        .from('arena_tournaments')
+        .update({ linked_project_id: projectId })
+        .eq('id', tournamentId)
+        .select();
+
+    if (error) {
+        console.error('Error linking tournament:', error);
+        return { success: false, error: error.message };
+    }
+    return { success: true, data };
+}
