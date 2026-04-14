@@ -44,7 +44,7 @@ export default async function ProjectLayout({
         <PrintProvider>
             <div className={`min-h-screen bg-black ${theme.primary} font-sans ${theme.selection} selection:text-black`}>
             {/* Navigation Bar */}
-            <nav className={`fixed top-0 w-full z-50 bg-black/90 backdrop-blur-md border-b ${theme.navBorder}`}>
+            <nav className={`print:hidden fixed top-0 w-full z-50 bg-black/90 backdrop-blur-md border-b ${theme.navBorder}`}>
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between h-16 items-center">
                         <div className="flex-shrink-0 flex items-center gap-3">
@@ -89,7 +89,7 @@ export default async function ProjectLayout({
             </nav>
 
             {/* Main Content */}
-            <main className="pt-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto pb-12">
+            <main className="pt-20 print:pt-0 px-4 sm:px-6 print:px-0 lg:px-8 print:max-w-none mx-auto pb-12 print:pb-0">
                 {children}
             </main>
         </div>

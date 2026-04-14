@@ -241,10 +241,15 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
 
       {/* Print-only compact header */}
       <div className="hidden print:block mb-2">
-        <h1 style={{ fontSize: '10pt', fontWeight: 900, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'black', fontStyle: 'italic', margin: 0 }}>
-          Tentative Program: {project?.name || ''}
-        </h1>
-        <div style={{ height: '1px', background: '#ccc', marginTop: '3px' }} />
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2px' }}>
+          <h1 style={{ fontSize: '11pt', fontWeight: 900, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'black', fontStyle: 'italic', margin: 0 }}>
+            Tentative Program: {project?.name || ''}
+          </h1>
+          <span style={{ fontSize: '7pt', fontWeight: 700, color: '#888', letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap', marginLeft: '12px', paddingBottom: '1px' }}>
+            ZTO Event OS
+          </span>
+        </div>
+        <div style={{ height: '1px', background: '#ccc' }} />
       </div>
 
       {/* Premium Header — hidden on print */}
@@ -351,52 +356,75 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
       <style jsx global>{`
         @page {
           size: A4 landscape;
-          margin: 6mm 8mm;
+          margin: 5mm 7mm;
         }
         @media print {
-          /* Hide all UI chrome */
-          nav, button, .print\\:hidden,
-          header, footer { display: none !important; }
+          /* Hide navigation and chrome — layout.tsx also sets print:hidden on nav */
+          nav, button, .print\\:hidden, header, footer { display: none !important; }
 
-          /* Reset page background */
-          html, body { background: white !important; color: black !important; margin: 0 !important; padding: 0 !important; }
+          /* Page background */
+          html, body {
+            background: white !important;
+            color: black !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+          }
 
-          /* Show print-only header */
+          /* Show print-only elements */
           .print\\:block { display: block !important; }
           .hidden.print\\:block { display: block !important; }
+          .print\\:pt-0 { padding-top: 0 !important; }
+          .print\\:px-0 { padding-left: 0 !important; padding-right: 0 !important; }
+          .print\\:max-w-none { max-width: none !important; }
+          .print\\:pb-0 { padding-bottom: 0 !important; }
 
-          /* Remove dark backgrounds */
-          * { background: transparent !important; color: black !important;
-              box-shadow: none !important; border-radius: 0 !important;
-              -webkit-print-color-adjust: exact; }
+          /* Strip all dark theming from every element */
+          * {
+            background: transparent !important;
+            color: black !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            -webkit-print-color-adjust: exact;
+          }
 
-          /* Table layout */
-          table { width: 100% !important; border-collapse: collapse !important;
-                  table-layout: fixed !important; }
-
-          /* Column widths: auto-distribute */
-          th, td { width: auto !important; min-width: 0 !important; max-width: none !important;
-                   border: 0.5pt solid #bbb !important;
-                   padding: 2px 3px !important;
-                   font-size: 7pt !important;
-                   line-height: 1.3 !important;
-                   word-wrap: break-word !important;
-                   white-space: pre-wrap !important; }
-
-          /* Header row */
-          th { background: #efefef !important; font-weight: 900 !important;
-               font-size: 6pt !important; text-transform: uppercase; letter-spacing: 0.05em; }
-
-          /* No page breaks by default; force everything on one page */
-          * { break-inside: avoid !important; }
-          .print-page-break, .print\\:break-before-page { break-before: page !important; }
-
-          /* Container tweaks */
-          .overflow-x-auto { overflow: visible !important; }
+          /* Remove overflow constraints so table goes full width */
+          .overflow-x-auto, .overflow-hidden { overflow: visible !important; }
           .min-w-\\[1200px\\] { min-width: 0 !important; }
+          .max-w-\\[1500px\\] { max-width: none !important; width: 100% !important; }
+          .space-y-6 { gap: 0 !important; }
 
-          /* Shrink to fit */
-          body > * { zoom: 0.85; }
+          /* Table: fill the full landscape page */
+          table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+            table-layout: auto !important;
+            font-size: 7pt !important;
+          }
+
+          th {
+            background: #f0f0f0 !important;
+            font-size: 6pt !important;
+            font-weight: 900 !important;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 2px 4px !important;
+            border: 0.5pt solid #bbb !important;
+          }
+
+          td {
+            font-size: 7pt !important;
+            padding: 2px 4px !important;
+            border: 0.5pt solid #ccc !important;
+            line-height: 1.25 !important;
+            word-break: break-word !important;
+            white-space: pre-wrap !important;
+            vertical-align: top !important;
+          }
+
+          /* Keep rows together, but allow manual page breaks */
+          tr { break-inside: avoid !important; }
+          .print-page-break, .print\\:break-before-page { break-before: page !important; }
         }
       `}</style>
     </div>
