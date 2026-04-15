@@ -9,92 +9,53 @@ import { useEffect, useRef, useState } from 'react';
 // ---------------------------------------------------------------------------
 const projectCategories = [
   {
-    id: 'roadshows',
-    name: 'Brand Activations & Roadshows',
+    id: 'isuzu-mega-roadshow',
+    name: 'Isuzu Mega Roadshow 2025',
     items: [
-      {
-        id: 'isuzu-1',
-        name: 'Isuzu D-Max Nationwide Roadshow',
-        tag: 'Brand Activation',
-        src: '/project_isuzu_1.jpg',
-        size: 'wide',
-      },
-      {
-        id: 'isuzu-2',
-        name: 'My Dream Isuzu D-Max',
-        tag: 'Kids Activity',
-        src: '/project_isuzu_2.jpg',
-        size: 'tall',
-      },
-      {
-        id: 'isuzu-3',
-        name: 'Unleash Dominance Display',
-        tag: 'Vehicle Display',
-        src: '/project_isuzu_3.jpg',
-        size: 'normal',
-      },
+      { id: 'i1', tag: 'Activation', src: '/projects/Isuzu Mega Roadshow 2025/IMG_4282 2.JPG', size: 'tall' },
+      { id: 'i2', tag: 'Activation', src: '/projects/Isuzu Mega Roadshow 2025/IMG_4306 2.JPG', size: 'normal' },
+      { id: 'i3', tag: 'Activation', src: '/projects/Isuzu Mega Roadshow 2025/IMG_4263 2.JPG', size: 'wide' },
+      { id: 'i4', tag: 'Activation', src: '/projects/Isuzu Mega Roadshow 2025/IMG_4258 2.JPG', size: 'tall' },
+      { id: 'i5', tag: 'Activation', src: '/projects/Isuzu Mega Roadshow 2025/IMG_4313 2.JPG', size: 'normal' },
+      { id: 'i6', tag: 'Activation', src: '/projects/Isuzu Mega Roadshow 2025/IMG_4274 2.JPG', size: 'wide' },
+      { id: 'i7', tag: 'Activation', src: '/projects/Isuzu Mega Roadshow 2025/IMG_4290 2.JPG', size: 'tall' },
+      { id: 'i8', tag: 'Activation', src: '/projects/Isuzu Mega Roadshow 2025/IMG_4312 2.JPG', size: 'normal' },
     ]
   },
   {
-    id: 'corporate-gala',
-    name: 'Corporate Galas & Dinners',
+    id: 'sakura-ferralloys',
+    name: 'Sakura Ferralloys Ground Breaking',
     items: [
-      {
-        id: 'sour-gas',
-        name: 'Sarawak Sour Gas Annual Dinner',
-        tag: 'Corporate · Gala',
-        src: '/project_sour_gas.jpg',
-        size: 'wide',
-      },
-      {
-        id: 'corporate-mock',
-        name: 'Bintulu Corporate Gala Night',
-        tag: 'Corporate · Gala',
-        src: '/project_corporate_gala.png',
-        size: 'tall',
-      },
+      { id: 's1', tag: 'Ceremony', src: '/projects/Sakura Ferralloys Ground Breaking/IMG_3998.JPG', size: 'wide' },
+      { id: 's2', tag: 'Structure', src: '/projects/Sakura Ferralloys Ground Breaking/IMG_4006.JPG', size: 'tall' },
+      { id: 's3', tag: 'Setup', src: '/projects/Sakura Ferralloys Ground Breaking/IMG_4011.JPG', size: 'normal' },
+      { id: 's4', tag: 'Ceremony', src: '/projects/Sakura Ferralloys Ground Breaking/IMG_3949.JPG', size: 'wide' },
+      { id: 's5', tag: 'Ceremony', src: '/projects/Sakura Ferralloys Ground Breaking/IMG_4003.JPG', size: 'tall' },
+      { id: 's6', tag: 'Setup', src: '/projects/Sakura Ferralloys Ground Breaking/IMG_3997.JPG', size: 'normal' },
     ]
   },
   {
-    id: 'sports-entertainment',
-    name: 'Sports & Live Entertainment',
+    id: 'wedding-annual-dinner',
+    name: 'Wedding & Annual Dinner',
     items: [
-      {
-        id: 'pickleball-open',
-        name: 'Bintulu Pickleball Open 2026',
-        tag: 'Sports · Tournament',
-        src: '/project_pickleball_open.png',
-        size: 'tall',
-      },
-      {
-        id: 'arena-tech',
-        name: 'ZTO Arena Tech — Live Scoreboard',
-        tag: 'Technology · Real-Time',
-        src: '/project_arena_tech.png',
-        size: 'wide',
-      },
-      {
-        id: 'samalaju-championship',
-        name: 'Samalaju Sports Championship',
-        tag: 'Sports · Outdoor',
-        src: '/project_samalaju_championship.png',
-        size: 'normal',
-      },
-      {
-        id: 'led-concert',
-        name: 'LED Spectacular Concert Series',
-        tag: 'Entertainment · Live',
-        src: '/project_led_concert.png',
-        size: 'tall',
-      },
-      {
-        id: 'av-setup',
-        name: 'Full-Scale AV Production Rig',
-        tag: 'Technical · Production',
-        src: '/project_av_setup.png',
-        size: 'normal',
-      },
+      { id: 'w1', tag: 'Wedding', src: '/projects/Wedding and Annual Dinner/TKWedding_P4-72.JPG', size: 'tall' },
+      { id: 'w2', tag: 'Annual Dinner', src: '/projects/Wedding and Annual Dinner/unnamed.jpg', size: 'wide' },
     ]
+  },
+  {
+    id: 'bif-bcot',
+    name: 'BIF/BCOT Turnaround Village 2025',
+    items: [] // Placeholder
+  },
+  {
+    id: 'traffic-game',
+    name: 'Traffic Game 2025',
+    items: [] // Placeholder
+  },
+  {
+    id: 'petronas-langkawi',
+    name: 'Petronas Langkawi Le Tour De 2025',
+    items: [] // Placeholder
   }
 ];
 
@@ -251,7 +212,7 @@ function Nav() {
             letterSpacing: '-0.5px',
           }}
         >
-          ZTO <span style={{ color: '#0056B3' }}>Event OS</span>
+          Zero To One <span style={{ color: '#0056B3' }}>Event</span>
         </span>
       </div>
 
@@ -1076,18 +1037,36 @@ function MemoirsSection() {
                     background: 'rgba(255,255,255,0.02)',
                   }}
                 >
-                  <img
-                    src={project.src}
-                    alt={project.name}
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      display: 'block',
-                      transition: 'transform 0.6s ease',
-                    }}
-                    className="memoir-img"
-                  />
+                  {project.src.toLowerCase().match(/\.(mp4|mov|webm)$/) ? (
+                    <video
+                      src={project.src}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        display: 'block',
+                        transition: 'transform 0.6s ease',
+                      }}
+                      className="memoir-img"
+                    />
+                  ) : (
+                    <img
+                      src={project.src}
+                      alt={project.name}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        display: 'block',
+                        transition: 'transform 0.6s ease',
+                      }}
+                      className="memoir-img"
+                    />
+                  )}
 
                   {/* Hover overlay */}
                   <div
