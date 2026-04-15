@@ -12,34 +12,34 @@ const projectCategories = [
     id: 'isuzu-mega-roadshow',
     name: 'Isuzu Mega Roadshow 2025',
     items: [
-      { id: 'i1', tag: 'Activation', src: '/projects/Isuzu Mega Roadshow 2025/IMG_4282 2.JPG', size: 'tall' },
-      { id: 'i2', tag: 'Activation', src: '/projects/Isuzu Mega Roadshow 2025/IMG_4306 2.JPG', size: 'normal' },
-      { id: 'i3', tag: 'Activation', src: '/projects/Isuzu Mega Roadshow 2025/IMG_4263 2.JPG', size: 'wide' },
-      { id: 'i4', tag: 'Activation', src: '/projects/Isuzu Mega Roadshow 2025/IMG_4258 2.JPG', size: 'tall' },
-      { id: 'i5', tag: 'Activation', src: '/projects/Isuzu Mega Roadshow 2025/IMG_4313 2.JPG', size: 'normal' },
-      { id: 'i6', tag: 'Activation', src: '/projects/Isuzu Mega Roadshow 2025/IMG_4274 2.JPG', size: 'wide' },
-      { id: 'i7', tag: 'Activation', src: '/projects/Isuzu Mega Roadshow 2025/IMG_4290 2.JPG', size: 'tall' },
-      { id: 'i8', tag: 'Activation', src: '/projects/Isuzu Mega Roadshow 2025/IMG_4312 2.JPG', size: 'normal' },
+      { id: 'i1', tag: 'Activation', src: '/projects/isuzu-mega-roadshow/img_4282-2.jpg', size: 'tall' },
+      { id: 'i2', tag: 'Activation', src: '/projects/isuzu-mega-roadshow/img_4306-2.jpg', size: 'normal' },
+      { id: 'i3', tag: 'Activation', src: '/projects/isuzu-mega-roadshow/img_4263-2.jpg', size: 'wide' },
+      { id: 'i4', tag: 'Activation', src: '/projects/isuzu-mega-roadshow/img_4258-2.jpg', size: 'tall' },
+      { id: 'i5', tag: 'Activation', src: '/projects/isuzu-mega-roadshow/img_4313-2.jpg', size: 'normal' },
+      { id: 'i6', tag: 'Activation', src: '/projects/isuzu-mega-roadshow/img_4274-2.jpg', size: 'wide' },
+      { id: 'i7', tag: 'Activation', src: '/projects/isuzu-mega-roadshow/img_4290-2.jpg', size: 'tall' },
+      { id: 'i8', tag: 'Activation', src: '/projects/isuzu-mega-roadshow/img_4312-2.jpg', size: 'normal' },
     ]
   },
   {
     id: 'sakura-ferralloys',
     name: 'Sakura Ferralloys Ground Breaking',
     items: [
-      { id: 's1', tag: 'Ceremony', src: '/projects/Sakura Ferralloys Ground Breaking/IMG_3998.JPG', size: 'wide' },
-      { id: 's2', tag: 'Structure', src: '/projects/Sakura Ferralloys Ground Breaking/IMG_4006.JPG', size: 'tall' },
-      { id: 's3', tag: 'Setup', src: '/projects/Sakura Ferralloys Ground Breaking/IMG_4011.JPG', size: 'normal' },
-      { id: 's4', tag: 'Ceremony', src: '/projects/Sakura Ferralloys Ground Breaking/IMG_3949.JPG', size: 'wide' },
-      { id: 's5', tag: 'Ceremony', src: '/projects/Sakura Ferralloys Ground Breaking/IMG_4003.JPG', size: 'tall' },
-      { id: 's6', tag: 'Setup', src: '/projects/Sakura Ferralloys Ground Breaking/IMG_3997.JPG', size: 'normal' },
+      { id: 's1', tag: 'Ceremony', src: '/projects/sakura-ferralloys/img_3998.jpg', size: 'wide' },
+      { id: 's2', tag: 'Structure', src: '/projects/sakura-ferralloys/img_4006.jpg', size: 'tall' },
+      { id: 's3', tag: 'Setup', src: '/projects/sakura-ferralloys/img_4011.jpg', size: 'normal' },
+      { id: 's4', tag: 'Ceremony', src: '/projects/sakura-ferralloys/img_3949.jpg', size: 'wide' },
+      { id: 's5', tag: 'Ceremony', src: '/projects/sakura-ferralloys/img_4003.jpg', size: 'tall' },
+      { id: 's6', tag: 'Setup', src: '/projects/sakura-ferralloys/img_3997.jpg', size: 'normal' },
     ]
   },
   {
     id: 'wedding-annual-dinner',
     name: 'Wedding & Annual Dinner',
     items: [
-      { id: 'w1', tag: 'Wedding', src: '/projects/Wedding and Annual Dinner/TKWedding_P4-72.JPG', size: 'tall' },
-      { id: 'w2', tag: 'Annual Dinner', src: '/projects/Wedding and Annual Dinner/unnamed.jpg', size: 'wide' },
+      { id: 'w1', tag: 'Wedding', src: '/projects/wedding-annual-dinner/tkwedding_p4-72.jpg', size: 'tall' },
+      { id: 'w2', tag: 'Annual Dinner', src: '/projects/wedding-annual-dinner/unnamed.jpg', size: 'wide' },
     ]
   },
   {
@@ -226,7 +226,7 @@ function Nav() {
       >
         {[
           { label: 'Identity', href: '#identity' },
-          { label: 'Memoirs', href: '#memoirs' },
+          { label: 'Memories', href: '#memories' },
           { label: 'Services', href: '#services' },
         ].map((item) => (
           <a
@@ -256,7 +256,7 @@ function Nav() {
         ))}
         <a
           id="nav-cta-start-project"
-          href="/public/consulting"
+          href="/public/enquiry"
           style={{
             background: 'linear-gradient(135deg, #0056B3, #0077CC)',
             color: '#fff',
@@ -366,46 +366,6 @@ function Hero() {
           maxWidth: 900,
         }}
       >
-        {/* Badge */}
-        <div
-          className="hero-badge"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 8,
-            background: 'rgba(0,86,179,0.12)',
-            border: '1px solid rgba(0,86,179,0.35)',
-            borderRadius: 100,
-            padding: '8px 20px',
-            marginBottom: 32,
-            backdropFilter: 'blur(12px)',
-          }}
-        >
-          <span
-            style={{
-              width: 6,
-              height: 6,
-              borderRadius: '50%',
-              background: '#0077CC',
-              boxShadow: '0 0 8px #0077CC',
-              display: 'inline-block',
-              animation: 'pulse-dot 2s ease-in-out infinite',
-            }}
-          />
-          <span
-            style={{
-              color: '#6BB8FF',
-              fontFamily: 'Inter, sans-serif',
-              fontWeight: 600,
-              fontSize: 12,
-              letterSpacing: '1.5px',
-              textTransform: 'uppercase',
-            }}
-          >
-            Sarawak&apos;s Premier Event Production House
-          </span>
-        </div>
-
         {/* Headline */}
         <h1
           className="hero-headline"
@@ -467,7 +427,7 @@ function Hero() {
         >
           <a
             id="hero-cta-consult"
-            href="/public/consulting"
+            href="/public/enquiry"
             style={{
               background: 'linear-gradient(135deg, #0056B3, #0077CC)',
               color: '#fff',
@@ -502,7 +462,7 @@ function Hero() {
           </a>
           <a
             id="hero-cta-projects"
-            href="#memoirs"
+            href="#memories"
             style={{
               background: 'rgba(255,255,255,0.05)',
               color: '#E5E5E5',
@@ -701,9 +661,7 @@ function IdentitySection() {
                 marginBottom: 24,
               }}
             >
-              砂拉越活动管理
-              <br />
-              <span style={{ color: 'rgba(229,229,229,0.4)', fontWeight: 400, fontSize: '0.65em', letterSpacing: '-0.5px' }}>
+              <span style={{ color: 'rgba(229,229,229,0.6)', fontWeight: 400, fontSize: '0.65em', letterSpacing: '-0.5px' }}>
                 Sarawak&apos;s Trusted
               </span>
               <br />
@@ -745,7 +703,7 @@ function IdentitySection() {
 
             <a
               id="identity-cta-consult"
-              href="/public/consulting"
+              href="/public/enquiry"
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -885,7 +843,7 @@ function IdentitySection() {
 }
 
 // ---------------------------------------------------------------------------
-// Project Memoirs — Categorized Grid With Tabs
+// Project Memories — Categorized Grid With Tabs
 // ---------------------------------------------------------------------------
 function MemoirsSection() {
   const [activeTab, setActiveTab] = useState(projectCategories[0].id);
@@ -893,7 +851,7 @@ function MemoirsSection() {
 
   return (
     <section
-      id="memoirs"
+      id="memories"
       style={{
         padding: 'clamp(80px, 10vw, 120px) clamp(24px, 5vw, 80px)',
         background: 'rgba(0,86,179,0.03)',
@@ -927,7 +885,7 @@ function MemoirsSection() {
                   textTransform: 'uppercase',
                 }}
               >
-                Project Memoirs
+                Project Memories
               </span>
             </div>
             <h2
@@ -1386,7 +1344,7 @@ function CTABand() {
           </p>
           <a
             id="band-cta-consult"
-            href="/public/consulting"
+            href="/public/enquiry"
             style={{
               display: 'inline-flex',
               alignItems: 'center',

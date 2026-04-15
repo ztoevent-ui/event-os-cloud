@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, Suspense, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 
@@ -14,6 +14,36 @@ function AuthContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const returnTo = searchParams.get('returnTo') || null;
+
+    useEffect(() => {
+        // Auto-redirect if already logged in to prevent dead loops
+        const checkSession = async () => {
+            const { data } = await supabase.auth.getSession();
+            if (data?.session?.user) {
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('role')
+                    .eq('id', data.session.user.id)
+                    .maybeSingle();
+
+                if (returnTo) {
+                    window.location.replace(returnTo);
+                    return;
+                }
+                const role = profile?.role ?? data.session.user.user_metadata?.role ?? '';
+                if (['admin', 'PROJECT_MANAGER'].includes(role)) {
+                    window.location.replace('/projects');
+                } else if (role === 'REFEREE') {
+                    window.location.replace('/apps/zto-arena');
+                } else if (role === 'client') {
+                    window.location.replace('/apps/wedding-hub');
+                } else {
+                    window.location.replace('/');
+                }
+            }
+        };
+        checkSession();
+    }, [returnTo]);
 
     const handleAuth = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -74,10 +104,13 @@ function AuthContent() {
 
                 // Role-based default destination
                 const role = profile?.role ?? data.user?.user_metadata?.role ?? '';
-                if (role === 'client') {
+                if (['admin', 'PROJECT_MANAGER'].includes(role)) {
+                    window.location.replace('/projects');
+                } else if (role === 'REFEREE') {
+                    window.location.replace('/apps/zto-arena');
+                } else if (role === 'client') {
                     window.location.replace('/apps/wedding-hub');
                 } else {
-                    // admin + all others go to home (Arena Hub visible from there)
                     window.location.replace('/');
                 }
                 // Do NOT set loading = false — keep spinner until page unloads
