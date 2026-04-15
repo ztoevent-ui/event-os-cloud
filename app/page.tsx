@@ -1,180 +1,1524 @@
 'use client';
 
 import Link from 'next/link';
-import { supabase } from '@/lib/supabaseClient';
-import { useEffect, useState } from 'react';
+import Image from 'next/image';
+import { useEffect, useRef, useState } from 'react';
 
-export default function Home() {
-    const [user, setUser] = useState<any>(null);
+// ---------------------------------------------------------------------------
+// Data
+// ---------------------------------------------------------------------------
+const projects = [
+  {
+    id: 'pickleball-open',
+    name: 'Bintulu Pickleball Open 2026',
+    tag: 'Sports · Tournament',
+    src: '/project_pickleball_open.png',
+    size: 'tall',
+  },
+  {
+    id: 'corporate-gala',
+    name: 'Bintulu Corporate Gala Night',
+    tag: 'Corporate · Gala',
+    src: '/project_corporate_gala.png',
+    size: 'wide',
+  },
+  {
+    id: 'samalaju-championship',
+    name: 'Samalaju Sports Championship',
+    tag: 'Sports · Outdoor',
+    src: '/project_samalaju_championship.png',
+    size: 'normal',
+  },
+  {
+    id: 'led-concert',
+    name: 'LED Spectacular Concert Series',
+    tag: 'Entertainment · Live',
+    src: '/project_led_concert.png',
+    size: 'tall',
+  },
+  {
+    id: 'av-setup',
+    name: 'Full-Scale AV Production Rig',
+    tag: 'Technical · Production',
+    src: '/project_av_setup.png',
+    size: 'normal',
+  },
+  {
+    id: 'arena-tech',
+    name: 'ZTO Arena Tech — Live Scoreboard',
+    tag: 'Technology · Real-Time',
+    src: '/project_arena_tech.png',
+    size: 'wide',
+  },
+];
 
-    useEffect(() => {
-        const checkUser = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            setUser(user);
-        };
-        checkUser();
-    }, []);
+const services = [
+  {
+    icon: '📋',
+    title: 'Professional Event Planning',
+    subtitle: 'Full-Cycle Strategy & Production',
+    description:
+      'From concept development to on-ground execution, we architect every detail — logistics, vendor coordination, timeline management, and post-event reporting.',
+    accent: '#0056B3',
+    glowColor: 'rgba(0, 86, 179, 0.25)',
+  },
+  {
+    icon: '🔊',
+    title: 'High-End Equipment Supply',
+    subtitle: 'Audio · LED · Lighting · 3D Visuals',
+    description:
+      'State-of-the-art line-array sound systems, P2.6 LED walls, intelligent moving heads, haze machines, and full 3D visual design — all owned and operated by our crew.',
+    accent: '#0077CC',
+    glowColor: 'rgba(0, 119, 204, 0.25)',
+  },
+  {
+    icon: '🏟️',
+    title: 'ZTO Arena Tech',
+    subtitle: 'Proprietary Real-Time Tournament OS',
+    description:
+      'Our in-house built tournament management system powers live scoring, multi-screen broadcasting, registration automation, and referee consoles across all venues.',
+    accent: '#0099FF',
+    glowColor: 'rgba(0, 153, 255, 0.25)',
+  },
+];
 
-    return (
-        <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
-            {/* Hero Section */}
-            <header className="bg-white border-b border-gray-100 py-6 px-4 md:px-8 flex justify-between items-center shadow-sm">
-                <div className="flex items-center gap-3">
-                    <img
-                        src="https://zihjzbweasaqqbwilshx.supabase.co/storage/v1/object/public/logo/icon.png.JPG"
-                        alt="ZTO Logo"
-                        className="w-10 h-10 object-contain rounded-lg shadow-sm"
-                    />
-                    <span className="font-bold text-xl text-gray-900 tracking-tight">ZTO Event OS</span>
-                </div>
-                <div className="flex gap-4">
-                    {!user ? (
-                        <Link href="/auth" className="text-gray-600 hover:text-indigo-600 font-bold px-4 py-2 transition">
-                            Login / Staff
-                        </Link>
-                    ) : (
-                        <Link href="/account" className="flex items-center gap-2 text-gray-600 hover:text-indigo-600 font-bold px-4 py-2 transition">
-                            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs">
-                                <i className="fa-solid fa-user"></i>
-                            </div>
-                            <span>Dashboard</span>
-                        </Link>
-                    )}
-                </div>
-            </header>
+const stats = [
+  { value: '150+', label: 'Events Produced' },
+  { value: '8+', label: 'Years in Sarawak' },
+  { value: 'MW-Class', label: 'Sound Capability' },
+  { value: '24/7', label: 'On-Ground Support' },
+];
 
-            <main className="flex-1 max-w-7xl mx-auto w-full p-4 md:p-8 space-y-12">
+// ---------------------------------------------------------------------------
+// Scroll Animation Hook
+// ---------------------------------------------------------------------------
+function useScrollReveal() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
 
-                {/* 1. Admin Zone */}
-                <section>
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
-                            <i className="fa-solid fa-lock"></i>
-                        </div>
-                        <div>
-                            <h2 className="text-2xl font-black text-gray-900">Admin Console</h2>
-                            <p className="text-gray-500 text-sm">Restricted access for staff and event managers.</p>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-6">
-                        <Link href="/projects" className="group bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-indigo-100 transition-all hover:-translate-y-1">
-                            <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
-                                <i className="fa-solid fa-calendar-check"></i>
-                            </div>
-                            <h3 className="font-bold text-lg text-gray-900 mb-2">Projects & Events</h3>
-                            <p className="text-gray-400 text-sm">Manage projects, timelines, tasks & budgets.</p>
-                        </Link>
-
-                        <Link href="/apps/zto-arena" className="group bg-zinc-900 p-6 rounded-2xl shadow-sm border border-zinc-800 hover:shadow-xl hover:border-amber-500 transition-all hover:-translate-y-1 relative overflow-hidden">
-                            <div className="absolute top-0 right-0 p-4 opacity-10"><i className="fa-solid fa-gamepad text-6xl text-amber-500"></i></div>
-                            <div className="w-12 h-12 bg-amber-500/20 text-amber-500 rounded-xl flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
-                                <i className="fa-solid fa-tablet-screen-button"></i>
-                            </div>
-                            <h3 className="font-bold text-lg text-white mb-2">ZTO Arena Hub</h3>
-                            <p className="text-zinc-400 text-sm">Tournament orchestration & master controls.</p>
-                        </Link>
-
-
-                        <Link href="/apps/lucky-draw" className="group bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-purple-100 transition-all hover:-translate-y-1">
-                            <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
-                                <i className="fa-solid fa-gift"></i>
-                            </div>
-                            <h3 className="font-bold text-lg text-gray-900 mb-2">Lucky Draw</h3>
-                            <p className="text-gray-400 text-sm">Master control for Lucky Draw & Spin Wheel.</p>
-                        </Link>
-
-                        <Link href="/consultations" className="group bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-teal-100 transition-all hover:-translate-y-1">
-                            <div className="w-12 h-12 bg-teal-50 text-teal-600 rounded-xl flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
-                                <i className="fa-solid fa-clipboard-question"></i>
-                            </div>
-                            <h3 className="font-bold text-lg text-gray-900 mb-2">Consultations</h3>
-                            <p className="text-gray-400 text-sm">View received consultation forms & leads.</p>
-                        </Link>
-
-                        <Link href="/admin/registration" className="group bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-amber-100 transition-all hover:-translate-y-1">
-                            <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
-                                <i className="fa-solid fa-sliders"></i>
-                            </div>
-                            <h3 className="font-bold text-lg text-gray-900 mb-2">Registration Admin</h3>
-                            <p className="text-gray-400 text-sm">Manage form fields, branding, sponsors & T&C.</p>
-                        </Link>
-
-                        <Link href="/admin/users" className="group bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-violet-100 transition-all hover:-translate-y-1">
-                            <div className="w-12 h-12 bg-violet-50 text-violet-600 rounded-xl flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
-                                <i className="fa-solid fa-users-gear"></i>
-                            </div>
-                            <h3 className="font-bold text-lg text-gray-900 mb-2">User Management</h3>
-                            <p className="text-gray-400 text-sm">Add, edit &amp; manage permanent and temporary user accounts.</p>
-                        </Link>
-                    </div>
-                </section>
-
-                <hr className="border-gray-100" />
-
-                {/* 2. Public Zone */}
-                <section>
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="p-2 bg-amber-100 text-amber-600 rounded-lg">
-                            <i className="fa-solid fa-star"></i>
-                        </div>
-                        <div>
-                            <h2 className="text-2xl font-black text-gray-900">Featured Events</h2>
-                            <p className="text-gray-500 text-sm">Active registrations and public portals.</p>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-6">
-                        <Link href="/public/consulting" className="flex items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
-                            <div className="w-10 h-10 bg-teal-50 text-teal-600 rounded-full flex items-center justify-center text-xl">
-                                <i className="fa-solid fa-clipboard-question"></i>
-                            </div>
-                            <div>
-                                <h3 className="font-bold text-gray-900">Start Consultation</h3>
-                                <p className="text-xs text-gray-400">Tell us about your dream event.</p>
-                            </div>
-                        </Link>
-                    </div>
-                </section>
-
-                <hr className="border-gray-100" />
-
-                {/* 3. Display Zone */}
-                <section>
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="p-2 bg-orange-100 text-orange-600 rounded-lg">
-                            <i className="fa-solid fa-tv"></i>
-                        </div>
-                        <div>
-                            <h2 className="text-2xl font-black text-gray-900">Display Screens</h2>
-                            <p className="text-gray-500 text-sm">Read-only views for events and projectors.</p>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <Link href="/apps/lucky-draw" className="flex items-center gap-4 bg-gray-900 p-4 rounded-xl hover:bg-gray-800 border border-gray-800 shadow-lg text-white group transition">
-                            <div className="w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center text-yellow-500 group-hover:scale-110 transition text-xl">
-                                <i className="fa-solid fa-gift"></i>
-                            </div>
-                            <div>
-                                <div className="font-bold text-sm">Lucky Draw Display</div>
-                                <div className="text-xs text-gray-400">Full-screen confetti layer.</div>
-                            </div>
-                        </Link>
-
-                        <Link href="/apps/zto-arena/screen" className="flex items-center gap-4 bg-black p-4 rounded-xl hover:bg-zinc-900 border border-cyan-900/50 shadow-[0_0_15px_rgba(6,182,212,0.1)] text-white group transition">
-                            <div className="w-12 h-12 bg-cyan-500/20 rounded-lg flex items-center justify-center text-cyan-400 group-hover:scale-110 transition text-xl">
-                                <i className="fa-solid fa-display"></i>
-                            </div>
-                            <div>
-                                <div className="font-bold text-sm text-cyan-50">ZTO Arena Screen</div>
-                                <div className="text-xs text-cyan-500/70">Live LAN Sync Billboard.</div>
-                            </div>
-                        </Link>
-                    </div>
-                </section>
-
-            </main>
-        </div>
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 }
     );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return { ref, visible };
+}
+
+// ---------------------------------------------------------------------------
+// Section Wrapper with Reveal Animation
+// ---------------------------------------------------------------------------
+function RevealSection({
+  children,
+  className = '',
+  delay = 0,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  delay?: number;
+}) {
+  const { ref, visible } = useScrollReveal();
+  return (
+    <div
+      ref={ref}
+      className={className}
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: visible ? 'translateY(0)' : 'translateY(40px)',
+        transition: `opacity 0.8s ease ${delay}ms, transform 0.8s ease ${delay}ms`,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Nav
+// ---------------------------------------------------------------------------
+function Nav() {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 40);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  return (
+    <nav
+      id="main-nav"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 100,
+        padding: '16px 48px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        transition: 'all 0.4s ease',
+        background: scrolled
+          ? 'rgba(5, 5, 5, 0.85)'
+          : 'transparent',
+        backdropFilter: scrolled ? 'blur(24px)' : 'none',
+        borderBottom: scrolled
+          ? '1px solid rgba(0, 86, 179, 0.2)'
+          : '1px solid transparent',
+      }}
+    >
+      {/* Logo */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: 8,
+            overflow: 'hidden',
+            border: '1px solid rgba(0,86,179,0.4)',
+            flexShrink: 0,
+          }}
+        >
+          <img
+            src="https://zihjzbweasaqqbwilshx.supabase.co/storage/v1/object/public/logo/icon.png.JPG"
+            alt="ZTO Logo"
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        </div>
+        <span
+          style={{
+            fontFamily: 'Inter, sans-serif',
+            fontWeight: 700,
+            fontSize: 18,
+            color: '#fff',
+            letterSpacing: '-0.5px',
+          }}
+        >
+          ZTO <span style={{ color: '#0056B3' }}>Event OS</span>
+        </span>
+      </div>
+
+      {/* Nav Links */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '32px',
+        }}
+      >
+        {[
+          { label: 'Identity', href: '#identity' },
+          { label: 'Memoirs', href: '#memoirs' },
+          { label: 'Services', href: '#services' },
+        ].map((item) => (
+          <a
+            key={item.href}
+            href={item.href}
+            id={`nav-link-${item.label.toLowerCase()}`}
+            style={{
+              color: 'rgba(229,229,229,0.7)',
+              fontFamily: 'Inter, sans-serif',
+              fontWeight: 500,
+              fontSize: 14,
+              textDecoration: 'none',
+              letterSpacing: '0.5px',
+              textTransform: 'uppercase',
+              transition: 'color 0.2s',
+            }}
+            onMouseEnter={(e) =>
+              ((e.target as HTMLElement).style.color = '#fff')
+            }
+            onMouseLeave={(e) =>
+              ((e.target as HTMLElement).style.color =
+                'rgba(229,229,229,0.7)')
+            }
+          >
+            {item.label}
+          </a>
+        ))}
+        <a
+          id="nav-cta-start-project"
+          href="/public/consulting"
+          style={{
+            background: 'linear-gradient(135deg, #0056B3, #0077CC)',
+            color: '#fff',
+            fontFamily: 'Inter, sans-serif',
+            fontWeight: 600,
+            fontSize: 13,
+            padding: '10px 22px',
+            borderRadius: 8,
+            textDecoration: 'none',
+            letterSpacing: '0.3px',
+            boxShadow: '0 0 20px rgba(0,86,179,0.35)',
+            transition: 'box-shadow 0.2s, transform 0.2s',
+          }}
+          onMouseEnter={(e) => {
+            (e.target as HTMLElement).style.boxShadow =
+              '0 0 35px rgba(0,86,179,0.6)';
+            (e.target as HTMLElement).style.transform = 'translateY(-1px)';
+          }}
+          onMouseLeave={(e) => {
+            (e.target as HTMLElement).style.boxShadow =
+              '0 0 20px rgba(0,86,179,0.35)';
+            (e.target as HTMLElement).style.transform = 'translateY(0)';
+          }}
+        >
+          Start a Project
+        </a>
+      </div>
+    </nav>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Hero
+// ---------------------------------------------------------------------------
+function Hero() {
+  return (
+    <section
+      id="hero"
+      style={{
+        position: 'relative',
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+        background: '#050505',
+      }}
+    >
+      {/* Video BG */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          zIndex: 0,
+        }}
+      >
+        {/* Gradient overlay on top of video */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 2,
+            background:
+              'linear-gradient(to bottom, rgba(5,5,5,0.55) 0%, rgba(5,5,5,0.3) 40%, rgba(5,5,5,0.7) 100%)',
+          }}
+        />
+        {/* Blue radial glow */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 3,
+            background:
+              'radial-gradient(ellipse 80% 60% at 50% 60%, rgba(0,86,179,0.08) 0%, transparent 70%)',
+          }}
+        />
+        {/* Placeholder cinematic bg (replaced by actual video embed below) */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 1,
+            background:
+              'linear-gradient(135deg, #050505 0%, #080d14 40%, #050e1a 100%)',
+          }}
+        />
+        {/* Grid lines atmosphere */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 1,
+            backgroundImage:
+              'linear-gradient(rgba(0,86,179,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,86,179,0.04) 1px, transparent 1px)',
+            backgroundSize: '80px 80px',
+          }}
+        />
+      </div>
+
+      {/* Content */}
+      <div
+        style={{
+          position: 'relative',
+          zIndex: 10,
+          textAlign: 'center',
+          padding: '0 24px',
+          maxWidth: 900,
+        }}
+      >
+        {/* Badge */}
+        <div
+          className="hero-badge"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            background: 'rgba(0,86,179,0.12)',
+            border: '1px solid rgba(0,86,179,0.35)',
+            borderRadius: 100,
+            padding: '8px 20px',
+            marginBottom: 32,
+            backdropFilter: 'blur(12px)',
+          }}
+        >
+          <span
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: '50%',
+              background: '#0077CC',
+              boxShadow: '0 0 8px #0077CC',
+              display: 'inline-block',
+              animation: 'pulse-dot 2s ease-in-out infinite',
+            }}
+          />
+          <span
+            style={{
+              color: '#6BB8FF',
+              fontFamily: 'Inter, sans-serif',
+              fontWeight: 600,
+              fontSize: 12,
+              letterSpacing: '1.5px',
+              textTransform: 'uppercase',
+            }}
+          >
+            Sarawak&apos;s Premier Event Production House
+          </span>
+        </div>
+
+        {/* Headline */}
+        <h1
+          className="hero-headline"
+          style={{
+            fontFamily: 'Inter, sans-serif',
+            fontWeight: 800,
+            fontSize: 'clamp(36px, 6vw, 72px)',
+            lineHeight: 1.1,
+            color: '#FFFFFF',
+            letterSpacing: '-2px',
+            marginBottom: 24,
+          }}
+        >
+          Premier Event Management
+          <br />
+          <span
+            style={{
+              background: 'linear-gradient(90deg, #0056B3, #2196F3, #0099FF)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}
+          >
+            & Technical Production
+          </span>
+          <br />
+          in Sarawak.
+        </h1>
+
+        {/* Sub-headline */}
+        <p
+          className="hero-sub"
+          style={{
+            fontFamily: 'Inter, sans-serif',
+            fontWeight: 400,
+            fontSize: 'clamp(15px, 2vw, 19px)',
+            lineHeight: 1.7,
+            color: 'rgba(229,229,229,0.65)',
+            maxWidth: 680,
+            margin: '0 auto 48px',
+          }}
+        >
+          From Bintulu to the whole of Sarawak. We don&apos;t just plan events —
+          we engineer experiences with state-of-the-art equipment and the{' '}
+          <span style={{ color: '#6BB8FF', fontWeight: 500 }}>
+            ZTO Arena OS
+          </span>
+          .
+        </p>
+
+        {/* CTAs */}
+        <div
+          style={{
+            display: 'flex',
+            gap: 16,
+            justifyContent: 'center',
+            flexWrap: 'wrap',
+          }}
+        >
+          <a
+            id="hero-cta-consult"
+            href="/public/consulting"
+            style={{
+              background: 'linear-gradient(135deg, #0056B3, #0077CC)',
+              color: '#fff',
+              fontFamily: 'Inter, sans-serif',
+              fontWeight: 700,
+              fontSize: 15,
+              padding: '16px 36px',
+              borderRadius: 10,
+              textDecoration: 'none',
+              letterSpacing: '0.2px',
+              boxShadow:
+                '0 0 40px rgba(0,86,179,0.45), 0 4px 20px rgba(0,0,0,0.4)',
+              transition: 'all 0.25s ease',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.transform =
+                'translateY(-2px)';
+              (e.currentTarget as HTMLElement).style.boxShadow =
+                '0 0 60px rgba(0,86,179,0.65), 0 8px 30px rgba(0,0,0,0.5)';
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
+              (e.currentTarget as HTMLElement).style.boxShadow =
+                '0 0 40px rgba(0,86,179,0.45), 0 4px 20px rgba(0,0,0,0.4)';
+            }}
+          >
+            <i className="fa-solid fa-paper-plane" style={{ fontSize: 13 }} />
+            Start a Consultation
+          </a>
+          <a
+            id="hero-cta-projects"
+            href="#memoirs"
+            style={{
+              background: 'rgba(255,255,255,0.05)',
+              color: '#E5E5E5',
+              fontFamily: 'Inter, sans-serif',
+              fontWeight: 600,
+              fontSize: 15,
+              padding: '16px 36px',
+              borderRadius: 10,
+              textDecoration: 'none',
+              border: '1px solid rgba(255,255,255,0.12)',
+              backdropFilter: 'blur(12px)',
+              transition: 'all 0.25s ease',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.background =
+                'rgba(255,255,255,0.1)';
+              (e.currentTarget as HTMLElement).style.borderColor =
+                'rgba(255,255,255,0.25)';
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.background =
+                'rgba(255,255,255,0.05)';
+              (e.currentTarget as HTMLElement).style.borderColor =
+                'rgba(255,255,255,0.12)';
+            }}
+          >
+            <i className="fa-solid fa-images" style={{ fontSize: 13 }} />
+            View Our Work
+          </a>
+        </div>
+
+        {/* Scroll indicator */}
+        <div
+          style={{
+            marginTop: 80,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 8,
+            opacity: 0.4,
+          }}
+        >
+          <div
+            style={{
+              width: 1,
+              height: 50,
+              background:
+                'linear-gradient(to bottom, transparent, rgba(0,86,179,0.8))',
+              animation: 'scroll-line 2s ease-in-out infinite',
+            }}
+          />
+          <span
+            style={{
+              color: '#6BB8FF',
+              fontSize: 10,
+              fontFamily: 'Inter, sans-serif',
+              letterSpacing: '2px',
+              textTransform: 'uppercase',
+            }}
+          >
+            Scroll
+          </span>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Stats Bar
+// ---------------------------------------------------------------------------
+function StatsBar() {
+  const { ref, visible } = useScrollReveal();
+  return (
+    <div
+      ref={ref}
+      style={{
+        background: 'rgba(0,86,179,0.06)',
+        borderTop: '1px solid rgba(0,86,179,0.15)',
+        borderBottom: '1px solid rgba(0,86,179,0.15)',
+        padding: '32px 48px',
+        display: 'grid',
+        gridTemplateColumns: 'repeat(4, 1fr)',
+        gap: 24,
+        opacity: visible ? 1 : 0,
+        transform: visible ? 'translateY(0)' : 'translateY(20px)',
+        transition: 'opacity 0.8s ease, transform 0.8s ease',
+      }}
+    >
+      {stats.map((stat, i) => (
+        <div
+          key={stat.label}
+          style={{
+            textAlign: 'center',
+            opacity: visible ? 1 : 0,
+            transform: visible ? 'translateY(0)' : 'translateY(20px)',
+            transition: `opacity 0.6s ease ${i * 100}ms, transform 0.6s ease ${i * 100}ms`,
+          }}
+        >
+          <div
+            style={{
+              fontFamily: 'Inter, sans-serif',
+              fontWeight: 800,
+              fontSize: 32,
+              color: '#FFFFFF',
+              letterSpacing: '-1px',
+              background: 'linear-gradient(90deg, #FFFFFF, #6BB8FF)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}
+          >
+            {stat.value}
+          </div>
+          <div
+            style={{
+              fontFamily: 'Inter, sans-serif',
+              fontWeight: 500,
+              fontSize: 12,
+              color: 'rgba(229,229,229,0.45)',
+              textTransform: 'uppercase',
+              letterSpacing: '1.5px',
+              marginTop: 4,
+            }}
+          >
+            {stat.label}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Identity Section
+// ---------------------------------------------------------------------------
+function IdentitySection() {
+  return (
+    <section
+      id="identity"
+      style={{
+        padding: 'clamp(80px, 10vw, 140px) clamp(24px, 8vw, 120px)',
+        maxWidth: 1280,
+        margin: '0 auto',
+      }}
+    >
+      <RevealSection>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: 80,
+            alignItems: 'center',
+          }}
+          className="identity-grid"
+        >
+          {/* Left */}
+          <div>
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                background: 'rgba(0,86,179,0.1)',
+                border: '1px solid rgba(0,86,179,0.25)',
+                borderRadius: 100,
+                padding: '6px 16px',
+                marginBottom: 24,
+              }}
+            >
+              <span
+                style={{
+                  color: '#6BB8FF',
+                  fontFamily: 'Inter, sans-serif',
+                  fontWeight: 600,
+                  fontSize: 11,
+                  letterSpacing: '2px',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Our Identity
+              </span>
+            </div>
+
+            <h2
+              style={{
+                fontFamily: 'Inter, sans-serif',
+                fontWeight: 800,
+                fontSize: 'clamp(28px, 4vw, 50px)',
+                color: '#FFFFFF',
+                lineHeight: 1.15,
+                letterSpacing: '-1.5px',
+                marginBottom: 24,
+              }}
+            >
+              砂拉越活动管理
+              <br />
+              <span style={{ color: 'rgba(229,229,229,0.4)', fontWeight: 400, fontSize: '0.65em', letterSpacing: '-0.5px' }}>
+                Sarawak&apos;s Trusted
+              </span>
+              <br />
+              Event & Equipment Experts
+            </h2>
+
+            <p
+              style={{
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 16,
+                lineHeight: 1.8,
+                color: 'rgba(229,229,229,0.55)',
+                marginBottom: 32,
+              }}
+            >
+              Headquartered in{' '}
+              <span style={{ color: '#E5E5E5', fontWeight: 600 }}>
+                Bintulu, Sarawak
+              </span>
+              , ZTO operates as the state&apos;s most technically capable
+              event production company — servicing clients from Miri to Kuching
+              with unmatched on-ground execution.
+            </p>
+
+            <p
+              style={{
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 15,
+                lineHeight: 1.8,
+                color: 'rgba(229,229,229,0.45)',
+                marginBottom: 40,
+              }}
+            >
+              When international agencies partner with a Sarawak-based
+              production house, they choose ZTO. Because we don&apos;t just{' '}
+              <em>rent equipment</em> — we deliver a complete technical
+              production operation backed by our proprietary Arena OS.
+            </p>
+
+            <a
+              id="identity-cta-consult"
+              href="/public/consulting"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 10,
+                color: '#6BB8FF',
+                fontFamily: 'Inter, sans-serif',
+                fontWeight: 600,
+                fontSize: 14,
+                textDecoration: 'none',
+                borderBottom: '1px solid rgba(107,184,255,0.3)',
+                paddingBottom: 2,
+                transition: 'color 0.2s, border-color 0.2s',
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.color = '#fff';
+                (e.currentTarget as HTMLElement).style.borderColor =
+                  'rgba(255,255,255,0.6)';
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.color = '#6BB8FF';
+                (e.currentTarget as HTMLElement).style.borderColor =
+                  'rgba(107,184,255,0.3)';
+              }}
+            >
+              Discuss Your Event
+              <i
+                className="fa-solid fa-arrow-right"
+                style={{ fontSize: 12 }}
+              />
+            </a>
+          </div>
+
+          {/* Right — feature pills */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {[
+              {
+                icon: 'fa-location-dot',
+                label: 'Bintulu HQ',
+                desc: 'Total coverage across all of Sarawak',
+              },
+              {
+                icon: 'fa-truck-fast',
+                label: 'Rapid Deployment',
+                desc: 'Our equipment and crew reach any venue in Sarawak within 24 hours',
+              },
+              {
+                icon: 'fa-shield-halved',
+                label: 'Production Guarantee',
+                desc: 'Redundant systems and backup equipment on every major event',
+              },
+              {
+                icon: 'fa-microchip',
+                label: 'Proprietary Technology',
+                desc: 'ZTO Arena OS — the only locally-built tournament management system in Sarawak',
+              },
+              {
+                icon: 'fa-people-group',
+                label: 'The ZTO Crew',
+                desc: 'Trained sound engineers, lighting techs, and event managers — all in-house',
+              },
+            ].map((feat, i) => (
+              <div
+                key={feat.label}
+                id={`identity-feature-${i}`}
+                style={{
+                  display: 'flex',
+                  gap: 16,
+                  padding: '20px 24px',
+                  background: 'rgba(255,255,255,0.03)',
+                  border: '1px solid rgba(255,255,255,0.07)',
+                  borderRadius: 14,
+                  backdropFilter: 'blur(10px)',
+                  transition: 'border-color 0.3s, background 0.3s',
+                  cursor: 'default',
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLElement).style.borderColor =
+                    'rgba(0,86,179,0.4)';
+                  (e.currentTarget as HTMLElement).style.background =
+                    'rgba(0,86,179,0.06)';
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLElement).style.borderColor =
+                    'rgba(255,255,255,0.07)';
+                  (e.currentTarget as HTMLElement).style.background =
+                    'rgba(255,255,255,0.03)';
+                }}
+              >
+                <div
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 10,
+                    background: 'rgba(0,86,179,0.15)',
+                    border: '1px solid rgba(0,86,179,0.25)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <i
+                    className={`fa-solid ${feat.icon}`}
+                    style={{ color: '#6BB8FF', fontSize: 15 }}
+                  />
+                </div>
+                <div>
+                  <div
+                    style={{
+                      fontFamily: 'Inter, sans-serif',
+                      fontWeight: 700,
+                      fontSize: 14,
+                      color: '#E5E5E5',
+                      marginBottom: 4,
+                    }}
+                  >
+                    {feat.label}
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: 'Inter, sans-serif',
+                      fontSize: 13,
+                      color: 'rgba(229,229,229,0.45)',
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    {feat.desc}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </RevealSection>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Project Memoirs — Masonry Grid
+// ---------------------------------------------------------------------------
+function MemoirsSection() {
+  return (
+    <section
+      id="memoirs"
+      style={{
+        padding: 'clamp(80px, 10vw, 120px) clamp(24px, 5vw, 80px)',
+        background: 'rgba(0,86,179,0.03)',
+        borderTop: '1px solid rgba(0,86,179,0.1)',
+        borderBottom: '1px solid rgba(0,86,179,0.1)',
+      }}
+    >
+      <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+        {/* Header */}
+        <RevealSection>
+          <div style={{ textAlign: 'center', marginBottom: 64 }}>
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                background: 'rgba(0,86,179,0.1)',
+                border: '1px solid rgba(0,86,179,0.25)',
+                borderRadius: 100,
+                padding: '6px 16px',
+                marginBottom: 20,
+              }}
+            >
+              <span
+                style={{
+                  color: '#6BB8FF',
+                  fontFamily: 'Inter, sans-serif',
+                  fontWeight: 600,
+                  fontSize: 11,
+                  letterSpacing: '2px',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Project Memoirs
+              </span>
+            </div>
+            <h2
+              style={{
+                fontFamily: 'Inter, sans-serif',
+                fontWeight: 800,
+                fontSize: 'clamp(28px, 4.5vw, 56px)',
+                color: '#FFFFFF',
+                letterSpacing: '-2px',
+                marginBottom: 16,
+              }}
+            >
+              Evidence of Excellence
+            </h2>
+            <p
+              style={{
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 16,
+                color: 'rgba(229,229,229,0.45)',
+                maxWidth: 540,
+                margin: '0 auto',
+                lineHeight: 1.7,
+              }}
+            >
+              A curated archive of large-scale, high-tech sporting and
+              corporateEvents that define who we are.
+            </p>
+          </div>
+        </RevealSection>
+
+        {/* Masonry Grid */}
+        <RevealSection delay={200}>
+          <div
+            id="memoirs-grid"
+            style={{
+              columns: '3 300px',
+              columnGap: 16,
+            }}
+          >
+            {projects.map((project, i) => (
+              <div
+                key={project.id}
+                id={`memoir-card-${project.id}`}
+                style={{
+                  breakInside: 'avoid',
+                  marginBottom: 16,
+                  position: 'relative',
+                  borderRadius: 16,
+                  overflow: 'hidden',
+                  border: '1px solid rgba(255,255,255,0.07)',
+                  cursor: 'pointer',
+                  display: 'block',
+                }}
+                className="memoir-card"
+              >
+                <div
+                  style={{
+                    aspectRatio:
+                      project.size === 'tall'
+                        ? '4/5'
+                        : project.size === 'wide'
+                        ? '16/9'
+                        : '1/1',
+                    position: 'relative',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <img
+                    src={project.src}
+                    alt={project.name}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      display: 'block',
+                      transition: 'transform 0.6s ease',
+                    }}
+                    className="memoir-img"
+                  />
+
+                  {/* Hover overlay */}
+                  <div
+                    className="memoir-overlay"
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      background:
+                        'linear-gradient(to top, rgba(5,5,5,0.92) 0%, rgba(5,5,5,0.2) 60%, transparent 100%)',
+                      opacity: 0,
+                      transition: 'opacity 0.4s ease',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'flex-end',
+                      padding: '24px 20px',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        background: 'rgba(0,86,179,0.3)',
+                        border: '1px solid rgba(0,86,179,0.4)',
+                        borderRadius: 100,
+                        padding: '4px 12px',
+                        marginBottom: 10,
+                        width: 'fit-content',
+                      }}
+                    >
+                      <span
+                        style={{
+                          color: '#6BB8FF',
+                          fontFamily: 'Inter, sans-serif',
+                          fontWeight: 600,
+                          fontSize: 10,
+                          letterSpacing: '1px',
+                          textTransform: 'uppercase',
+                        }}
+                      >
+                        {project.tag}
+                      </span>
+                    </div>
+                    <h3
+                      style={{
+                        fontFamily: 'Inter, sans-serif',
+                        fontWeight: 700,
+                        fontSize: 15,
+                        color: '#FFFFFF',
+                        margin: 0,
+                        letterSpacing: '-0.3px',
+                        lineHeight: 1.3,
+                      }}
+                    >
+                      {project.name}
+                    </h3>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </RevealSection>
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Core Services
+// ---------------------------------------------------------------------------
+function ServicesSection() {
+  return (
+    <section
+      id="services"
+      style={{
+        padding: 'clamp(80px, 10vw, 140px) clamp(24px, 8vw, 120px)',
+        maxWidth: 1280,
+        margin: '0 auto',
+      }}
+    >
+      {/* Header */}
+      <RevealSection>
+        <div style={{ textAlign: 'center', marginBottom: 72 }}>
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              background: 'rgba(0,86,179,0.1)',
+              border: '1px solid rgba(0,86,179,0.25)',
+              borderRadius: 100,
+              padding: '6px 16px',
+              marginBottom: 20,
+            }}
+          >
+            <span
+              style={{
+                color: '#6BB8FF',
+                fontFamily: 'Inter, sans-serif',
+                fontWeight: 600,
+                fontSize: 11,
+                letterSpacing: '2px',
+                textTransform: 'uppercase',
+              }}
+            >
+              Core Services
+            </span>
+          </div>
+          <h2
+            style={{
+              fontFamily: 'Inter, sans-serif',
+              fontWeight: 800,
+              fontSize: 'clamp(28px, 4.5vw, 56px)',
+              color: '#FFFFFF',
+              letterSpacing: '-2px',
+              marginBottom: 16,
+            }}
+          >
+            What We Engineer
+          </h2>
+          <p
+            style={{
+              fontFamily: 'Inter, sans-serif',
+              fontSize: 16,
+              color: 'rgba(229,229,229,0.45)',
+              maxWidth: 520,
+              margin: '0 auto',
+              lineHeight: 1.7,
+            }}
+          >
+            Three pillars of capability. One team. Zero compromise.
+          </p>
+        </div>
+      </RevealSection>
+
+      {/* Cards */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          gap: 24,
+        }}
+      >
+        {services.map((svc, i) => (
+          <RevealSection key={svc.title} delay={i * 120}>
+            <div
+              id={`service-card-${i}`}
+              style={{
+                padding: '40px 36px',
+                borderRadius: 20,
+                background: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                backdropFilter: 'blur(20px)',
+                position: 'relative',
+                overflow: 'hidden',
+                transition:
+                  'border-color 0.4s ease, box-shadow 0.4s ease, transform 0.3s ease',
+                height: '100%',
+              }}
+              onMouseEnter={(e) => {
+                const el = e.currentTarget as HTMLElement;
+                el.style.borderColor = 'rgba(0,86,179,0.45)';
+                el.style.boxShadow = `0 0 60px ${svc.glowColor}, 0 20px 60px rgba(0,0,0,0.4)`;
+                el.style.transform = 'translateY(-6px)';
+              }}
+              onMouseLeave={(e) => {
+                const el = e.currentTarget as HTMLElement;
+                el.style.borderColor = 'rgba(255,255,255,0.08)';
+                el.style.boxShadow = 'none';
+                el.style.transform = 'translateY(0)';
+              }}
+            >
+              {/* Corner glow */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: -40,
+                  right: -40,
+                  width: 140,
+                  height: 140,
+                  borderRadius: '50%',
+                  background: svc.glowColor,
+                  filter: 'blur(40px)',
+                  pointerEvents: 'none',
+                }}
+              />
+
+              {/* Icon */}
+              <div
+                style={{
+                  fontSize: 36,
+                  marginBottom: 24,
+                  display: 'block',
+                }}
+              >
+                {svc.icon}
+              </div>
+
+              {/* Subtitle */}
+              <div
+                style={{
+                  fontFamily: 'Inter, sans-serif',
+                  fontWeight: 600,
+                  fontSize: 11,
+                  color: '#6BB8FF',
+                  letterSpacing: '2px',
+                  textTransform: 'uppercase',
+                  marginBottom: 10,
+                }}
+              >
+                {svc.subtitle}
+              </div>
+
+              {/* Title */}
+              <h3
+                style={{
+                  fontFamily: 'Inter, sans-serif',
+                  fontWeight: 700,
+                  fontSize: 22,
+                  color: '#FFFFFF',
+                  letterSpacing: '-0.5px',
+                  marginBottom: 16,
+                  lineHeight: 1.2,
+                }}
+              >
+                {svc.title}
+              </h3>
+
+              {/* Description */}
+              <p
+                style={{
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: 14,
+                  lineHeight: 1.8,
+                  color: 'rgba(229,229,229,0.5)',
+                }}
+              >
+                {svc.description}
+              </p>
+
+              {/* Bottom accent line */}
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  height: 2,
+                  background: `linear-gradient(90deg, transparent, ${svc.accent}, transparent)`,
+                  opacity: 0.5,
+                }}
+              />
+            </div>
+          </RevealSection>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// CTA Band
+// ---------------------------------------------------------------------------
+function CTABand() {
+  return (
+    <RevealSection>
+      <div
+        style={{
+          margin: '0 clamp(24px, 5vw, 80px) 120px',
+          padding: 'clamp(48px, 6vw, 80px) clamp(32px, 6vw, 80px)',
+          borderRadius: 24,
+          background:
+            'linear-gradient(135deg, rgba(0,56,113,0.6) 0%, rgba(0,86,179,0.3) 50%, rgba(0,30,60,0.6) 100%)',
+          border: '1px solid rgba(0,86,179,0.3)',
+          backdropFilter: 'blur(20px)',
+          textAlign: 'center',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        {/* bg glow */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background:
+              'radial-gradient(ellipse 70% 80% at 50% -20%, rgba(0,86,179,0.2) 0%, transparent 60%)',
+            pointerEvents: 'none',
+          }}
+        />
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <h2
+            style={{
+              fontFamily: 'Inter, sans-serif',
+              fontWeight: 800,
+              fontSize: 'clamp(24px, 4vw, 48px)',
+              color: '#FFFFFF',
+              letterSpacing: '-1.5px',
+              marginBottom: 16,
+            }}
+          >
+            Ready to Build Something Unforgettable?
+          </h2>
+          <p
+            style={{
+              fontFamily: 'Inter, sans-serif',
+              fontSize: 16,
+              color: 'rgba(229,229,229,0.55)',
+              marginBottom: 40,
+              maxWidth: 480,
+              margin: '0 auto 40px',
+              lineHeight: 1.7,
+            }}
+          >
+            Talk to our team. We&apos;ll scope your event, match the right
+            equipment, and give you a production plan within 48 hours.
+          </p>
+          <a
+            id="band-cta-consult"
+            href="/public/consulting"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 10,
+              background: '#FFFFFF',
+              color: '#050505',
+              fontFamily: 'Inter, sans-serif',
+              fontWeight: 700,
+              fontSize: 15,
+              padding: '16px 40px',
+              borderRadius: 10,
+              textDecoration: 'none',
+              letterSpacing: '-0.2px',
+              boxShadow: '0 4px 30px rgba(0,0,0,0.4)',
+              transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.transform =
+                'translateY(-2px)';
+              (e.currentTarget as HTMLElement).style.boxShadow =
+                '0 8px 40px rgba(0,0,0,0.5)';
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
+              (e.currentTarget as HTMLElement).style.boxShadow =
+                '0 4px 30px rgba(0,0,0,0.4)';
+            }}
+          >
+            <i className="fa-solid fa-bolt" style={{ fontSize: 13 }} />
+            Let&apos;s Make It Happen
+          </a>
+        </div>
+      </div>
+    </RevealSection>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Footer
+// ---------------------------------------------------------------------------
+function Footer() {
+  return (
+    <footer
+      id="footer"
+      style={{
+        borderTop: '1px solid rgba(255,255,255,0.06)',
+        padding: 'clamp(40px, 5vw, 60px) clamp(24px, 8vw, 120px)',
+        background: '#050505',
+      }}
+    >
+      <div
+        style={{
+          maxWidth: 1280,
+          margin: '0 auto',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 24,
+        }}
+      >
+        {/* Brand */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 7,
+              overflow: 'hidden',
+              border: '1px solid rgba(0,86,179,0.3)',
+              flexShrink: 0,
+            }}
+          >
+            <img
+              src="https://zihjzbweasaqqbwilshx.supabase.co/storage/v1/object/public/logo/icon.png.JPG"
+              alt="ZTO Logo"
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          </div>
+          <div>
+            <div
+              style={{
+                fontFamily: 'Inter, sans-serif',
+                fontWeight: 700,
+                fontSize: 14,
+                color: '#E5E5E5',
+              }}
+            >
+              ZTO Event OS
+            </div>
+            <div
+              style={{
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 11,
+                color: 'rgba(229,229,229,0.35)',
+                letterSpacing: '0.5px',
+              }}
+            >
+              Bintulu, Sarawak · Since 2018
+            </div>
+          </div>
+        </div>
+
+        {/* Copyright */}
+        <div
+          style={{
+            fontFamily: 'Inter, sans-serif',
+            fontSize: 12,
+            color: 'rgba(229,229,229,0.25)',
+          }}
+        >
+          © {new Date().getFullYear()} ZTO. All rights reserved.
+        </div>
+
+        {/* Staff Console — discreet link */}
+        <Link
+          href="/auth"
+          id="footer-staff-console"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            color: 'rgba(229,229,229,0.2)',
+            fontFamily: 'Inter, sans-serif',
+            fontWeight: 500,
+            fontSize: 11,
+            letterSpacing: '1.5px',
+            textTransform: 'uppercase',
+            textDecoration: 'none',
+            transition: 'color 0.2s',
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLElement).style.color =
+              'rgba(107,184,255,0.7)';
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLElement).style.color =
+              'rgba(229,229,229,0.2)';
+          }}
+        >
+          <i
+            className="fa-solid fa-terminal"
+            style={{ fontSize: 10 }}
+          />
+          Staff Console
+        </Link>
+      </div>
+    </footer>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Main Export
+// ---------------------------------------------------------------------------
+export default function Home() {
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        background: '#050505',
+        color: '#E5E5E5',
+        overflowX: 'hidden',
+      }}
+    >
+      <Nav />
+      <Hero />
+      <StatsBar />
+      <IdentitySection />
+      <MemoirsSection />
+      <ServicesSection />
+      <CTABand />
+      <Footer />
+
+      {/* Memoir card hover CSS injected inline */}
+      <style>{`
+        .memoir-card:hover .memoir-img {
+          transform: scale(1.08);
+        }
+        .memoir-card:hover .memoir-overlay {
+          opacity: 1 !important;
+        }
+        .memoir-card:hover {
+          border-color: rgba(0, 86, 179, 0.4) !important;
+        }
+        @media (max-width: 768px) {
+          #memoirs-grid {
+            columns: 2 160px !important;
+          }
+          .identity-grid {
+            grid-template-columns: 1fr !important;
+            gap: 40px !important;
+          }
+        }
+        @media (max-width: 480px) {
+          #memoirs-grid {
+            columns: 1 !important;
+          }
+          nav > div:last-child a[href="/public/consulting"] {
+            display: none;
+          }
+        }
+      `}</style>
+    </div>
+  );
 }
