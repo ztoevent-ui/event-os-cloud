@@ -155,6 +155,7 @@ function RevealSection({
 // ---------------------------------------------------------------------------
 function Nav() {
   const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -163,128 +164,167 @@ function Nav() {
   }, []);
 
   return (
-    <nav
-      id="main-nav"
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 100,
-        padding: '16px 48px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        transition: 'all 0.4s ease',
-        background: scrolled
-          ? 'rgba(5, 5, 5, 0.85)'
-          : 'transparent',
-        backdropFilter: scrolled ? 'blur(24px)' : 'none',
-        borderBottom: scrolled
-          ? '1px solid rgba(0, 86, 179, 0.2)'
-          : '1px solid transparent',
-      }}
-    >
-      {/* Logo */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <div
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: 8,
-            overflow: 'hidden',
-            border: '1px solid rgba(0,86,179,0.4)',
-            flexShrink: 0,
-          }}
-        >
-          <img
-            src="https://zihjzbweasaqqbwilshx.supabase.co/storage/v1/object/public/logo/icon.png.JPG"
-            alt="ZTO Logo"
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
-        </div>
-        <span
-          style={{
-            fontFamily: 'Inter, sans-serif',
-            fontWeight: 700,
-            fontSize: 18,
-            color: '#fff',
-            letterSpacing: '-0.5px',
-          }}
-        >
-          Zero To One <span style={{ color: '#0056B3' }}>Event</span>
-        </span>
-      </div>
+    <>
+      <style>{`
+        @media (max-width: 767px) {
+          .nav-links { display: none !important; }
+          .nav-hamburger { display: flex !important; }
+          #main-nav { padding: 14px 20px !important; }
+        }
+        @media (min-width: 768px) and (max-width: 1023px) {
+          #main-nav { padding: 14px 28px !important; }
+          .nav-links { gap: 20px !important; }
+          .nav-links a { font-size: 12px !important; }
+        }
+        .mobile-menu-overlay {
+          position: fixed; inset: 0; z-index: 200;
+          background: rgba(5,5,5,0.97);
+          backdrop-filter: blur(20px);
+          display: flex; flex-direction: column;
+          align-items: center; justify-content: center;
+          gap: 40px;
+          animation: fadeIn 0.2s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+      `}</style>
 
-      {/* Nav Links */}
-      <div
+      {/* Mobile overlay menu */}
+      {menuOpen && (
+        <div className="mobile-menu-overlay">
+          <button
+            onClick={() => setMenuOpen(false)}
+            style={{
+              position: 'absolute', top: 20, right: 20,
+              background: 'none', border: 'none', color: '#fff',
+              fontSize: 24, cursor: 'pointer', padding: 8,
+            }}
+          >
+            <i className="fa-solid fa-xmark" />
+          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+            <img
+              src="https://zihjzbweasaqqbwilshx.supabase.co/storage/v1/object/public/logo/icon.png.JPG"
+              alt="ZTO Logo"
+              style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 8, border: '1px solid rgba(0,86,179,0.4)' }}
+            />
+            <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: 20, color: '#fff' }}>
+              Zero To One <span style={{ color: '#0056B3' }}>Event</span>
+            </span>
+          </div>
+          {[
+            { label: 'Identity', href: '#identity' },
+            { label: 'Memories', href: '#memories' },
+            { label: 'Services', href: '#services' },
+          ].map((item) => (
+            <a
+              key={item.href}
+              href={item.href}
+              onClick={() => setMenuOpen(false)}
+              style={{
+                color: 'rgba(229,229,229,0.85)',
+                fontFamily: 'Inter, sans-serif',
+                fontWeight: 600,
+                fontSize: 22,
+                textDecoration: 'none',
+                letterSpacing: '2px',
+                textTransform: 'uppercase',
+              }}
+            >
+              {item.label}
+            </a>
+          ))}
+          <a
+            href="/public/enquiry"
+            onClick={() => setMenuOpen(false)}
+            style={{
+              marginTop: 8,
+              background: 'linear-gradient(135deg, #0056B3, #0077CC)',
+              color: '#fff',
+              fontFamily: 'Inter, sans-serif',
+              fontWeight: 700,
+              fontSize: 16,
+              padding: '14px 36px',
+              borderRadius: 10,
+              textDecoration: 'none',
+              boxShadow: '0 0 30px rgba(0,86,179,0.5)',
+            }}
+          >
+            Start a Project
+          </a>
+        </div>
+      )}
+
+      <nav
+        id="main-nav"
         style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 100,
+          padding: '16px 48px',
           display: 'flex',
           alignItems: 'center',
-          gap: '32px',
+          justifyContent: 'space-between',
+          transition: 'all 0.4s ease',
+          background: scrolled ? 'rgba(5, 5, 5, 0.92)' : 'transparent',
+          backdropFilter: scrolled ? 'blur(24px)' : 'none',
+          borderBottom: scrolled ? '1px solid rgba(0, 86, 179, 0.2)' : '1px solid transparent',
         }}
       >
-        {[
-          { label: 'Identity', href: '#identity' },
-          { label: 'Memories', href: '#memories' },
-          { label: 'Services', href: '#services' },
-        ].map((item) => (
+        {/* Logo */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ width: 36, height: 36, borderRadius: 8, overflow: 'hidden', border: '1px solid rgba(0,86,179,0.4)', flexShrink: 0 }}>
+            <img
+              src="https://zihjzbweasaqqbwilshx.supabase.co/storage/v1/object/public/logo/icon.png.JPG"
+              alt="ZTO Logo"
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          </div>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: 17, color: '#fff', letterSpacing: '-0.5px', whiteSpace: 'nowrap' }}>
+            Zero To One <span style={{ color: '#0056B3' }}>Event</span>
+          </span>
+        </div>
+
+        {/* Desktop Nav Links */}
+        <div className="nav-links" style={{ display: 'flex', alignItems: 'center', gap: '28px' }}>
+          {[
+            { label: 'Identity', href: '#identity' },
+            { label: 'Memories', href: '#memories' },
+            { label: 'Services', href: '#services' },
+          ].map((item) => (
+            <a
+              key={item.href}
+              href={item.href}
+              id={`nav-link-${item.label.toLowerCase()}`}
+              style={{ color: 'rgba(229,229,229,0.7)', fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 13, textDecoration: 'none', letterSpacing: '0.5px', textTransform: 'uppercase', transition: 'color 0.2s', whiteSpace: 'nowrap' }}
+              onMouseEnter={(e) => ((e.target as HTMLElement).style.color = '#fff')}
+              onMouseLeave={(e) => ((e.target as HTMLElement).style.color = 'rgba(229,229,229,0.7)')}
+            >
+              {item.label}
+            </a>
+          ))}
           <a
-            key={item.href}
-            href={item.href}
-            id={`nav-link-${item.label.toLowerCase()}`}
-            style={{
-              color: 'rgba(229,229,229,0.7)',
-              fontFamily: 'Inter, sans-serif',
-              fontWeight: 500,
-              fontSize: 14,
-              textDecoration: 'none',
-              letterSpacing: '0.5px',
-              textTransform: 'uppercase',
-              transition: 'color 0.2s',
-            }}
-            onMouseEnter={(e) =>
-              ((e.target as HTMLElement).style.color = '#fff')
-            }
-            onMouseLeave={(e) =>
-              ((e.target as HTMLElement).style.color =
-                'rgba(229,229,229,0.7)')
-            }
+            id="nav-cta-start-project"
+            href="/public/enquiry"
+            style={{ background: 'linear-gradient(135deg, #0056B3, #0077CC)', color: '#fff', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: 13, padding: '9px 20px', borderRadius: 8, textDecoration: 'none', whiteSpace: 'nowrap', boxShadow: '0 0 20px rgba(0,86,179,0.35)', transition: 'box-shadow 0.2s, transform 0.2s' }}
+            onMouseEnter={(e) => { (e.currentTarget.style.boxShadow = '0 0 35px rgba(0,86,179,0.6)'); (e.currentTarget.style.transform = 'translateY(-1px)'); }}
+            onMouseLeave={(e) => { (e.currentTarget.style.boxShadow = '0 0 20px rgba(0,86,179,0.35)'); (e.currentTarget.style.transform = 'translateY(0)'); }}
           >
-            {item.label}
+            Start a Project
           </a>
-        ))}
-        <a
-          id="nav-cta-start-project"
-          href="/public/enquiry"
-          style={{
-            background: 'linear-gradient(135deg, #0056B3, #0077CC)',
-            color: '#fff',
-            fontFamily: 'Inter, sans-serif',
-            fontWeight: 600,
-            fontSize: 13,
-            padding: '10px 22px',
-            borderRadius: 8,
-            textDecoration: 'none',
-            letterSpacing: '0.3px',
-            boxShadow: '0 0 20px rgba(0,86,179,0.35)',
-            transition: 'box-shadow 0.2s, transform 0.2s',
-          }}
-          onMouseEnter={(e) => {
-            (e.target as HTMLElement).style.boxShadow =
-              '0 0 35px rgba(0,86,179,0.6)';
-            (e.target as HTMLElement).style.transform = 'translateY(-1px)';
-          }}
-          onMouseLeave={(e) => {
-            (e.target as HTMLElement).style.boxShadow =
-              '0 0 20px rgba(0,86,179,0.35)';
-            (e.target as HTMLElement).style.transform = 'translateY(0)';
-          }}
+        </div>
+
+        {/* Mobile hamburger */}
+        <button
+          className="nav-hamburger"
+          onClick={() => setMenuOpen(true)}
+          style={{ display: 'none', background: 'none', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 8, color: '#fff', padding: '8px 12px', cursor: 'pointer', fontSize: 16, alignItems: 'center', justifyContent: 'center' }}
         >
-          Start a Project
-        </a>
-      </div>
-    </nav>
+          <i className="fa-solid fa-bars" />
+        </button>
+      </nav>
+    </>
   );
 }
 
@@ -366,32 +406,41 @@ function Hero() {
           maxWidth: 900,
         }}
       >
+        <style>{`
+          @media (max-width: 767px) {
+            .hero-headline { font-size: 32px !important; letter-spacing: -1px !important; }
+            .hero-sub { font-size: 14px !important; }
+          }
+          @media (min-width: 768px) and (max-width: 1023px) {
+            .hero-headline { font-size: clamp(30px, 4.5vw, 52px) !important; letter-spacing: -1.5px !important; }
+          }
+        `}</style>
+
         {/* Headline */}
         <h1
           className="hero-headline"
           style={{
             fontFamily: 'Inter, sans-serif',
             fontWeight: 800,
-            fontSize: 'clamp(36px, 6vw, 72px)',
-            lineHeight: 1.1,
+            fontSize: 'clamp(32px, 4.5vw, 62px)',
+            lineHeight: 1.12,
             color: '#FFFFFF',
             letterSpacing: '-2px',
-            marginBottom: 24,
+            marginBottom: 20,
           }}
         >
-          Premier Event Management
-          <br />
+          Premier Event Management{' '}
           <span
             style={{
               background: 'linear-gradient(90deg, #0056B3, #2196F3, #0099FF)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text',
+              display: 'inline',
             }}
           >
-            & Technical Production
-          </span>
-          <br />
+            &amp; Technical Production
+          </span>{' '}
           in Sarawak.
         </h1>
 
@@ -401,19 +450,16 @@ function Hero() {
           style={{
             fontFamily: 'Inter, sans-serif',
             fontWeight: 400,
-            fontSize: 'clamp(15px, 2vw, 19px)',
-            lineHeight: 1.7,
+            fontSize: 'clamp(14px, 1.6vw, 17px)',
+            lineHeight: 1.75,
             color: 'rgba(229,229,229,0.65)',
-            maxWidth: 680,
-            margin: '0 auto 48px',
+            maxWidth: 580,
+            margin: '0 auto 44px',
           }}
         >
-          From Bintulu to the whole of Sarawak. We don&apos;t just plan events —
-          we engineer experiences with state-of-the-art equipment and the{' '}
-          <span style={{ color: '#6BB8FF', fontWeight: 500 }}>
-            ZTO Arena OS
-          </span>
-          .
+          From Bintulu to the whole of Sarawak — we engineer experiences
+          with state-of-the-art equipment and the{' '}
+          <span style={{ color: '#6BB8FF', fontWeight: 500 }}>ZTO Arena OS</span>.
         </p>
 
         {/* CTAs */}

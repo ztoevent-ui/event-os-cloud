@@ -32,13 +32,13 @@ function AuthContent() {
                 }
                 const role = profile?.role ?? data.session.user.user_metadata?.role ?? '';
                 if (['admin', 'PROJECT_MANAGER'].includes(role)) {
-                    window.location.replace('/projects');
+                    window.location.replace('/dashboard');
                 } else if (role === 'REFEREE') {
                     window.location.replace('/apps/zto-arena');
                 } else if (role === 'client') {
                     window.location.replace('/apps/wedding-hub');
                 } else {
-                    window.location.replace('/');
+                    window.location.replace('/dashboard');
                 }
             }
         };
@@ -105,13 +105,13 @@ function AuthContent() {
                 // Role-based default destination
                 const role = profile?.role ?? data.user?.user_metadata?.role ?? '';
                 if (['admin', 'PROJECT_MANAGER'].includes(role)) {
-                    window.location.replace('/projects');
+                    window.location.replace('/dashboard');
                 } else if (role === 'REFEREE') {
                     window.location.replace('/apps/zto-arena');
                 } else if (role === 'client') {
                     window.location.replace('/apps/wedding-hub');
                 } else {
-                    window.location.replace('/');
+                    window.location.replace('/dashboard');
                 }
                 // Do NOT set loading = false — keep spinner until page unloads
                 return;

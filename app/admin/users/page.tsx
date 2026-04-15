@@ -71,9 +71,7 @@ export default function AdminUsersPage() {
 
             const { data: prof } = await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle();
             if (!prof || prof.role !== 'admin') {
-                if (['PROJECT_MANAGER'].includes(prof?.role)) router.push('/projects');
-                else if (prof?.role === 'REFEREE') router.push('/apps/zto-arena');
-                else router.push(prof?.role === 'client' ? '/apps/wedding-hub' : '/');
+                router.push('/dashboard');
                 return;
             }
             setCurrentUser(user);
