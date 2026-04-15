@@ -1020,7 +1020,7 @@ function MemoirsSection() {
                   border: '1px solid rgba(255,255,255,0.07)',
                   cursor: 'pointer',
                   display: 'block',
-                  animation: \`fadeInUp 0.6s ease \${i * 0.1}s both\`,
+                  animation: `fadeInUp 0.6s ease ${i * 0.1}s both`,
                 }}
                 className="memoir-card"
               >
