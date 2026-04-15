@@ -7,49 +7,95 @@ import { useEffect, useRef, useState } from 'react';
 // ---------------------------------------------------------------------------
 // Data
 // ---------------------------------------------------------------------------
-const projects = [
+const projectCategories = [
   {
-    id: 'pickleball-open',
-    name: 'Bintulu Pickleball Open 2026',
-    tag: 'Sports · Tournament',
-    src: '/project_pickleball_open.png',
-    size: 'tall',
+    id: 'roadshows',
+    name: 'Brand Activations & Roadshows',
+    items: [
+      {
+        id: 'isuzu-1',
+        name: 'Isuzu D-Max Nationwide Roadshow',
+        tag: 'Brand Activation',
+        src: '/project_isuzu_1.jpg',
+        size: 'wide',
+      },
+      {
+        id: 'isuzu-2',
+        name: 'My Dream Isuzu D-Max',
+        tag: 'Kids Activity',
+        src: '/project_isuzu_2.jpg',
+        size: 'tall',
+      },
+      {
+        id: 'isuzu-3',
+        name: 'Unleash Dominance Display',
+        tag: 'Vehicle Display',
+        src: '/project_isuzu_3.jpg',
+        size: 'normal',
+      },
+    ]
   },
   {
     id: 'corporate-gala',
-    name: 'Bintulu Corporate Gala Night',
-    tag: 'Corporate · Gala',
-    src: '/project_corporate_gala.png',
-    size: 'wide',
+    name: 'Corporate Galas & Dinners',
+    items: [
+      {
+        id: 'sour-gas',
+        name: 'Sarawak Sour Gas Annual Dinner',
+        tag: 'Corporate · Gala',
+        src: '/project_sour_gas.jpg',
+        size: 'wide',
+      },
+      {
+        id: 'corporate-mock',
+        name: 'Bintulu Corporate Gala Night',
+        tag: 'Corporate · Gala',
+        src: '/project_corporate_gala.png',
+        size: 'tall',
+      },
+    ]
   },
   {
-    id: 'samalaju-championship',
-    name: 'Samalaju Sports Championship',
-    tag: 'Sports · Outdoor',
-    src: '/project_samalaju_championship.png',
-    size: 'normal',
-  },
-  {
-    id: 'led-concert',
-    name: 'LED Spectacular Concert Series',
-    tag: 'Entertainment · Live',
-    src: '/project_led_concert.png',
-    size: 'tall',
-  },
-  {
-    id: 'av-setup',
-    name: 'Full-Scale AV Production Rig',
-    tag: 'Technical · Production',
-    src: '/project_av_setup.png',
-    size: 'normal',
-  },
-  {
-    id: 'arena-tech',
-    name: 'ZTO Arena Tech — Live Scoreboard',
-    tag: 'Technology · Real-Time',
-    src: '/project_arena_tech.png',
-    size: 'wide',
-  },
+    id: 'sports-entertainment',
+    name: 'Sports & Live Entertainment',
+    items: [
+      {
+        id: 'pickleball-open',
+        name: 'Bintulu Pickleball Open 2026',
+        tag: 'Sports · Tournament',
+        src: '/project_pickleball_open.png',
+        size: 'tall',
+      },
+      {
+        id: 'arena-tech',
+        name: 'ZTO Arena Tech — Live Scoreboard',
+        tag: 'Technology · Real-Time',
+        src: '/project_arena_tech.png',
+        size: 'wide',
+      },
+      {
+        id: 'samalaju-championship',
+        name: 'Samalaju Sports Championship',
+        tag: 'Sports · Outdoor',
+        src: '/project_samalaju_championship.png',
+        size: 'normal',
+      },
+      {
+        id: 'led-concert',
+        name: 'LED Spectacular Concert Series',
+        tag: 'Entertainment · Live',
+        src: '/project_led_concert.png',
+        size: 'tall',
+      },
+      {
+        id: 'av-setup',
+        name: 'Full-Scale AV Production Rig',
+        tag: 'Technical · Production',
+        src: '/project_av_setup.png',
+        size: 'normal',
+      },
+    ]
+  }
 ];
 
 const services = [
@@ -878,9 +924,12 @@ function IdentitySection() {
 }
 
 // ---------------------------------------------------------------------------
-// Project Memoirs — Masonry Grid
+// Project Memoirs — Categorized Grid With Tabs
 // ---------------------------------------------------------------------------
 function MemoirsSection() {
+  const [activeTab, setActiveTab] = useState(projectCategories[0].id);
+  const activeProjects = projectCategories.find(c => c.id === activeTab)?.items || [];
+
   return (
     <section
       id="memoirs"
@@ -894,7 +943,7 @@ function MemoirsSection() {
       <div style={{ maxWidth: 1280, margin: '0 auto' }}>
         {/* Header */}
         <RevealSection>
-          <div style={{ textAlign: 'center', marginBottom: 64 }}>
+          <div style={{ textAlign: 'center', marginBottom: 48 }}>
             <div
               style={{
                 display: 'inline-flex',
@@ -942,9 +991,48 @@ function MemoirsSection() {
                 lineHeight: 1.7,
               }}
             >
-              A curated archive of large-scale, high-tech sporting and
-              corporateEvents that define who we are.
+              A curated archive of large-scale, high-tech productions. Organized by category to showcase our diverse capability.
             </p>
+          </div>
+        </RevealSection>
+
+        {/* Category Tabs */}
+        <RevealSection delay={100}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 48 }}>
+            {projectCategories.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setActiveTab(cat.id)}
+                style={{
+                  padding: '10px 24px',
+                  borderRadius: 100,
+                  fontFamily: 'Inter, sans-serif',
+                  fontWeight: 600,
+                  fontSize: 14,
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  background: activeTab === cat.id ? '#0056B3' : 'rgba(255,255,255,0.05)',
+                  color: activeTab === cat.id ? '#FFFFFF' : 'rgba(229,229,229,0.6)',
+                  border: activeTab === cat.id ? '1px solid #0077CC' : '1px solid rgba(255,255,255,0.1)',
+                  boxShadow: activeTab === cat.id ? '0 0 20px rgba(0,86,179,0.4)' : 'none',
+                  outline: 'none',
+                }}
+                onMouseEnter={(e) => {
+                  if (activeTab !== cat.id) {
+                    (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.1)';
+                    (e.currentTarget as HTMLElement).style.color = '#FFFFFF';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (activeTab !== cat.id) {
+                    (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)';
+                    (e.currentTarget as HTMLElement).style.color = 'rgba(229,229,229,0.6)';
+                  }
+                }}
+              >
+                {cat.name}
+              </button>
+            ))}
           </div>
         </RevealSection>
 
@@ -955,11 +1043,12 @@ function MemoirsSection() {
             style={{
               columns: '3 300px',
               columnGap: 16,
+              minHeight: 400, // Reduces jumpiness when switching tabs
             }}
           >
-            {projects.map((project, i) => (
+            {activeProjects.map((project, i) => (
               <div
-                key={project.id}
+                key={`${activeTab}-${project.id}`} // Force re-mount on tab switch for animation
                 id={`memoir-card-${project.id}`}
                 style={{
                   breakInside: 'avoid',
@@ -970,6 +1059,7 @@ function MemoirsSection() {
                   border: '1px solid rgba(255,255,255,0.07)',
                   cursor: 'pointer',
                   display: 'block',
+                  animation: \`fadeInUp 0.6s ease \${i * 0.1}s both\`,
                 }}
                 className="memoir-card"
               >
@@ -983,6 +1073,7 @@ function MemoirsSection() {
                         : '1/1',
                     position: 'relative',
                     overflow: 'hidden',
+                    background: 'rgba(255,255,255,0.02)',
                   }}
                 >
                   <img
