@@ -120,7 +120,7 @@ export default function TeamManagementPage() {
                 
                 <div className="relative z-10">
                     <div className="flex items-center gap-3 mb-2">
-                        <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
+                        <div className="w-2 h-2 bg-[#0056B3] rounded-full animate-pulse"></div>
                         <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">Personnel Hub</span>
                     </div>
                     <h1 className="text-4xl font-black text-white uppercase italic tracking-tighter">Team & Permissions</h1>
@@ -138,7 +138,7 @@ export default function TeamManagementPage() {
                     <button 
                         onClick={generateRefereeCode}
                         disabled={isGeneratingCode}
-                        className="px-8 py-3 bg-amber-500 text-black font-black rounded-2xl text-[11px] uppercase tracking-widest hover:bg-amber-400 transition-all transform hover:scale-105 shadow-xl shadow-amber-500/20 disabled:opacity-50"
+                        className="px-8 py-3 bg-[#0056B3] text-black font-black rounded-2xl text-[11px] uppercase tracking-widest hover:bg-[#0056B3] transition-all transform hover:scale-105 shadow-xl shadow-blue-900/20 disabled:opacity-50"
                     >
                         {isGeneratingCode ? 'Generating...' : 'New Referee Code'}
                     </button>
@@ -163,7 +163,7 @@ export default function TeamManagementPage() {
                                         animate={{ opacity: 1, scale: 1 }}
                                         className={`bg-zinc-900 border border-white/5 p-6 rounded-3xl flex items-center gap-5 hover:border-white/10 transition-all group print:bg-white print:border-zinc-200 print:text-black ${pageBreakIds.includes(member.id) ? 'print:break-before-page pt-8' : ''}`}
                                     >
-                                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-zinc-800 to-black border border-white/10 flex items-center justify-center text-2xl font-black text-amber-500 overflow-hidden shadow-2xl transition-transform group-hover:scale-105 print:hidden">
+                                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-zinc-800 to-black border border-white/10 flex items-center justify-center text-2xl font-black text-[#0056B3] overflow-hidden shadow-2xl transition-transform group-hover:scale-105 print:hidden">
                                             {member.avatar_url ? <img src={member.avatar_url} className="w-full h-full object-cover" /> : member.full_name[0]}
                                         </div>
                                         <div className="flex-1">
@@ -171,7 +171,7 @@ export default function TeamManagementPage() {
                                             <div className="flex items-center gap-2">
                                                 <span className={`text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-widest ${
                                                     member.role === 'SUPER_ADMIN' ? 'bg-purple-500/10 text-purple-500' : 
-                                                    member.role === 'PROJECT_MANAGER' ? 'bg-amber-500/10 text-amber-500' : 
+                                                    member.role === 'PROJECT_MANAGER' ? 'bg-[#0056B3]/10 text-[#0056B3]' : 
                                                     'bg-zinc-500/10 text-zinc-500'
                                                 } print:text-black print:border-zinc-200`}>
                                                     {member.role.replace('_', ' ')}
@@ -196,8 +196,8 @@ export default function TeamManagementPage() {
                 <div className="space-y-6 print:break-before-page print:mt-8">
                     <h2 className="text-xs font-black uppercase tracking-[0.4em] text-zinc-600 ml-4 print:text-black">Referee Quick Codes</h2>
                     <div className="bg-zinc-900 border border-white/5 rounded-[2.5rem] p-8 space-y-6 print:bg-white print:border-zinc-200">
-                        <div className="bg-amber-500/5 border border-amber-500/10 p-5 rounded-2xl">
-                            <p className="text-[10px] text-amber-500 leading-relaxed font-bold uppercase tracking-wider italic">
+                        <div className="bg-[#0056B3]/5 border border-[#0056B3]/30 p-5 rounded-2xl">
+                            <p className="text-[10px] text-[#0056B3] leading-relaxed font-bold uppercase tracking-wider italic">
                                 codes allow temporary, account-free access to the Referee Dashboard for this event. Expiring codes recommended for BPO 2026.
                             </p>
                         </div>
@@ -262,14 +262,14 @@ export default function TeamManagementPage() {
                                     <input 
                                         autoFocus
                                         type="email" 
-                                        className="w-full bg-black border border-zinc-800 rounded-2xl px-6 py-4 text-white font-bold focus:border-amber-500 outline-none transition-all"
+                                        className="w-full bg-black border border-zinc-800 rounded-2xl px-6 py-4 text-white font-bold focus:border-[#0056B3]/30 outline-none transition-all"
                                         placeholder="user@example.com"
                                     />
                                 </div>
                                 <div>
                                     <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2 block">Assigned Role</label>
                                     <div className="grid grid-cols-2 gap-4">
-                                        <button className="p-4 bg-amber-500/10 border-2 border-amber-500 text-amber-500 rounded-2xl text-[10px] font-black uppercase tracking-widest">PM (Isolated)</button>
+                                        <button className="p-4 bg-[#0056B3]/10 border-2 border-[#0056B3]/30 text-[#0056B3] rounded-2xl text-[10px] font-black uppercase tracking-widest">PM (Isolated)</button>
                                         <button className="p-4 bg-zinc-800 border-2 border-transparent text-zinc-500 rounded-2xl text-[10px] font-black uppercase tracking-widest">Referee</button>
                                     </div>
                                 </div>

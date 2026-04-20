@@ -336,7 +336,7 @@ export default function RegistrationStudio() {
                                     <label key={field.key} className="flex items-center gap-3 cursor-pointer group">
                                         <div
                                             onClick={() => setSettings({ ...settings, fields_config: { ...settings.fields_config, [field.key]: !settings.fields_config[field.key] } })}
-                                            className={`w-5 h-5 rounded flex items-center justify-center transition-all ${settings.fields_config[field.key] ? 'bg-[#0056B3]500 border-[#0056B3]500' : 'bg-zinc-900 border-zinc-700'} border shrink-0`}
+                                            className={`w-5 h-5 rounded flex items-center justify-center transition-all ${settings.fields_config[field.key] ? 'bg-[#0056B3] border-[#0056B3]500' : 'bg-zinc-900 border-zinc-700'} border shrink-0`}
                                         >
                                             {settings.fields_config[field.key] && <i className="fa-solid fa-check text-black text-[10px]" />}
                                         </div>
@@ -352,7 +352,7 @@ export default function RegistrationStudio() {
                                     <div className="bg-zinc-950 border border-white/5 p-6 rounded-2xl">
                                         <div className="flex items-center justify-between mb-4">
                                             <label className="text-xs font-black tracking-widest uppercase text-[#0056B3]500">Medical Conditions List</label>
-                                            <button onClick={() => setSettings({ ...settings, medical_options: [...settings.medical_options, 'New Condition'] })} className="px-3 py-1.5 bg-[#0056B3]500/10 text-[#0056B3]500 hover:bg-[#0056B3]500 hover:text-black rounded-lg text-[9px] font-black uppercase tracking-widest transition-colors">
+                                            <button onClick={() => setSettings({ ...settings, medical_options: [...settings.medical_options, 'New Condition'] })} className="px-3 py-1.5 bg-[#0056B3]/10 text-[#0056B3]500 hover:bg-[#0056B3] hover:text-black rounded-lg text-[9px] font-black uppercase tracking-widest transition-colors">
                                                 <i className="fa-solid fa-plus mr-2" />Add Option
                                             </button>
                                         </div>
@@ -399,7 +399,7 @@ export default function RegistrationStudio() {
                         </div>
 
                         <div className="pt-4 border-t border-zinc-800 text-right">
-                            <button onClick={handleSave} className="bg-[#0056B3]500 hover:bg-[#0056B3]400 text-black font-black uppercase tracking-widest px-8 py-3 rounded-xl transition-colors shadow-lg shadow-amber-500/20">
+                            <button onClick={handleSave} className="bg-[#0056B3] hover:bg-[#0056B3]400 text-black font-black uppercase tracking-widest px-8 py-3 rounded-xl transition-colors shadow-lg shadow-blue-900/20">
                                 Save Settings
                             </button>
                         </div>
@@ -573,7 +573,7 @@ export default function RegistrationStudio() {
                         <div className="bg-white/5 border border-white/10 backdrop-blur-xl p-6 rounded-3xl">
                             <div className="flex items-center justify-between mb-4">
                                 <label className="text-xs font-black tracking-widest uppercase text-zinc-400">Prize Pool</label>
-                                <button onClick={() => addRow('prize_pool', { category: '', amount: '', currency: 'RM' })} className="px-3 py-1.5 bg-[#0056B3]500/10 text-[#0056B3]500 hover:bg-[#0056B3]500 hover:text-black rounded-lg text-[9px] font-black uppercase tracking-widest transition-colors">
+                                <button onClick={() => addRow('prize_pool', { category: '', amount: '', currency: 'RM' })} className="px-3 py-1.5 bg-[#0056B3]/10 text-[#0056B3]500 hover:bg-[#0056B3] hover:text-black rounded-lg text-[9px] font-black uppercase tracking-widest transition-colors">
                                     <i className="fa-solid fa-plus mr-1" />Add Category
                                 </button>
                             </div>
@@ -598,7 +598,7 @@ export default function RegistrationStudio() {
                         <div className="bg-white/5 border border-white/10 backdrop-blur-xl p-6 rounded-3xl">
                             <div className="flex items-center justify-between mb-4">
                                 <label className="text-xs font-black tracking-widest uppercase text-zinc-400">Categories / Divisions</label>
-                                <button onClick={() => addRow('categories', { name: '', description: '', open_to: '' })} className="px-3 py-1.5 bg-[#0056B3]500/10 text-[#0056B3]500 hover:bg-[#0056B3]500 hover:text-black rounded-lg text-[9px] font-black uppercase tracking-widest transition-colors">
+                                <button onClick={() => addRow('categories', { name: '', description: '', open_to: '' })} className="px-3 py-1.5 bg-[#0056B3]/10 text-[#0056B3]500 hover:bg-[#0056B3] hover:text-black rounded-lg text-[9px] font-black uppercase tracking-widest transition-colors">
                                     <i className="fa-solid fa-plus mr-1" />Add Category
                                 </button>
                             </div>
@@ -637,7 +637,7 @@ export default function RegistrationStudio() {
                         <div className="bg-white/5 border border-white/10 backdrop-blur-xl p-6 rounded-3xl">
                             <div className="flex items-center justify-between mb-4">
                                 <label className="text-xs font-black tracking-widest uppercase text-zinc-400">Event Schedule</label>
-                                <button onClick={() => addRow('event_schedule', { date: '', label: '', time_start: '', time_end: '', notes: '' })} className="px-3 py-1.5 bg-[#0056B3]500/10 text-[#0056B3]500 hover:bg-[#0056B3]500 hover:text-black rounded-lg text-[9px] font-black uppercase tracking-widest transition-colors">
+                                <button onClick={() => addRow('event_schedule', { date: '', label: '', time_start: '', time_end: '', notes: '' })} className="px-3 py-1.5 bg-[#0056B3]/10 text-[#0056B3]500 hover:bg-[#0056B3] hover:text-black rounded-lg text-[9px] font-black uppercase tracking-widest transition-colors">
                                     <i className="fa-solid fa-plus mr-1" />Add Day
                                 </button>
                             </div>
@@ -696,7 +696,7 @@ export default function RegistrationStudio() {
                         </div>
 
                         <div className="text-right pt-2">
-                            <button onClick={handleSave} className="bg-[#0056B3]500 hover:bg-[#0056B3]400 text-black font-black uppercase tracking-widest px-10 py-3 rounded-xl transition-colors shadow-lg shadow-amber-500/20">
+                            <button onClick={handleSave} className="bg-[#0056B3] hover:bg-[#0056B3]400 text-black font-black uppercase tracking-widest px-10 py-3 rounded-xl transition-colors shadow-lg shadow-blue-900/20">
                                 <i className="fa-solid fa-floppy-disk mr-2" />Save Tournament Page
                             </button>
                         </div>

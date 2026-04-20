@@ -98,8 +98,8 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
     text: 'text-pink-500', bg: 'bg-pink-500', border: 'border-pink-400', shadow: 'shadow-[0_0_20px_rgba(236,72,153,0.3)]',
     text70: 'text-pink-500/70', text80: 'text-pink-500/80', bgFocus: 'focus:bg-pink-500/5', bgHover: 'hover:bg-pink-500'
   } : {
-    text: 'text-amber-500', bg: 'bg-amber-500', border: 'border-amber-400', shadow: 'shadow-[0_0_20px_rgba(245,158,11,0.3)]',
-    text70: 'text-amber-500/70', text80: 'text-amber-500/80', bgFocus: 'focus:bg-amber-500/5', bgHover: 'hover:bg-amber-500'
+    text: 'text-[#0056B3]', bg: 'bg-[#0056B3]', border: 'border-[#0056B3]/30', shadow: 'shadow-[0_0_20px_rgba(245,158,11,0.3)]',
+    text70: 'text-[#0056B3]/70', text80: 'text-[#0056B3]/80', bgFocus: 'focus:bg-[#0056B3]/5', bgHover: 'hover:bg-[#0056B3]'
   };
 
   // --- Dual-Axis Drag Logic --- //

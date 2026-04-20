@@ -202,7 +202,7 @@ export default function ConsultingForm({ projectId }: WizardProps) {
 
                             <div className="space-y-4">
                                 {formData.booked_vendors.map((vendor, index) => (
-                                    <div key={index} className={`p-4 rounded-xl border transition-all ${vendor.isBooked ? 'border-[#D4AF37] bg-yellow-50/30' : 'border-zinc-200 bg-white'}`}>
+                                    <div key={index} className={`p-4 rounded-xl border transition-all ${vendor.isBooked ? 'border-[#D4AF37] bg-[#0056B3]/30' : 'border-zinc-200 bg-white'}`}>
                                         <div className="flex items-center gap-3 mb-2">
                                             <input
                                                 type="checkbox"
@@ -288,7 +288,7 @@ export default function ConsultingForm({ projectId }: WizardProps) {
                                     placeholder="Tell us a little about how you met..."
                                 ></textarea>
                             </div>
-                            <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200/50 mt-4">
+                            <div className="bg-[#0056B3] p-4 rounded-lg border border-yellow-200/50 mt-4">
                                 <div className="flex gap-3">
                                     <i className="fa-solid fa-wand-magic-sparkles text-[#D4AF37] mt-1"></i>
                                     <div>

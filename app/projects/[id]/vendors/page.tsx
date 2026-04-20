@@ -40,10 +40,10 @@ export default function VendorsPage({ params }: { params: Promise<{ id: string }
         primary: 'text-pink-500',
         hover: 'group-hover:text-pink-400'
     } : {
-        border: 'border-amber-500/30',
-        hoverBorder: 'hover:border-amber-500/50',
-        primary: 'text-amber-500',
-        hover: 'group-hover:text-amber-400'
+        border: 'border-[#0056B3]/30',
+        hoverBorder: 'hover:border-[#0056B3]/30',
+        primary: 'text-[#0056B3]',
+        hover: 'group-hover:text-[#0056B3]'
     };
 
     return (

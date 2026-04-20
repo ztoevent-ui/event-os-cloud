@@ -851,7 +851,7 @@ export default function StageLayoutPage({ params }: { params: Promise<{ id: stri
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-[70vh] gap-4">
-        <div className="w-16 h-16 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
+        <div className="w-16 h-16 border-2 border-[#0056B3]/30 border-t-amber-500 rounded-full animate-spin" />
         <p className="text-zinc-500 uppercase tracking-widest text-xs font-black">Initializing Stage Engine...</p>
       </div>
     );
@@ -878,7 +878,7 @@ export default function StageLayoutPage({ params }: { params: Promise<{ id: stri
         </div>
         <div className="flex items-center gap-3">
           {isMobile && (
-            <span className="px-3 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/30 rounded-lg text-[9px] font-black uppercase tracking-widest">
+            <span className="px-3 py-1 bg-[#0056B3]/10 text-[#0056B3] border border-[#0056B3]/30 rounded-lg text-[9px] font-black uppercase tracking-widest">
               <i className="fa-solid fa-eye mr-1" />Read-Only
             </span>
           )}
@@ -908,9 +908,9 @@ export default function StageLayoutPage({ params }: { params: Promise<{ id: stri
 
       {/* Mobile overlay (read-only badge) when canvas is open on mobile */}
       {isMobile && isActive && (
-        <div className="mx-6 px-4 py-3 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center gap-3">
-          <i className="fa-solid fa-triangle-exclamation text-amber-500" />
-          <span className="text-xs font-black text-amber-400 uppercase tracking-widest">Mobile View: Read-Only. Use desktop for editing.</span>
+        <div className="mx-6 px-4 py-3 bg-[#0056B3]/10 border border-[#0056B3]/30 rounded-2xl flex items-center gap-3">
+          <i className="fa-solid fa-triangle-exclamation text-[#0056B3]" />
+          <span className="text-xs font-black text-[#0056B3] uppercase tracking-widest">Mobile View: Read-Only. Use desktop for editing.</span>
         </div>
       )}
 
@@ -933,7 +933,7 @@ export default function StageLayoutPage({ params }: { params: Promise<{ id: stri
               <div className="relative">
                 <i className="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600 text-[8px]" />
                 <input type="text" placeholder="SEARCH EQUIPMENT..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-                  className="w-full bg-black/50 border border-white/5 rounded-lg pl-8 pr-3 py-2 text-[8px] font-black text-white focus:border-amber-500/50 outline-none uppercase" />
+                  className="w-full bg-black/50 border border-white/5 rounded-lg pl-8 pr-3 py-2 text-[8px] font-black text-white focus:border-[#0056B3]/30 outline-none uppercase" />
               </div>
 
               {/* Category pills */}
@@ -959,7 +959,7 @@ export default function StageLayoutPage({ params }: { params: Promise<{ id: stri
                       <div className="text-[9px] font-black text-zinc-300 uppercase tracking-tight group-hover:text-white truncate">{entry.name}</div>
                       <div className="text-[7px] font-bold text-zinc-600 uppercase tracking-widest">{entry.category}</div>
                     </div>
-                    <i className="fa-solid fa-plus text-[8px] text-zinc-700 group-hover:text-amber-400 flex-shrink-0" />
+                    <i className="fa-solid fa-plus text-[8px] text-zinc-700 group-hover:text-[#0056B3] flex-shrink-0" />
                   </button>
                 ))}
               </div>
@@ -981,12 +981,12 @@ export default function StageLayoutPage({ params }: { params: Promise<{ id: stri
               {showAddEquipment && (
                 <div className="bg-black/50 border border-white/10 rounded-xl p-3 space-y-2">
                   <input type="text" placeholder="Equipment Name" value={newEquipmentForm.name} onChange={e => setNewEquipmentForm(p => ({ ...p, name: e.target.value }))}
-                    className="w-full bg-transparent border border-white/10 rounded-lg px-2 py-1.5 text-[9px] text-white outline-none focus:border-amber-500/50" />
+                    className="w-full bg-transparent border border-white/10 rounded-lg px-2 py-1.5 text-[9px] text-white outline-none focus:border-[#0056B3]/30" />
                   <div className="grid grid-cols-2 gap-2">
                     <input type="number" placeholder="Qty" value={newEquipmentForm.qty} onChange={e => setNewEquipmentForm(p => ({ ...p, qty: parseInt(e.target.value) || 1 }))}
-                      className="bg-transparent border border-white/10 rounded-lg px-2 py-1.5 text-[9px] text-white outline-none focus:border-amber-500/50" />
+                      className="bg-transparent border border-white/10 rounded-lg px-2 py-1.5 text-[9px] text-white outline-none focus:border-[#0056B3]/30" />
                     <input type="number" placeholder="Unit Price (RM)" value={newEquipmentForm.unit_price} onChange={e => setNewEquipmentForm(p => ({ ...p, unit_price: parseFloat(e.target.value) || 0 }))}
-                      className="bg-transparent border border-white/10 rounded-lg px-2 py-1.5 text-[9px] text-white outline-none focus:border-amber-500/50" />
+                      className="bg-transparent border border-white/10 rounded-lg px-2 py-1.5 text-[9px] text-white outline-none focus:border-[#0056B3]/30" />
                   </div>
                   <button onClick={addEquipmentItem} className="w-full py-1.5 bg-emerald-500/20 text-emerald-400 rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-emerald-500/30 transition-all">
                     Add Item
@@ -1013,7 +1013,7 @@ export default function StageLayoutPage({ params }: { params: Promise<{ id: stri
                     <div className="flex items-center gap-2 mt-2">
                       <span className="text-[8px] text-zinc-600">Qty</span>
                       <input type="number" min="1" value={eq.qty} onChange={e => updateEquipment(eq.id, 'qty', parseInt(e.target.value) || 1)}
-                        className="w-12 bg-transparent border border-white/10 rounded px-1 py-0.5 text-[8px] text-white text-center outline-none focus:border-amber-500/50" />
+                        className="w-12 bg-transparent border border-white/10 rounded px-1 py-0.5 text-[8px] text-white text-center outline-none focus:border-[#0056B3]/30" />
                       <span className="text-[8px] text-zinc-600">×</span>
                       <span className="text-[8px] text-zinc-400 font-mono flex-1">RM {eq.unit_price.toFixed(0)}</span>
                       <span className="text-[8px] font-black text-emerald-400 font-mono">RM {(eq.qty * eq.unit_price).toLocaleString()}</span>
@@ -1037,7 +1037,7 @@ export default function StageLayoutPage({ params }: { params: Promise<{ id: stri
               <div className="space-y-2">
                 <label className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Venue Name</label>
                 <input type="text" value={scene.venueName} onChange={e => updateSceneSetting('venueName', e.target.value.toUpperCase())}
-                  className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-[10px] font-black text-white uppercase outline-none focus:border-amber-500/50" />
+                  className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-[10px] font-black text-white uppercase outline-none focus:border-[#0056B3]/30" />
               </div>
 
               <div className="grid grid-cols-3 gap-2">
@@ -1055,7 +1055,7 @@ export default function StageLayoutPage({ params }: { params: Promise<{ id: stri
                 <div className="flex justify-between items-center">
                   <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Show Grid</span>
                   <button onClick={() => updateSceneSetting('showGrid', !scene.showGrid)}
-                    className={`w-10 h-5 rounded-full transition-all ${scene.showGrid ? 'bg-amber-500' : 'bg-zinc-700'}`}>
+                    className={`w-10 h-5 rounded-full transition-all ${scene.showGrid ? 'bg-[#0056B3]' : 'bg-zinc-700'}`}>
                     <div className={`w-4 h-4 rounded-full bg-white transition-all ${scene.showGrid ? 'translate-x-5' : 'translate-x-0.5'}`} />
                   </button>
                 </div>
@@ -1099,11 +1099,11 @@ export default function StageLayoutPage({ params }: { params: Promise<{ id: stri
           <div className="bg-zinc-900/50 border border-white/5 rounded-2xl p-4">
             <h4 className="text-[8px] font-black text-zinc-600 uppercase tracking-widest mb-3">Controls</h4>
             <ul className="space-y-1.5 text-[8px] text-zinc-600">
-              <li><span className="text-amber-500 mr-2">●</span>Click to select</li>
-              <li><span className="text-amber-500 mr-2">●</span>Selected + drag to move</li>
-              <li><span className="text-amber-500 mr-2">●</span>Right drag to pan</li>
-              <li><span className="text-amber-500 mr-2">●</span>Scroll to zoom</li>
-              <li><span className="text-amber-500 mr-2">●</span>Delete/⌫ removes selection</li>
+              <li><span className="text-[#0056B3] mr-2">●</span>Click to select</li>
+              <li><span className="text-[#0056B3] mr-2">●</span>Selected + drag to move</li>
+              <li><span className="text-[#0056B3] mr-2">●</span>Right drag to pan</li>
+              <li><span className="text-[#0056B3] mr-2">●</span>Scroll to zoom</li>
+              <li><span className="text-[#0056B3] mr-2">●</span>Delete/⌫ removes selection</li>
               <li><span className="text-emerald-500 mr-2">●</span>Grid snap: {scene.snapToGrid ? `ON (${scene.gridSize}m)` : 'OFF'}</li>
             </ul>
           </div>
@@ -1114,11 +1114,11 @@ export default function StageLayoutPage({ params }: { params: Promise<{ id: stri
           {!isActive ? (
             /* Lazy trigger */
             <div
-              className="h-[68vh] flex flex-col items-center justify-center bg-zinc-900/50 border border-white/5 rounded-3xl gap-6 cursor-pointer group hover:border-amber-500/30 transition-all"
+              className="h-[68vh] flex flex-col items-center justify-center bg-zinc-900/50 border border-white/5 rounded-3xl gap-6 cursor-pointer group hover:border-[#0056B3]/30 transition-all"
               onClick={() => setIsActive(true)}
             >
-              <div className="w-20 h-20 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center group-hover:scale-110 transition-all">
-                <i className="fa-solid fa-cube text-3xl text-amber-500" />
+              <div className="w-20 h-20 rounded-2xl bg-[#0056B3]/10 border border-[#0056B3]/30 flex items-center justify-center group-hover:scale-110 transition-all">
+                <i className="fa-solid fa-cube text-3xl text-[#0056B3]" />
               </div>
               <div className="text-center">
                 <p className="text-white font-black uppercase tracking-widest text-lg">Launch 3D Engine</p>
@@ -1141,7 +1141,7 @@ export default function StageLayoutPage({ params }: { params: Promise<{ id: stri
                   </div>
                 )}
                 {isMobile && (
-                  <div className="absolute top-3 left-3 z-10 px-3 py-1 bg-amber-500/20 border border-amber-500/30 rounded-full text-amber-400 text-[8px] font-black uppercase tracking-widest backdrop-blur-sm">
+                  <div className="absolute top-3 left-3 z-10 px-3 py-1 bg-[#0056B3]/20 border border-[#0056B3]/30 rounded-full text-[#0056B3] text-[8px] font-black uppercase tracking-widest backdrop-blur-sm">
                     <i className="fa-solid fa-eye mr-1" />Read-Only
                   </div>
                 )}
@@ -1201,7 +1201,7 @@ export default function StageLayoutPage({ params }: { params: Promise<{ id: stri
                   <div className="space-y-1">
                     <label className="text-[7px] font-black text-zinc-600 uppercase tracking-widest">Label</label>
                     <input type="text" value={selectedAsset.label} onChange={e => updateAssetProp(selectedAsset.id, 'label', e.target.value)}
-                      className="w-full bg-black border border-white/10 rounded-lg px-2 py-1.5 text-[9px] text-white outline-none focus:border-amber-500/50" />
+                      className="w-full bg-black border border-white/10 rounded-lg px-2 py-1.5 text-[9px] text-white outline-none focus:border-[#0056B3]/30" />
                   </div>
 
                   {/* Position */}
@@ -1213,7 +1213,7 @@ export default function StageLayoutPage({ params }: { params: Promise<{ id: stri
                           <label className="text-[6px] font-black uppercase text-zinc-600">{axis.toUpperCase()}</label>
                           <input type="number" step="0.5" value={selectedAsset[axis].toFixed(2)}
                             onChange={e => updateAssetProp(selectedAsset.id, axis, parseFloat(e.target.value) || 0)}
-                            className="w-full bg-black border border-white/10 rounded px-1 py-1 text-[8px] text-white text-center outline-none focus:border-amber-500/50" />
+                            className="w-full bg-black border border-white/10 rounded px-1 py-1 text-[8px] text-white text-center outline-none focus:border-[#0056B3]/30" />
                         </div>
                       ))}
                     </div>
@@ -1228,7 +1228,7 @@ export default function StageLayoutPage({ params }: { params: Promise<{ id: stri
                           <label className="text-[6px] font-black uppercase text-zinc-600">{dim === 'w' ? 'W' : dim === 'h' ? 'H' : 'D'}</label>
                           <input type="number" step="0.1" min="0.05" value={selectedAsset[dim].toFixed(2)}
                             onChange={e => updateAssetProp(selectedAsset.id, dim, Math.max(0.05, parseFloat(e.target.value) || 0.1))}
-                            className="w-full bg-black border border-white/10 rounded px-1 py-1 text-[8px] text-white text-center outline-none focus:border-amber-500/50" />
+                            className="w-full bg-black border border-white/10 rounded px-1 py-1 text-[8px] text-white text-center outline-none focus:border-[#0056B3]/30" />
                         </div>
                       ))}
                     </div>

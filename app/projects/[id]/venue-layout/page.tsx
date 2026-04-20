@@ -875,7 +875,7 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
 
   const [searchQuery, setSearchQuery] = useState('');
   
-  if (loading) return <div className="flex items-center justify-center h-[60vh]"><i className="fa-solid fa-spinner fa-spin text-3xl text-amber-500" /></div>;
+  if (loading) return <div className="flex items-center justify-center h-[60vh]"><i className="fa-solid fa-spinner fa-spin text-3xl text-[#0056B3]" /></div>;
 
   const selectedCount = selectedIds.length;
 
@@ -915,7 +915,7 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
                   onClick={() => switchPreset(p.key)}
                   className={`px-3 py-2 rounded-xl text-[9px] font-black uppercase tracking-tight text-left transition-all border ${
                     layoutData?.selectedPreset === p.key
-                      ? 'bg-amber-500/10 border-amber-500/50 text-amber-400'
+                      ? 'bg-[#0056B3]/10 border-[#0056B3]/30 text-[#0056B3]'
                       : 'bg-white/5 border-transparent text-zinc-500 hover:bg-white/10'
                   }`}
                 >
@@ -935,7 +935,7 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
                 value={layoutData?.venueName || ''} 
                 onChange={(e) => setLayoutData(prev => prev ? { ...prev, venueName: e.target.value.toUpperCase() } : null)}
                 placeholder="ENTER VENUE NAME..."
-                className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-[10px] font-black text-white focus:border-amber-500/50 outline-none transition-all uppercase"
+                className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-[10px] font-black text-white focus:border-[#0056B3]/30 outline-none transition-all uppercase"
               />
             </div>
           </div>
@@ -1004,7 +1004,7 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
                 placeholder="SEARCH ASSETS..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value.toUpperCase())}
-                className="w-full bg-black/50 border border-white/5 rounded-lg pl-8 pr-3 py-1.5 text-[8px] font-black text-white focus:border-amber-500/50 outline-none transition-all"
+                className="w-full bg-black/50 border border-white/5 rounded-lg pl-8 pr-3 py-1.5 text-[8px] font-black text-white focus:border-[#0056B3]/30 outline-none transition-all"
               />
             </div>
             <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
@@ -1022,8 +1022,8 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
                           onClick={() => addAsset(a.type)}
                           className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-left transition-all border border-transparent hover:border-white/10 group flex items-center justify-between"
                         >
-                          <span className="text-[9px] font-black text-zinc-400 uppercase tracking-tight group-hover:text-amber-400">{a.name}</span>
-                          <i className="fa-solid fa-plus text-[8px] text-zinc-600 group-hover:text-amber-400" />
+                          <span className="text-[9px] font-black text-zinc-400 uppercase tracking-tight group-hover:text-[#0056B3]">{a.name}</span>
+                          <i className="fa-solid fa-plus text-[8px] text-zinc-600 group-hover:text-[#0056B3]" />
                         </button>
                       ))}
                     </div>
@@ -1068,7 +1068,7 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
               </Canvas>
             ) : (
               <div className="flex flex-col items-center justify-center h-full text-zinc-500 uppercase tracking-widest text-[10px]">
-                <i className="fa-solid fa-triangle-exclamation text-amber-500 mb-2 text-2xl" />
+                <i className="fa-solid fa-triangle-exclamation text-[#0056B3] mb-2 text-2xl" />
                 Failed to load spatial data.
               </div>
             )}
@@ -1078,7 +1078,7 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
           {selectedIds.length > 0 && (
             <div className="w-64 bg-zinc-900 border border-white/5 rounded-3xl p-6 space-y-6 flex-shrink-0 animate-in slide-in-from-right duration-300">
               <div className="flex justify-between items-center">
-                <h3 className="text-[10px] font-black text-amber-500 uppercase tracking-widest">Properties</h3>
+                <h3 className="text-[10px] font-black text-[#0056B3] uppercase tracking-widest">Properties</h3>
                 <button onClick={removeSelected} className="w-6 h-6 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center">
                   <i className="fa-solid fa-trash-can text-[10px]" />
                 </button>
@@ -1169,8 +1169,8 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
                             {CLOTH_OPTIONS.map(c => (
                               <button key={c.hex} onClick={() => updateAssetProp(asset.id, 'color', c.hex)} className={`w-5 h-5 rounded-md border ${asset.color === c.hex ? 'border-white' : 'border-transparent'}`} style={{ backgroundColor: c.hex }} />
                             ))}
-                            <button onClick={() => updateAssetProp(asset.id, 'color', '#ffffff')} className={`w-5 h-5 rounded-md border bg-white ${asset.color === '#ffffff' ? 'border-amber-500' : 'border-transparent'}`} />
-                            <button onClick={() => updateAssetProp(asset.id, 'color', '#333333')} className={`w-5 h-5 rounded-md border bg-zinc-800 ${asset.color === '#333333' ? 'border-amber-500' : 'border-transparent'}`} />
+                            <button onClick={() => updateAssetProp(asset.id, 'color', '#ffffff')} className={`w-5 h-5 rounded-md border bg-white ${asset.color === '#ffffff' ? 'border-[#0056B3]/30' : 'border-transparent'}`} />
+                            <button onClick={() => updateAssetProp(asset.id, 'color', '#333333')} className={`w-5 h-5 rounded-md border bg-zinc-800 ${asset.color === '#333333' ? 'border-[#0056B3]/30' : 'border-transparent'}`} />
                           </div>
                         </div>
                       )}

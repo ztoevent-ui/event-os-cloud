@@ -40,10 +40,10 @@ export default function TimelinesPage({ params }: { params: Promise<{ id: string
         hover: 'group-hover:text-pink-400',
         progress: 'from-pink-600 to-pink-400'
     } : {
-        dot: 'border-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]',
-        border: 'border-amber-500/30',
-        hover: 'group-hover:text-amber-400',
-        progress: 'from-amber-600 to-amber-400'
+        dot: 'border-[#0056B3]/30 shadow-[0_0_10px_rgba(245,158,11,0.5)]',
+        border: 'border-[#0056B3]/30',
+        hover: 'group-hover:text-[#0056B3]',
+        progress: 'from-[#0056B3] to-blue-600'
     };
 
     return (

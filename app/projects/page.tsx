@@ -125,8 +125,8 @@ export default function ProjectsPage() {
                                             <i className={`fa-regular ${project.type === 'wedding' || project.type === 'wedding_fair' ? 'fa-heart' : project.type === 'corporate' ? 'fa-building' : 'fa-calendar-check'}`}></i>
                                         </div>
                                         
-                                        <div className="flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 group-hover:border-[#0056B3]/40 group-hover:text-white transition-all">
-                                            <span className={`w-1.5 h-1.5 rounded-full ${project.status === 'completed' ? 'bg-zinc-600' : 'bg-[#0056B3] animate-pulse shadow-[0_0_5px_#0056B3]'}`}></span>
+                                        <div className="flex items-center gap-2 px-3 py-1.5 bg-[#0056B3]/10 border border-[#0056B3]/30 rounded-full text-[9px] font-black uppercase tracking-[0.2em] text-[#6BB8FF] group-hover:border-[#0056B3]/60 group-hover:bg-[#0056B3]/20 group-hover:text-white transition-all">
+                                            <span className={`w-1.5 h-1.5 rounded-full ${project.status === 'completed' ? 'bg-zinc-600' : 'bg-[#0056B3] animate-pulse shadow-[0_0_8px_#0056B3]'}`}></span>
                                             {project.status || 'PLANNING'}
                                         </div>
                                     </div>

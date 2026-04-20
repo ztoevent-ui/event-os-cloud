@@ -39,13 +39,13 @@ export default function GuestListPage() {
         accentText: 'text-pink-500',
         accentBorder: 'border-pink-500/20'
     } : {
-        primary: 'text-amber-500',
-        bg: 'bg-amber-500',
-        hover: 'hover:bg-amber-400',
+        primary: 'text-[#0056B3]',
+        bg: 'bg-[#0056B3]',
+        hover: 'hover:bg-[#0056B3]',
         border: 'border-white/10',
-        accentBg: 'bg-amber-500/10',
-        accentText: 'text-amber-500',
-        accentBorder: 'border-amber-500/20'
+        accentBg: 'bg-[#0056B3]/10',
+        accentText: 'text-[#0056B3]',
+        accentBorder: 'border-[#0056B3]/30'
     };
 
     const fetchAttendees = async () => {

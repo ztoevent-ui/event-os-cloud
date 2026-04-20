@@ -48,17 +48,17 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
     hoverBorder900_50: 'hover:border-pink-900/50',
     text80: 'text-pink-500/80'
   } : {
-    text: 'text-amber-500',
-    bg: 'bg-amber-500',
-    border: 'border-amber-400',
-    text400: 'text-amber-400',
-    bg20: 'bg-amber-500/20',
-    border30: 'border-amber-500/30',
+    text: 'text-[#0056B3]',
+    bg: 'bg-[#0056B3]',
+    border: 'border-[#0056B3]/30',
+    text400: 'text-[#0056B3]',
+    bg20: 'bg-[#0056B3]/20',
+    border30: 'border-[#0056B3]/30',
     shadow: 'shadow-[0_0_15px_rgba(245,158,11,0.8)]',
-    border900_30: 'border-amber-900/30',
-    border900_20: 'border-amber-900/20',
-    hoverBorder900_50: 'hover:border-amber-900/50',
-    text80: 'text-amber-500/80'
+    border900_30: 'border-[#0056B3]/30',
+    border900_20: 'border-[#0056B3]/30',
+    hoverBorder900_50: 'hover:border-[#0056B3]/30',
+    text80: 'text-[#0056B3]/80'
   };
 
   const fetchSchedule = async () => {
@@ -311,7 +311,7 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
           nav, button, .print\\:hidden { display: none !important; }
           body { background: white !important; color: black !important; padding: 0 !important; }
           .bg-zinc-950\\/80, .bg-zinc-900\\/60, .bg-black\\/40 { background: transparent !important; color: black !important; }
-          .border-amber-900\\/30, .border-amber-900\\/20, .border-zinc-800\\/80, .border-zinc-800 { border-color: #eee !important; }
+          .border-[#0056B3]/30\\/30, .border-[#0056B3]/30\\/20, .border-zinc-800\\/80, .border-zinc-800 { border-color: #eee !important; }
           .border-pink-900\\/30, .border-pink-900\\/20 { border-color: #eee !important; }
           .text-zinc-500, .text-zinc-600 { color: #666 !important; }
           .text-white, .text-zinc-100, .text-zinc-200 { color: black !important; }

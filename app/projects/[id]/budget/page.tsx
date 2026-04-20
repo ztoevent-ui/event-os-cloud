@@ -43,9 +43,9 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
         primary: 'text-pink-500',
         hover: 'hover:text-pink-400'
     } : {
-        border: 'border-amber-500/30',
-        primary: 'text-amber-500',
-        hover: 'hover:text-amber-400'
+        border: 'border-[#0056B3]/30',
+        primary: 'text-[#0056B3]',
+        hover: 'hover:text-[#0056B3]'
     };
 
     const expenses = budgetItems.filter(item => item.type === 'expense');

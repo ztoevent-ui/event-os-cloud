@@ -45,15 +45,15 @@ export default function TicketManagerPage() {
         ringClass: 'focus:ring-pink-500',
         shadow: 'shadow-pink-500/20'
     } : {
-        primary: 'text-amber-500',
-        bg: 'bg-amber-500',
-        hoverBg: 'hover:bg-amber-600',
+        primary: 'text-[#0056B3]',
+        bg: 'bg-[#0056B3]',
+        hoverBg: 'hover:bg-[#0056B3]',
         border: 'border-white/10',
-        accentBg: 'bg-amber-500/10',
-        accentText: 'text-amber-500',
-        accentBorder: 'border-amber-500/20',
-        ringClass: 'focus:ring-amber-500',
-        shadow: 'shadow-amber-500/20'
+        accentBg: 'bg-[#0056B3]/10',
+        accentText: 'text-[#0056B3]',
+        accentBorder: 'border-[#0056B3]/30',
+        ringClass: 'focus:ring-[#0056B3]',
+        shadow: 'shadow-blue-900/20'
     };
 
     const fetchTickets = async () => {

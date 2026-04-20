@@ -41,10 +41,10 @@ export default function TasksPage({ params }: { params: Promise<{ id: string }> 
         hover: 'hover:bg-pink-400',
         border: 'border-pink-500/30'
     } : {
-        primary: 'text-amber-500',
-        bg: 'bg-amber-500',
-        hover: 'hover:bg-amber-400',
-        border: 'border-amber-500/30'
+        primary: 'text-[#0056B3]',
+        bg: 'bg-[#0056B3]',
+        hover: 'hover:bg-[#0056B3]',
+        border: 'border-[#0056B3]/30'
     };
 
     return (

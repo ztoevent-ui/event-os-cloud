@@ -3,42 +3,42 @@
     "id": "vis-p3-led",
     "name": "P3 Indoor High-Refresh LED Wall",
     "category": "Visual",
-    "image_path": "/assets/images/equipment/visual/p3-led.jpg",
+    "image_path": "https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=2674&auto=format&fit=crop",
     "specifications": "Pitch: 3mm | Refresh Rate: 3840Hz | Brightness: 1200nits | Seamless Cabinet Assembly"
   },
   {
     "id": "vis-p4-outdoor",
     "name": "P4 Outdoor Waterproof LED Screen",
     "category": "Visual",
-    "image_path": "/assets/images/equipment/visual/p4-led-outdoor.jpg",
+    "image_path": "https://upload.wikimedia.org/wikipedia/commons/4/4e/LED_Screen_at_a_concert.jpg",
     "specifications": "Pitch: 4mm | IP65 Rating | Brightness: 5500nits | Perfect for Day Events"
   },
   {
     "id": "aud-line-array",
     "name": "Dual 10\" Active Line Array System",
     "category": "Audio",
-    "image_path": "/assets/images/equipment/audio/line-array.jpg",
+    "image_path": "https://images.unsplash.com/photo-1516280440502-a27ddc5ddba0?q=80&w=2670&auto=format&fit=crop",
     "specifications": "1200W RMS per unit | DSP Integrated | 120° Horizontal Coverage | Concert-Grade"
   },
   {
     "id": "aud-digital-mixer",
     "name": "32-Channel Digital Mixing Console",
     "category": "Audio",
-    "image_path": "/assets/images/equipment/audio/digital-mixer.jpg",
+    "image_path": "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?q=80&w=2670&auto=format&fit=crop",
     "specifications": "32 Mic Preamps | 16 Mix Buses | Motorized Faders | Multi-track Recording Interface"
   },
   {
     "id": "lgt-moving-head",
     "name": "380W Beam Moving Head Light",
     "category": "Lighting",
-    "image_path": "/assets/images/equipment/lighting/moving-head.jpg",
+    "image_path": "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=2670&auto=format&fit=crop",
     "specifications": "Lamp: 380W | Color Wheel: 14 colors | Gobo Wheel: 17 gobos | 8-Facet Prism"
   },
   {
     "id": "lgt-led-par",
     "name": "54x3W RGBW LED Wash PAR",
     "category": "Lighting",
-    "image_path": "/assets/images/equipment/lighting/led-par.jpg",
+    "image_path": "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?q=80&w=2670&auto=format&fit=crop",
     "specifications": "54x3W LEDs | Seamless Color Mixing | Strobe & Dimming | DMX512 Control"
   }
 ]

@@ -33,7 +33,7 @@ const Modal = ({ isOpen, onClose, title, children }: { isOpen: boolean, onClose:
 
 export function AddTaskButton({ projectId, isWedding }: { projectId: string; isWedding?: boolean }) {
     const [isOpen, setIsOpen] = useState(false);
-    const colorClass = isWedding ? 'bg-pink-500 hover:bg-pink-400 shadow-pink-500/20' : 'bg-amber-500 hover:bg-amber-400 shadow-amber-500/20';
+    const colorClass = isWedding ? 'bg-pink-500 hover:bg-pink-400 shadow-pink-500/20' : 'bg-[#0056B3] hover:bg-[#0056B3] shadow-blue-900/20';
     return (
         <>
             <button onClick={() => setIsOpen(true)} className={`px-6 py-2.5 ${colorClass} text-black font-bold rounded-full transition-all flex items-center gap-2 transform hover:scale-105 shadow-lg`}>
@@ -52,7 +52,7 @@ export function TaskCard({ task, projectId, isWedding }: { task: any, projectId:
 
     // Dynamic styles
     const accentColor = isWedding ? 'pink-500' : 'amber-500';
-    const borderHover = isWedding ? 'hover:border-pink-500/50' : 'hover:border-amber-500/50';
+    const borderHover = isWedding ? 'hover:border-pink-500/50' : 'hover:border-[#0056B3]/30';
     const priorityColor = task.priority === 'critical' ? 'bg-red-500' : task.priority === 'high' ? `bg-${accentColor}` : task.priority === 'medium' ? 'bg-blue-500' : 'bg-zinc-600';
     const accessBadge = task.access_level === 'admin' ? <span className="text-[10px] uppercase font-bold tracking-wider text-red-400 bg-red-900/20 px-1.5 py-0.5 rounded">Admin Only</span> : null;
 
@@ -65,7 +65,7 @@ export function TaskCard({ task, projectId, isWedding }: { task: any, projectId:
                         {accessBadge || <span className="text-zinc-500 text-[10px]">TASK-{task.id.slice(0, 4)}</span>}
                         {task.priority === 'critical' && <i className="fa-solid fa-fire text-red-500 animate-pulse text-xs" title="Critical"></i>}
                     </div>
-                    <h4 className={`font-medium text-zinc-100 mb-2 ${isWedding ? 'group-hover:text-pink-400' : 'group-hover:text-amber-400'} transition-colors leading-snug break-words`}>
+                    <h4 className={`font-medium text-zinc-100 mb-2 ${isWedding ? 'group-hover:text-pink-400' : 'group-hover:text-[#0056B3]'} transition-colors leading-snug break-words`}>
                         {task.title}
                     </h4>
                     {task.description && (
@@ -78,7 +78,7 @@ export function TaskCard({ task, projectId, isWedding }: { task: any, projectId:
                             <i className="fa-regular fa-calendar text-zinc-500"></i>
                             {task.due_date ? new Date(task.due_date).toLocaleDateString() : 'No date'}
                         </div>
-                        <i className={`fa-solid fa-pen-to-square opacity-0 group-hover:opacity-100 transition-opacity ${isWedding ? 'text-pink-500' : 'text-amber-500'}`}></i>
+                        <i className={`fa-solid fa-pen-to-square opacity-0 group-hover:opacity-100 transition-opacity ${isWedding ? 'text-pink-500' : 'text-[#0056B3]'}`}></i>
                     </div>
                 </div>
             </div>
@@ -112,8 +112,8 @@ export function TaskCard({ task, projectId, isWedding }: { task: any, projectId:
 function TaskForm({ task, projectId, onClose, isWedding }: { task?: any, projectId: string, onClose: () => void, isWedding?: boolean }) {
     const isEdit = !!task;
     const [isLoading, setIsLoading] = useState(false);
-    const focusClass = isWedding ? 'focus:border-pink-500' : 'focus:border-amber-500';
-    const btnClass = isWedding ? 'bg-pink-500 hover:bg-pink-400 shadow-pink-500/20' : 'bg-amber-500 hover:bg-amber-400 shadow-amber-500/20';
+    const focusClass = isWedding ? 'focus:border-pink-500' : 'focus:border-[#0056B3]/30';
+    const btnClass = isWedding ? 'bg-pink-500 hover:bg-pink-400 shadow-pink-500/20' : 'bg-[#0056B3] hover:bg-[#0056B3] shadow-blue-900/20';
 
     return (
         <form action={async (formData) => {
@@ -173,8 +173,8 @@ function TaskForm({ task, projectId, onClose, isWedding }: { task?: any, project
 
 export function AddTimelineButton({ projectId, isWedding }: { projectId: string; isWedding?: boolean }) {
     const [isOpen, setIsOpen] = useState(false);
-    const colorClass = isWedding ? 'bg-pink-500 hover:bg-pink-400 shadow-pink-500/20' : 'bg-amber-500 hover:bg-amber-400 shadow-amber-500/20';
-    const focusClass = isWedding ? 'focus:border-pink-500' : 'focus:border-amber-500';
+    const colorClass = isWedding ? 'bg-pink-500 hover:bg-pink-400 shadow-pink-500/20' : 'bg-[#0056B3] hover:bg-[#0056B3] shadow-blue-900/20';
+    const focusClass = isWedding ? 'focus:border-pink-500' : 'focus:border-[#0056B3]/30';
 
     return (
         <>
@@ -224,8 +224,8 @@ export function DeleteTimelineButton({ id, projectId }: { id: string, projectId:
 
 export function AddBudgetButton({ projectId, isWedding }: { projectId: string; isWedding?: boolean }) {
     const [isOpen, setIsOpen] = useState(false);
-    const colorClass = isWedding ? 'bg-pink-500 hover:bg-pink-400 shadow-pink-500/20' : 'bg-amber-500 hover:bg-amber-400 shadow-amber-500/20';
-    const focusClass = isWedding ? 'focus:border-pink-500' : 'focus:border-amber-500';
+    const colorClass = isWedding ? 'bg-pink-500 hover:bg-pink-400 shadow-pink-500/20' : 'bg-[#0056B3] hover:bg-[#0056B3] shadow-blue-900/20';
+    const focusClass = isWedding ? 'focus:border-pink-500' : 'focus:border-[#0056B3]/30';
 
     return (
         <>
@@ -319,7 +319,7 @@ export function CopyBudgetButton({ projectId }: { projectId: string }) {
                             placeholder="Search projects..." 
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="w-full bg-zinc-800 border border-zinc-700 rounded-xl py-2 pl-10 pr-4 text-white focus:outline-none focus:border-amber-500 transition-colors"
+                            className="w-full bg-zinc-800 border border-zinc-700 rounded-xl py-2 pl-10 pr-4 text-white focus:outline-none focus:border-[#0056B3]/30 transition-colors"
                         />
                     </div>
                     <div className="max-h-60 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
@@ -348,9 +348,9 @@ export function CopyBudgetButton({ projectId }: { projectId: string }) {
                                         }
                                     }}
                                     disabled={isCopying}
-                                    className="w-full text-left p-4 rounded-xl bg-zinc-800/50 border border-zinc-700/50 hover:bg-zinc-800 hover:border-amber-500/50 transition-all group"
+                                    className="w-full text-left p-4 rounded-xl bg-zinc-800/50 border border-zinc-700/50 hover:bg-zinc-800 hover:border-[#0056B3]/30 transition-all group"
                                 >
-                                    <div className="font-bold text-zinc-100 group-hover:text-amber-400 transition-colors">{project.name}</div>
+                                    <div className="font-bold text-zinc-100 group-hover:text-[#0056B3] transition-colors">{project.name}</div>
                                     <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">Project ID: {project.id.slice(0, 8)}</div>
                                 </button>
                             ))
@@ -379,8 +379,8 @@ export function DeleteBudgetButton({ id, projectId }: { id: string, projectId: s
 
 export function AddVendorButton({ projectId, isWedding }: { projectId: string; isWedding?: boolean }) {
     const [isOpen, setIsOpen] = useState(false);
-    const colorClass = isWedding ? 'bg-pink-500 hover:bg-pink-400 shadow-pink-500/20' : 'bg-amber-500 hover:bg-amber-400 shadow-amber-500/20';
-    const focusClass = isWedding ? 'focus:border-pink-500' : 'focus:border-amber-500';
+    const colorClass = isWedding ? 'bg-pink-500 hover:bg-pink-400 shadow-pink-500/20' : 'bg-[#0056B3] hover:bg-[#0056B3] shadow-blue-900/20';
+    const focusClass = isWedding ? 'focus:border-pink-500' : 'focus:border-[#0056B3]/30';
 
     return (
         <>
@@ -527,7 +527,7 @@ export function CopyProgramButton({ projectId }: { projectId: string }) {
                                     <input 
                                         type="text" 
                                         placeholder="Search projects..."
-                                        className="w-full bg-black border border-white/10 rounded-2xl pl-12 pr-4 py-3 text-sm text-white focus:outline-none focus:border-amber-500 transition-all font-medium"
+                                        className="w-full bg-black border border-white/10 rounded-2xl pl-12 pr-4 py-3 text-sm text-white focus:outline-none focus:border-[#0056B3]/30 transition-all font-medium"
                                         value={search}
                                         onChange={(e) => setSearch(e.target.value)}
                                         autoFocus
@@ -538,7 +538,7 @@ export function CopyProgramButton({ projectId }: { projectId: string }) {
                             <div className="max-h-[400px] overflow-y-auto p-4 space-y-2 custom-scrollbar">
                                 {isLoading ? (
                                     <div className="py-20 text-center text-zinc-500 font-bold animate-pulse uppercase tracking-widest text-xs flex flex-col items-center gap-3">
-                                        <i className="fa-solid fa-circle-notch fa-spin text-xl text-amber-500"></i>
+                                        <i className="fa-solid fa-circle-notch fa-spin text-xl text-[#0056B3]"></i>
                                         Scanning projects...
                                     </div>
                                 ) : filteredProjects.length === 0 ? (
@@ -565,7 +565,7 @@ export function CopyProgramButton({ projectId }: { projectId: string }) {
                                                 }
                                             }}
                                             disabled={isCopying}
-                                            className="w-full group flex items-center justify-between p-4 bg-white/5 hover:bg-amber-500 rounded-2xl transition-all border border-transparent hover:border-amber-400"
+                                            className="w-full group flex items-center justify-between p-4 bg-white/5 hover:bg-[#0056B3] rounded-2xl transition-all border border-transparent hover:border-[#0056B3]/30"
                                         >
                                             <div className="text-left flex-1 min-w-0">
                                                 <div className="text-sm font-black text-white group-hover:text-black uppercase italic tracking-tight truncate">{project.name}</div>

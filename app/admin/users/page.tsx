@@ -31,7 +31,7 @@ function getAccessStatus(p: Profile): 'permanent' | 'active' | 'pending' | 'expi
 const STATUS_STYLES = {
     permanent: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
     active:    'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-    pending:   'bg-amber-500/10 text-amber-400 border-amber-500/20',
+    pending:   'bg-[#0056B3]/10 text-[#0056B3] border-[#0056B3]/30',
     expired:   'bg-red-500/10 text-red-400 border-red-500/20',
 };
 
@@ -204,7 +204,7 @@ export default function AdminUsersPage() {
                 {/* Header */}
                 <div className="flex items-start justify-between mb-10">
                     <div>
-                        <div className="text-amber-500 text-xs font-black tracking-[0.2em] uppercase mb-1">Admin Panel</div>
+                        <div className="text-[#0056B3] text-xs font-black tracking-[0.2em] uppercase mb-1">Admin Panel</div>
                         <h1 className="text-3xl font-black tracking-tight">User Management</h1>
                         <p className="text-white/30 text-sm mt-1">Manage permanent staff & temporary event users</p>
                     </div>
@@ -217,7 +217,7 @@ export default function AdminUsersPage() {
                         </button>
                         <button
                             onClick={openAddModal}
-                            className="px-5 py-2 bg-amber-500 hover:bg-amber-400 text-black font-black text-sm uppercase tracking-widest rounded-xl transition-all hover:scale-[1.02] shadow-lg shadow-amber-500/20 flex items-center gap-2"
+                            className="px-5 py-2 bg-[#0056B3] hover:bg-[#0056B3] text-black font-black text-sm uppercase tracking-widest rounded-xl transition-all hover:scale-[1.02] shadow-lg shadow-blue-900/20 flex items-center gap-2"
                         >
                             <i className="fa-solid fa-user-plus" /> Add User
                         </button>
@@ -265,7 +265,7 @@ export default function AdminUsersPage() {
                                                     {profile.avatar_url ? (
                                                         <img src={profile.avatar_url} alt="Avatar" className="w-9 h-9 rounded-xl object-cover shrink-0 border border-white/10" />
                                                     ) : (
-                                                        <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 font-black text-sm shrink-0">
+                                                        <div className="w-9 h-9 rounded-xl bg-[#0056B3]/10 border border-[#0056B3]/30 flex items-center justify-center text-[#0056B3] font-black text-sm shrink-0">
                                                             {(profile.display_name || profile.full_name || profile.email || '?')[0].toUpperCase()}
                                                         </div>
                                                     )}
@@ -370,7 +370,7 @@ export default function AdminUsersPage() {
                                     value={form.display_name}
                                     onChange={e => setForm({ ...form, display_name: e.target.value })}
                                     placeholder="e.g. Ahmad Faiz"
-                                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-amber-500/60 placeholder-white/20 transition-colors"
+                                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-[#0056B3]/30 placeholder-white/20 transition-colors"
                                 />
                             </div>
 
@@ -384,7 +384,7 @@ export default function AdminUsersPage() {
                                             value={form.email}
                                             onChange={e => setForm({ ...form, email: e.target.value })}
                                             placeholder="user@email.com"
-                                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-amber-500/60 placeholder-white/20 transition-colors"
+                                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-[#0056B3]/30 placeholder-white/20 transition-colors"
                                         />
                                     </div>
                                     <div>
@@ -394,7 +394,7 @@ export default function AdminUsersPage() {
                                             value={form.password}
                                             onChange={e => setForm({ ...form, password: e.target.value })}
                                             placeholder="Min. 6 chars"
-                                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-amber-500/60 placeholder-white/20 transition-colors"
+                                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-[#0056B3]/30 placeholder-white/20 transition-colors"
                                         />
                                     </div>
                                 </div>
@@ -406,7 +406,7 @@ export default function AdminUsersPage() {
                                 <select
                                     value={form.role}
                                     onChange={e => setForm({ ...form, role: e.target.value })}
-                                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-amber-500/60 transition-colors appearance-none"
+                                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-[#0056B3]/30 transition-colors appearance-none"
                                 >
                                     <option value="REFEREE">Referee / Staff</option>
                                     <option value="PROJECT_MANAGER">Project Manager</option>
@@ -426,7 +426,7 @@ export default function AdminUsersPage() {
                                             onClick={() => setForm({ ...form, user_type: type })}
                                             className={`py-3 rounded-xl border font-black text-xs uppercase tracking-widest transition-all ${
                                                 form.user_type === type
-                                                    ? 'bg-amber-500 text-black border-amber-500'
+                                                    ? 'bg-[#0056B3] text-black border-[#0056B3]/30'
                                                     : 'bg-white/5 text-white/40 border-white/10 hover:border-white/20'
                                             }`}
                                         >
@@ -439,8 +439,8 @@ export default function AdminUsersPage() {
 
                             {/* Temporary: date window */}
                             {form.user_type === 'temporary' && (
-                                <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-4 space-y-3">
-                                    <div className="text-[10px] font-black tracking-widest uppercase text-amber-500 mb-1">Access Window</div>
+                                <div className="bg-[#0056B3]/5 border border-[#0056B3]/30 rounded-xl p-4 space-y-3">
+                                    <div className="text-[10px] font-black tracking-widest uppercase text-[#0056B3] mb-1">Access Window</div>
                                     <div className="grid grid-cols-2 gap-3">
                                         <div>
                                             <label className="block text-[9px] font-black tracking-widest uppercase text-white/30 mb-1.5">Active From</label>
@@ -448,7 +448,7 @@ export default function AdminUsersPage() {
                                                 type="date"
                                                 value={form.active_from}
                                                 onChange={e => setForm({ ...form, active_from: e.target.value })}
-                                                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-xs focus:outline-none focus:border-amber-500/60 transition-colors"
+                                                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-xs focus:outline-none focus:border-[#0056B3]/30 transition-colors"
                                             />
                                         </div>
                                         <div>
@@ -457,12 +457,12 @@ export default function AdminUsersPage() {
                                                 type="date"
                                                 value={form.active_until}
                                                 onChange={e => setForm({ ...form, active_until: e.target.value })}
-                                                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-xs focus:outline-none focus:border-amber-500/60 transition-colors"
+                                                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-xs focus:outline-none focus:border-[#0056B3]/30 transition-colors"
                                             />
                                         </div>
                                     </div>
                                     <p className="text-white/30 text-[10px]">
-                                        e.g. Set <strong className="text-amber-500">From</strong> to 2 weeks before event, <strong className="text-amber-500">Until</strong> to 2 days after. Login will be blocked outside this window.
+                                        e.g. Set <strong className="text-[#0056B3]">From</strong> to 2 weeks before event, <strong className="text-[#0056B3]">Until</strong> to 2 days after. Login will be blocked outside this window.
                                     </p>
                                 </div>
                             )}
@@ -477,7 +477,7 @@ export default function AdminUsersPage() {
                             </button>
                             <button
                                 onClick={handleSave}
-                                className="flex-1 py-3 bg-amber-500 hover:bg-amber-400 text-black font-black text-sm uppercase tracking-widest rounded-xl transition-all hover:scale-[1.02] shadow-lg shadow-amber-500/20"
+                                className="flex-1 py-3 bg-[#0056B3] hover:bg-[#0056B3] text-black font-black text-sm uppercase tracking-widest rounded-xl transition-all hover:scale-[1.02] shadow-lg shadow-blue-900/20"
                             >
                                 {editTarget ? 'Save Changes' : 'Create User'}
                             </button>
