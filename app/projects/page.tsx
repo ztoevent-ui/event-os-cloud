@@ -72,99 +72,99 @@ export default function ProjectsPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 p-8 font-sans">
+        <div className="min-h-screen bg-[#050505] p-6 lg:p-10 font-sans text-white">
             {/* Header */}
-            <header className="max-w-7xl mx-auto mb-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <header className="max-w-[1400px] mx-auto mb-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-[#222] pb-6">
                 <div>
-                    <h1 className="text-3xl font-black text-gray-900 tracking-tight">Event Manager</h1>
-                    <p className="text-gray-500 mt-1">Oversee and coordinate all your active events.</p>
+                    <h1 className="text-2xl lg:text-3xl font-black text-white tracking-tight uppercase">Event Manager</h1>
+                    <p className="text-zinc-500 mt-1 text-sm tracking-wide">Oversee and coordinate active deployments.</p>
                 </div>
-                <div className="flex gap-3">
-                    <Link href="/" className="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 bg-white border border-gray-200 shadow-sm hover:bg-gray-50 transition">
-                        <i className="fa-solid fa-arrow-left mr-2"></i> Back Home
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                    <Link href="/" className="flex-1 md:flex-none text-center px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest text-zinc-400 border border-[#222] hover:bg-white/5 hover:text-white hover:border-zinc-700 transition-all">
+                        <i className="fa-solid fa-arrow-left mr-2"></i> Console
                     </Link>
                     <button
                         onClick={() => setShowModal(true)}
-                        className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-gray-900 shadow-lg shadow-gray-200 hover:bg-gray-800 transition transform hover:-translate-y-0.5"
+                        className="flex-1 md:flex-none text-center px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest text-[#050505] bg-[#0056B3] hover:bg-[#003d82] shadow-[0_0_15px_rgba(0,86,179,0.3)] hover:shadow-[0_0_25px_rgba(0,86,179,0.6)] hover:-translate-y-0.5 transition-all"
                     >
-                        <i className="fa-solid fa-plus mr-2"></i> Create Event
+                        <i className="fa-solid fa-plus mr-2"></i> Deploy Event
                     </button>
                 </div>
             </header>
 
             {/* Content */}
-            <div className="max-w-7xl mx-auto">
+            <div className="max-w-[1400px] mx-auto">
                 {loading ? (
-                    <div className="flex flex-col items-center justify-center py-20 opacity-50">
-                        <i className="fa-solid fa-circle-notch animate-spin text-3xl text-gray-400 mb-4"></i>
-                        <p className="text-gray-500 font-bold">Loading your events...</p>
+                    <div className="flex flex-col items-center justify-center py-32 opacity-50">
+                        <div className="w-12 h-12 border-2 border-[#0056B3]/30 border-t-[#0056B3] rounded-full animate-spin mb-4"></div>
+                        <p className="text-[#0056B3] font-black uppercase tracking-[0.2em] text-xs">Synchronizing Nodes...</p>
                     </div>
                 ) : projects.length === 0 ? (
-                    <div className="bg-white rounded-2xl border-2 border-dashed border-gray-200 p-12 text-center flex flex-col items-center">
-                        <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-300 text-2xl mb-4">
-                            <i className="fa-regular fa-folder-open"></i>
+                    <div className="bg-[#0a0a0a] rounded-3xl border border-dashed border-[#222] p-16 text-center flex flex-col items-center max-w-2xl mx-auto mt-10">
+                        <div className="w-16 h-16 bg-[#0056B3]/10 border border-[#0056B3]/20 rounded-2xl flex items-center justify-center text-[#0056B3] text-2xl mb-6">
+                            <i className="fa-solid fa-layer-group"></i>
                         </div>
-                        <h3 className="text-lg font-bold text-gray-900">No events found</h3>
-                        <p className="text-gray-500 mb-6 max-w-sm">Get started by creating your first event project to track tasks, vendors, and budget.</p>
+                        <h3 className="text-xl font-bold text-white mb-2 uppercase tracking-wide">No Active Deployments</h3>
+                        <p className="text-zinc-500 mb-8 max-w-sm text-sm">Initialize your first event project to orchestrate tasks, coordinate vendors, and deploy operations.</p>
                         <button
                             onClick={() => setShowModal(true)}
-                            className="px-6 py-3 rounded-xl font-bold text-white bg-indigo-600 shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition"
+                            className="px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest text-[#050505] bg-[#0056B3] hover:bg-[#003d82] shadow-[0_0_15px_rgba(0,86,179,0.4)] transition-all"
                         >
-                            Create First Event
+                            <i className="fa-solid fa-bolt mr-2"></i> Initialize Project
                         </button>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8 auto-rows-fr">
                         {projects.map((project) => (
                             <Link key={project.id} href={`/projects/${project.id}`} className="group block h-full">
-                                <article className="bg-white h-full rounded-2xl p-6 shadow-sm border border-gray-100 transition-all hover:shadow-xl hover:border-indigo-100 hover:-translate-y-1 relative overflow-hidden">
-                                    <div className="absolute top-0 right-0 p-6 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <i className="fa-solid fa-arrow-right text-gray-300 group-hover:text-indigo-500 -rotate-45 group-hover:rotate-0 transition-transform duration-300"></i>
-                                    </div>
-
+                                <article className="bg-[#0a0a0a]/60 backdrop-blur-xl h-full rounded-3xl p-6 border border-[#222] transition-all duration-300 hover:border-[#0056B3]/80 hover:shadow-[0_0_30px_rgba(0,86,179,0.15)] hover:bg-[#0a0a0a] hover:-translate-y-1.5 relative flex flex-col">
+                                    
+                                    {/* Top Row: Icon & Status */}
                                     <div className="flex justify-between items-start mb-6">
-                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl shadow-inner ${project.type === 'wedding' || project.type === 'wedding_fair' ? 'bg-pink-50 text-pink-500' :
-                                                project.type === 'corporate' ? 'bg-blue-50 text-blue-500' : 'bg-purple-50 text-purple-500'
-                                            }`}>
-                                            <i className={`fa-solid ${project.type === 'wedding' || project.type === 'wedding_fair' ? 'fa-heart' :
-                                                    project.type === 'corporate' ? 'fa-building' : 'fa-calendar-check'
-                                                }`}></i>
+                                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg border transition-all ${project.type === 'wedding' || project.type === 'wedding_fair' ? 'bg-[#ec4899]/10 text-[#ec4899] border-[#ec4899]/20 group-hover:bg-[#ec4899] group-hover:text-[#050505]' : project.type === 'corporate' ? 'bg-[#3b82f6]/10 text-[#3b82f6] border-[#3b82f6]/20 group-hover:bg-[#3b82f6] group-hover:text-[#050505]' : 'bg-[#10b981]/10 text-[#10b981] border-[#10b981]/20 group-hover:bg-[#10b981] group-hover:text-[#050505]'}`}>
+                                            <i className={`fa-regular ${project.type === 'wedding' || project.type === 'wedding_fair' ? 'fa-heart' : project.type === 'corporate' ? 'fa-building' : 'fa-calendar-check'}`}></i>
                                         </div>
-                                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${project.status === 'active' ? 'bg-green-100 text-green-700' :
-                                                project.status === 'completed' ? 'bg-gray-100 text-gray-600' : 'bg-amber-100 text-amber-700'
-                                            }`}>
-                                            {project.status || 'Planning'}
-                                        </span>
+                                        
+                                        <div className="flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] text-zinc-400 group-hover:border-[#0056B3]/40 group-hover:text-white transition-all">
+                                            <span className={`w-1.5 h-1.5 rounded-full ${project.status === 'completed' ? 'bg-zinc-600' : 'bg-[#0056B3] animate-pulse shadow-[0_0_5px_#0056B3]'}`}></span>
+                                            {project.status || 'PLANNING'}
+                                        </div>
                                     </div>
 
-                                    <h3 className="text-xl font-black text-gray-900 mb-2 leading-tight group-hover:text-indigo-600 transition-colors">
+                                    {/* Title */}
+                                    <h3 className="text-xl font-bold text-white mb-4 leading-snug group-hover:text-[#4da3ff] transition-colors line-clamp-2">
                                         {project.name}
                                     </h3>
 
-                                    <div className="space-y-3 mt-6">
-                                        <div className="flex items-center text-sm text-gray-500">
-                                            <i className="fa-regular fa-calendar w-6 text-center text-gray-300"></i>
-                                            <span>{project.start_date ? new Date(project.start_date).toLocaleDateString() : 'Date TBD'}</span>
+                                    {/* Meta info */}
+                                    <div className="space-y-2 mt-auto">
+                                        <div className="flex items-center text-xs font-mono text-zinc-500 group-hover:text-zinc-300 transition-colors">
+                                            <i className="fa-regular fa-clock w-5 text-zinc-600"></i>
+                                            {project.start_date ? new Date(project.start_date).toLocaleDateString('en-GB') : 'TBD'}
                                         </div>
                                         {project.venue && (
-                                            <div className="flex items-center text-sm text-gray-500">
-                                                <i className="fa-solid fa-location-dot w-6 text-center text-gray-300"></i>
-                                                <span>{project.venue}</span>
+                                            <div className="flex items-center text-xs font-mono text-zinc-500 group-hover:text-zinc-300 transition-colors truncate">
+                                                <i className="fa-solid fa-location-crosshairs w-5 text-zinc-600"></i>
+                                                <span className="truncate">{project.venue}</span>
                                             </div>
                                         )}
                                     </div>
 
-                                    <div className="mt-6 pt-4 border-t border-gray-50 flex items-center justify-between text-xs font-bold text-gray-400 uppercase tracking-wider">
-                                        <span>View Dashboard</span>
-                                        <div className="flex items-center gap-4">
-                                            <button
-                                                onClick={(e) => deleteProject(e, project.id, project.name)}
-                                                className="text-gray-300 hover:text-red-500 transition-colors p-1"
-                                                title="Delete project"
-                                            >
-                                                <i className="fa-solid fa-trash-can text-xs"></i>
-                                            </button>
-                                            <span className="group-hover:translate-x-1 transition-transform">Open <i className="fa-solid fa-chevron-right ml-1"></i></span>
+                                    {/* Action Bottom Row */}
+                                    <div className="mt-6 pt-5 border-t border-[#222] flex items-center justify-between">
+                                        <button
+                                            onClick={(e) => deleteProject(e, project.id, project.name)}
+                                            className="w-8 h-8 flex items-center justify-center rounded-full text-zinc-600 hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/30 border border-transparent transition-all"
+                                            title="Terminate Project"
+                                        >
+                                            <i className="fa-regular fa-trash-can text-xs"></i>
+                                        </button>
+                                        
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest group-hover:text-[#0056B3] transition-colors">Enter</span>
+                                            <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 text-white flex items-center justify-center group-hover:bg-[#0056B3] group-hover:border-[#0056B3] transition-all shadow-sm">
+                                                <i className="fa-solid fa-arrow-right -rotate-45 text-xs group-hover:rotate-0 transition-transform duration-300"></i>
+                                            </div>
                                         </div>
                                     </div>
                                 </article>
@@ -177,102 +177,98 @@ export default function ProjectsPage() {
             {/* Create Event Modal */}
             {showModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    {/* Backdrop */}
-                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowModal(false)}></div>
+                    <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowModal(false)}></div>
 
-                    {/* Modal */}
-                    <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg p-8 animate-[fadeIn_0.2s_ease-out]">
-                        <button onClick={() => setShowModal(false)} className="absolute top-5 right-5 text-gray-400 hover:text-gray-600 transition">
-                            <i className="fa-solid fa-xmark text-xl"></i>
+                    <div className="relative bg-[#0a0a0a] border border-[#222] rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.8)] w-full max-w-lg p-8 animate-[fadeIn_0.2s_ease-out]">
+                        <button onClick={() => setShowModal(false)} className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-zinc-400 border border-white/5 hover:text-white hover:border-[#222] transition-all">
+                            <i className="fa-solid fa-xmark text-sm"></i>
                         </button>
 
-                        <h2 className="text-2xl font-black text-gray-900 mb-1">Create New Event</h2>
-                        <p className="text-sm text-gray-500 mb-8">Fill in the basic details. You can always edit later.</p>
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className="w-2 h-2 bg-[#0056B3] rounded-full animate-pulse shadow-[0_0_8px_#0056B3]"></div>
+                            <h2 className="text-xl font-bold text-white uppercase tracking-wider">Initialize Project</h2>
+                        </div>
+                        <p className="text-xs font-mono text-zinc-500 mb-8 pb-4 border-b border-[#222]">Configure root parameters. Metadata can be altered post-deployment.</p>
 
                         <div className="space-y-5">
-                            {/* Event Name */}
                             <div>
-                                <label className="block text-xs font-black text-gray-500 uppercase tracking-wider mb-2">Event Name *</label>
+                                <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Project Classification *</label>
                                 <input
                                     type="text"
                                     value={formData.name}
                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    placeholder="e.g. Bintulu Gala Night 2026"
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition text-gray-900 font-medium"
+                                    placeholder="e.g. OPERATION NEBULA 2026"
+                                    className="w-full px-4 py-3 bg-black rounded-xl border border-[#222] focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] outline-none transition-all text-white font-mono text-sm placeholder:text-zinc-700"
                                     autoFocus
                                 />
                             </div>
 
-                            {/* Event Type */}
                             <div>
-                                <label className="block text-xs font-black text-gray-500 uppercase tracking-wider mb-2">Event Type</label>
+                                <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Protocol Type</label>
                                 <select
                                     value={formData.type}
                                     onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition text-gray-900 font-medium bg-white"
+                                    className="w-full px-4 py-3 bg-black rounded-xl border border-[#222] focus:border-[#0056B3] outline-none transition-all text-white font-mono text-sm appearance-none"
+                                    style={{ backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 1rem center', backgroundSize: '1em' }}
                                 >
-                                    <option value="corporate">Corporate Event</option>
-                                    <option value="wedding">Wedding Ceremony</option>
-                                    <option value="wedding_fair">Wedding Fair</option>
-                                    <option value="sports">Sports Tournament</option>
-                                    <option value="dinner">Annual Dinner</option>
-                                    <option value="exhibition">Exhibition</option>
-                                    <option value="other">Other</option>
+                                    <option value="corporate" className="bg-[#0a0a0a]">Corporate Node</option>
+                                    <option value="wedding" className="bg-[#0a0a0a]">Wedding Protocol</option>
+                                    <option value="wedding_fair" className="bg-[#0a0a0a]">Wedding Fair</option>
+                                    <option value="sports" className="bg-[#0a0a0a]">Sports Matrix</option>
+                                    <option value="dinner" className="bg-[#0a0a0a]">Gala Banquet</option>
+                                    <option value="other" className="bg-[#0a0a0a]">Uncategorized</option>
                                 </select>
                             </div>
 
-                            {/* Date Range */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-xs font-black text-gray-500 uppercase tracking-wider mb-2">Start Date</label>
+                                    <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">T=Zero (Start)</label>
                                     <input
                                         type="date"
                                         value={formData.start_date}
                                         onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition text-gray-900 font-medium"
+                                        className="w-full px-4 py-3 bg-black rounded-xl border border-[#222] focus:border-[#0056B3] outline-none transition-all text-white font-mono text-sm [color-scheme:dark]"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-black text-gray-500 uppercase tracking-wider mb-2">End Date</label>
+                                    <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">T=End (Completion)</label>
                                     <input
                                         type="date"
                                         value={formData.end_date}
                                         onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition text-gray-900 font-medium"
+                                        className="w-full px-4 py-3 bg-black rounded-xl border border-[#222] focus:border-[#0056B3] outline-none transition-all text-white font-mono text-sm [color-scheme:dark]"
                                     />
                                 </div>
                             </div>
 
-                            {/* Venue */}
                             <div>
-                                <label className="block text-xs font-black text-gray-500 uppercase tracking-wider mb-2">Venue</label>
+                                <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Sector / Venue</label>
                                 <input
                                     type="text"
                                     value={formData.venue}
                                     onChange={(e) => setFormData({ ...formData, venue: e.target.value })}
-                                    placeholder="e.g. Parkcity Everly Hotel, Bintulu"
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition text-gray-900 font-medium"
+                                    placeholder="e.g. Parkcity Sector-4"
+                                    className="w-full px-4 py-3 bg-black rounded-xl border border-[#222] focus:border-[#0056B3] outline-none transition-all text-white font-mono text-sm placeholder:text-zinc-700"
                                 />
                             </div>
                         </div>
 
-                        {/* Actions */}
-                        <div className="flex gap-3 mt-8">
+                        <div className="flex gap-4 mt-8">
                             <button
                                 onClick={() => setShowModal(false)}
-                                className="flex-1 px-5 py-3 rounded-xl text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition"
+                                className="flex-1 px-5 py-3 rounded-xl border border-[#222] text-xs font-black tracking-widest uppercase text-zinc-400 hover:bg-white/5 transition-all"
                             >
-                                Cancel
+                                Abort
                             </button>
                             <button
                                 onClick={createProject}
                                 disabled={creating}
-                                className="flex-1 px-5 py-3 rounded-xl text-sm font-bold text-white bg-gray-900 hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                                className="flex-1 px-5 py-3 rounded-xl text-xs font-black tracking-widest uppercase text-[#0a0a0a] bg-[#0056B3] shadow-[0_0_15px_rgba(0,86,179,0.3)] hover:shadow-[0_0_25px_rgba(0,86,179,0.6)] transition-all disabled:opacity-50 disabled:shadow-none"
                             >
                                 {creating ? (
-                                    <><i className="fa-solid fa-circle-notch animate-spin mr-2"></i> Creating...</>
+                                    <><i className="fa-solid fa-circle-notch animate-spin mr-2"></i> Initializing...</>
                                 ) : (
-                                    <><i className="fa-solid fa-plus mr-2"></i> Create Event</>
+                                    <><i className="fa-solid fa-bolt mr-2"></i> Deploy Data</>
                                 )}
                             </button>
                         </div>
@@ -282,3 +278,4 @@ export default function ProjectsPage() {
         </div>
     );
 }
+
