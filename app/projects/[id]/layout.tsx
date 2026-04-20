@@ -68,6 +68,9 @@ export default async function ProjectLayout({
                             <NavLink href={`/projects/${projectId}/budget`} theme={theme}>Budget</NavLink>
                             <NavLink href={`/projects/${projectId}/vendors`} theme={theme}>Vendors</NavLink>
                             <NavLink href={`/projects/${projectId}/venue-layout`} theme={theme}>Venue Layout</NavLink>
+                            <NavLink href={`/projects/${projectId}/stage-layout`} theme={theme}>
+                                <i className="fa-solid fa-cube mr-1 text-[10px]" />3D Layout
+                            </NavLink>
                             <NavLink href={`/projects/${projectId}/registration`} theme={theme}>Registration</NavLink>
                             {isTournament && (
                                 <NavLink href={`/projects/${projectId}/registration#tournament`} theme={theme}>

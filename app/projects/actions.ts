@@ -255,3 +255,70 @@ export async function copyProgram(formData: FormData) {
     revalidatePath(`/projects/${toProjectId}`);
     return { success: true, count: newItems.length };
 }
+
+// --- STAGE LAYOUT ---
+export async function saveStageLayout(
+    projectId: string,
+    sceneData: Record<string, unknown>,
+    equipmentItems: Record<string, unknown>[]
+) {
+    const { error } = await supabase
+        .from('stage_layouts')
+        .upsert(
+            { project_id: projectId, scene_data: sceneData, equipment_items: equipmentItems, updated_at: new Date().toISOString() },
+            { onConflict: 'project_id' }
+        );
+    if (error) {
+        console.error('Error saving stage layout:', error);
+        return { success: false, error: error.message };
+    }
+    revalidatePath(`/projects/${projectId}/stage-layout`);
+    return { success: true };
+}
+
+export async function captureStageScreenshot(projectId: string, dataUrl: string, caption: string) {
+    try {
+        // Convert data URL to blob
+        const base64 = dataUrl.split(',')[1];
+        const binaryStr = Buffer.from(base64, 'base64');
+        const timestamp = Date.now();
+        const fileName = `project-memoirs/${projectId}/${timestamp}.png`;
+
+        const { error: uploadError } = await supabase.storage
+            .from('event-assets')
+            .upload(fileName, binaryStr, {
+                contentType: 'image/png',
+                upsert: false,
+            });
+
+        if (uploadError) {
+            console.error('Storage upload error:', uploadError);
+            return { success: false, error: uploadError.message };
+        }
+
+        const { data: urlData } = supabase.storage
+            .from('event-assets')
+            .getPublicUrl(fileName);
+
+        const { error: insertError } = await supabase
+            .from('project_memoirs')
+            .insert({
+                project_id: projectId,
+                url: urlData.publicUrl,
+                caption: caption || 'Stage Layout Capture',
+                source: 'stage_layout'
+            });
+
+        if (insertError) {
+            console.error('Memoir insert error:', insertError);
+            return { success: false, error: insertError.message };
+        }
+
+        revalidatePath(`/projects/${projectId}/stage-layout`);
+        return { success: true, url: urlData.publicUrl };
+    } catch (err) {
+        console.error('Screenshot capture error:', err);
+        return { success: false, error: String(err) };
+    }
+}
+
