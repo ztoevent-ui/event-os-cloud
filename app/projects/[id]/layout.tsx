@@ -17,32 +17,22 @@ export default async function ProjectLayout({
     const isWedding = project?.type === 'wedding' || project?.type === 'wedding_fair';
     const isTournament = project?.type === 'sports' || project?.type === 'tournament';
     
-    // Theme configs
-    const theme = isWedding ? {
-        primary: 'text-pink-500',
-        border: 'border-pink-900/30',
-        bgPill: 'bg-pink-900/30',
-        textPill: 'text-pink-500',
-        accent: 'pink',
-        selection: 'selection:bg-pink-500',
-        navBorder: 'border-pink-900/30',
-        navLinkHover: 'hover:text-pink-400',
-        navLinkActive: 'bg-pink-500'
-    } : {
-        primary: 'text-amber-500',
-        border: 'border-amber-900/30',
-        bgPill: 'bg-amber-900/30',
-        textPill: 'text-amber-500',
-        accent: 'amber',
-        selection: 'selection:bg-amber-500',
-        navBorder: 'border-amber-900/30',
-        navLinkHover: 'hover:text-amber-400',
-        navLinkActive: 'bg-amber-500'
+    // Theme configs - Forced Global Aesthetic
+    const theme = {
+        primary: 'text-[#0056B3]',
+        border: 'border-[#0056B3]/30',
+        bgPill: 'bg-[#0056B3]/30',
+        textPill: 'text-[#0056B3]',
+        accent: 'blue',
+        selection: 'selection:bg-[#0056B3] selection:text-white',
+        navBorder: 'border-[#222]',
+        navLinkHover: 'hover:text-[#0056B3]',
+        navLinkActive: 'bg-[#0056B3]'
     };
 
     return (
         <PrintProvider>
-            <div className={`min-h-screen bg-black ${theme.primary} font-sans ${theme.selection} selection:text-black`}>
+            <div className={`min-h-screen bg-[#050505] text-white font-sans ${theme.selection}`}>
             {/* Navigation Bar */}
             <nav className={`print:hidden fixed top-0 w-full z-50 bg-black/90 backdrop-blur-md border-b ${theme.navBorder}`}>
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -54,7 +44,7 @@ export default async function ProjectLayout({
                                     alt="ZTO Logo"
                                     className="w-10 h-10 object-contain rounded-lg shadow-sm"
                                 />
-                                <span className={`font-serif text-xl font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r ${isWedding ? 'from-pink-200 via-pink-400 to-pink-200' : 'from-amber-200 via-amber-400 to-amber-200'}`}>
+                                <span className={`font-serif text-xl font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-white via-white/80 to-white/50`}>
                                     ZTO Event OS
                                 </span>
                             </Link>

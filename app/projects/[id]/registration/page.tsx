@@ -278,7 +278,7 @@ export default function RegistrationStudio() {
                         onClick={() => setActiveTab(tab.id as any)}
                         className={`pb-3 px-5 font-bold text-xs tracking-widest uppercase transition-all flex items-center gap-2 border-b-2 ${
                             activeTab === tab.id
-                                ? 'text-amber-500 border-amber-500'
+                                ? 'text-[#0056B3]500 border-[#0056B3]500'
                                 : 'text-zinc-500 hover:text-white border-transparent'
                         }`}
                     >
@@ -297,13 +297,13 @@ export default function RegistrationStudio() {
                    TAB 1: DESIGN & SETTINGS (original)
                 ════════════════════════════════════════════════════════ */
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div className="lg:col-span-2 space-y-6 bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-3xl shadow-xl">
+                    <div className="lg:col-span-2 space-y-6 bg-white/5 border border-white/10 backdrop-blur-xl p-6 md:p-8 rounded-3xl shadow-xl">
 
                         {/* Template */}
                         <div>
                             <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-2">Registration Template</label>
                             <select
-                                className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 appearance-none font-bold"
+                                className="w-full bg-[#0a0a0a]/50 border border-[#222] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)] appearance-none font-bold"
                                 value={settings.template_type}
                                 onChange={e => setSettings({ ...settings, template_type: e.target.value })}
                             >
@@ -336,11 +336,11 @@ export default function RegistrationStudio() {
                                     <label key={field.key} className="flex items-center gap-3 cursor-pointer group">
                                         <div
                                             onClick={() => setSettings({ ...settings, fields_config: { ...settings.fields_config, [field.key]: !settings.fields_config[field.key] } })}
-                                            className={`w-5 h-5 rounded flex items-center justify-center transition-all ${settings.fields_config[field.key] ? 'bg-amber-500 border-amber-500' : 'bg-zinc-900 border-zinc-700'} border shrink-0`}
+                                            className={`w-5 h-5 rounded flex items-center justify-center transition-all ${settings.fields_config[field.key] ? 'bg-[#0056B3]500 border-[#0056B3]500' : 'bg-zinc-900 border-zinc-700'} border shrink-0`}
                                         >
                                             {settings.fields_config[field.key] && <i className="fa-solid fa-check text-black text-[10px]" />}
                                         </div>
-                                        <span className={`text-xs transition-colors uppercase tracking-wider font-bold ${settings.fields_config[field.key] ? 'text-amber-500' : 'text-zinc-500 group-hover:text-zinc-400'}`}>{field.label}</span>
+                                        <span className={`text-xs transition-colors uppercase tracking-wider font-bold ${settings.fields_config[field.key] ? 'text-[#0056B3]500' : 'text-zinc-500 group-hover:text-zinc-400'}`}>{field.label}</span>
                                     </label>
                                 ))}
                             </div>
@@ -351,15 +351,15 @@ export default function RegistrationStudio() {
                                 <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
                                     <div className="bg-zinc-950 border border-white/5 p-6 rounded-2xl">
                                         <div className="flex items-center justify-between mb-4">
-                                            <label className="text-xs font-black tracking-widest uppercase text-amber-500">Medical Conditions List</label>
-                                            <button onClick={() => setSettings({ ...settings, medical_options: [...settings.medical_options, 'New Condition'] })} className="px-3 py-1.5 bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-black rounded-lg text-[9px] font-black uppercase tracking-widest transition-colors">
+                                            <label className="text-xs font-black tracking-widest uppercase text-[#0056B3]500">Medical Conditions List</label>
+                                            <button onClick={() => setSettings({ ...settings, medical_options: [...settings.medical_options, 'New Condition'] })} className="px-3 py-1.5 bg-[#0056B3]500/10 text-[#0056B3]500 hover:bg-[#0056B3]500 hover:text-black rounded-lg text-[9px] font-black uppercase tracking-widest transition-colors">
                                                 <i className="fa-solid fa-plus mr-2" />Add Option
                                             </button>
                                         </div>
                                         <div className="space-y-3">
                                             {settings.medical_options.map((opt: string, i: number) => (
                                                 <div key={i} className="flex items-center gap-3">
-                                                    <input value={opt} onChange={e => { const n = [...settings.medical_options]; n[i] = e.target.value; setSettings({ ...settings, medical_options: n }); }} className="flex-1 bg-black border border-white/10 rounded-lg px-4 py-2 text-xs text-white focus:outline-none focus:border-amber-500" />
+                                                    <input value={opt} onChange={e => { const n = [...settings.medical_options]; n[i] = e.target.value; setSettings({ ...settings, medical_options: n }); }} className="flex-1 bg-black border border-white/10 rounded-lg px-4 py-2 text-xs text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]" />
                                                     <button onClick={() => setSettings({ ...settings, medical_options: settings.medical_options.filter((_: any, idx: number) => idx !== i) })} className="w-8 h-8 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-colors"><i className="fa-solid fa-minus" /></button>
                                                 </div>
                                             ))}
@@ -372,7 +372,7 @@ export default function RegistrationStudio() {
                         {/* Slogan */}
                         <div>
                             <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-2">Tournament Slogan / Name</label>
-                            <input type="text" className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500" value={settings.slogan || ''} onChange={e => setSettings({ ...settings, slogan: e.target.value })} placeholder="e.g. Bintulu Inter-Surname Clan Championship" />
+                            <input type="text" className="w-full bg-[#0a0a0a]/50 border border-[#222] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]" value={settings.slogan || ''} onChange={e => setSettings({ ...settings, slogan: e.target.value })} placeholder="e.g. Bintulu Inter-Surname Clan Championship" />
                         </div>
 
                         {/* Logo */}
@@ -389,17 +389,17 @@ export default function RegistrationStudio() {
                         {/* Sponsor */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-4 border-b border-zinc-800/50">
                             <div>
-                                <label className="block text-[10px] font-black tracking-widest uppercase text-amber-500 mb-2">Label for Sponsor Field</label>
-                                <input type="text" className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500" value={settings.title_sponsor_label || ''} onChange={e => setSettings({ ...settings, title_sponsor_label: e.target.value })} placeholder="e.g. Official Sponsorship" />
+                                <label className="block text-[10px] font-black tracking-widest uppercase text-[#0056B3]500 mb-2">Label for Sponsor Field</label>
+                                <input type="text" className="w-full bg-[#0a0a0a]/50 border border-[#222] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]" value={settings.title_sponsor_label || ''} onChange={e => setSettings({ ...settings, title_sponsor_label: e.target.value })} placeholder="e.g. Official Sponsorship" />
                             </div>
                             <div>
                                 <label className="block text-[10px] font-black tracking-widest uppercase text-zinc-400 mb-2">Sponsor Name / 赞助商名字</label>
-                                <input type="text" className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500" value={settings.title_sponsor || ''} onChange={e => setSettings({ ...settings, title_sponsor: e.target.value })} placeholder="Enter Name" />
+                                <input type="text" className="w-full bg-[#0a0a0a]/50 border border-[#222] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]" value={settings.title_sponsor || ''} onChange={e => setSettings({ ...settings, title_sponsor: e.target.value })} placeholder="Enter Name" />
                             </div>
                         </div>
 
                         <div className="pt-4 border-t border-zinc-800 text-right">
-                            <button onClick={handleSave} className="bg-amber-500 hover:bg-amber-400 text-black font-black uppercase tracking-widest px-8 py-3 rounded-xl transition-colors shadow-lg shadow-amber-500/20">
+                            <button onClick={handleSave} className="bg-[#0056B3]500 hover:bg-[#0056B3]400 text-black font-black uppercase tracking-widest px-8 py-3 rounded-xl transition-colors shadow-lg shadow-amber-500/20">
                                 Save Settings
                             </button>
                         </div>
@@ -407,7 +407,7 @@ export default function RegistrationStudio() {
 
                     {/* QR + Link sidebar */}
                     <div className="space-y-6">
-                        <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl shadow-xl text-center">
+                        <div className="bg-white/5 border border-white/10 backdrop-blur-xl p-6 rounded-3xl shadow-xl text-center">
                             <h3 className="text-sm font-black tracking-widest uppercase text-zinc-400 mb-6">Scan to Register</h3>
                             <div className="bg-white p-4 rounded-2xl inline-block mx-auto mb-6">
                                 <QRCodeSVG value={publicRegUrl || 'placeholder'} size={160} />
@@ -416,7 +416,7 @@ export default function RegistrationStudio() {
                                 <div>
                                     <label className="block text-[10px] font-black tracking-widest uppercase text-zinc-500 mb-2">Registration URL</label>
                                     <div className="flex gap-2">
-                                        <input type="text" readOnly value={publicRegUrl} className="w-full bg-black border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-300" />
+                                        <input type="text" readOnly value={publicRegUrl} className="w-full bg-[#0a0a0a]/50 border border-[#222] rounded-lg px-3 py-2 text-xs text-zinc-300" />
                                         <button onClick={() => { navigator.clipboard.writeText(publicRegUrl); Swal.fire({ title: 'Copied!', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, background: '#18181b', color: '#fff' }); }} className="bg-zinc-800 hover:bg-zinc-700 px-3 py-2 rounded-lg text-zinc-300">
                                             <i className="fa-solid fa-copy" />
                                         </button>
@@ -424,11 +424,11 @@ export default function RegistrationStudio() {
                                 </div>
                                 {publicPageUrl && (
                                     <div>
-                                        <label className="block text-[10px] font-black tracking-widest uppercase text-amber-500 mb-2">Tournament Info Page</label>
-                                        <Link href={publicPageUrl} target="_blank" className="flex items-center gap-2 w-full bg-zinc-950 border border-amber-500/20 rounded-lg px-4 py-3 hover:bg-zinc-800 transition-colors group text-xs font-bold text-white">
-                                            <i className="fa-solid fa-globe text-amber-500" />
+                                        <label className="block text-[10px] font-black tracking-widest uppercase text-[#0056B3]500 mb-2">Tournament Info Page</label>
+                                        <Link href={publicPageUrl} target="_blank" className="flex items-center gap-2 w-full bg-zinc-950 border border-[#0056B3]500/20 rounded-lg px-4 py-3 hover:bg-zinc-800 transition-colors group text-xs font-bold text-white">
+                                            <i className="fa-solid fa-globe text-[#0056B3]500" />
                                             <span className="truncate flex-1">{publicPageUrl}</span>
-                                            <i className="fa-solid fa-external-link text-zinc-500 group-hover:text-amber-500 transition-colors" />
+                                            <i className="fa-solid fa-external-link text-zinc-500 group-hover:text-[#0056B3]500 transition-colors" />
                                         </Link>
                                     </div>
                                 )}
@@ -436,7 +436,7 @@ export default function RegistrationStudio() {
                         </div>
 
                         {/* Arena Connection */}
-                        <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl shadow-xl">
+                        <div className="bg-white/5 border border-white/10 backdrop-blur-xl p-6 rounded-3xl shadow-xl">
                             <div className="flex items-center gap-3 mb-4">
                                 <div className="w-8 h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center text-emerald-500">
                                     <i className="fa-solid fa-link" />
@@ -483,14 +483,14 @@ export default function RegistrationStudio() {
                     <div className="lg:col-span-2 space-y-8">
 
                         {/* ── URL Slug ─────────────────────────────── */}
-                        <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl">
-                            <label className="block text-xs font-black tracking-widest uppercase text-amber-500 mb-1">Public URL Slug</label>
-                            <p className="text-zinc-500 text-xs mb-4">Short readable ID (max 10 chars). e.g. <span className="text-amber-400 font-bold">sipc2026</span> → ztoevent.com/t/sipc2026</p>
+                        <div className="bg-white/5 border border-white/10 backdrop-blur-xl p-6 rounded-3xl">
+                            <label className="block text-xs font-black tracking-widest uppercase text-[#0056B3]500 mb-1">Public URL Slug</label>
+                            <p className="text-zinc-500 text-xs mb-4">Short readable ID (max 10 chars). e.g. <span className="text-[#0056B3]400 font-bold">sipc2026</span> → ztoevent.com/t/sipc2026</p>
                             <div className="relative">
                                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-sm font-bold pointer-events-none">ztoevent.com/t/</span>
                                 <input
                                     type="text"
-                                    className={`w-full bg-black border rounded-xl pl-[138px] pr-12 py-3 text-white font-bold focus:outline-none transition-colors ${slugTaken ? 'border-red-500' : settings.page_slug ? 'border-emerald-500/60' : 'border-zinc-800 focus:border-amber-500'}`}
+                                    className={`w-full bg-black border rounded-xl pl-[138px] pr-12 py-3 text-white font-bold focus:outline-none transition-colors ${slugTaken ? 'border-red-500' : settings.page_slug ? 'border-emerald-500/60' : 'border-zinc-800 focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]'}`}
                                     value={settings.page_slug || ''}
                                     onChange={e => handleSlugChange(e.target.value)}
                                     placeholder="sipc2026"
@@ -508,17 +508,17 @@ export default function RegistrationStudio() {
                             <div className="grid grid-cols-2 gap-4 mt-5">
                                 <div>
                                     <label className="block text-[9px] font-black tracking-widest uppercase text-zinc-500 mb-2">Registration Opens</label>
-                                    <input type="date" value={settings.reg_open_date?.split('T')[0] || ''} onChange={e => setSettings({ ...settings, reg_open_date: e.target.value })} className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-amber-500" />
+                                    <input type="date" value={settings.reg_open_date?.split('T')[0] || ''} onChange={e => setSettings({ ...settings, reg_open_date: e.target.value })} className="w-full bg-[#0a0a0a]/50 border border-[#222] rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]" />
                                 </div>
                                 <div>
                                     <label className="block text-[9px] font-black tracking-widest uppercase text-zinc-500 mb-2">Registration Closes</label>
-                                    <input type="date" value={settings.reg_close_date?.split('T')[0] || ''} onChange={e => setSettings({ ...settings, reg_close_date: e.target.value })} className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-amber-500" />
+                                    <input type="date" value={settings.reg_close_date?.split('T')[0] || ''} onChange={e => setSettings({ ...settings, reg_close_date: e.target.value })} className="w-full bg-[#0a0a0a]/50 border border-[#222] rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]" />
                                 </div>
                             </div>
                         </div>
 
                         {/* ── Theme Color ──────────────────────────── */}
-                        <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl">
+                        <div className="bg-white/5 border border-white/10 backdrop-blur-xl p-6 rounded-3xl">
                             <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-4">Page Theme Color</label>
                             <div className="flex flex-wrap gap-3 mb-4">
                                 {THEME_PRESETS.map(p => (
@@ -550,7 +550,7 @@ export default function RegistrationStudio() {
                         </div>
 
                         {/* ── Hero Banner ──────────────────────────── */}
-                        <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl">
+                        <div className="bg-white/5 border border-white/10 backdrop-blur-xl p-6 rounded-3xl">
                             <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-2">Hero Banner Image</label>
                             <p className="text-zinc-500 text-xs mb-4">Full-width background for the top of your tournament page. Recommended: 1920×1080px.</p>
                             <ImageUploadField
@@ -564,29 +564,29 @@ export default function RegistrationStudio() {
                         </div>
 
                         {/* ── Event Description ────────────────────── */}
-                        <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl">
+                        <div className="bg-white/5 border border-white/10 backdrop-blur-xl p-6 rounded-3xl">
                             <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-2">Event Description</label>
-                            <textarea rows={4} className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 resize-none text-sm leading-relaxed" value={settings.event_description || ''} onChange={e => setSettings({ ...settings, event_description: e.target.value })} placeholder="Describe your tournament — who it's for, what makes it special…" />
+                            <textarea rows={4} className="w-full bg-[#0a0a0a]/50 border border-[#222] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)] resize-none text-sm leading-relaxed" value={settings.event_description || ''} onChange={e => setSettings({ ...settings, event_description: e.target.value })} placeholder="Describe your tournament — who it's for, what makes it special…" />
                         </div>
 
                         {/* ── Prize Pool ───────────────────────────── */}
-                        <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl">
+                        <div className="bg-white/5 border border-white/10 backdrop-blur-xl p-6 rounded-3xl">
                             <div className="flex items-center justify-between mb-4">
                                 <label className="text-xs font-black tracking-widest uppercase text-zinc-400">Prize Pool</label>
-                                <button onClick={() => addRow('prize_pool', { category: '', amount: '', currency: 'RM' })} className="px-3 py-1.5 bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-black rounded-lg text-[9px] font-black uppercase tracking-widest transition-colors">
+                                <button onClick={() => addRow('prize_pool', { category: '', amount: '', currency: 'RM' })} className="px-3 py-1.5 bg-[#0056B3]500/10 text-[#0056B3]500 hover:bg-[#0056B3]500 hover:text-black rounded-lg text-[9px] font-black uppercase tracking-widest transition-colors">
                                     <i className="fa-solid fa-plus mr-1" />Add Category
                                 </button>
                             </div>
                             <div className="space-y-3">
                                 {settings.prize_pool.map((prize: any, i: number) => (
                                     <div key={i} className="grid grid-cols-12 gap-2 items-center">
-                                        <input className="col-span-5 bg-black border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500" value={prize.category} onChange={e => updateRow('prize_pool', i, 'category', e.target.value)} placeholder="Category (e.g. Men's Doubles)" />
-                                        <select className="col-span-2 bg-black border border-zinc-800 rounded-lg px-2 py-2 text-sm text-white focus:outline-none focus:border-amber-500 appearance-none" value={prize.currency} onChange={e => updateRow('prize_pool', i, 'currency', e.target.value)}>
+                                        <input className="col-span-5 bg-[#0a0a0a]/50 border border-[#222] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]" value={prize.category} onChange={e => updateRow('prize_pool', i, 'category', e.target.value)} placeholder="Category (e.g. Men's Doubles)" />
+                                        <select className="col-span-2 bg-[#0a0a0a]/50 border border-[#222] rounded-lg px-2 py-2 text-sm text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)] appearance-none" value={prize.currency} onChange={e => updateRow('prize_pool', i, 'currency', e.target.value)}>
                                             <option value="RM">RM</option>
                                             <option value="USD">USD</option>
                                             <option value="SGD">SGD</option>
                                         </select>
-                                        <input type="number" className="col-span-4 bg-black border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500" value={prize.amount} onChange={e => updateRow('prize_pool', i, 'amount', e.target.value)} placeholder="Amount" />
+                                        <input type="number" className="col-span-4 bg-[#0a0a0a]/50 border border-[#222] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]" value={prize.amount} onChange={e => updateRow('prize_pool', i, 'amount', e.target.value)} placeholder="Amount" />
                                         <button onClick={() => removeRow('prize_pool', i)} className="col-span-1 w-8 h-9 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-colors"><i className="fa-solid fa-minus text-xs" /></button>
                                     </div>
                                 ))}
@@ -595,10 +595,10 @@ export default function RegistrationStudio() {
                         </div>
 
                         {/* ── Categories / Divisions ───────────────── */}
-                        <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl">
+                        <div className="bg-white/5 border border-white/10 backdrop-blur-xl p-6 rounded-3xl">
                             <div className="flex items-center justify-between mb-4">
                                 <label className="text-xs font-black tracking-widest uppercase text-zinc-400">Categories / Divisions</label>
-                                <button onClick={() => addRow('categories', { name: '', description: '', open_to: '' })} className="px-3 py-1.5 bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-black rounded-lg text-[9px] font-black uppercase tracking-widest transition-colors">
+                                <button onClick={() => addRow('categories', { name: '', description: '', open_to: '' })} className="px-3 py-1.5 bg-[#0056B3]500/10 text-[#0056B3]500 hover:bg-[#0056B3]500 hover:text-black rounded-lg text-[9px] font-black uppercase tracking-widest transition-colors">
                                     <i className="fa-solid fa-plus mr-1" />Add Category
                                 </button>
                             </div>
@@ -606,11 +606,11 @@ export default function RegistrationStudio() {
                                 {settings.categories.map((cat: any, i: number) => (
                                     <div key={i} className="bg-black/50 border border-zinc-800 rounded-xl p-4 space-y-2">
                                         <div className="grid grid-cols-3 gap-2">
-                                            <input className="col-span-2 bg-black border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500" value={cat.name} onChange={e => updateRow('categories', i, 'name', e.target.value)} placeholder="Category name (e.g. Men's Open)" />
-                                            <input className="bg-black border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500" value={cat.open_to} onChange={e => updateRow('categories', i, 'open_to', e.target.value)} placeholder="Open to (e.g. M)" />
+                                            <input className="col-span-2 bg-[#0a0a0a]/50 border border-[#222] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]" value={cat.name} onChange={e => updateRow('categories', i, 'name', e.target.value)} placeholder="Category name (e.g. Men's Open)" />
+                                            <input className="bg-[#0a0a0a]/50 border border-[#222] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]" value={cat.open_to} onChange={e => updateRow('categories', i, 'open_to', e.target.value)} placeholder="Open to (e.g. M)" />
                                         </div>
                                         <div className="flex gap-2">
-                                            <input className="flex-1 bg-black border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500" value={cat.description} onChange={e => updateRow('categories', i, 'description', e.target.value)} placeholder="Short description…" />
+                                            <input className="flex-1 bg-[#0a0a0a]/50 border border-[#222] rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]" value={cat.description} onChange={e => updateRow('categories', i, 'description', e.target.value)} placeholder="Short description…" />
                                             <button onClick={() => removeRow('categories', i)} className="w-9 h-9 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-colors shrink-0"><i className="fa-solid fa-minus text-xs" /></button>
                                         </div>
                                     </div>
@@ -620,24 +620,24 @@ export default function RegistrationStudio() {
                         </div>
 
                         {/* ── Format & Rules ───────────────────────── */}
-                        <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl">
+                        <div className="bg-white/5 border border-white/10 backdrop-blur-xl p-6 rounded-3xl">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-2">Tournament Format</label>
-                                    <textarea rows={6} className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 resize-none text-sm leading-relaxed" value={settings.format_description || ''} onChange={e => setSettings({ ...settings, format_description: e.target.value })} placeholder="e.g. Group stage → Knockout. Each group has 4 teams. Top 2 advance…" />
+                                    <textarea rows={6} className="w-full bg-[#0a0a0a]/50 border border-[#222] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)] resize-none text-sm leading-relaxed" value={settings.format_description || ''} onChange={e => setSettings({ ...settings, format_description: e.target.value })} placeholder="e.g. Group stage → Knockout. Each group has 4 teams. Top 2 advance…" />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-2">Rules</label>
-                                    <textarea rows={6} className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 resize-none text-sm leading-relaxed" value={settings.rules || ''} onChange={e => setSettings({ ...settings, rules: e.target.value })} placeholder="List your tournament rules here…" />
+                                    <textarea rows={6} className="w-full bg-[#0a0a0a]/50 border border-[#222] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)] resize-none text-sm leading-relaxed" value={settings.rules || ''} onChange={e => setSettings({ ...settings, rules: e.target.value })} placeholder="List your tournament rules here…" />
                                 </div>
                             </div>
                         </div>
 
                         {/* ── Schedule ─────────────────────────────── */}
-                        <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl">
+                        <div className="bg-white/5 border border-white/10 backdrop-blur-xl p-6 rounded-3xl">
                             <div className="flex items-center justify-between mb-4">
                                 <label className="text-xs font-black tracking-widest uppercase text-zinc-400">Event Schedule</label>
-                                <button onClick={() => addRow('event_schedule', { date: '', label: '', time_start: '', time_end: '', notes: '' })} className="px-3 py-1.5 bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-black rounded-lg text-[9px] font-black uppercase tracking-widest transition-colors">
+                                <button onClick={() => addRow('event_schedule', { date: '', label: '', time_start: '', time_end: '', notes: '' })} className="px-3 py-1.5 bg-[#0056B3]500/10 text-[#0056B3]500 hover:bg-[#0056B3]500 hover:text-black rounded-lg text-[9px] font-black uppercase tracking-widest transition-colors">
                                     <i className="fa-solid fa-plus mr-1" />Add Day
                                 </button>
                             </div>
@@ -645,13 +645,13 @@ export default function RegistrationStudio() {
                                 {settings.event_schedule.map((day: any, i: number) => (
                                     <div key={i} className="bg-black/50 border border-zinc-800 rounded-xl p-4 space-y-2">
                                         <div className="grid grid-cols-12 gap-2">
-                                            <input type="date" className="col-span-3 bg-black border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500" value={day.date} onChange={e => updateRow('event_schedule', i, 'date', e.target.value)} />
-                                            <input className="col-span-5 bg-black border border-zinc-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500" value={day.label} onChange={e => updateRow('event_schedule', i, 'label', e.target.value)} placeholder="Label (e.g. Group Stage)" />
-                                            <input type="time" className="col-span-2 bg-black border border-zinc-800 rounded-lg px-2 py-2 text-sm text-white focus:outline-none focus:border-amber-500" value={day.time_start} onChange={e => updateRow('event_schedule', i, 'time_start', e.target.value)} />
-                                            <input type="time" className="col-span-2 bg-black border border-zinc-800 rounded-lg px-2 py-2 text-sm text-white focus:outline-none focus:border-amber-500" value={day.time_end} onChange={e => updateRow('event_schedule', i, 'time_end', e.target.value)} />
+                                            <input type="date" className="col-span-3 bg-[#0a0a0a]/50 border border-[#222] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]" value={day.date} onChange={e => updateRow('event_schedule', i, 'date', e.target.value)} />
+                                            <input className="col-span-5 bg-[#0a0a0a]/50 border border-[#222] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]" value={day.label} onChange={e => updateRow('event_schedule', i, 'label', e.target.value)} placeholder="Label (e.g. Group Stage)" />
+                                            <input type="time" className="col-span-2 bg-[#0a0a0a]/50 border border-[#222] rounded-lg px-2 py-2 text-sm text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]" value={day.time_start} onChange={e => updateRow('event_schedule', i, 'time_start', e.target.value)} />
+                                            <input type="time" className="col-span-2 bg-[#0a0a0a]/50 border border-[#222] rounded-lg px-2 py-2 text-sm text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]" value={day.time_end} onChange={e => updateRow('event_schedule', i, 'time_end', e.target.value)} />
                                         </div>
                                         <div className="flex gap-2">
-                                            <input className="flex-1 bg-black border border-zinc-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500" value={day.notes} onChange={e => updateRow('event_schedule', i, 'notes', e.target.value)} placeholder="Notes (optional)" />
+                                            <input className="flex-1 bg-[#0a0a0a]/50 border border-[#222] rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]" value={day.notes} onChange={e => updateRow('event_schedule', i, 'notes', e.target.value)} placeholder="Notes (optional)" />
                                             <button onClick={() => removeRow('event_schedule', i)} className="w-9 h-9 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-colors shrink-0"><i className="fa-solid fa-minus text-xs" /></button>
                                         </div>
                                     </div>
@@ -661,17 +661,17 @@ export default function RegistrationStudio() {
                         </div>
 
                         {/* ── Venue ──────────────────────────────────── */}
-                        <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl">
+                        <div className="bg-white/5 border border-white/10 backdrop-blur-xl p-6 rounded-3xl">
                             <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-4">Venue</label>
                             <div className="space-y-3">
-                                <input type="text" className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500" value={settings.venue_name || ''} onChange={e => setSettings({ ...settings, venue_name: e.target.value })} placeholder="Venue Name (e.g. Parkcity Everly Hotel)" />
-                                <textarea rows={2} className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 resize-none text-sm" value={settings.venue_address || ''} onChange={e => setSettings({ ...settings, venue_address: e.target.value })} placeholder="Full address…" />
-                                <input type="url" className="w-full bg-black border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500" value={settings.venue_map_url || ''} onChange={e => setSettings({ ...settings, venue_map_url: e.target.value })} placeholder="Google Maps link (https://maps.app.goo.gl/...)" />
+                                <input type="text" className="w-full bg-[#0a0a0a]/50 border border-[#222] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]" value={settings.venue_name || ''} onChange={e => setSettings({ ...settings, venue_name: e.target.value })} placeholder="Venue Name (e.g. Parkcity Everly Hotel)" />
+                                <textarea rows={2} className="w-full bg-[#0a0a0a]/50 border border-[#222] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)] resize-none text-sm" value={settings.venue_address || ''} onChange={e => setSettings({ ...settings, venue_address: e.target.value })} placeholder="Full address…" />
+                                <input type="url" className="w-full bg-[#0a0a0a]/50 border border-[#222] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]" value={settings.venue_map_url || ''} onChange={e => setSettings({ ...settings, venue_map_url: e.target.value })} placeholder="Google Maps link (https://maps.app.goo.gl/...)" />
                             </div>
                         </div>
 
                         {/* ── Social Links ────────────────────────── */}
-                        <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl">
+                        <div className="bg-white/5 border border-white/10 backdrop-blur-xl p-6 rounded-3xl">
                             <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-4">Social Links</label>
                             <div className="space-y-3">
                                 {[
@@ -685,7 +685,7 @@ export default function RegistrationStudio() {
                                         </div>
                                         <input
                                             type="text"
-                                            className="flex-1 bg-black border border-zinc-800 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-amber-500"
+                                            className="flex-1 bg-[#0a0a0a]/50 border border-[#222] rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]"
                                             value={settings.social_links?.[s.key] || ''}
                                             onChange={e => setSettings({ ...settings, social_links: { ...settings.social_links, [s.key]: e.target.value } })}
                                             placeholder={s.placeholder}
@@ -696,7 +696,7 @@ export default function RegistrationStudio() {
                         </div>
 
                         <div className="text-right pt-2">
-                            <button onClick={handleSave} className="bg-amber-500 hover:bg-amber-400 text-black font-black uppercase tracking-widest px-10 py-3 rounded-xl transition-colors shadow-lg shadow-amber-500/20">
+                            <button onClick={handleSave} className="bg-[#0056B3]500 hover:bg-[#0056B3]400 text-black font-black uppercase tracking-widest px-10 py-3 rounded-xl transition-colors shadow-lg shadow-amber-500/20">
                                 <i className="fa-solid fa-floppy-disk mr-2" />Save Tournament Page
                             </button>
                         </div>
@@ -704,7 +704,7 @@ export default function RegistrationStudio() {
 
                     {/* Preview sidebar */}
                     <div className="space-y-4">
-                        <div className="bg-zinc-900 border border-zinc-800 p-5 rounded-3xl sticky top-24">
+                        <div className="bg-white/5 border border-white/10 backdrop-blur-xl p-5 rounded-3xl sticky top-24">
                             <h3 className="text-xs font-black tracking-widest uppercase text-zinc-400 mb-4">Preview Links</h3>
 
                             {publicPageUrl ? (
@@ -713,16 +713,16 @@ export default function RegistrationStudio() {
                                         <div className="bg-white p-3 rounded-xl inline-block mx-auto w-full flex justify-center mb-3">
                                             <QRCodeSVG value={publicPageUrl} size={130} />
                                         </div>
-                                        <Link href={publicPageUrl} target="_blank" className="flex items-center gap-2 w-full bg-black border border-amber-500/30 rounded-xl px-4 py-3 text-xs font-bold text-amber-400 hover:bg-zinc-900 transition-colors group">
+                                        <Link href={publicPageUrl} target="_blank" className="flex items-center gap-2 w-full bg-black border border-[#0056B3]500/30 rounded-xl px-4 py-3 text-xs font-bold text-[#0056B3]400 hover:bg-zinc-900 transition-colors group">
                                             <i className="fa-solid fa-globe" />
                                             <span className="truncate flex-1">{publicPageUrl}</span>
-                                            <i className="fa-solid fa-external-link text-zinc-600 group-hover:text-amber-500 transition-colors" />
+                                            <i className="fa-solid fa-external-link text-zinc-600 group-hover:text-[#0056B3]500 transition-colors" />
                                         </Link>
                                     </div>
                                     <div>
                                         <p className="text-[9px] font-black tracking-widest uppercase text-zinc-600 mb-2">Registration URL</p>
                                         <div className="flex gap-2">
-                                            <div className="flex-1 bg-black border border-zinc-800 rounded-lg px-3 py-2 text-[10px] text-zinc-400 truncate">{publicRegUrl}</div>
+                                            <div className="flex-1 bg-[#0a0a0a]/50 border border-[#222] rounded-lg px-3 py-2 text-[10px] text-zinc-400 truncate">{publicRegUrl}</div>
                                             <button onClick={() => { navigator.clipboard.writeText(publicRegUrl); Swal.fire({ title: 'Copied!', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, background: '#18181b', color: '#fff' }); }} className="bg-zinc-800 hover:bg-zinc-700 px-2 py-1.5 rounded-lg text-zinc-300">
                                                 <i className="fa-solid fa-copy text-xs" />
                                             </button>
@@ -755,7 +755,7 @@ export default function RegistrationStudio() {
                 /* ═══════════════════════════════════════════════════════
                    TAB 3: REGISTRATIONS
                 ════════════════════════════════════════════════════════ */
-                <div className="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden shadow-xl">
+                <div className="bg-white/5 border border-white/10 backdrop-blur-xl rounded-3xl overflow-hidden shadow-xl">
                     <div className="overflow-x-auto p-1">
                         <table className="w-full text-left border-collapse">
                             <thead>

@@ -58,20 +58,14 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
     if (loading) return <div className="p-20 text-center animate-pulse">Synchronizing Project Data...</div>;
 
     const isWedding = project?.type === 'wedding' || project?.type === 'wedding_fair';
-    const theme = isWedding ? {
-        primary: 'text-pink-500',
-        bg: 'bg-pink-500',
-        hover: 'hover:bg-pink-400',
-        pill: 'bg-pink-500/5',
-        border: 'border-pink-500/30',
-        shadow: 'shadow-[0_0_25px_rgba(236,72,153,0.2)]'
-    } : {
-        primary: 'text-amber-500',
-        bg: 'bg-amber-500',
-        hover: 'hover:bg-amber-400',
-        pill: 'bg-amber-500/5',
-        border: 'border-amber-500/30',
-        shadow: 'shadow-[0_0_25px_rgba(245,158,11,0.2)]'
+    // Forced Royal Blue aesthetic per user request
+    const theme = {
+        primary: 'text-[#0056B3]',
+        bg: 'bg-[#0056B3]',
+        hover: 'hover:bg-[#003d82]',
+        pill: 'bg-[#0056B3]/10',
+        border: 'border-[#0056B3]/30',
+        shadow: 'shadow-[0_0_25px_rgba(0,86,179,0.3)]'
     };
     
     const today = new Date();
@@ -149,40 +143,40 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
                 {/* Tasks */}
-                <div className={`bg-zinc-900/50 border border-white/5 p-8 rounded-3xl transition-all print:bg-white print:border-zinc-200 print:shadow-none`}>
+                <div className="bg-white/5 border border-white/10 p-8 rounded-3xl backdrop-blur-xl shadow-[0_0_30px_rgba(0,0,0,0.3)] transition-all print:bg-white print:border-zinc-200 print:shadow-none">
                     <div className="flex items-center justify-between mb-6">
-                        <div className={`w-12 h-12 ${theme.pill} rounded-xl flex items-center justify-center ${theme.primary} print:bg-zinc-100 print:text-black`}>
+                        <div className={`w-12 h-12 ${theme.pill} rounded-2xl border border-[#0056B3]/20 flex items-center justify-center ${theme.primary} print:bg-zinc-100 print:text-black`}>
                             <i className="fa-solid fa-check-double text-xl"></i>
                         </div>
-                        <span className="text-[10px] font-black text-zinc-600 tracking-widest print:text-zinc-500">TASKS</span>
+                        <span className="text-[10px] font-black text-zinc-500 tracking-[0.2em] uppercase print:text-zinc-500">TASKS</span>
                     </div>
-                    <div className="text-4xl font-black text-white mb-1 print:text-black">{stats.pendingTasks}</div>
-                    <div className="text-[10px] font-bold text-zinc-500 tracking-widest uppercase mb-4 print:text-zinc-600">Pending Actions</div>
-                    <div className="text-[10px] text-zinc-600 mt-2 print:text-black">{stats.criticalTasks} Critical Items</div>
+                    <div className="text-4xl font-black text-white mb-2 print:text-black">{stats.pendingTasks}</div>
+                    <div className="text-[10px] font-black text-zinc-400 tracking-widest uppercase mb-4 print:text-zinc-600">Pending Actions</div>
+                    <div className="text-[10px] font-mono text-[#0056B3] mt-2 print:text-black">{stats.criticalTasks} Critical</div>
                 </div>
 
                 {/* Budget */}
-                <div className="bg-zinc-900/50 border border-white/5 p-8 rounded-3xl transition-all print:bg-white print:border-zinc-200 print:shadow-none">
+                <div className="bg-white/5 border border-white/10 p-8 rounded-3xl backdrop-blur-xl shadow-[0_0_30px_rgba(0,0,0,0.3)] transition-all print:bg-white print:border-zinc-200 print:shadow-none">
                     <div className="flex items-center justify-between mb-6">
-                        <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-500 print:bg-zinc-100 print:text-black">
+                        <div className="w-12 h-12 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center text-white/80 print:bg-zinc-100 print:text-black">
                             <i className="fa-solid fa-receipt text-xl"></i>
                         </div>
-                        <span className="text-[10px] font-black text-zinc-600 tracking-widest print:text-zinc-500">BUDGET</span>
+                        <span className="text-[10px] font-black text-zinc-500 tracking-[0.2em] uppercase print:text-zinc-500">BUDGET</span>
                     </div>
-                    <div className="text-3xl font-black text-white mb-1 print:text-black">RM {stats.expenses.toLocaleString()}</div>
-                    <div className="text-[10px] font-bold text-zinc-500 tracking-widest uppercase mb-4 print:text-zinc-600">Current Spend</div>
+                    <div className="text-3xl font-black text-white mb-2 print:text-black">RM {stats.expenses.toLocaleString()}</div>
+                    <div className="text-[10px] font-black text-zinc-400 tracking-widest uppercase mb-4 print:text-zinc-600">Current Spend</div>
                 </div>
 
                 {/* Consultations */}
-                <div className={`bg-zinc-900/50 border border-white/5 p-8 rounded-3xl transition-all print:bg-white print:border-zinc-200 print:shadow-none`}>
+                <div className="bg-white/5 border border-white/10 p-8 rounded-3xl backdrop-blur-xl shadow-[0_0_30px_rgba(0,0,0,0.3)] transition-all print:bg-white print:border-zinc-200 print:shadow-none">
                     <div className="flex items-center justify-between mb-6">
-                        <div className={`w-12 h-12 ${isWedding ? 'bg-pink-500/10 text-pink-500' : 'bg-cyan-500/10 text-cyan-500'} rounded-xl flex items-center justify-center print:bg-zinc-100 print:text-black`}>
+                        <div className="w-12 h-12 bg-[#0056B3]/10 border border-[#0056B3]/20 rounded-2xl flex items-center justify-center text-[#0056B3] print:bg-zinc-100 print:text-black">
                             <i className="fa-solid fa-wand-magic-sparkles text-xl"></i>
                         </div>
-                        <span className="text-[10px] font-black text-zinc-600 tracking-widest print:text-zinc-500">REPORTS</span>
+                        <span className="text-[10px] font-black text-zinc-500 tracking-[0.2em] uppercase print:text-zinc-500">REPORTS</span>
                     </div>
-                    <div className="text-4xl font-black text-white mb-1 print:text-black">{stats.consultations}</div>
-                    <div className="text-[10px] font-bold text-zinc-500 tracking-widest uppercase mb-4 print:text-zinc-600">Client Submissions</div>
+                    <div className="text-4xl font-black text-white mb-2 print:text-black">{stats.consultations}</div>
+                    <div className="text-[10px] font-black text-zinc-400 tracking-widest uppercase mb-4 print:text-zinc-600">Client Submissions</div>
                 </div>
 
                 {/* Placeholder for Print info */}

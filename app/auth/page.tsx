@@ -126,7 +126,7 @@ function AuthContent() {
     const isError = message && !message.includes('Check');
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a] px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen flex items-center justify-center bg-[#050505] px-4 sm:px-6 lg:px-8">
             <div className="max-w-md w-full space-y-8">
                 {/* Logo */}
                 <div className="text-center">
@@ -150,14 +150,14 @@ function AuthContent() {
                 </div>
 
                 {/* Card */}
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-sm">
+                <div className="bg-white/5 border border-white/10 rounded-3xl p-10 lg:p-12 backdrop-blur-xl shadow-[0_0_50px_rgba(0,0,0,0.5)]">
                     <form className="space-y-5" onSubmit={handleAuth}>
                         <div>
                             <label className="block text-[10px] font-black tracking-widest uppercase text-white/40 mb-2">Email</label>
                             <input
                                 type="email"
                                 required
-                                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/20 focus:outline-none focus:border-amber-500/60 focus:bg-white/8 transition-all text-sm"
+                                className="w-full px-4 py-3 bg-[#0a0a0a]/50 border border-[#222] rounded-xl text-white placeholder-zinc-600 focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)] transition-all text-sm font-mono"
                                 placeholder="you@example.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
@@ -170,7 +170,7 @@ function AuthContent() {
                                 <input
                                     type="password"
                                     required
-                                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/20 focus:outline-none focus:border-amber-500/60 transition-all text-sm"
+                                    className="w-full px-4 py-3 bg-[#0a0a0a]/50 border border-[#222] rounded-xl text-white placeholder-zinc-600 focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)] transition-all text-sm font-mono"
                                     placeholder="••••••••"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
@@ -188,7 +188,7 @@ function AuthContent() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full py-3 px-4 bg-amber-500 hover:bg-amber-400 text-black font-black text-sm uppercase tracking-widest rounded-xl transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100 shadow-lg shadow-amber-500/20"
+                            className="w-full py-4 px-4 bg-[#0056B3] hover:bg-[#003d82] text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-[0_0_20px_rgba(0,86,179,0.4)] hover:shadow-[0_0_30px_rgba(0,86,179,0.7)]"
                         >
                             {loading
                                 ? <><i className="fa-solid fa-circle-notch animate-spin mr-2" />Processing...</>
@@ -232,7 +232,7 @@ function AuthContent() {
 
 export default function AuthPage() {
     return (
-        <Suspense fallback={<div className="min-h-screen bg-[#0a0a0a]" />}>
+        <Suspense fallback={<div className="min-h-screen bg-[#050505]" />}>
             <AuthContent />
         </Suspense>
     );

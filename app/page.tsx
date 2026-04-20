@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
+import equipmentData from '../config/equipment.json';
 
 // ---------------------------------------------------------------------------
 // Data
@@ -1342,6 +1343,209 @@ function ServicesSection() {
 }
 
 // ---------------------------------------------------------------------------
+// Equipment Rental & Supply
+// ---------------------------------------------------------------------------
+function EquipmentSection() {
+  return (
+    <section
+      id="equipment"
+      style={{
+        padding: 'clamp(80px, 10vw, 140px) clamp(24px, 8vw, 120px)',
+        maxWidth: 1280,
+        margin: '0 auto',
+      }}
+    >
+      <RevealSection>
+        <div style={{ textAlign: 'center', marginBottom: 72 }}>
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              background: 'rgba(0,86,179,0.1)',
+              border: '1px solid rgba(0,86,179,0.25)',
+              borderRadius: 100,
+              padding: '6px 16px',
+              marginBottom: 20,
+            }}
+          >
+            <span
+              style={{
+                color: '#6BB8FF',
+                fontFamily: 'Inter, sans-serif',
+                fontWeight: 600,
+                fontSize: 11,
+                letterSpacing: '2px',
+                textTransform: 'uppercase',
+              }}
+            >
+              Our Inventory
+            </span>
+          </div>
+          <h2
+            style={{
+              fontFamily: 'Inter, sans-serif',
+              fontWeight: 800,
+              fontSize: 'clamp(28px, 4.5vw, 56px)',
+              color: '#FFFFFF',
+              letterSpacing: '-2px',
+              marginBottom: 16,
+            }}
+          >
+            Equipment Rental & Supply
+          </h2>
+          <p
+            style={{
+              fontFamily: 'Inter, sans-serif',
+              fontSize: 16,
+              color: 'rgba(229,229,229,0.45)',
+              maxWidth: 600,
+              margin: '0 auto',
+              lineHeight: 1.7,
+            }}
+          >
+            High-performance gear for high-stakes events. From massive LED walls to concert-grade audio, we supply the best hardware in Sarawak.
+          </p>
+        </div>
+      </RevealSection>
+
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          gap: 24,
+        }}
+      >
+        {equipmentData.map((item, i) => (
+          <RevealSection key={item.id} delay={i * 100}>
+            <div
+              className="equipment-card"
+              style={{
+                background: '#050505',
+                border: '1px solid #0056B3',
+                borderRadius: 20,
+                overflow: 'hidden',
+                position: 'relative',
+                display: 'flex',
+                flexDirection: 'column',
+                height: '100%',
+                transition: 'all 0.3s ease',
+              }}
+            >
+              {/* Image Container with Zoom */}
+              <div
+                style={{
+                  height: 220,
+                  position: 'relative',
+                  overflow: 'hidden',
+                  background: 'rgba(255,255,255,0.02)',
+                  borderBottom: '1px solid rgba(0,86,179,0.3)',
+                }}
+              >
+                {/* Fallback pattern if image is broken/missing since we just created JSON */}
+                <div style={{
+                     position: 'absolute', inset: 0,
+                     backgroundImage: 'linear-gradient(rgba(0,86,179,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,86,179,0.05) 1px, transparent 1px)',
+                     backgroundSize: '20px 20px', zIndex: 0
+                }} />
+                
+                <img
+                  src={item.image_path}
+                  alt={item.name}
+                  className="equip-img"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    position: 'relative',
+                    zIndex: 1,
+                    transition: 'transform 0.5s ease',
+                  }}
+                  onError={(e) => {
+                     (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 16,
+                    left: 16,
+                    zIndex: 2,
+                    background: 'rgba(0,86,179,0.8)',
+                    color: '#fff',
+                    padding: '4px 10px',
+                    borderRadius: 6,
+                    fontSize: 10,
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '1px',
+                    backdropFilter: 'blur(4px)',
+                  }}
+                >
+                  {item.category}
+                </div>
+              </div>
+
+              {/* Specs Container */}
+              <div style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <h3
+                  style={{
+                    fontFamily: 'Inter, sans-serif',
+                    fontWeight: 700,
+                    fontSize: 18,
+                    color: '#FFFFFF',
+                    marginBottom: 12,
+                    lineHeight: 1.3,
+                  }}
+                >
+                  {item.name}
+                </h3>
+                <p
+                  style={{
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: 13,
+                    color: 'rgba(229,229,229,0.5)',
+                    lineHeight: 1.6,
+                    marginBottom: 24,
+                    flex: 1,
+                  }}
+                >
+                  {item.specifications}
+                </p>
+
+                <a
+                  href="/public/enquiry"
+                  className="equip-cta"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    background: 'rgba(0,86,179,0.1)',
+                    border: '1px solid rgba(0,86,179,0.4)',
+                    color: '#6BB8FF',
+                    padding: '12px',
+                    borderRadius: 8,
+                    fontFamily: 'Inter, sans-serif',
+                    fontWeight: 600,
+                    fontSize: 13,
+                    textDecoration: 'none',
+                    transition: 'all 0.25s',
+                  }}
+                >
+                  Consult Details / 咨询详情
+                  <i className="fa-solid fa-arrow-right" style={{ fontSize: 11 }} />
+                </a>
+              </div>
+            </div>
+          </RevealSection>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // CTA Band
 // ---------------------------------------------------------------------------
 function CTABand() {
@@ -1515,7 +1719,7 @@ function Footer() {
           © {new Date().getFullYear()} ZTO. All rights reserved.
         </div>
 
-        {/* Staff Console — discreet link */}
+        {/* Staff Login — discreet link */}
         <Link
           href="/auth"
           id="footer-staff-console"
@@ -1545,7 +1749,7 @@ function Footer() {
             className="fa-solid fa-terminal"
             style={{ fontSize: 10 }}
           />
-          Staff Console
+          Staff Login
         </Link>
       </div>
     </footer>
@@ -1570,6 +1774,7 @@ export default function Home() {
       <StatsBar />
       <IdentitySection />
       <MemoirsSection />
+      <EquipmentSection />
       <ServicesSection />
       <CTABand />
       <Footer />
@@ -1585,6 +1790,20 @@ export default function Home() {
         .memoir-card:hover {
           border-color: rgba(0, 86, 179, 0.4) !important;
         }
+        
+        /* Equipment Cards Hover Logic */
+        .equipment-card:hover {
+          box-shadow: 0 0 40px rgba(0,86,179,0.35);
+          transform: translateY(-4px);
+        }
+        .equipment-card:hover .equip-img {
+          transform: scale(1.05); /* Smoothly zoom 5% */
+        }
+        .equipment-card:hover .equip-cta {
+          background: #0056B3 !important;
+          color: #fff !important;
+        }
+
         @media (max-width: 768px) {
           #memoirs-grid {
             columns: 2 160px !important;
