@@ -9,6 +9,16 @@ import { useEffect, useRef, useState } from 'react';
 // ---------------------------------------------------------------------------
 const projectCategories = [
   {
+    id: 'kemena-pacific-hospital-rename-ceremony',
+    name: 'Kemena Pacific Hospital Rename Ceremony',
+    items: [
+      { id: 'k1', tag: 'Ceremony', src: '/projects/kemena-pacific-hospital-rename-ceremony/photos/img_01.jpg', size: 'wide' },
+      { id: 'k2', tag: 'Ceremony', src: '/projects/kemena-pacific-hospital-rename-ceremony/photos/img_02.jpg', size: 'tall' },
+      { id: 'k3', tag: 'Ceremony', src: '/projects/kemena-pacific-hospital-rename-ceremony/photos/img_03.jpg', size: 'normal' },
+      { id: 'k4', tag: 'Ceremony', src: '/projects/kemena-pacific-hospital-rename-ceremony/photos/img_04.jpg', size: 'wide' },
+    ]
+  },
+  {
     id: 'isuzu-mega-roadshow',
     name: 'Isuzu Mega Roadshow 2025',
     items: [

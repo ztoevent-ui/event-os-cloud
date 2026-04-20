@@ -7,14 +7,38 @@ export default function EnquiryPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [formData, setFormData] = useState({
+    name: '',
+    company: '',
+    email: '',
+    phone: '',
+    category: '',
+    notes: '',
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // Simulate submission
-    setTimeout(() => {
+    
+    try {
+      const response = await fetch('/api/enquiry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      
+      const result = await response.json();
+      if (!result.success) {
+        alert('There was an error submitting the form: ' + result.error);
+      } else {
+        setSubmitted(true);
+      }
+    } catch (err: any) {
+      alert('Network error. Please try again later.');
+      console.error(err);
+    } finally {
       setIsSubmitting(false);
-      setSubmitted(true);
-    }, 1500);
+    }
   };
 
   return (
@@ -222,6 +246,8 @@ export default function EnquiryPage() {
                   <input
                     type="text"
                     required
+                    value={formData.name}
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
                     placeholder="e.g. John Doe"
                     style={{
                       width: '100%',
@@ -257,6 +283,8 @@ export default function EnquiryPage() {
                   <input
                     type="text"
                     required
+                    value={formData.company}
+                    onChange={(e) => setFormData({...formData, company: e.target.value})}
                     placeholder="e.g. Acme Corp"
                     style={{
                       width: '100%',
@@ -295,6 +323,8 @@ export default function EnquiryPage() {
                     <input
                       type="email"
                       required
+                      value={formData.email}
+                      onChange={(e) => setFormData({...formData, email: e.target.value})}
                       placeholder="you@company.com"
                       style={{
                         width: '100%',
@@ -328,6 +358,8 @@ export default function EnquiryPage() {
                     <input
                       type="tel"
                       required
+                      value={formData.phone}
+                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
                       placeholder="+60 12 345 6789"
                       style={{
                         width: '100%',
@@ -363,6 +395,8 @@ export default function EnquiryPage() {
                   </label>
                   <select
                     required
+                    value={formData.category}
+                    onChange={(e) => setFormData({...formData, category: e.target.value})}
                     style={{
                       width: '100%',
                       background: 'rgba(0,0,0,0.3)',
@@ -406,6 +440,8 @@ export default function EnquiryPage() {
                   <textarea
                     placeholder="Tell us a bit about your scale, dates, or specific requirements..."
                     rows={4}
+                    value={formData.notes}
+                    onChange={(e) => setFormData({...formData, notes: e.target.value})}
                     style={{
                       width: '100%',
                       background: 'rgba(0,0,0,0.3)',
