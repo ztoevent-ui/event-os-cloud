@@ -98,16 +98,16 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/60 print:hidden"></div>
 
                 <div className="relative z-10 p-10 md:p-16 print:p-8">
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
-                        <div>
+                    <div className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-8">
+                        <div className="max-w-3xl min-w-0">
                             <div className={`inline-flex items-center gap-2 px-4 py-1.5 mb-5 border ${theme.border} rounded-full ${theme.pill} ${theme.primary} text-[10px] font-black tracking-[0.2em] uppercase print:border-black print:text-black`}>
                                 <span className={`w-1.5 h-1.5 ${theme.bg} rounded-full animate-pulse print:bg-black`}></span>
                                 {project?.status || 'Active Operation'}
                             </div>
-                            <h1 className="text-4xl md:text-6xl font-black text-white mb-3 tracking-tighter uppercase italic print:text-black print:not-italic">
+                            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white mb-3 tracking-tighter uppercase italic print:text-black print:not-italic break-words">
                                 {project?.name || 'ZTO Event'}
                             </h1>
-                            <p className="text-base text-zinc-500 font-medium print:text-zinc-600">
+                            <p className="text-base text-zinc-500 font-medium print:text-zinc-600 truncate">
                                 Event ID: <span className="text-zinc-300 font-mono text-sm print:text-black">{id}</span>
                                 {project?.type && <span> • {project.type.replace(/_/g, ' ')}</span>}
                             </p>

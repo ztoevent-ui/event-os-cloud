@@ -59,7 +59,7 @@ export default async function ProjectLayout({
                                 </span>
                             </Link>
                         </div>
-                        <div className="hidden md:flex space-x-6">
+                        <div className="hidden md:flex flex-wrap items-center gap-x-6 gap-y-2 max-w-full">
                             <NavLink href={`/projects/${projectId}`} theme={theme}>Dashboard</NavLink>
                             <NavLink href={`/projects/${projectId}/tasks`} theme={theme}>Tasks</NavLink>
                             <NavLink href={`/projects/${projectId}/timelines`} theme={theme}>Timeline</NavLink>
