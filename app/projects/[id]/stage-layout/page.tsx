@@ -851,7 +851,7 @@ export default function StageLayoutPage({ params }: { params: Promise<{ id: stri
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-[70vh] gap-4">
-        <div className="w-16 h-16 border-2 border-[#0056B3]/30 border-t-amber-500 rounded-full animate-spin" />
+        <div className="w-16 h-16 border-2 border-[#0056B3]/30 border-t-[#0056B3] rounded-full animate-spin" />
         <p className="text-zinc-500 uppercase tracking-widest text-xs font-black">Initializing Stage Engine...</p>
       </div>
     );
@@ -1069,12 +1069,12 @@ export default function StageLayoutPage({ params }: { params: Promise<{ id: stri
                 <div className="space-y-1">
                   <label className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Grid Size: {scene.gridSize}m</label>
                   <input type="range" min="0.25" max="2" step="0.25" value={scene.gridSize} onChange={e => updateSceneSetting('gridSize', parseFloat(e.target.value))}
-                    className="w-full accent-amber-500" />
+                    className="w-full accent-[#0056B3]" />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Ambient Light: {scene.ambientIntensity.toFixed(1)}</label>
                   <input type="range" min="0" max="1" step="0.1" value={scene.ambientIntensity} onChange={e => updateSceneSetting('ambientIntensity', parseFloat(e.target.value))}
-                    className="w-full accent-amber-500" />
+                    className="w-full accent-[#0056B3]" />
                 </div>
               </div>
 
@@ -1239,7 +1239,7 @@ export default function StageLayoutPage({ params }: { params: Promise<{ id: stri
                     <label className="text-[7px] font-black text-zinc-600 uppercase tracking-widest">Rotation Y (rad)</label>
                     <input type="range" min="0" max={Math.PI * 2} step="0.05" value={selectedAsset.ry}
                       onChange={e => updateAssetProp(selectedAsset.id, 'ry', parseFloat(e.target.value))}
-                      className="w-full accent-amber-500" />
+                      className="w-full accent-[#0056B3]" />
                     <div className="text-[7px] text-zinc-600 text-right">{(selectedAsset.ry * 180 / Math.PI).toFixed(0)}°</div>
                   </div>
 

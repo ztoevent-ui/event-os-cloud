@@ -1451,7 +1451,7 @@ function EquipmentSection() {
                 
                 {item.image_path.toLowerCase().match(/\.(mp4|mov|webm)$/) ? (
                   <video
-                    src={item.image_path}
+                    src={encodeURI(item.image_path)}
                     autoPlay
                     loop
                     muted
@@ -1468,7 +1468,7 @@ function EquipmentSection() {
                   />
                 ) : (
                   <img
-                    src={item.image_path}
+                    src={encodeURI(item.image_path)}
                     alt={item.name}
                     className="equip-img"
                     style={{

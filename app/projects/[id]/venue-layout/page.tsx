@@ -1157,7 +1157,7 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
                           type="range" min="0" max={Math.PI * 2} step="0.1"
                           value={asset.r || 0} 
                           onChange={(e) => updateAssetProp(asset.id, 'r', parseFloat(e.target.value))}
-                          className="w-full accent-amber-500"
+                          className="w-full accent-[#0056B3]"
                         />
                       </div>
 
