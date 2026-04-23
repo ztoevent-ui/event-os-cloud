@@ -1,8 +1,20 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+
+const NAV_ITEMS = [
+    { label: 'Dashboard', path: '' },
+    { label: 'Tasks', path: '/tasks' },
+    { label: 'Timeline', path: '/timelines' },
+    { label: 'Schedule', path: '/schedule' },
+    { label: 'Program', path: '/program' },
+    { label: 'Budget', path: '/budget' },
+    { label: 'Vendors', path: '/vendors' },
+    { label: 'Venue', path: '/venue-layout' },
+    { label: '3D', path: '/stage-layout' },
+    { label: 'Reg', path: '/registration' },
+];
 
 export default function ProjectCommand({
     projectId,
@@ -16,80 +28,71 @@ export default function ProjectCommand({
     isTournament: boolean;
 }) {
     const pathname = usePathname();
+    const base = `/projects/${projectId}`;
 
-    const links = [
-        { href: `/projects/${projectId}`, label: 'Dashboard' },
-        { href: `/projects/${projectId}/tasks`, label: 'Tasks' },
-        { href: `/projects/${projectId}/timelines`, label: 'Timeline' },
-        { href: `/projects/${projectId}/schedule`, label: 'Schedule' },
-        { href: `/projects/${projectId}/program`, label: 'Program' },
-        { href: `/projects/${projectId}/budget`, label: 'Budget' },
-        { href: `/projects/${projectId}/vendors`, label: 'Vendors' },
-        { href: `/projects/${projectId}/venue-layout`, label: 'Venue Layout' },
-        { href: `/projects/${projectId}/stage-layout`, label: '3D Layout' },
-        { href: `/projects/${projectId}/registration`, label: 'Registration' },
-    ];
-
-    if (isTournament) {
-        links.push({ href: `/projects/${projectId}/registration#tournament`, label: 'Public Page' });
-    }
-
-    const basePath = `/projects/${projectId}`;
+    const allItems = isTournament
+        ? [...NAV_ITEMS, { label: 'Pub', path: '/registration#tournament' }]
+        : NAV_ITEMS;
 
     return (
-        <nav className="print:hidden fixed top-0 w-full z-50 bg-black/90 backdrop-blur-md border-b border-[#1c1c1c]">
-            <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center h-14 gap-2">
+        <>
+            <style>{`
+                .zto-nav::-webkit-scrollbar { display: none; }
+                .zto-nav { scrollbar-width: none; }
+            `}</style>
+            <nav className="print:hidden fixed top-0 left-0 right-0 z-50 h-12 flex items-center bg-[#0a0a0a] border-b border-white/[0.06]" style={{ fontFamily: "'Urbanist','Inter',sans-serif" }}>
+                <div className="flex items-center h-full w-full px-3 gap-1 overflow-hidden">
+
                     {/* Logo */}
-                    <Link href="/" className="flex items-center gap-2.5 mr-4 shrink-0">
+                    <Link href="/" className="shrink-0 flex items-center gap-2 mr-2 pr-3 border-r border-white/10">
                         <img
                             src="https://zihjzbweasaqqbwilshx.supabase.co/storage/v1/object/public/logo/icon.png.JPG"
                             alt="ZTO"
-                            className="w-8 h-8 object-contain rounded-lg"
+                            className="w-6 h-6 rounded object-cover"
                         />
-                        <span className="text-white font-black text-sm tracking-wide hidden lg:block">ZTO Event OS</span>
+                        <span className="text-white/80 font-bold text-[13px] tracking-tight hidden sm:block">ZTO</span>
                     </Link>
 
-                    {/* Nav links */}
-                    <div className="flex items-center gap-0.5 flex-1 overflow-x-auto no-scrollbar">
-                        {links.map((link) => {
-                            const exactPath = link.href.split('#')[0];
-                            const isActive =
-                                link.href.endsWith(`/projects/${projectId}`)
-                                    ? pathname === basePath
-                                    : pathname.startsWith(exactPath) && exactPath !== basePath;
+                    {/* Nav tabs — scrollable, no scrollbar */}
+                    <div className="zto-nav flex items-center gap-0.5 flex-1 overflow-x-auto">
+                        {allItems.map(item => {
+                            const href = `${base}${item.path}`;
+                            const exactPath = href.split('#')[0];
+                            const isActive = item.path === ''
+                                ? pathname === base
+                                : pathname.startsWith(exactPath) && exactPath !== base;
 
                             return (
                                 <Link
-                                    key={link.href}
-                                    href={link.href}
-                                    className={`px-3 py-1.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${
+                                    key={href}
+                                    href={href}
+                                    className={`shrink-0 px-3 py-1 rounded-md text-[13px] font-semibold transition-all whitespace-nowrap ${
                                         isActive
                                             ? 'bg-[#0056B3] text-white'
-                                            : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                                            : 'text-white/45 hover:text-white/80 hover:bg-white/5'
                                     }`}
                                 >
-                                    {link.label}
+                                    {item.label}
                                 </Link>
                             );
                         })}
                     </div>
 
-                    {/* Right side */}
-                    <div className="flex items-center gap-3 shrink-0 ml-2">
+                    {/* Right */}
+                    <div className="shrink-0 flex items-center gap-3 ml-2 pl-3 border-l border-white/10">
                         <Link
                             href="/projects"
-                            className="flex items-center gap-1.5 text-xs font-semibold text-zinc-500 hover:text-white transition-colors"
+                            className="flex items-center gap-1.5 text-[12px] font-medium text-white/35 hover:text-white/70 transition-colors whitespace-nowrap"
                         >
                             <i className="fa-solid fa-arrow-left text-[10px]" />
                             Back to Events
                         </Link>
-                        <div className="w-7 h-7 rounded-full bg-[#0056B3]/20 border border-[#0056B3]/40 flex items-center justify-center text-[#4da3ff] text-[10px] font-black">
+                        <div className="w-6 h-6 rounded-full bg-[#0056B3] flex items-center justify-center text-white text-[10px] font-black">
                             JD
                         </div>
                     </div>
                 </div>
-            </div>
-        </nav>
+            </nav>
+        </>
     );
 }

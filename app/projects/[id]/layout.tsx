@@ -18,17 +18,18 @@ export default async function ProjectLayout({
 
     return (
         <PrintProvider>
-            <div className="min-h-screen bg-[#050505] text-white selection:bg-[#0056B3] selection:text-white" style={{ fontFamily: "'Urbanist', 'Inter', sans-serif" }}>
+            <div className="min-h-screen bg-[#080808] text-white selection:bg-[#0056B3] selection:text-white">
                 <ProjectCommand
                     projectId={projectId}
                     projectName={project?.name || ''}
                     projectStatus={project?.status || 'PLANNING'}
                     isTournament={isTournament}
                 />
-
-                {/* Main Content */}
-                <main className="pt-16 print:pt-0 px-4 sm:px-6 lg:px-8 print:px-0 print:max-w-none mx-auto max-w-[1400px] pb-16 print:pb-0">
-                    {children}
+                {/* pt-12 = 48px nav height */}
+                <main className="pt-12 print:pt-0">
+                    <div className="px-6 lg:px-10 py-7 max-w-[1440px] mx-auto pb-16 print:px-0 print:py-0">
+                        {children}
+                    </div>
                 </main>
             </div>
         </PrintProvider>
