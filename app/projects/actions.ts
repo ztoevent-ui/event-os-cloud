@@ -192,7 +192,10 @@ export async function createVendor(formData: FormData) {
     revalidatePath(`/projects/${project_id}`);
 }
 
-export async function deleteVendor(id: string, project_id: string) {
+export async function deleteVendor(formData: FormData) {
+    const id = formData.get('id') as string;
+    const project_id = formData.get('project_id') as string;
+
     const { error } = await supabase.from('vendors').delete().eq('id', id);
     if (error) console.error('Error deleting vendor:', error);
     revalidatePath(`/projects/${project_id}/vendors`);

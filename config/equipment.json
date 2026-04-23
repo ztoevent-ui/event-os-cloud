@@ -1,44 +1,114 @@
 [
   {
-    "id": "vis-p3-led",
-    "name": "P3 Indoor High-Refresh LED Wall",
-    "category": "Visual",
-    "image_path": "https://images.unsplash.com/photo-1542204165-65bf26472b9b?q=80&w=2674&auto=format&fit=crop",
-    "specifications": "Pitch: 3mm | Refresh Rate: 3840Hz | Brightness: 1200nits | Seamless Cabinet Assembly"
+    "id": "cabin-office",
+    "name": "Cabin Office",
+    "category": "Structures",
+    "image_path": "/assets/images/equipment/Cabin Office.JPG",
+    "specifications": "Professional grade event equipment deployed by ZTO Event."
   },
   {
-    "id": "vis-p4-outdoor",
-    "name": "P4 Outdoor Waterproof LED Screen",
-    "category": "Visual",
-    "image_path": "https://upload.wikimedia.org/wikipedia/commons/4/4e/LED_Screen_at_a_concert.jpg",
-    "specifications": "Pitch: 4mm | IP65 Rating | Brightness: 5500nits | Perfect for Day Events"
+    "id": "canopy",
+    "name": "Canopy",
+    "category": "Structures",
+    "image_path": "/assets/images/equipment/Canopy.MP4",
+    "specifications": "Professional grade event equipment deployed by ZTO Event."
   },
   {
-    "id": "aud-line-array",
-    "name": "Dual 10\" Active Line Array System",
+    "id": "digital-mixer-touchscreen-panel",
+    "name": "Digital Mixer Touchscreen Panel",
     "category": "Audio",
-    "image_path": "https://images.unsplash.com/photo-1516280440502-a27ddc5ddba0?q=80&w=2670&auto=format&fit=crop",
-    "specifications": "1200W RMS per unit | DSP Integrated | 120° Horizontal Coverage | Concert-Grade"
+    "image_path": "/assets/images/equipment/Digital Mixer Touchscreen Panel.JPG",
+    "specifications": "Professional grade event equipment deployed by ZTO Event."
   },
   {
-    "id": "aud-digital-mixer",
-    "name": "32-Channel Digital Mixing Console",
+    "id": "digital-mixer",
+    "name": "Digital Mixer",
     "category": "Audio",
-    "image_path": "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?q=80&w=2670&auto=format&fit=crop",
-    "specifications": "32 Mic Preamps | 16 Mix Buses | Motorized Faders | Multi-track Recording Interface"
+    "image_path": "/assets/images/equipment/Digital Mixer.JPG",
+    "specifications": "Professional grade event equipment deployed by ZTO Event."
   },
   {
-    "id": "lgt-moving-head",
-    "name": "380W Beam Moving Head Light",
-    "category": "Lighting",
-    "image_path": "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=2670&auto=format&fit=crop",
-    "specifications": "Lamp: 380W | Color Wheel: 14 colors | Gobo Wheel: 17 gobos | 8-Facet Prism"
+    "id": "genset-base-lighting",
+    "name": "Genset Base Lighting",
+    "category": "Power & Lighting",
+    "image_path": "/assets/images/equipment/Genset Base Lighting.JPG",
+    "specifications": "Professional grade event equipment deployed by ZTO Event."
   },
   {
-    "id": "lgt-led-par",
-    "name": "54x3W RGBW LED Wash PAR",
-    "category": "Lighting",
-    "image_path": "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?q=80&w=2670&auto=format&fit=crop",
-    "specifications": "54x3W LEDs | Seamless Color Mixing | Strobe & Dimming | DMX512 Control"
+    "id": "genset",
+    "name": "Genset",
+    "category": "Power & Lighting",
+    "image_path": "/assets/images/equipment/Genset.JPG",
+    "specifications": "Professional grade event equipment deployed by ZTO Event."
+  },
+  {
+    "id": "marquee-tent-for-ceremony",
+    "name": "Marquee Tent for Ceremony",
+    "category": "Structures",
+    "image_path": "/assets/images/equipment/Marquee Tent for Ceremony.JPG",
+    "specifications": "Professional grade event equipment deployed by ZTO Event."
+  },
+  {
+    "id": "marquee-tent-with-white-top-canvas",
+    "name": "Marquee tent with White Top Canvas",
+    "category": "Structures",
+    "image_path": "/assets/images/equipment/Marquee tent with White Top Canvas.JPG",
+    "specifications": "Professional grade event equipment deployed by ZTO Event."
+  },
+  {
+    "id": "office-table",
+    "name": "Office Table",
+    "category": "Structures",
+    "image_path": "/assets/images/equipment/Office Table.JPG",
+    "specifications": "Professional grade event equipment deployed by ZTO Event."
+  },
+  {
+    "id": "outdoor-p3-9-led-panel-2",
+    "name": "Outdoor P3.9 LED Panel 2",
+    "category": "Visual",
+    "image_path": "/assets/images/equipment/Outdoor P3.9 LED Panel 2.MOV",
+    "specifications": "Professional grade event equipment deployed by ZTO Event."
+  },
+  {
+    "id": "outdoor-p3-9-led-panel",
+    "name": "Outdoor P3.9 LED Panel",
+    "category": "Visual",
+    "image_path": "/assets/images/equipment/Outdoor P3.9 LED Panel.JPG",
+    "specifications": "Professional grade event equipment deployed by ZTO Event."
+  },
+  {
+    "id": "soundman",
+    "name": "Soundman",
+    "category": "Audio",
+    "image_path": "/assets/images/equipment/Soundman.JPG",
+    "specifications": "Professional grade event equipment deployed by ZTO Event."
+  },
+  {
+    "id": "staging-system",
+    "name": "Staging System",
+    "category": "Structures",
+    "image_path": "/assets/images/equipment/Staging System.JPG",
+    "specifications": "Professional grade event equipment deployed by ZTO Event."
+  },
+  {
+    "id": "temporary-office",
+    "name": "Temporary Office",
+    "category": "Structures",
+    "image_path": "/assets/images/equipment/Temporary Office.JPG",
+    "specifications": "Professional grade event equipment deployed by ZTO Event."
+  },
+  {
+    "id": "transparent-top-marquee-tent-for-wedding",
+    "name": "Transparent Top Marquee Tent for Wedding",
+    "category": "Structures",
+    "image_path": "/assets/images/equipment/Transparent Top Marquee Tent for Wedding.JPG",
+    "specifications": "Professional grade event equipment deployed by ZTO Event."
+  },
+  {
+    "id": "vvip-area-sofa-carpet-coffee-table",
+    "name": "VVIP Area, Sofa, Carpet, Coffee Table",
+    "category": "Furniture",
+    "image_path": "/assets/images/equipment/VVIP Area%2C Sofa%2C Carpet%2C Coffee Table.JPG",
+    "specifications": "Professional grade event equipment deployed by ZTO Event."
   }
 ]

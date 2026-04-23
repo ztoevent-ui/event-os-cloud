@@ -1071,7 +1071,7 @@ function MemoirsSection() {
                   ) : (
                     <img
                       src={project.src}
-                      alt={project.name}
+                      alt={project.tag}
                       style={{
                         width: '100%',
                         height: '100%',
@@ -1136,7 +1136,7 @@ function MemoirsSection() {
                         lineHeight: 1.3,
                       }}
                     >
-                      {project.name}
+                      {project.tag}
                     </h3>
                   </div>
                 </div>
@@ -1449,22 +1449,41 @@ function EquipmentSection() {
                      backgroundSize: '20px 20px', zIndex: 0
                 }} />
                 
-                <img
-                  src={item.image_path}
-                  alt={item.name}
-                  className="equip-img"
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                    position: 'relative',
-                    zIndex: 1,
-                    transition: 'transform 0.5s ease',
-                  }}
-                  onError={(e) => {
-                     (e.target as HTMLImageElement).style.display = 'none';
-                  }}
-                />
+                {item.image_path.toLowerCase().match(/\.(mp4|mov|webm)$/) ? (
+                  <video
+                    src={item.image_path}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="equip-img"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      position: 'relative',
+                      zIndex: 1,
+                      transition: 'transform 0.5s ease',
+                    }}
+                  />
+                ) : (
+                  <img
+                    src={item.image_path}
+                    alt={item.name}
+                    className="equip-img"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      position: 'relative',
+                      zIndex: 1,
+                      transition: 'transform 0.5s ease',
+                    }}
+                    onError={(e) => {
+                       (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                )}
                 <div
                   style={{
                     position: 'absolute',
