@@ -56,17 +56,48 @@ const projectCategories = [
   {
     id: 'bif-bcot',
     name: 'BIF/BCOT Turnaround Village 2025',
-    items: [] // Placeholder
+    items: [
+      { id: 'b1', tag: 'Event', src: '/projects/bif-bcot/IMG_2184.JPG', size: 'wide' },
+      { id: 'b2', tag: 'Event', src: '/projects/bif-bcot/IMG_2338.JPG', size: 'tall' },
+      { id: 'b3', tag: 'Event', src: '/projects/bif-bcot/IMG_2342.JPG', size: 'normal' },
+      { id: 'b4', tag: 'Event', src: '/projects/bif-bcot/IMG_2353.JPG', size: 'wide' },
+      { id: 'b5', tag: 'Event', src: '/projects/bif-bcot/IMG_1391.JPG', size: 'tall' },
+      { id: 'b6', tag: 'Event', src: '/projects/bif-bcot/IMG_1402.JPG', size: 'normal' },
+      { id: 'b7', tag: 'Event', src: '/projects/bif-bcot/620E535E-B75F-4DF6-9521-C692B7209B2E.JPG', size: 'wide' },
+      { id: 'b8', tag: 'Event', src: '/projects/bif-bcot/C2E3D4B4-1230-44DD-A1BD-BE0B84913096.JPG', size: 'tall' },
+      { id: 'b9', tag: 'Video', src: '/projects/bif-bcot/IMG_0953.MOV', size: 'wide', isVideo: true },
+      { id: 'b10', tag: 'Video', src: '/projects/bif-bcot/IMG_3925.MOV', size: 'normal', isVideo: true },
+    ]
   },
   {
     id: 'traffic-game',
     name: 'Traffic Game 2025',
-    items: [] // Placeholder
+    items: [
+      { id: 't1', tag: 'Activation', src: '/projects/traffic-game/581811683_1388918333244676_7664203200529167992_n.jpg', size: 'wide' },
+      { id: 't2', tag: 'Activation', src: '/projects/traffic-game/582554008_1388918346578008_6998829879180142040_n.jpg', size: 'tall' },
+      { id: 't3', tag: 'Activation', src: '/projects/traffic-game/583737698_1375055787963389_4407051469548078496_n.jpg', size: 'normal' },
+      { id: 't4', tag: 'Activation', src: '/projects/traffic-game/584721713_1375054944630140_6761082482398155776_n.jpg', size: 'wide' },
+      { id: 't5', tag: 'Activation', src: '/projects/traffic-game/583799810_1375084601293841_1669587957117965103_n.jpg', size: 'tall' },
+      { id: 't6', tag: 'Activation', src: '/projects/traffic-game/584305898_1375054857963482_732061316833505127_n.jpg', size: 'normal' },
+      { id: 't7', tag: 'Activation', src: '/projects/traffic-game/582473709_1375056061296695_5142125461435085132_n.jpg', size: 'wide' },
+      { id: 't8', tag: 'Activation', src: '/projects/traffic-game/583264126_1375055847963383_2672852954096988043_n.jpg', size: 'tall' },
+      { id: 't9', tag: 'Activation', src: '/projects/traffic-game/583610918_1375055907963377_5018647555033455712_n.jpg', size: 'normal' },
+      { id: 't10', tag: 'Activation', src: '/projects/traffic-game/583839511_1375055197963448_5887674135412951933_n.jpg', size: 'wide' },
+      { id: 't11', tag: 'Activation', src: '/projects/traffic-game/585286965_1375084281293873_3879138848518003013_n.jpg', size: 'tall' },
+      { id: 't12', tag: 'Activation', src: '/projects/traffic-game/584300962_1375055651296736_2847499902045087735_n.jpg', size: 'normal' },
+    ]
   },
   {
     id: 'petronas-langkawi',
     name: 'Petronas Langkawi Le Tour De 2025',
-    items: [] // Placeholder
+    items: [
+      { id: 'l1', tag: 'Motorsport', src: '/projects/petronas-langkawi/01-8.webp', size: 'wide' },
+      { id: 'l2', tag: 'Motorsport', src: '/projects/petronas-langkawi/02-10.webp', size: 'tall' },
+      { id: 'l3', tag: 'Motorsport', src: '/projects/petronas-langkawi/08-5.webp', size: 'normal' },
+      { id: 'l4', tag: 'Motorsport', src: '/projects/petronas-langkawi/10-6.webp', size: 'wide' },
+      { id: 'l5', tag: 'Motorsport', src: '/projects/petronas-langkawi/21-5.webp', size: 'tall' },
+      { id: 'l6', tag: 'Motorsport', src: '/projects/petronas-langkawi/26-5.webp', size: 'normal' },
+    ]
   }
 ];
 
