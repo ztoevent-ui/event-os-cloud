@@ -48,13 +48,18 @@ export default function TasksPage({ params }: { params: Promise<{ id: string }> 
     };
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500">
-            <div className={`flex justify-between items-center bg-zinc-900 border ${theme.border} p-6 rounded-2xl shadow-sm print:hidden`}>
-                <div>
-                    <h1 className="text-3xl font-serif font-bold text-white mb-2">Tasks</h1>
-                    <p className="text-zinc-400 font-medium">Manage project deliverables and track progress.</p>
+        <div className="space-y-5 animate-in fade-in duration-500">
+            <div className={`print:hidden flex items-center justify-between bg-[#0d0d0d] border border-white/[0.07] px-6 py-4 rounded-2xl`}>
+                <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 bg-[#3b82f6]/10 border border-[#3b82f6]/30 rounded-xl flex items-center justify-center text-[#3b82f6]">
+                        <i className="fa-solid fa-check-double" />
+                    </div>
+                    <div>
+                        <h1 className="text-base font-black text-white tracking-tight">Tasks</h1>
+                        <p className="text-[11px] text-zinc-600">Manage project deliverables and track progress</p>
+                    </div>
                 </div>
-                <div className="flex gap-4">
+                <div className="flex gap-2">
                     <PrintReportButton title="Task Board" />
                     <AddTaskButton projectId={id} isWedding={isWedding} />
                 </div>

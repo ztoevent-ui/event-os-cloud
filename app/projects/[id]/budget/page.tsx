@@ -35,7 +35,12 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
         setLoading(false);
     };
 
-    if (loading) return <div className="p-20 text-center animate-pulse">Syncing Treasury Data...</div>;
+    if (loading) return (
+        <div className="flex items-center gap-3 justify-center h-52 text-zinc-600 text-sm">
+            <span className="w-4 h-4 rounded-full border-2 border-zinc-800 border-t-[#f59e0b] animate-spin" />
+            Syncing Treasury Data…
+        </div>
+    );
 
     const isWedding = project?.type === 'wedding' || project?.type === 'wedding_fair';
     const theme = isWedding ? {
@@ -55,40 +60,43 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
     const totalIncome = income.reduce((sum, item) => sum + Number(item.amount), 0);
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500">
+        <div className="space-y-5 animate-in fade-in duration-500">
             {/* Print Only Header */}
             <div className="hidden print:flex items-center justify-between border-b-2 border-zinc-200 pb-6 print:pb-2 mb-8 print:mb-2 relative">
                 <div className="flex items-center gap-3">
-                    <img src="https://zihjzbweasaqqbwilshx.supabase.co/storage/v1/object/public/logo/icon.png.JPG" alt="ZTO Logo" crossOrigin="anonymous" className="w-12 h-12 print:w-8 print:h-8 object-contain" />
-                    <span className="font-black text-xl print:text-sm text-zinc-900 tracking-tighter uppercase">ZTO Event OS</span>
+                    <img src="https://zihjzbweasaqqbwilshx.supabase.co/storage/v1/object/public/logo/icon.png.JPG" alt="ZTO Logo" crossOrigin="anonymous" className="w-8 h-8 object-contain" />
+                    <span className="font-black text-sm text-zinc-900 tracking-tighter uppercase">ZTO Event OS</span>
                 </div>
-                <div className="text-center">
-                    <p className="text-2xl print:text-lg font-black text-zinc-900 uppercase tracking-[0.2em] italic">Budget Report</p>
-                    <p className="text-[10px] print:text-[8px] text-zinc-500 font-bold uppercase tracking-widest mt-1 print:mt-0">Operational Financial Disclosure</p>
-                </div>
-                <div className="flex items-center justify-end">
+                <p className="text-lg font-black text-zinc-900 uppercase tracking-[0.2em]">Budget Report</p>
+                <div>
                     {logoUrl ? (
-                        <img src={logoUrl} alt="Event Logo" crossOrigin="anonymous" className="w-16 h-16 print:w-10 print:h-10 object-contain" />
+                        <img src={logoUrl} alt="Event Logo" crossOrigin="anonymous" className="w-10 h-10 object-contain" />
                     ) : (
-                        <div className="w-16 h-16 print:w-10 print:h-10 bg-zinc-100 rounded-lg border border-zinc-200 flex items-center justify-center text-[8px] print:text-[6px] text-zinc-400 font-bold uppercase text-center p-2">Project Logo</div>
+                        <div className="w-10 h-10 bg-zinc-100 rounded-lg border border-zinc-200 flex items-center justify-center text-[6px] text-zinc-400 font-bold uppercase text-center p-1">Logo</div>
                     )}
                 </div>
             </div>
 
-            <div className={`flex justify-between items-center bg-zinc-900 border ${theme.border} p-6 rounded-2xl shadow-sm print:hidden`}>
-                <div>
-                    <h1 className="text-3xl font-serif font-bold text-white mb-2">Budget Tracker</h1>
-                    <p className="text-zinc-400 font-medium">Monitor expenses and adhere to financial goals.</p>
+            {/* Page Header */}
+            <div className="print:hidden flex items-center justify-between bg-[#0d0d0d] border border-white/[0.07] px-6 py-4 rounded-2xl">
+                <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 bg-[#f59e0b]/10 border border-[#f59e0b]/30 rounded-xl flex items-center justify-center text-[#f59e0b]">
+                        <i className="fa-solid fa-file-invoice-dollar" />
+                    </div>
+                    <div>
+                        <h1 className="text-base font-black text-white tracking-tight">Budget Tracker</h1>
+                        <p className="text-[11px] text-zinc-600">Monitor expenses and financial goals</p>
+                    </div>
                 </div>
-                <div className="flex gap-4">
+                <div className="flex gap-2">
                     <PrintReportButton title="Budget Report" />
                     <CopyBudgetButton projectId={id} />
                     <AddBudgetButton projectId={id} isWedding={isWedding} />
                 </div>
             </div>
 
-            {/* Overview Cards - Fixed for Print Col Order */}
-            <div className="grid grid-cols-1 md:grid-cols-3 print:flex print:flex-row print:w-full gap-6 print:gap-2">
+            {/* Overview Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 print:flex print:flex-row print:w-full gap-4 print:gap-2">
                 <div className="bg-zinc-900/50 border border-zinc-800 p-6 print:p-2 rounded-2xl print:bg-white print:border-zinc-200 shadow-sm transition-all print:w-1/3 print:shrink-0">
                     <h3 className="text-zinc-400 mb-2 font-black text-[10px] print:text-[7px] uppercase tracking-widest print:text-zinc-500">Total Expenses</h3>
                     <div className="text-3xl print:text-base font-mono font-black text-white print:text-red-600">RM {totalSpends.toFixed(2)}</div>

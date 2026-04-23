@@ -8,7 +8,7 @@ const NAV_ITEMS = [
     { label: 'Tasks', path: '/tasks' },
     { label: 'Timeline', path: '/timelines' },
     { label: 'Schedule', path: '/schedule' },
-    { label: 'Program', path: '/program' },
+    { label: 'Tentative Program', path: '/program' },
     { label: 'Budget', path: '/budget' },
     { label: 'Vendors', path: '/vendors' },
     { label: 'Venue', path: '/venue-layout' },

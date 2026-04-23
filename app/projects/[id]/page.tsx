@@ -58,47 +58,52 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
     const isEnded = diffDays != null && diffDays <= 0;
     const total = stats.pending + stats.done;
     const progress = total > 0 ? Math.round((stats.done / total) * 100) : 0;
+    const isTournament = project?.type === 'tournament';
 
     return (
         <div className="flex flex-col gap-5">
-
-            {/* ──────────── COMPACT TOP STRIP ──────────────────────────── */}
-            <div className="relative rounded-xl border border-white/[0.07] bg-[#0d0d0d] overflow-hidden">
+            {/* ──────────── SPACIOUS HERO SECTION ──────────── */}
+            <div className="relative rounded-3xl border border-white/[0.07] bg-[#0d0d0d] overflow-hidden">
                 {/* subtle glow */}
-                <div className="absolute -top-10 left-20 w-72 h-32 bg-[#0056B3]/25 rounded-full blur-[60px] pointer-events-none" />
-                <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 py-5">
+                <div className="absolute -top-10 left-20 w-[400px] h-[400px] bg-[#0056B3]/20 rounded-full blur-[100px] pointer-events-none" />
+                <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6 p-8 lg:p-10">
                     <div className="flex-1 min-w-0">
-                        <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                            <span className={`inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.15em] px-2.5 py-0.5 rounded-full border ${isEnded ? 'text-zinc-600 border-zinc-800 bg-zinc-900' : 'text-[#4da3ff] border-[#0056B3]/40 bg-[#0056B3]/10'}`}>
-                                {!isEnded && <span className="w-1.5 h-1.5 rounded-full bg-[#4da3ff] animate-pulse" />}
+                        <div className="flex flex-wrap items-center gap-2 mb-3">
+                            <span className="px-2.5 py-1 rounded bg-zinc-800 text-[10px] font-black tracking-widest text-white uppercase shadow-sm">
                                 {project?.status || 'PLANNING'}
                             </span>
-                            {project?.type && (
-                                <span className="text-[10px] font-bold uppercase text-zinc-600 px-2 py-0.5 bg-white/[0.04] rounded-full border border-white/[0.06]">
-                                    {project.type.replace(/_/g, ' ')}
+                            {isTournament && (
+                                <span className="px-2.5 py-1 rounded border border-[#0056B3]/40 text-[#0056B3] bg-[#0056B3]/10 text-[10px] font-black tracking-widest uppercase shadow-sm flex items-center gap-1.5">
+                                    <i className="fa-solid fa-trophy text-[9px]" /> TOURNAMENT
+                                </span>
+                            )}
+                            {project?.type === 'wedding' && (
+                                <span className="px-2.5 py-1 rounded border border-rose-500/40 text-rose-500 bg-rose-500/10 text-[10px] font-black tracking-widest uppercase shadow-sm flex items-center gap-1.5">
+                                    <i className="fa-solid fa-rings-wedding text-[9px]" /> WEDDING
                                 </span>
                             )}
                         </div>
-                        <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight break-words">
+                        <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-[1.1] break-words mb-4">
                             {project?.name || 'Untitled Project'}
                         </h1>
-                        <div className="flex flex-wrap gap-3 mt-1.5 text-[11px] text-zinc-500 font-mono">
-                            {project?.start_date && <span>Start <span className="text-zinc-400">{fmt(project.start_date)}</span></span>}
-                            {project?.end_date && <span>End <span className="text-zinc-400">{fmt(project.end_date)}</span></span>}
-                            {project?.venue && <span>📍 <span className="text-zinc-400">{project.venue}</span></span>}
+                        <div className="flex flex-wrap gap-5 text-[12px] text-zinc-400 font-mono">
+                            {project?.start_date && <span>START <span className="text-white ml-1">{fmt(project.start_date)}</span></span>}
+                            {project?.end_date && <span>END <span className="text-white ml-1">{fmt(project.end_date)}</span></span>}
+                            {project?.venue && <span>📍 <span className="text-white ml-1">{project.venue}</span></span>}
                         </div>
                     </div>
 
                     {/* Right: countdown + print */}
-                    <div className="flex items-center gap-5 shrink-0 print:hidden">
+                    <div className="flex items-center gap-8 shrink-0 print:hidden bg-black/40 p-6 rounded-2xl border border-white/[0.05]">
                         {diffDays != null && !isEnded && (
                             <div className="text-right">
-                                <div className="text-[9px] font-black text-zinc-700 uppercase tracking-widest">T-Minus</div>
-                                <div className="text-4xl font-black text-white tabular-nums leading-none">{diffDays}</div>
-                                <div className="text-[9px] font-black text-zinc-700 uppercase tracking-widest">days</div>
+                                <div className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-1">T-Minus</div>
+                                <div className="text-6xl font-black text-white tabular-nums leading-none tracking-tighter">{diffDays}</div>
+                                <div className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mt-1">days to go</div>
                             </div>
                         )}
-                        {isEnded && <div className="text-lg font-black text-zinc-700">Ended</div>}
+                        {isEnded && <div className="text-2xl font-black text-zinc-600 uppercase tracking-widest">Ended</div>}
+                        <div className="h-16 w-px bg-white/[0.06] mx-2" />
                         <PrintReportButton title="Project Summary" />
                     </div>
                 </div>
@@ -144,13 +149,13 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
             {/* ──────────── ALL MODULES (bold card grid) ───────────────── */}
             <div className="print:hidden">
                 <div className="text-[9px] font-black text-zinc-700 uppercase tracking-[0.18em] mb-3">All Modules</div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                     {MODULES.map(mod => {
                         const tagColor = mod.color;
                         return (
                             <Link key={mod.path} href={`/projects/${id}${mod.path}`} className="group block">
                                 <div
-                                    className="relative h-full flex flex-col p-5 rounded-2xl border transition-all duration-200 overflow-hidden"
+                                    className="relative h-full flex flex-col p-6 rounded-2xl border transition-all duration-200 overflow-hidden cursor-pointer"
                                     style={{
                                         background: '#0d0d0d',
                                         borderColor: 'rgba(255,255,255,0.07)',
@@ -169,7 +174,7 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
                                         style={{ background: mod.color }} />
 
                                     {/* Tag */}
-                                    <div className="mb-4">
+                                    <div className="mb-5">
                                         <span
                                             className="text-[9px] font-black uppercase tracking-[0.15em] px-2 py-0.5 rounded-sm"
                                             style={{ color: mod.color, background: `${mod.color}18`, border: `1px solid ${mod.color}30` }}
@@ -180,7 +185,7 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
 
                                     {/* Icon */}
                                     <div
-                                        className="w-10 h-10 rounded-xl flex items-center justify-center text-lg mb-4 transition-transform group-hover:scale-110"
+                                        className="w-11 h-11 rounded-xl flex items-center justify-center text-xl mb-5 transition-transform group-hover:scale-110"
                                         style={{ background: `${mod.color}18`, color: mod.color, border: `1px solid ${mod.color}30` }}
                                     >
                                         <i className={`fa-solid ${mod.icon}`} />
@@ -188,13 +193,13 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
 
                                     {/* Text */}
                                     <div className="flex-1">
-                                        <div className="text-[14px] font-bold text-white leading-snug mb-1 group-hover:text-white transition-colors">{mod.label}</div>
-                                        <div className="text-[11px] text-zinc-600 leading-snug">{mod.desc}</div>
+                                        <div className="text-[14px] font-bold text-white leading-snug mb-1.5 group-hover:text-white transition-colors">{mod.label}</div>
+                                        <div className="text-[11px] text-zinc-500 leading-snug">{mod.desc}</div>
                                     </div>
 
                                     {/* Arrow */}
-                                    <div className="mt-4 flex justify-end">
-                                        <span className="text-zinc-700 group-hover:text-zinc-400 transition-colors text-sm">→</span>
+                                    <div className="mt-5 flex justify-end">
+                                        <span className="text-zinc-600 group-hover:text-zinc-300 transition-colors text-base">→</span>
                                     </div>
                                 </div>
                             </Link>

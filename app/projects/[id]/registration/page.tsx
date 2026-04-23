@@ -253,21 +253,27 @@ export default function RegistrationStudio() {
     };
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8">
-                <div>
-                    <h1 className="text-3xl font-black text-white italic uppercase tracking-tighter">Registration Studio</h1>
-                    <p className="text-zinc-500">Design your form, build your tournament page & manage submissions</p>
+        <div className="space-y-5">
+            {/* Page Header */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-[#0d0d0d] border border-white/[0.07] px-6 py-4 rounded-2xl print:hidden">
+                <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 bg-[#a855f7]/10 border border-[#a855f7]/30 rounded-xl flex items-center justify-center text-[#a855f7]">
+                        <i className="fa-solid fa-id-card" />
+                    </div>
+                    <div>
+                        <h1 className="text-base font-black text-white tracking-tight">Registration Studio</h1>
+                        <p className="text-[11px] text-zinc-600">Design your form, build tournament page & manage submissions</p>
+                    </div>
                 </div>
                 {activeTab === 'submissions' && (
-                    <div className="print:hidden">
+                    <div className="print:hidden mt-3 sm:mt-0">
                         <PrintReportButton title="Registration Submissions" />
                     </div>
                 )}
             </div>
 
             {/* ── Tabs ──────────────────────────────────────────────── */}
-            <div className="flex gap-1 border-b border-zinc-800 pb-0">
+            <div className="flex gap-1 border-b border-zinc-800/60 pb-0">
                 {[
                     { id: 'settings',    label: 'Design & Settings',  icon: 'fa-sliders' },
                     { id: 'tournament',  label: 'Tournament Page',     icon: 'fa-globe' },

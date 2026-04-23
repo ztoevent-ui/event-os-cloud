@@ -229,7 +229,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
   }
 
   return (
-    <div className={isKiosk ? "fixed inset-0 z-[100] bg-[#050505] h-screen w-screen overflow-y-auto px-4 py-8 md:px-12 md:py-12 pb-32 transition-all duration-500 print:relative print:inset-auto" : "space-y-5 pb-20 overflow-x-hidden transition-all duration-500"}>
+    <div className={isKiosk ? "fixed inset-0 z-[100] bg-[#050505] h-screen w-screen overflow-y-auto px-4 py-8 md:px-12 md:py-12 pb-32 print:relative print:inset-auto" : "pb-24"}>
       
       {isKiosk && (
           <div className="fixed bottom-8 right-8 z-[200]">
@@ -252,46 +252,46 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
         <div style={{ height: '1px', background: '#ccc' }} />
       </div>
 
-      {/* Premium Header — hidden on print */}
-      <div className={`print:hidden flex flex-col xl:flex-row justify-between items-start xl:items-center bg-[#0d0d0d] backdrop-blur-2xl px-6 py-5 rounded-2xl border border-white/[0.07] relative z-10 ${isKiosk ? 'mb-8' : ''}`}>
-        <div>
-          <div className="flex items-center gap-3 mb-1">
-             <div className={`w-9 h-9 ${theme.bg} rounded-xl flex items-center justify-center text-white`}>
-                <i className="fa-solid fa-list-check text-base"></i>
-             </div>
-             <h1 className="text-xl font-black tracking-tight text-white uppercase">Tentative Program</h1>
+      {/* Controls Bar — sits in normal document flow, always visible */}
+      <div className="print:hidden" style={{ display: isKiosk ? 'none' : 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap', background: '#111', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '12px 20px', marginBottom: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ width: '32px', height: '32px', background: 'rgba(0,86,179,0.12)', border: '1px solid rgba(0,86,179,0.3)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4da3ff', flexShrink: 0 }}>
+            <i className="fa-solid fa-list-ol" style={{ fontSize: '12px' }} />
           </div>
-          <p className="text-zinc-500 text-sm ml-12">Live event sequence control and production cues</p>
+          <div>
+            <h1 style={{ margin: 0, fontSize: '14px', fontWeight: 900, color: 'white', textTransform: 'uppercase', letterSpacing: '0.05em', lineHeight: 1 }}>Tentative Program</h1>
+            <p style={{ margin: 0, fontSize: '10px', color: '#555', marginTop: '3px' }}>Live event sequence control and production cues</p>
+          </div>
         </div>
-        <div className="flex items-center gap-3 mt-4 xl:mt-0 flex-wrap">
-            <div className="flex items-center gap-1 bg-black/50 p-1 rounded-full border border-white/[0.06] mr-1">
-              <button onClick={() => setFontSize('text-xs')} title="Small Text" className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs ${fontSize === 'text-xs' ? 'bg-white text-black' : 'text-zinc-500 hover:text-white'}`}>A-</button>
-              <button onClick={() => setFontSize('text-base')} title="Medium Text" className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-sm ${fontSize === 'text-base' ? 'bg-white text-black' : 'text-zinc-500 hover:text-white'}`}>A</button>
-              <button onClick={() => setFontSize('text-xl')} title="Large Text" className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-base ${fontSize === 'text-xl' ? 'bg-white text-black' : 'text-zinc-500 hover:text-white'}`}>A+</button>
-            </div>
-            {!isKiosk && (
-                <button onClick={() => setIsKiosk(true)} className="h-10 px-5 bg-black hover:bg-zinc-900 text-zinc-400 hover:text-white rounded-full font-black text-[10px] tracking-widest flex items-center gap-2 border border-white/[0.07] transition-all">
-                    <i className="fa-solid fa-expand"></i> KIOSK
-                </button>
-            )}
-            {editMode && hasChanges && (
-                <button
-                  onClick={() => { fetchProjectAndSettings(); fetchProgram(); setEditMode(false); }}
-                  className="h-10 px-5 text-xs font-black rounded-full text-zinc-500 hover:text-white transition-all tracking-widest border border-white/[0.07]"
-                >
-                  DISCARD
-                </button>
-            )}
-            <button
-              onClick={editMode ? saveScript : toggleEditMode}
-              disabled={isSaving}
-              className={`h-10 px-6 text-xs font-black rounded-full transition-all flex items-center gap-2 border tracking-widest ${editMode ? `${theme.bg} text-white border-transparent shadow-[0_0_20px_rgba(0,86,179,0.4)] hover:scale-105 active:scale-95` : `bg-white/[0.04] ${theme.text} border-white/[0.08] hover:bg-white/[0.08]`}`}
-            >
-              <i className={`fa-solid ${isSaving ? 'fa-spinner fa-spin' : editMode ? 'fa-save' : 'fa-pencil'}`}></i>
-              {isSaving ? 'SAVING...' : editMode ? 'SAVE SCRIPT' : 'MODIFY SEQUENCE'}
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          {/* Font size */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '2px', background: 'rgba(0,0,0,0.5)', padding: '4px', borderRadius: '999px', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <button onClick={() => setFontSize('text-xs')} title="Small" style={{ width: '24px', height: '24px', borderRadius: '50%', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px', background: fontSize === 'text-xs' ? 'white' : 'transparent', color: fontSize === 'text-xs' ? 'black' : '#666' }}>A-</button>
+            <button onClick={() => setFontSize('text-base')} title="Medium" style={{ width: '24px', height: '24px', borderRadius: '50%', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px', background: fontSize === 'text-base' ? 'white' : 'transparent', color: fontSize === 'text-base' ? 'black' : '#666' }}>A</button>
+            <button onClick={() => setFontSize('text-xl')} title="Large" style={{ width: '24px', height: '24px', borderRadius: '50%', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontSize: '15px', background: fontSize === 'text-xl' ? 'white' : 'transparent', color: fontSize === 'text-xl' ? 'black' : '#666' }}>A+</button>
+          </div>
+          {/* Kiosk */}
+          <button onClick={() => setIsKiosk(true)} style={{ height: '32px', padding: '0 14px', background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '999px', color: '#888', fontSize: '10px', fontWeight: 900, letterSpacing: '0.1em', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <i className="fa-solid fa-expand" style={{ fontSize: '9px' }} /> KIOSK
+          </button>
+          {/* Discard */}
+          {editMode && hasChanges && (
+            <button onClick={() => { fetchProjectAndSettings(); fetchProgram(); setEditMode(false); }} style={{ height: '32px', padding: '0 14px', background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '999px', color: '#666', fontSize: '10px', fontWeight: 900, letterSpacing: '0.1em', cursor: 'pointer' }}>
+              DISCARD
             </button>
-            <CopyProgramButton projectId={projectId} />
-            <PrintReportButton title="Event Program" />
+          )}
+          {/* Modify / Save */}
+          <button
+            onClick={editMode ? saveScript : toggleEditMode}
+            disabled={isSaving}
+            style={{ height: '32px', padding: '0 18px', background: editMode ? '#0056B3' : 'rgba(255,255,255,0.04)', border: editMode ? '1px solid #0056B3' : '1px solid rgba(255,255,255,0.1)', borderRadius: '999px', color: editMode ? 'white' : '#4da3ff', fontSize: '10px', fontWeight: 900, letterSpacing: '0.1em', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', boxShadow: editMode ? '0 0 20px rgba(0,86,179,0.4)' : 'none' }}
+          >
+            <i className={`fa-solid ${isSaving ? 'fa-spinner fa-spin' : editMode ? 'fa-save' : 'fa-pencil'}`} style={{ fontSize: '9px' }} />
+            {isSaving ? 'SAVING...' : editMode ? 'SAVE SCRIPT' : 'MODIFY SEQUENCE'}
+          </button>
+          <CopyProgramButton projectId={projectId} />
+          <PrintReportButton title="Event Program" />
         </div>
       </div>
 
@@ -300,7 +300,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <table className="w-full text-left border-collapse min-w-[1200px] print:min-w-full print:w-full">
               <thead>
-                <tr className="bg-zinc-900/40 border-b border-white/5 text-[10px] uppercase font-black tracking-[0.2em] text-zinc-500">
+                <tr className="bg-zinc-900 border-b border-white/5 text-[10px] uppercase font-black tracking-[0.2em] text-zinc-400">
                   {editMode && <th className="p-4 w-20 text-center">Ctrls</th>}
                   {columns.map(col => (
                     <ColumnHeader key={`col_${col.id}`} col={col} editMode={editMode} removeColumn={removeColumn} updateColumnWidth={updateColumnWidth} moveColumn={moveColumn} theme={theme} />
