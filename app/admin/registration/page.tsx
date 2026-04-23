@@ -108,15 +108,15 @@ export default function RegistrationAdminPage() {
         update('sponsors', items);
     };
 
-    if (loading) return <div className="min-h-screen bg-black flex items-center justify-center"><i className="fa-solid fa-spinner fa-spin text-4xl text-amber-500" /></div>;
+    if (loading) return <div className="min-h-screen bg-[#050505] flex items-center justify-center"><div className="w-12 h-12 border-2 border-[#0056B3]/30 border-t-[#0056B3] rounded-full animate-spin" /></div>;
 
     return (
-        <div className="min-h-screen bg-black text-white font-sans">
-            <header className="bg-zinc-950 border-b border-white/5 px-8 py-5 flex items-center justify-between sticky top-0 z-50">
+        <div className="min-h-screen bg-[#050505] text-white font-sans">
+            <header className="bg-[#050505]/90 border-b border-[#222] px-8 py-5 flex items-center justify-between sticky top-0 z-50 backdrop-blur-md">
                 <div className="flex items-center gap-6">
-                    <Link href="/" className="text-[10px] font-black text-zinc-600 uppercase tracking-widest hover:text-white transition-colors"><i className="fa-solid fa-arrow-left mr-2" />Home</Link>
+                    <Link href="/dashboard" className="text-[10px] font-black text-zinc-600 uppercase tracking-widest hover:text-white transition-colors"><i className="fa-solid fa-arrow-left mr-2" />Dashboard</Link>
                     <div className="w-px h-6 bg-white/10" />
-                    <h1 className="text-xl font-black uppercase tracking-widest italic">Registration Admin</h1>
+                    <h1 className="text-xl font-black uppercase tracking-widest">Registration Studio</h1>
                 </div>
                 <div className="flex items-center gap-4">
                     {selected && (
@@ -124,7 +124,7 @@ export default function RegistrationAdminPage() {
                             <i className="fa-solid fa-external-link mr-2" />Preview Form
                         </Link>
                     )}
-                    <button onClick={save} disabled={saving} className="px-6 py-2 bg-amber-500 text-black rounded-xl font-black uppercase tracking-widest hover:bg-amber-400 transition-all disabled:opacity-50 text-sm">
+                    <button onClick={save} disabled={saving} className="px-6 py-2 bg-[#0056B3] text-white rounded-xl font-black uppercase tracking-widest hover:bg-[#003d82] shadow-[0_0_15px_rgba(0,86,179,0.3)] transition-all disabled:opacity-50 text-sm">
                         {saving ? <><i className="fa-solid fa-spinner fa-spin mr-2" />Saving...</> : <><i className="fa-solid fa-save mr-2" />Save Changes</>}
                     </button>
                 </div>
@@ -135,7 +135,7 @@ export default function RegistrationAdminPage() {
                     {/* Event Selector */}
                     <div className="flex gap-3">
                         {configs.map(c => (
-                            <button key={c.id} onClick={() => setSelected(c)} className={`px-5 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${selected.id === c.id ? 'bg-amber-500 text-black' : 'bg-zinc-900 text-zinc-500 border border-white/5 hover:border-amber-500/50'}`}>
+                            <button key={c.id} onClick={() => setSelected(c)} className={`px-5 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${selected.id === c.id ? 'bg-[#0056B3] text-white shadow-[0_0_15px_rgba(0,86,179,0.3)]' : 'bg-[#0a0a0a] text-zinc-500 border border-[#222] hover:border-[#0056B3]/50'}`}>
                                 {c.event_name}
                             </button>
                         ))}
@@ -265,9 +265,9 @@ export default function RegistrationAdminPage() {
 
 function Section({ title, icon, children }: { title: string; icon: string; children: React.ReactNode }) {
     return (
-        <div className="bg-zinc-950 border border-white/5 rounded-[2rem] p-8">
-            <h2 className="text-lg font-black uppercase tracking-widest mb-6 flex items-center gap-3">
-                <i className={`fa-solid ${icon} text-amber-500`} />
+        <div className="bg-white/[0.03] border border-[#0056B3]/20 rounded-[2rem] p-10">
+            <h2 className="text-lg font-black uppercase tracking-widest mb-8 flex items-center gap-3">
+                <i className={`fa-solid ${icon} text-[#0056B3]`} />
                 {title}
             </h2>
             {children}
@@ -279,7 +279,7 @@ function AdminField({ label, value, onChange, placeholder }: { label: string; va
     return (
         <div>
             <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-2">{label}</label>
-            <input type="text" value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-3 text-white text-sm font-bold focus:outline-none focus:border-amber-500 transition-all placeholder:text-zinc-700" />
+            <input type="text" value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} className="w-full bg-[#0a0a0a] border border-[#222] rounded-xl px-4 py-3 text-white text-sm font-bold focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3]/50 transition-all placeholder:text-zinc-700" />
         </div>
     );
 }
@@ -297,7 +297,7 @@ function OrgList({ items, onAdd, onRemove, onUpdate, bucket, folderPrefix }: {
             {items.map((item: OrgItem, i: number) => (
                 <div key={i} className="bg-zinc-900/50 border border-white/5 rounded-xl p-4 mb-3 space-y-3">
                     <div className="flex items-center gap-3">
-                        <input value={item.name} onChange={e => onUpdate(i, 'name', e.target.value)} className="flex-1 bg-zinc-900 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500" placeholder="Organization Name" />
+                        <input value={item.name} onChange={e => onUpdate(i, 'name', e.target.value)} className="flex-1 bg-[#0a0a0a] border border-[#222] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#0056B3]" placeholder="Organization Name" />
                         <button onClick={() => onRemove(i)} className="text-red-500 hover:text-red-400 p-2 shrink-0"><i className="fa-solid fa-trash" /></button>
                     </div>
                     <ImageUploadField
@@ -311,7 +311,7 @@ function OrgList({ items, onAdd, onRemove, onUpdate, bucket, folderPrefix }: {
                     />
                 </div>
             ))}
-            <button onClick={onAdd} className="mt-2 px-4 py-2 border border-dashed border-white/10 rounded-xl text-zinc-500 text-xs font-black uppercase tracking-widest hover:border-amber-500 hover:text-amber-500 transition-all w-full">+ Add</button>
+            <button onClick={onAdd} className="mt-2 px-4 py-2 border border-dashed border-[#0056B3]/30 rounded-xl text-zinc-500 text-xs font-black uppercase tracking-widest hover:border-[#0056B3] hover:text-[#0056B3] transition-all w-full">+ Add</button>
         </div>
     );
 }

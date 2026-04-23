@@ -80,8 +80,8 @@ export default function ProjectsPage() {
                     <p className="text-zinc-500 mt-1 text-sm tracking-wide">Oversee and coordinate active deployments.</p>
                 </div>
                 <div className="flex items-center gap-3 w-full md:w-auto">
-                    <Link href="/" className="flex-1 md:flex-none text-center px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest text-zinc-400 border border-[#222] hover:bg-white/5 hover:text-white hover:border-zinc-700 transition-all">
-                        <i className="fa-solid fa-arrow-left mr-2"></i> Console
+                    <Link href="/dashboard" className="flex-1 md:flex-none text-center px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest text-zinc-400 border border-[#222] hover:bg-white/5 hover:text-white hover:border-zinc-700 transition-all">
+                        <i className="fa-solid fa-arrow-left mr-2"></i> Dashboard
                     </Link>
                     <button
                         onClick={() => setShowModal(true)}

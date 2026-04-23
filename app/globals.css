@@ -1,8 +1,9 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Urbanist:wght@400;500;600;700;800;900&display=swap');
 
 /* ─── Font ─────────────────────────────────────────────────────────────── */
 :root {
-  --font-inter: 'Inter', sans-serif;
+  --font-inter: 'Urbanist', 'Inter', sans-serif;
 }
 
 /* ─── Design Tokens ─────────────────────────────────────────────────────── */
@@ -81,7 +82,7 @@ html {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-inter), 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Urbanist', 'Inter', var(--font-inter), system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;

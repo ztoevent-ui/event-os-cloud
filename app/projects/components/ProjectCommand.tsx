@@ -4,117 +4,141 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
+const SIDEBAR_LINKS = [
+    { label: 'Dashboard', icon: 'fa-table-columns', path: '' },
+    { label: 'Tasks', icon: 'fa-check-double', path: '/tasks' },
+    { label: 'Timeline', icon: 'fa-timeline', path: '/timelines' },
+    { label: 'Schedule', icon: 'fa-calendar-days', path: '/schedule' },
+    { label: 'Program', icon: 'fa-list-ol', path: '/program' },
+    { label: 'Budget', icon: 'fa-file-invoice-dollar', path: '/budget' },
+    { label: 'Vendors', icon: 'fa-truck-fast', path: '/vendors' },
+    { label: 'Venue Layout', icon: 'fa-map', path: '/venue-layout' },
+    { label: '3D Layout', icon: 'fa-cube', path: '/stage-layout' },
+    { label: 'Registration', icon: 'fa-id-card', path: '/registration' },
+];
+
 export default function ProjectCommand({
     projectId,
     projectName,
     projectStatus,
-    isTournament
+    isTournament,
 }: {
     projectId: string;
     projectName: string;
     projectStatus: string;
     isTournament: boolean;
 }) {
-    const [isOpen, setIsOpen] = useState(false);
+    const [expanded, setExpanded] = useState(false);
     const pathname = usePathname();
 
-    const links = [
-        { href: `/projects/${projectId}`, label: 'Dashboard', icon: 'fa-table-columns' },
-        { href: `/projects/${projectId}/tasks`, label: 'Tasks', icon: 'fa-check-double' },
-        { href: `/projects/${projectId}/timelines`, label: 'Timeline', icon: 'fa-timeline' },
-        { href: `/projects/${projectId}/schedule`, label: 'Schedule', icon: 'fa-calendar-days' },
-        { href: `/projects/${projectId}/program`, label: 'Program', icon: 'fa-list-ol' },
-        { href: `/projects/${projectId}/budget`, label: 'Budget', icon: 'fa-file-invoice-dollar' },
-        { href: `/projects/${projectId}/vendors`, label: 'Vendors', icon: 'fa-truck-fast' },
-        { href: `/projects/${projectId}/venue-layout`, label: 'Venue Layout', icon: 'fa-map' },
-        { href: `/projects/${projectId}/stage-layout`, label: '3D Layout', icon: 'fa-cube' },
-        { href: `/projects/${projectId}/registration`, label: 'Registration', icon: 'fa-id-card' }
-    ];
+    const links = SIDEBAR_LINKS.map(l => ({
+        ...l,
+        href: `/projects/${projectId}${l.path}`,
+    }));
 
     if (isTournament) {
-        links.push({ href: `/projects/${projectId}/registration#tournament`, label: 'Tournament Page', icon: 'fa-globe' });
+        links.push({
+            label: 'Tournament Page',
+            icon: 'fa-globe',
+            path: '/registration#tournament',
+            href: `/projects/${projectId}/registration#tournament`,
+        });
     }
+
+    const statusColor =
+        projectStatus?.toLowerCase() === 'completed' || projectStatus?.toLowerCase() === 'ended'
+            ? 'text-zinc-400 bg-zinc-800/60 border-zinc-700/50'
+            : 'text-[#4da3ff] bg-[#0056B3]/15 border-[#0056B3]/35 shadow-[0_0_12px_rgba(0,86,179,0.25)]';
 
     return (
         <>
-            {/* Header Area */}
-            <nav className="print:hidden fixed top-0 w-full z-40 bg-[#050505]/80 backdrop-blur-md border-b border-[#222]">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between h-16 items-center">
-                        <div className="flex items-center gap-4">
-                            <Link href="/projects" className="text-zinc-500 hover:text-white transition-colors">
-                                <i className="fa-solid fa-arrow-left"></i>
-                            </Link>
-                            <h1 className="text-lg font-bold text-white tracking-wide font-sans truncate max-w-[200px] md:max-w-md">
-                                {projectName || 'Project'}
-                            </h1>
-                            <span className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full bg-[#0056B3]/20 text-[#0056B3] border border-[#0056B3]/30 shadow-[0_0_10px_rgba(0,86,179,0.2)] animate-pulse">
-                                {projectStatus || 'PLANNING'}
-                            </span>
-                        </div>
-                        
-                        <div className="flex items-center gap-4">
-                            <button className="w-8 h-8 rounded-full bg-[#0056B3]/20 border border-[#0056B3]/30 flex items-center justify-center text-[#0056B3] text-xs">
-                                JD
-                            </button>
-                        </div>
-                    </div>
+            {/* ── Top Bar ───────────────────────────────────────────────── */}
+            <nav className="print:hidden fixed top-0 left-0 right-0 z-40 h-14 bg-[#050505]/90 backdrop-blur-md border-b border-[#1a1a1a] flex items-center px-4 gap-4">
+                {/* back arrow */}
+                <Link
+                    href="/projects"
+                    className="w-8 h-8 flex items-center justify-center rounded-full text-zinc-500 hover:text-white hover:bg-white/6 border border-transparent hover:border-[#2a2a2a] transition-all shrink-0"
+                >
+                    <i className="fa-solid fa-arrow-left text-sm" />
+                </Link>
+
+                {/* divider */}
+                <div className="h-5 w-px bg-[#2a2a2a] shrink-0" />
+
+                {/* project name */}
+                <h1 className="text-sm font-bold text-white tracking-wide truncate flex-1 min-w-0">
+                    {projectName || 'Project'}
+                </h1>
+
+                {/* status pill */}
+                <span className={`shrink-0 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-[0.18em] rounded-full border ${statusColor} transition-all`}>
+                    {/* pulse dot for active */}
+                    {projectStatus?.toLowerCase() !== 'completed' && projectStatus?.toLowerCase() !== 'ended' && (
+                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#0056B3] mr-1.5 animate-pulse" />
+                    )}
+                    {projectStatus || 'PLANNING'}
+                </span>
+
+                {/* avatar placeholder */}
+                <div className="w-7 h-7 rounded-full bg-[#0056B3]/20 border border-[#0056B3]/30 flex items-center justify-center text-[#4da3ff] text-[10px] font-black shrink-0">
+                    ZTO
                 </div>
             </nav>
 
-            {/* Floating Action Button (FAB) */}
-            <button 
-                onClick={() => setIsOpen(true)}
-                className="print:hidden fixed bottom-6 right-6 z-50 w-14 h-14 bg-[#0056B3] hover:bg-[#004494] text-white rounded-full shadow-[0_0_20px_rgba(0,86,179,0.4)] flex items-center justify-center transition-all hover:scale-105 active:scale-95"
+            {/* ── Sidebar ───────────────────────────────────────────────── */}
+            <aside
+                onMouseEnter={() => setExpanded(true)}
+                onMouseLeave={() => setExpanded(false)}
+                className={`print:hidden fixed left-0 top-14 bottom-0 z-30 flex flex-col bg-[#060606]/95 backdrop-blur-xl border-r border-[#1a1a1a] transition-[width] duration-200 ease-in-out overflow-hidden ${expanded ? 'w-52' : 'w-14'}`}
             >
-                <i className="fa-solid fa-layer-group text-xl"></i>
-            </button>
+                {/* nav items */}
+                <div className="flex-1 py-3 flex flex-col gap-0.5 overflow-y-auto overflow-x-hidden">
+                    {links.map((link) => {
+                        const exactPath = link.href.split('#')[0];
+                        const basePath = `/projects/${projectId}`;
+                        const isActive =
+                            link.path === ''
+                                ? pathname === basePath
+                                : pathname.startsWith(exactPath) && exactPath !== basePath;
 
-            {/* Drawer Backdrop */}
-            {isOpen && (
-                <div 
-                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 transition-opacity"
-                    onClick={() => setIsOpen(false)}
-                />
-            )}
-
-            {/* Feature Drawer */}
-            <div 
-                className={`fixed top-0 right-0 h-full w-72 bg-[#0a0a0a] border-l border-[#222] shadow-2xl z-50 transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
-            >
-                <div className="p-6 flex flex-col h-full">
-                    <div className="flex justify-between items-center mb-8">
-                        <h2 className="text-xl font-bold text-white">Command Center</h2>
-                        <button 
-                            onClick={() => setIsOpen(false)}
-                            className="text-zinc-500 hover:text-white w-8 h-8 flex items-center justify-center rounded-full hover:bg-zinc-800 transition-colors"
-                        >
-                            <i className="fa-solid fa-xmark"></i>
-                        </button>
-                    </div>
-
-                    <div className="flex-1 overflow-y-auto space-y-2">
-                        {links.map((link) => {
-                            const isActive = pathname === link.href || (link.href.includes('#') && pathname === link.href.split('#')[0]);
-                            return (
-                                <Link
-                                    key={link.href}
-                                    href={link.href}
-                                    onClick={() => setIsOpen(false)}
-                                    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                                        isActive 
-                                        ? 'bg-[#0056B3] text-white shadow-[0_0_15px_rgba(0,86,179,0.3)]' 
-                                        : 'text-zinc-400 hover:bg-white/5 hover:text-white'
-                                    }`}
-                                >
-                                    <i className={`fa-solid ${link.icon} w-5 text-center`}></i>
-                                    <span className="font-medium text-sm">{link.label}</span>
-                                </Link>
-                            )
-                        })}
-                    </div>
+                        return (
+                            <Link
+                                key={link.href}
+                                href={link.href}
+                                title={!expanded ? link.label : undefined}
+                                className={`group relative flex items-center gap-3 mx-2 px-3 py-2.5 rounded-xl transition-all duration-150 ${
+                                    isActive
+                                        ? 'bg-[#0056B3] text-white shadow-[0_0_18px_rgba(0,86,179,0.35)]'
+                                        : 'text-zinc-500 hover:bg-white/5 hover:text-zinc-200'
+                                }`}
+                            >
+                                {/* active indicator bar */}
+                                {isActive && (
+                                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-white rounded-r-full" />
+                                )}
+                                <i className={`fa-solid ${link.icon} text-sm w-4 text-center shrink-0`} />
+                                <span className={`text-sm font-semibold whitespace-nowrap transition-opacity duration-150 ${expanded ? 'opacity-100' : 'opacity-0'}`}>
+                                    {link.label}
+                                </span>
+                            </Link>
+                        );
+                    })}
                 </div>
-            </div>
+
+                {/* bottom: back to dashboard */}
+                <div className="border-t border-[#1a1a1a] py-3 mx-2">
+                    <Link
+                        href="/dashboard"
+                        title={!expanded ? 'Dashboard' : undefined}
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-zinc-600 hover:bg-white/5 hover:text-zinc-300 transition-all"
+                    >
+                        <i className="fa-solid fa-gauge-high text-sm w-4 text-center shrink-0" />
+                        <span className={`text-sm font-semibold whitespace-nowrap transition-opacity duration-150 ${expanded ? 'opacity-100' : 'opacity-0'}`}>
+                            Main Dashboard
+                        </span>
+                    </Link>
+                </div>
+            </aside>
         </>
     );
 }
