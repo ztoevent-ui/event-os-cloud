@@ -12,13 +12,13 @@ export default async function ProjectLayout({
     params: Promise<{ id: string }>;
 }) {
     const { id: projectId } = await params;
-    
+
     const { data: project } = await supabase.from('projects').select('name, type, status').eq('id', projectId).single();
     const isTournament = project?.type === 'sports' || project?.type === 'tournament';
 
     return (
         <PrintProvider>
-            <div className="min-h-screen bg-[#050505] text-white selection:bg-[#0056B3] selection:text-white" style={{ fontFamily: "'Inter', 'Urbanist', sans-serif" }}>
+            <div className="min-h-screen bg-[#050505] text-white selection:bg-[#0056B3] selection:text-white" style={{ fontFamily: "'Urbanist', 'Inter', sans-serif" }}>
                 <ProjectCommand
                     projectId={projectId}
                     projectName={project?.name || ''}
@@ -26,11 +26,9 @@ export default async function ProjectLayout({
                     isTournament={isTournament}
                 />
 
-                {/* Main Content — offset: top 14 (56px top bar) + left 14 (56px sidebar icon rail) */}
-                <main className="pt-14 pl-14 print:pt-0 print:pl-0 min-h-screen">
-                    <div className="px-6 py-8 print:px-0 print:py-0 max-w-[1400px] mx-auto pb-16">
-                        {children}
-                    </div>
+                {/* Main Content */}
+                <main className="pt-16 print:pt-0 px-4 sm:px-6 lg:px-8 print:px-0 print:max-w-none mx-auto max-w-[1400px] pb-16 print:pb-0">
+                    {children}
                 </main>
             </div>
         </PrintProvider>
