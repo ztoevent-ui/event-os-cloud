@@ -61,7 +61,7 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
     const isTournament = project?.type === 'tournament';
 
     return (
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-10">
             {/* ──────────── SPACIOUS HERO SECTION ──────────── */}
             <div className="relative rounded-3xl border border-white/[0.07] bg-[#0d0d0d] overflow-hidden">
                 {/* subtle glow */}

@@ -2,7 +2,7 @@
 import { ReactNode } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { PrintProvider } from '../components/PrintContext';
-import ProjectCommand from '../components/ProjectCommand';
+import ProjectSidebar from '../components/ProjectSidebar';
 
 export default async function ProjectLayout({
     children,
@@ -18,16 +18,18 @@ export default async function ProjectLayout({
 
     return (
         <PrintProvider>
-            <div className="min-h-screen bg-[#080808] text-white selection:bg-[#0056B3] selection:text-white">
-                <ProjectCommand
-                    projectId={projectId}
-                    projectName={project?.name || ''}
-                    projectStatus={project?.status || 'PLANNING'}
-                    isTournament={isTournament}
-                />
-                {/* pt-12 = 48px nav height */}
-                <main className="pt-12 print:pt-0">
-                    <div className="px-6 lg:px-10 py-7 max-w-[1440px] mx-auto pb-16 print:px-0 print:py-0">
+            <div className="flex h-screen bg-[#050505] text-white overflow-hidden selection:bg-[#0056B3] selection:text-white" style={{ fontFamily: "'Urbanist', sans-serif" }}>
+                <div className="print:hidden relative z-50">
+                    <ProjectSidebar
+                        projectId={projectId}
+                        projectName={project?.name || ''}
+                        projectStatus={project?.status || 'PLANNING'}
+                        isTournament={isTournament}
+                    />
+                </div>
+                
+                <main className="flex-1 overflow-y-auto bg-[#050505] relative z-10 p-6 lg:p-10 print:p-0 print:overflow-visible">
+                    <div className="max-w-[1600px] mx-auto pb-24">
                         {children}
                     </div>
                 </main>
