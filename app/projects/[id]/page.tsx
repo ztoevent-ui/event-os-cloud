@@ -8,10 +8,23 @@ import { PrintReportButton } from '../components/ProjectModals';
 const fmt = (d?: string) =>
     d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : null;
 
+const MODULES = [
+    { label: 'Tasks', icon: 'fa-check-double', path: '/tasks', desc: 'Deliverables & board', color: '#3b82f6', tag: 'EXEC' },
+    { label: 'Timeline', icon: 'fa-timeline', path: '/timelines', desc: 'Project milestones', color: '#8b5cf6', tag: 'PLAN' },
+    { label: 'Schedule', icon: 'fa-calendar-days', path: '/schedule', desc: 'Day-of dispatch cues', color: '#0056B3', tag: 'OPS' },
+    { label: 'Live Program', icon: 'fa-list-ol', path: '/program', desc: 'Sequence & production cues', color: '#10b981', tag: 'LIVE' },
+    { label: 'Budget', icon: 'fa-file-invoice-dollar', path: '/budget', desc: 'P&L & expense tracking', color: '#f59e0b', tag: 'FIN' },
+    { label: 'Vendors', icon: 'fa-truck-fast', path: '/vendors', desc: 'Supplier contacts', color: '#06b6d4', tag: 'OPS' },
+    { label: 'Venue Layout', icon: 'fa-map', path: '/venue-layout', desc: '2D floor plan', color: '#ec4899', tag: 'SPACE' },
+    { label: '3D Stage', icon: 'fa-cube', path: '/stage-layout', desc: 'Stage visualizer', color: '#f97316', tag: 'SPACE' },
+    { label: 'Registration', icon: 'fa-id-card', path: '/registration', desc: 'Participant management', color: '#a855f7', tag: 'REG' },
+    { label: 'Guests', icon: 'fa-users', path: '/guests', desc: 'Guest list & seating', color: '#14b8a6', tag: 'REG' },
+];
+
 export default function ProjectDashboard({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
     const [project, setProject] = useState<any>(null);
-    const [stats, setStats] = useState({ pendingTasks: 0, criticalTasks: 0, doneTasks: 0, expenses: 0, consultations: 0 });
+    const [stats, setStats] = useState({ pending: 0, critical: 0, done: 0, expenses: 0, enquiries: 0 });
     const [loading, setLoading] = useState(true);
 
     useEffect(() => { fetchData(); }, [id]);
@@ -20,7 +33,7 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
         setLoading(true);
         const { data: p } = await supabase.from('projects').select('*').eq('id', id).single();
         setProject(p);
-        const [{ count: pending }, { count: critical }, { count: done }, { data: budgetItems }, { count: cons }] = await Promise.all([
+        const [{ count: pending }, { count: critical }, { count: done }, { data: budgetItems }, { count: enquiries }] = await Promise.all([
             supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('project_id', id).neq('status', 'done'),
             supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('project_id', id).eq('priority', 'critical').neq('status', 'done'),
             supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('project_id', id).eq('status', 'done'),
@@ -28,207 +41,165 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
             supabase.from('consulting_forms').select('*', { count: 'exact', head: true }).eq('project_id', id),
         ]);
         const exp = budgetItems?.filter((b: any) => b.type === 'expense').reduce((s: number, b: any) => s + Number(b.amount), 0) ?? 0;
-        setStats({ pendingTasks: pending ?? 0, criticalTasks: critical ?? 0, doneTasks: done ?? 0, expenses: exp, consultations: cons ?? 0 });
+        setStats({ pending: pending ?? 0, critical: critical ?? 0, done: done ?? 0, expenses: exp, enquiries: enquiries ?? 0 });
         setLoading(false);
     };
 
     if (loading) return (
-        <div className="flex items-center gap-3 justify-center h-52 text-zinc-600 text-sm">
-            <span className="w-4 h-4 rounded-full border-2 border-zinc-700 border-t-[#0056B3] animate-spin" />
-            Loading…
+        <div className="flex items-center gap-3 justify-center" style={{ height: 'calc(100vh - 48px)' }}>
+            <span className="w-5 h-5 rounded-full border-2 border-zinc-800 border-t-[#0056B3] animate-spin" />
+            <span className="text-zinc-600 text-sm">Loading…</span>
         </div>
     );
 
     const today = new Date();
     const endDate = project?.end_date ? new Date(project.end_date) : null;
-    const diffMs = endDate ? endDate.getTime() - today.getTime() : null;
-    const diffDays = diffMs != null ? Math.ceil(diffMs / 86400000) : null;
+    const diffDays = endDate ? Math.ceil((endDate.getTime() - today.getTime()) / 86400000) : null;
     const isEnded = diffDays != null && diffDays <= 0;
-    const daysNum = diffDays != null && !isEnded ? diffDays : null;
-
-    const totalTasks = stats.pendingTasks + stats.doneTasks;
-    const doneRatio = totalTasks > 0 ? Math.round((stats.doneTasks / totalTasks) * 100) : 0;
-
-    const MODULES = [
-        { label: 'Tasks', icon: 'fa-check-double', href: `/projects/${id}/tasks`, desc: 'Deliverables & board', color: '#3b82f6' },
-        { label: 'Timeline', icon: 'fa-timeline', href: `/projects/${id}/timelines`, desc: 'Milestones', color: '#8b5cf6' },
-        { label: 'Schedule', icon: 'fa-calendar-days', href: `/projects/${id}/schedule`, desc: 'Day-of dispatch', color: '#0056B3' },
-        { label: 'Live Program', icon: 'fa-list-ol', href: `/projects/${id}/program`, desc: 'Sequence & cues', color: '#10b981' },
-        { label: 'Budget', icon: 'fa-file-invoice-dollar', href: `/projects/${id}/budget`, desc: 'P&L tracking', color: '#f59e0b' },
-        { label: 'Vendors', icon: 'fa-truck-fast', href: `/projects/${id}/vendors`, desc: 'Supplier contacts', color: '#06b6d4' },
-        { label: 'Venue Layout', icon: 'fa-map', href: `/projects/${id}/venue-layout`, desc: '2D floor plan', color: '#ec4899' },
-        { label: '3D Stage', icon: 'fa-cube', href: `/projects/${id}/stage-layout`, desc: 'Stage visualizer', color: '#f97316' },
-        { label: 'Registration', icon: 'fa-id-card', href: `/projects/${id}/registration`, desc: 'Participants', color: '#a855f7' },
-        { label: 'Guests', icon: 'fa-users', href: `/projects/${id}/guests`, desc: 'Guest list', color: '#14b8a6' },
-    ];
+    const total = stats.pending + stats.done;
+    const progress = total > 0 ? Math.round((stats.done / total) * 100) : 0;
 
     return (
-        <div className="space-y-7">
+        <div className="flex flex-col gap-5">
 
-            {/* ── HERO ─────────────────────────────────────────────────── */}
-            <div className="relative rounded-2xl overflow-hidden border border-white/[0.08] bg-[#0d0d0d] print:bg-white print:border-zinc-200">
-                {/* Ambient glow */}
-                <div className="absolute top-0 left-1/4 w-96 h-40 bg-[#0056B3]/20 rounded-full blur-[80px] pointer-events-none" />
-                <div className="absolute bottom-0 right-1/4 w-64 h-32 bg-[#0056B3]/10 rounded-full blur-[60px] pointer-events-none" />
-
-                <div className="relative z-10 p-6 md:p-8">
-                    <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
-                        {/* Left: project info */}
-                        <div className="flex-1 min-w-0">
-                            <div className="flex flex-wrap items-center gap-2 mb-3">
-                                <span className={`inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.15em] px-2.5 py-1 rounded-full border ${
-                                    isEnded
-                                        ? 'text-zinc-500 border-zinc-700 bg-zinc-800/60'
-                                        : 'text-[#4da3ff] border-[#0056B3]/50 bg-[#0056B3]/10'
-                                }`}>
-                                    {!isEnded && <span className="w-1.5 h-1.5 rounded-full bg-[#4da3ff] animate-pulse" />}
-                                    {project?.status || 'PLANNING'}
+            {/* ──────────── COMPACT TOP STRIP ──────────────────────────── */}
+            <div className="relative rounded-xl border border-white/[0.07] bg-[#0d0d0d] overflow-hidden">
+                {/* subtle glow */}
+                <div className="absolute -top-10 left-20 w-72 h-32 bg-[#0056B3]/25 rounded-full blur-[60px] pointer-events-none" />
+                <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 py-5">
+                    <div className="flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                            <span className={`inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.15em] px-2.5 py-0.5 rounded-full border ${isEnded ? 'text-zinc-600 border-zinc-800 bg-zinc-900' : 'text-[#4da3ff] border-[#0056B3]/40 bg-[#0056B3]/10'}`}>
+                                {!isEnded && <span className="w-1.5 h-1.5 rounded-full bg-[#4da3ff] animate-pulse" />}
+                                {project?.status || 'PLANNING'}
+                            </span>
+                            {project?.type && (
+                                <span className="text-[10px] font-bold uppercase text-zinc-600 px-2 py-0.5 bg-white/[0.04] rounded-full border border-white/[0.06]">
+                                    {project.type.replace(/_/g, ' ')}
                                 </span>
-                                {project?.type && (
-                                    <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 px-2 py-1 bg-white/[0.04] rounded-full border border-white/[0.06]">
-                                        {project.type.replace(/_/g, ' ')}
-                                    </span>
-                                )}
-                            </div>
-
-                            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight break-words mb-2 print:text-black">
-                                {project?.name || 'Untitled Project'}
-                            </h1>
-
-                            <div className="flex flex-wrap items-center gap-4 text-xs text-zinc-500 font-mono">
-                                {project?.start_date && <span>Start: <span className="text-zinc-300">{fmt(project.start_date)}</span></span>}
-                                {project?.end_date && <span>End: <span className="text-zinc-300">{fmt(project.end_date)}</span></span>}
-                                {project?.venue && <span>📍 <span className="text-zinc-300">{project.venue}</span></span>}
-                            </div>
+                            )}
                         </div>
-
-                        {/* Right: countdown + print btn */}
-                        <div className="shrink-0 flex items-start gap-4 print:hidden">
-                            {daysNum != null ? (
-                                <div className="text-right">
-                                    <div className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-1">T-Minus</div>
-                                    <div className="text-5xl font-black tabular-nums text-white leading-none">{daysNum}</div>
-                                    <div className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest mt-1">days</div>
-                                </div>
-                            ) : isEnded ? (
-                                <div className="text-right">
-                                    <div className="text-[10px] font-bold text-zinc-700 uppercase tracking-widest mb-1">Status</div>
-                                    <div className="text-lg font-black text-zinc-600">Ended</div>
-                                </div>
-                            ) : null}
-                            <PrintReportButton title="Project Summary" />
+                        <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight break-words">
+                            {project?.name || 'Untitled Project'}
+                        </h1>
+                        <div className="flex flex-wrap gap-3 mt-1.5 text-[11px] text-zinc-500 font-mono">
+                            {project?.start_date && <span>Start <span className="text-zinc-400">{fmt(project.start_date)}</span></span>}
+                            {project?.end_date && <span>End <span className="text-zinc-400">{fmt(project.end_date)}</span></span>}
+                            {project?.venue && <span>📍 <span className="text-zinc-400">{project.venue}</span></span>}
                         </div>
                     </div>
 
-                    {/* Progress bar */}
-                    {totalTasks > 0 && (
-                        <div className="mt-5 print:hidden">
-                            <div className="flex items-center justify-between text-[10px] font-bold text-zinc-500 mb-1.5 uppercase tracking-widest">
-                                <span>Task Progress</span>
-                                <span className="text-zinc-300">{stats.doneTasks}/{totalTasks} done ({doneRatio}%)</span>
+                    {/* Right: countdown + print */}
+                    <div className="flex items-center gap-5 shrink-0 print:hidden">
+                        {diffDays != null && !isEnded && (
+                            <div className="text-right">
+                                <div className="text-[9px] font-black text-zinc-700 uppercase tracking-widest">T-Minus</div>
+                                <div className="text-4xl font-black text-white tabular-nums leading-none">{diffDays}</div>
+                                <div className="text-[9px] font-black text-zinc-700 uppercase tracking-widest">days</div>
                             </div>
-                            <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
-                                <div
-                                    className="h-full bg-[#0056B3] rounded-full transition-all duration-700"
-                                    style={{ width: `${doneRatio}%` }}
-                                />
-                            </div>
-                        </div>
-                    )}
+                        )}
+                        {isEnded && <div className="text-lg font-black text-zinc-700">Ended</div>}
+                        <PrintReportButton title="Project Summary" />
+                    </div>
                 </div>
+
+                {/* Progress bar */}
+                {total > 0 && (
+                    <div className="relative z-10 px-6 pb-4 print:hidden">
+                        <div className="flex justify-between text-[9px] font-bold text-zinc-700 uppercase tracking-widest mb-1">
+                            <span>Task Progress</span>
+                            <span className="text-zinc-500">{stats.done}/{total} ({progress}%)</span>
+                        </div>
+                        <div className="h-1 bg-white/[0.05] rounded-full overflow-hidden">
+                            <div className="h-full bg-[#0056B3] rounded-full" style={{ width: `${progress}%` }} />
+                        </div>
+                    </div>
+                )}
             </div>
 
-            {/* ── STAT CARDS ─────────────────────────────────────────── */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {/* ──────────── 4 STAT CHIPS (1 row) ──────────────────────── */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 print:gap-2">
                 {[
-                    {
-                        label: 'Pending Tasks', value: stats.pendingTasks,
-                        sub: stats.criticalTasks > 0 ? `${stats.criticalTasks} critical` : 'all clear',
-                        icon: 'fa-check-double', iconColor: '#3b82f6',
-                        href: `/projects/${id}/tasks`
-                    },
-                    {
-                        label: 'Total Spend', value: `RM ${stats.expenses.toLocaleString()}`,
-                        sub: 'expenses logged',
-                        icon: 'fa-receipt', iconColor: '#10b981',
-                        href: `/projects/${id}/budget`
-                    },
-                    {
-                        label: 'Days Left', value: daysNum ?? (isEnded ? '—' : 'TBD'),
-                        sub: isEnded ? 'event completed' : daysNum != null ? 'until event day' : 'date not set',
-                        icon: 'fa-hourglass-half', iconColor: isEnded ? '#555' : '#f59e0b',
-                        href: null
-                    },
-                    {
-                        label: 'Enquiries', value: stats.consultations,
-                        sub: 'forms received',
-                        icon: 'fa-envelope', iconColor: '#a855f7',
-                        href: null
-                    },
+                    { label: 'Pending Tasks', val: stats.pending, sub: stats.critical > 0 ? `${stats.critical} critical` : 'all clear', icon: 'fa-check-double', c: '#3b82f6', href: `/projects/${id}/tasks` },
+                    { label: 'Total Spend', val: `RM ${stats.expenses.toLocaleString()}`, sub: 'expenses logged', icon: 'fa-receipt', c: '#10b981', href: `/projects/${id}/budget` },
+                    { label: 'Days Left', val: diffDays != null && !isEnded ? diffDays : isEnded ? '—' : 'TBD', sub: isEnded ? 'event ended' : diffDays != null ? 'until event day' : 'date not set', icon: 'fa-hourglass-half', c: isEnded ? '#555' : '#f59e0b', href: null },
+                    { label: 'Enquiries', val: stats.enquiries, sub: 'forms received', icon: 'fa-envelope', c: '#a855f7', href: null },
                 ].map(card => {
-                    const inner = (
-                        <div className="group bg-[#0d0d0d] border border-white/[0.07] rounded-2xl p-4 hover:border-white/[0.14] transition-all print:bg-white print:border-zinc-200 h-full">
+                    const el = (
+                        <div className="group bg-[#0d0d0d] border border-white/[0.06] hover:border-white/[0.14] rounded-xl px-5 py-4 transition-all h-full print:bg-white print:border-zinc-200">
                             <div className="flex items-center justify-between mb-3">
-                                <i className={`fa-solid ${card.icon} text-sm`} style={{ color: card.iconColor }} />
-                                <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">{card.label}</span>
+                                <i className={`fa-solid ${card.icon} text-sm`} style={{ color: card.c }} />
+                                <span className="text-[9px] font-black text-zinc-700 uppercase tracking-widest">{card.label}</span>
                             </div>
-                            <div className="text-2xl sm:text-3xl font-black text-white tabular-nums leading-none print:text-black">{card.value}</div>
-                            <div className="text-[11px] text-zinc-600 mt-1.5">{card.sub}</div>
+                            <div className="text-2xl sm:text-3xl font-black text-white tabular-nums leading-none print:text-black">{card.val}</div>
+                            <div className="text-[10px] text-zinc-600 mt-1">{card.sub}</div>
                         </div>
                     );
-                    return card.href ? (
-                        <Link key={card.label} href={card.href} className="block h-full">{inner}</Link>
-                    ) : (
-                        <div key={card.label} className="h-full">{inner}</div>
-                    );
+                    return card.href
+                        ? <Link key={card.label} href={card.href} className="block h-full">{el}</Link>
+                        : <div key={card.label} className="h-full">{el}</div>;
                 })}
             </div>
 
-            {/* ── QUICK LAUNCH ───────────────────────────────────────── */}
+            {/* ──────────── ALL MODULES (bold card grid) ───────────────── */}
             <div className="print:hidden">
-                <p className="text-[10px] font-black text-zinc-700 uppercase tracking-[0.18em] mb-3">Quick Launch</p>
-                <div className="flex flex-wrap gap-2">
-                    {[
-                        { label: 'Live Program', icon: 'fa-play', href: `/projects/${id}/program`, primary: true },
-                        { label: 'Schedule', icon: 'fa-list-check', href: `/projects/${id}/schedule`, primary: false },
-                        { label: 'Tasks', icon: 'fa-check-double', href: `/projects/${id}/tasks`, primary: false },
-                        { label: 'Timeline', icon: 'fa-timeline', href: `/projects/${id}/timelines`, primary: false },
-                        { label: 'Budget', icon: 'fa-file-invoice-dollar', href: `/projects/${id}/budget`, primary: false },
-                    ].map(btn => (
-                        <Link key={btn.href} href={btn.href}>
-                            <div className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all border ${
-                                btn.primary
-                                    ? 'bg-[#0056B3] border-[#0056B3]/80 text-white hover:bg-[#0047a0] shadow-[0_0_16px_rgba(0,86,179,0.35)]'
-                                    : 'bg-white/[0.04] border-white/[0.08] text-zinc-400 hover:text-white hover:bg-white/[0.08] hover:border-white/[0.16]'
-                            }`}>
-                                <i className={`fa-solid ${btn.icon} text-xs`} />
-                                {btn.label}
-                            </div>
-                        </Link>
-                    ))}
-                </div>
-            </div>
-
-            {/* ── MODULES GRID ───────────────────────────────────────── */}
-            <div className="print:hidden">
-                <p className="text-[10px] font-black text-zinc-700 uppercase tracking-[0.18em] mb-3">All Modules</p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
-                    {MODULES.map(mod => (
-                        <Link key={mod.href} href={mod.href} className="group">
-                            <div className="flex flex-col gap-2 bg-[#0d0d0d] hover:bg-[#141414] border border-white/[0.06] hover:border-white/[0.14] rounded-xl p-4 transition-all h-full">
+                <div className="text-[9px] font-black text-zinc-700 uppercase tracking-[0.18em] mb-3">All Modules</div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                    {MODULES.map(mod => {
+                        const tagColor = mod.color;
+                        return (
+                            <Link key={mod.path} href={`/projects/${id}${mod.path}`} className="group block">
                                 <div
-                                    className="w-8 h-8 rounded-lg flex items-center justify-center text-sm transition-all"
-                                    style={{ background: `${mod.color}18`, color: mod.color, border: `1px solid ${mod.color}30` }}
+                                    className="relative h-full flex flex-col p-5 rounded-2xl border transition-all duration-200 overflow-hidden"
+                                    style={{
+                                        background: '#0d0d0d',
+                                        borderColor: 'rgba(255,255,255,0.07)',
+                                    }}
+                                    onMouseEnter={e => {
+                                        (e.currentTarget as HTMLDivElement).style.borderColor = `${mod.color}55`;
+                                        (e.currentTarget as HTMLDivElement).style.background = `${mod.color}08`;
+                                    }}
+                                    onMouseLeave={e => {
+                                        (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.07)';
+                                        (e.currentTarget as HTMLDivElement).style.background = '#0d0d0d';
+                                    }}
                                 >
-                                    <i className={`fa-solid ${mod.icon}`} />
+                                    {/* ambient glow corner */}
+                                    <div className="absolute bottom-0 right-0 w-20 h-20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none blur-2xl"
+                                        style={{ background: mod.color }} />
+
+                                    {/* Tag */}
+                                    <div className="mb-4">
+                                        <span
+                                            className="text-[9px] font-black uppercase tracking-[0.15em] px-2 py-0.5 rounded-sm"
+                                            style={{ color: mod.color, background: `${mod.color}18`, border: `1px solid ${mod.color}30` }}
+                                        >
+                                            {mod.tag}
+                                        </span>
+                                    </div>
+
+                                    {/* Icon */}
+                                    <div
+                                        className="w-10 h-10 rounded-xl flex items-center justify-center text-lg mb-4 transition-transform group-hover:scale-110"
+                                        style={{ background: `${mod.color}18`, color: mod.color, border: `1px solid ${mod.color}30` }}
+                                    >
+                                        <i className={`fa-solid ${mod.icon}`} />
+                                    </div>
+
+                                    {/* Text */}
+                                    <div className="flex-1">
+                                        <div className="text-[14px] font-bold text-white leading-snug mb-1 group-hover:text-white transition-colors">{mod.label}</div>
+                                        <div className="text-[11px] text-zinc-600 leading-snug">{mod.desc}</div>
+                                    </div>
+
+                                    {/* Arrow */}
+                                    <div className="mt-4 flex justify-end">
+                                        <span className="text-zinc-700 group-hover:text-zinc-400 transition-colors text-sm">→</span>
+                                    </div>
                                 </div>
-                                <div>
-                                    <div className="text-[13px] font-semibold text-zinc-200 group-hover:text-white leading-none mb-0.5 transition-colors">{mod.label}</div>
-                                    <div className="text-[11px] text-zinc-700">{mod.desc}</div>
-                                </div>
-                            </div>
-                        </Link>
-                    ))}
+                            </Link>
+                        );
+                    })}
                 </div>
             </div>
 

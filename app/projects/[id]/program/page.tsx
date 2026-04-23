@@ -253,39 +253,39 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
       </div>
 
       {/* Premium Header — hidden on print */}
-      <div className={`print:hidden flex flex-col xl:flex-row justify-between items-start xl:items-center bg-[#0a0a0a]/80 backdrop-blur-2xl p-8 rounded-[2rem] border border-white/5 shadow-2xl relative z-20 ${isKiosk ? 'mb-8' : ''}`}>
+      <div className={`print:hidden flex flex-col xl:flex-row justify-between items-start xl:items-center bg-[#0d0d0d] backdrop-blur-2xl px-6 py-5 rounded-2xl border border-white/[0.07] relative z-10 ${isKiosk ? 'mb-8' : ''}`}>
         <div>
-          <div className="flex items-center gap-3">
-             <div className={`w-10 h-10 ${theme.bg} rounded-xl flex items-center justify-center text-black`}>
-                <i className="fa-solid fa-list-check text-xl"></i>
+          <div className="flex items-center gap-3 mb-1">
+             <div className={`w-9 h-9 ${theme.bg} rounded-xl flex items-center justify-center text-white`}>
+                <i className="fa-solid fa-list-check text-base"></i>
              </div>
-             <h1 className="text-3xl font-black tracking-tighter text-white uppercase italic">Tentative Program</h1>
+             <h1 className="text-xl font-black tracking-tight text-white uppercase">Tentative Program</h1>
           </div>
-          <p className="text-zinc-500 mt-2 font-medium tracking-wide">Live event sequence control and production cues</p>
+          <p className="text-zinc-500 text-sm ml-12">Live event sequence control and production cues</p>
         </div>
-        <div className="flex items-center gap-4 mt-6 xl:mt-0 flex-wrap">
-            <div className="flex items-center gap-1 bg-zinc-900/50 p-1.5 rounded-full border border-white/5 mr-2">
-              <button onClick={() => setFontSize('text-xs')} title="Small Text" className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${fontSize === 'text-xs' ? 'bg-white text-black' : 'text-zinc-500 hover:text-white'}`}>A-</button>
-              <button onClick={() => setFontSize('text-base')} title="Medium Text" className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${fontSize === 'text-base' ? 'bg-white text-black' : 'text-zinc-500 hover:text-white'}`}>A</button>
-              <button onClick={() => setFontSize('text-xl')} title="Large Text" className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-base ${fontSize === 'text-xl' ? 'bg-white text-black' : 'text-zinc-500 hover:text-white'}`}>A+</button>
+        <div className="flex items-center gap-3 mt-4 xl:mt-0 flex-wrap">
+            <div className="flex items-center gap-1 bg-black/50 p-1 rounded-full border border-white/[0.06] mr-1">
+              <button onClick={() => setFontSize('text-xs')} title="Small Text" className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs ${fontSize === 'text-xs' ? 'bg-white text-black' : 'text-zinc-500 hover:text-white'}`}>A-</button>
+              <button onClick={() => setFontSize('text-base')} title="Medium Text" className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-sm ${fontSize === 'text-base' ? 'bg-white text-black' : 'text-zinc-500 hover:text-white'}`}>A</button>
+              <button onClick={() => setFontSize('text-xl')} title="Large Text" className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-base ${fontSize === 'text-xl' ? 'bg-white text-black' : 'text-zinc-500 hover:text-white'}`}>A+</button>
             </div>
             {!isKiosk && (
-                <button onClick={() => setIsKiosk(true)} className="h-12 px-6 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white rounded-full font-black text-[10px] tracking-widest flex items-center gap-3 border border-white/5 transition-all">
+                <button onClick={() => setIsKiosk(true)} className="h-10 px-5 bg-black hover:bg-zinc-900 text-zinc-400 hover:text-white rounded-full font-black text-[10px] tracking-widest flex items-center gap-2 border border-white/[0.07] transition-all">
                     <i className="fa-solid fa-expand"></i> KIOSK
                 </button>
             )}
             {editMode && hasChanges && (
-                <button 
+                <button
                   onClick={() => { fetchProjectAndSettings(); fetchProgram(); setEditMode(false); }}
-                  className="h-12 px-6 text-xs font-black rounded-full text-zinc-400 hover:text-white transition-all underline tracking-widest"
+                  className="h-10 px-5 text-xs font-black rounded-full text-zinc-500 hover:text-white transition-all tracking-widest border border-white/[0.07]"
                 >
                   DISCARD
                 </button>
             )}
-            <button 
+            <button
               onClick={editMode ? saveScript : toggleEditMode}
               disabled={isSaving}
-              className={`h-12 px-8 text-xs font-black rounded-full transition-all flex items-center gap-3 border tracking-widest ${editMode ? `${theme.bg} text-black ${theme.border} ${theme.shadow} hover:scale-105 active:scale-95` : `bg-white/5 ${theme.text} border-white/10 hover:bg-white/10`}`}
+              className={`h-10 px-6 text-xs font-black rounded-full transition-all flex items-center gap-2 border tracking-widest ${editMode ? `${theme.bg} text-white border-transparent shadow-[0_0_20px_rgba(0,86,179,0.4)] hover:scale-105 active:scale-95` : `bg-white/[0.04] ${theme.text} border-white/[0.08] hover:bg-white/[0.08]`}`}
             >
               <i className={`fa-solid ${isSaving ? 'fa-spinner fa-spin' : editMode ? 'fa-save' : 'fa-pencil'}`}></i>
               {isSaving ? 'SAVING...' : editMode ? 'SAVE SCRIPT' : 'MODIFY SEQUENCE'}
