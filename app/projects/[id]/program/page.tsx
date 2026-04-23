@@ -229,7 +229,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
   }
 
   return (
-    <div className={isKiosk ? "fixed inset-0 z-[100] bg-[#050505] h-screen w-screen overflow-y-auto px-4 py-8 md:px-12 md:py-12 pb-32 transition-all duration-500 print:relative print:inset-auto" : "space-y-6 max-w-[1500px] mx-auto pb-20 overflow-x-hidden transition-all duration-500"}>
+    <div className={isKiosk ? "fixed inset-0 z-[100] bg-[#050505] h-screen w-screen overflow-y-auto px-4 py-8 md:px-12 md:py-12 pb-32 transition-all duration-500 print:relative print:inset-auto" : "space-y-5 pb-20 overflow-x-hidden transition-all duration-500"}>
       
       {isKiosk && (
           <div className="fixed bottom-8 right-8 z-[200]">
