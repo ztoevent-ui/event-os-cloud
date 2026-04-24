@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
 
 const NAV_ITEMS = [
     { label: 'Dashboard',          path: '',                    icon: 'fa-solid fa-chart-line' },
@@ -30,104 +29,74 @@ export default function ProjectSidebar({
 }) {
     const pathname = usePathname();
     const base = `/projects/${projectId}`;
-    const [collapsed, setCollapsed] = useState(false);
 
     const allItems = isTournament
         ? [...NAV_ITEMS, { label: 'Tournament Page', path: '/registration#tournament', icon: 'fa-solid fa-globe' }]
         : NAV_ITEMS;
 
-    const sidebarWidth = collapsed ? 72 : 256;
-
     return (
-        /*
-          The sidebar is a plain block element.
-          Its parent in layout.tsx is a flex container,
-          so it participates in normal flow — no absolute/relative tricks.
-        */
         <aside
             style={{
-                width: sidebarWidth,
-                minWidth: sidebarWidth,
-                maxWidth: sidebarWidth,
+                width: 280,
+                minWidth: 280,
+                maxWidth: 280,
                 height: '100vh',
                 display: 'flex',
                 flexDirection: 'column',
                 background: '#050505',
                 borderRight: '1px solid rgba(0,86,179,0.25)',
-                transition: 'width 0.25s ease, min-width 0.25s ease, max-width 0.25s ease',
                 fontFamily: "'Urbanist', sans-serif",
                 overflow: 'hidden',
+                flexShrink: 0,
             }}
         >
-            {/* ── Header: Logo + Collapse ── */}
+            {/* ── Header: Logo ── */}
             <div style={{
                 height: 72,
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: collapsed ? '0 16px' : '0 20px',
+                padding: '0 20px',
                 borderBottom: '1px solid rgba(255,255,255,0.06)',
                 flexShrink: 0,
             }}>
-                <Link href="/projects" style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flex: 1, textDecoration: 'none' }}>
+                <Link href="/projects" style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: 1, textDecoration: 'none' }}>
                     <img
                         src="https://zihjzbweasaqqbwilshx.supabase.co/storage/v1/object/public/logo/icon.png.JPG"
                         alt="ZTO"
                         style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }}
                     />
-                    {!collapsed && (
-                        <span style={{ color: '#fff', fontWeight: 700, fontSize: 15, letterSpacing: '0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            ZTO Event OS
-                        </span>
-                    )}
+                    <span style={{ color: '#fff', fontWeight: 700, fontSize: 16, letterSpacing: '0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        ZTO Event OS
+                    </span>
                 </Link>
-
-                {/* Collapse button — inline-block, NO absolute positioning */}
-                <button
-                    onClick={() => setCollapsed(!collapsed)}
-                    title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-                    style={{
-                        width: 28, height: 28, borderRadius: '50%',
-                        background: 'rgba(255,255,255,0.04)',
-                        border: '1px solid rgba(0,86,179,0.3)',
-                        color: 'rgba(255,255,255,0.4)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        cursor: 'pointer', flexShrink: 0, marginLeft: collapsed ? 'auto' : 8,
-                        transition: 'all 0.2s',
-                    }}
-                >
-                    <i className={`fa-solid ${collapsed ? 'fa-chevron-right' : 'fa-chevron-left'}`} style={{ fontSize: 9 }} />
-                </button>
             </div>
 
             {/* ── Project Context ── */}
-            {!collapsed && (
-                <div style={{
-                    padding: '16px 20px',
-                    borderBottom: '1px solid rgba(255,255,255,0.06)',
-                    flexShrink: 0,
-                }}>
-                    <div style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(255,255,255,0.3)', marginBottom: 6 }}>
-                        Current Project
-                    </div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: 8 }}>
-                        {projectName}
-                    </div>
-                    <span style={{
-                        display: 'inline-flex', alignItems: 'center',
-                        padding: '3px 10px', borderRadius: 999,
-                        border: '1px solid rgba(0,86,179,0.35)',
-                        background: 'rgba(0,86,179,0.12)',
-                        color: '#6BB8FF',
-                        fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em',
-                    }}>
-                        {projectStatus}
-                    </span>
+            <div style={{
+                padding: '20px',
+                borderBottom: '1px solid rgba(255,255,255,0.06)',
+                flexShrink: 0,
+            }}>
+                <div style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(0,86,179,0.8)', marginBottom: 6 }}>
+                    Project Detail
                 </div>
-            )}
+                <div style={{ fontSize: 15, fontWeight: 800, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: 12 }}>
+                    {projectName}
+                </div>
+                <span style={{
+                    display: 'inline-flex', alignItems: 'center',
+                    padding: '4px 12px', borderRadius: 999,
+                    border: '1px solid rgba(0,86,179,0.4)',
+                    background: 'rgba(0,86,179,0.15)',
+                    color: '#6BB8FF',
+                    fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em',
+                }}>
+                    {projectStatus}
+                </span>
+            </div>
 
             {/* ── Nav Links ── */}
-            <nav style={{ flex: 1, overflowY: 'auto', padding: '16px 10px' }}>
+            <nav style={{ flex: 1, overflowY: 'auto', padding: '20px 12px' }}>
                 {allItems.map(item => {
                     const href = `${base}${item.path}`;
                     const exactPath = href.split('#')[0];
@@ -139,57 +108,51 @@ export default function ProjectSidebar({
                         <Link
                             key={href}
                             href={href}
-                            title={collapsed ? item.label : undefined}
                             style={{
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: collapsed ? 0 : 12,
-                                justifyContent: collapsed ? 'center' : 'flex-start',
-                                padding: '10px 12px',
-                                borderRadius: 10,
-                                marginBottom: 2,
+                                gap: 14,
+                                padding: '12px 16px',
+                                borderRadius: 12,
+                                marginBottom: 4,
                                 textDecoration: 'none',
                                 transition: 'all 0.15s',
                                 background: isActive ? '#0056B3' : 'transparent',
-                                color: isActive ? '#fff' : 'rgba(255,255,255,0.38)',
-                                boxShadow: isActive ? '0 0 16px rgba(0,86,179,0.35)' : 'none',
+                                color: isActive ? '#fff' : 'rgba(255,255,255,0.4)',
+                                boxShadow: isActive ? '0 0 16px rgba(0,86,179,0.4)' : 'none',
                             }}
                             className={!isActive ? 'hover-nav-item' : ''}
                         >
-                            <i className={`${item.icon}`} style={{ fontSize: 14, width: 18, textAlign: 'center', flexShrink: 0 }} />
-                            {!collapsed && (
-                                <span style={{ fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap' }}>
-                                    {item.label}
-                                </span>
-                            )}
+                            <i className={`${item.icon}`} style={{ fontSize: 15, width: 20, textAlign: 'center', flexShrink: 0 }} />
+                            <span style={{ fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap' }}>
+                                {item.label}
+                            </span>
                         </Link>
                     );
                 })}
             </nav>
 
             {/* ── Footer: Exit ── */}
-            <div style={{ padding: '12px 10px', borderTop: '1px solid rgba(255,255,255,0.06)', flexShrink: 0 }}>
+            <div style={{ padding: '16px 12px', borderTop: '1px solid rgba(255,255,255,0.06)', flexShrink: 0 }}>
                 <Link
                     href="/projects"
-                    title={collapsed ? 'Exit to Projects' : undefined}
                     style={{
                         display: 'flex', alignItems: 'center',
-                        gap: collapsed ? 0 : 12,
-                        justifyContent: collapsed ? 'center' : 'flex-start',
-                        padding: '10px 12px', borderRadius: 10,
+                        gap: 14,
+                        padding: '12px 16px', borderRadius: 12,
                         textDecoration: 'none', transition: 'all 0.15s',
-                        color: 'rgba(255,255,255,0.25)',
+                        color: 'rgba(255,255,255,0.3)',
                     }}
                     className="hover-nav-exit"
                 >
-                    <i className="fa-solid fa-right-from-bracket" style={{ fontSize: 14, width: 18, textAlign: 'center' }} />
-                    {!collapsed && <span style={{ fontSize: 13, fontWeight: 600 }}>Exit to Projects</span>}
+                    <i className="fa-solid fa-right-from-bracket" style={{ fontSize: 15, width: 20, textAlign: 'center' }} />
+                    <span style={{ fontSize: 14, fontWeight: 600 }}>Exit to Projects</span>
                 </Link>
             </div>
 
             <style jsx>{`
                 .hover-nav-item:hover {
-                    background: rgba(255,255,255,0.04) !important;
+                    background: rgba(255,255,255,0.05) !important;
                     color: #fff !important;
                 }
                 .hover-nav-exit:hover {

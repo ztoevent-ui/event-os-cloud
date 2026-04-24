@@ -51,7 +51,7 @@ export function TaskCard({ task, projectId, isWedding }: { task: any, projectId:
     const [isDeleting, setIsDeleting] = useState(false);
 
     // Dynamic styles
-    const accentColor = isWedding ? 'pink-500' : 'amber-500';
+    const accentColor = isWedding ? 'pink-500' : '[#0056B3]';
     const borderHover = isWedding ? 'hover:border-pink-500/50' : 'hover:border-[#0056B3]/30';
     const priorityColor = task.priority === 'critical' ? 'bg-red-500' : task.priority === 'high' ? `bg-${accentColor}` : task.priority === 'medium' ? 'bg-blue-500' : 'bg-zinc-600';
     const accessBadge = task.access_level === 'admin' ? <span className="text-[10px] uppercase font-bold tracking-wider text-red-400 bg-red-900/20 px-1.5 py-0.5 rounded">Admin Only</span> : null;
@@ -457,9 +457,11 @@ export function PrintReportButton({ title = "General Report" }: { title?: string
         <>
             <button 
                 onClick={() => setIsModalOpen(true)}
-                className="px-6 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-full transition-all flex items-center gap-2 border border-zinc-700"
+                style={{ height: 48, padding: '0 24px', borderRadius: 12, background: '#0056B3', border: '1px solid rgba(0,86,179,0.3)', color: '#fff', fontWeight: 900, fontSize: 13, textTransform: 'uppercase', cursor: 'pointer', zIndex: 1000, position: 'relative', boxShadow: '0 0 20px rgba(0,86,179,0.4)', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: 10 }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.boxShadow = '0 0 30px rgba(0,86,179,0.8)'}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.boxShadow = '0 0 20px rgba(0,86,179,0.4)'}
             >
-                <i className="fa-solid fa-file-invoice-dollar"></i> Report
+                <i className="fa-solid fa-file-invoice-dollar"></i> REPORT
             </button>
             <PrintOptionsModal 
                 isOpen={isModalOpen} 
@@ -502,9 +504,11 @@ export function CopyProgramButton({ projectId }: { projectId: string }) {
         <>
             <button 
                 onClick={() => setIsOpen(true)} 
-                className="px-6 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-full transition-all flex items-center gap-2 border border-zinc-700 shadow-lg"
+                style={{ height: 48, padding: '0 24px', borderRadius: 12, background: '#0056B3', border: '1px solid rgba(0,86,179,0.3)', color: '#fff', fontWeight: 900, fontSize: 13, textTransform: 'uppercase', cursor: 'pointer', zIndex: 1000, position: 'relative', boxShadow: '0 0 20px rgba(0,86,179,0.4)', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: 10 }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.boxShadow = '0 0 30px rgba(0,86,179,0.8)'}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.boxShadow = '0 0 20px rgba(0,86,179,0.4)'}
             >
-                <i className="fa-solid fa-clone"></i> Copy Program
+                <i className="fa-solid fa-clone"></i> COPY PROGRAM
             </button>
             <AnimatePresence>
                 {isOpen && (

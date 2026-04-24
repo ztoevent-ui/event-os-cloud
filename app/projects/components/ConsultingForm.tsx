@@ -288,9 +288,9 @@ export default function ConsultingForm({ projectId }: WizardProps) {
                                     placeholder="Tell us a little about how you met..."
                                 ></textarea>
                             </div>
-                            <div className="bg-[#0056B3] p-4 rounded-lg border border-yellow-200/50 mt-4">
+                            <div className="bg-[#0056B3]/20 p-4 rounded-lg border border-[#0056B3]/50 mt-4">
                                 <div className="flex gap-3">
-                                    <i className="fa-solid fa-wand-magic-sparkles text-[#D4AF37] mt-1"></i>
+                                    <i className="fa-solid fa-wand-magic-sparkles text-[#DEFF9A] mt-1"></i>
                                     <div>
                                         <h4 className="text-sm font-bold text-zinc-800 mb-1">AI Powered Profile</h4>
                                         <p className="text-xs text-zinc-600">Our system will automatically generate a summary of your requirements to help our team serve you better.</p>

@@ -44,16 +44,18 @@ type FontSize = 'text-sm' | 'text-base' | 'text-lg' | 'text-xl';
 // ─── Styles ─────────────────────────────────────────────────────────────────
 const S = {
   card: {
-    background: 'rgba(255,255,255,0.03)',
-    border: '1px solid rgba(0,86,179,0.25)',
+    background: 'rgba(255,255,255,0.05)',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
+    border: '1px solid rgba(0,86,179,0.3)',
     borderRadius: 15,
     marginBottom: 12,
     overflow: 'hidden',
     transition: 'box-shadow 0.2s, transform 0.2s',
   } as React.CSSProperties,
   cardImportant: {
-    background: 'rgba(239,68,68,0.05)',
-    border: '1px solid rgba(239,68,68,0.3)',
+    background: 'rgba(239,68,68,0.08)',
+    border: '1px solid rgba(239,68,68,0.4)',
   } as React.CSSProperties,
 };
 
@@ -214,7 +216,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
 
   // ─── Main Page ────────────────────────────────────────────────────────────
   return (
-    <div style={{ fontFamily: "'Urbanist', sans-serif", padding: '32px 48px 96px', maxWidth: 1280, margin: '0 auto' }}>
+    <div style={{ fontFamily: "'Urbanist', sans-serif", padding: '40px', maxWidth: 1400, margin: '0 auto', display: 'flex', flexDirection: 'column', flex: 1 }}>
 
       {/* Print Header */}
       <div className="hidden print:block" style={{ marginBottom: 8 }}>
@@ -226,55 +228,50 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
       </div>
 
       {/* ── Page Header + Action Bar ── */}
-      <div className="print:hidden" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, paddingBottom: 24, borderBottom: '1px solid rgba(0,86,179,0.2)', marginBottom: 32, flexWrap: 'wrap' }}>
-        {/* Identity */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(0,86,179,0.15)', border: '1px solid rgba(0,86,179,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4da3ff', flexShrink: 0 }}>
-            <i className="fa-solid fa-list-ol" style={{ fontSize: 16 }} />
-          </div>
-          <div>
-            <h1 style={{ margin: 0, fontSize: 20, fontWeight: 900, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.08em', lineHeight: 1 }}>Tentative Program</h1>
-            <p style={{ margin: '5px 0 0', fontSize: 12, color: 'rgba(255,255,255,0.35)', fontWeight: 500 }}>{project?.name || 'Event Sequence Control'}</p>
-          </div>
+      <div className="print:hidden" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 24, marginBottom: '3rem', flexWrap: 'wrap' }}>
+        {/* Identity - Stacked without absolute positioning */}
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <p style={{ margin: '0 0 4px 0', fontSize: 13, color: '#0056B3', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.15em' }}>
+            Project Detail
+          </p>
+          <h1 style={{ margin: 0, fontSize: 48, fontWeight: 900, color: '#fff', textTransform: 'uppercase', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+            {project?.name || 'Event Sequence'}
+          </h1>
         </div>
 
-        {/* Actions */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          {/* Font Size */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(0,0,0,0.5)', padding: '6px 8px', borderRadius: 12, border: '1px solid rgba(0,86,179,0.3)' }}>
-            {(['text-sm', 'text-base', 'text-lg', 'text-xl'] as FontSize[]).map((size, i) => (
-              <button key={size} onClick={() => setFontSize(size)}
-                style={{ width: 30, height: 30, borderRadius: 8, border: 'none', background: fontSize === size ? '#0056B3' : 'transparent', color: fontSize === size ? '#fff' : 'rgba(255,255,255,0.35)', fontWeight: 900, fontSize: [10, 12, 14, 16][i], cursor: 'pointer', transition: 'all 0.15s' }}>
-                {['A-', 'A', 'A+', 'A⁺'][i]}
-              </button>
-            ))}
-          </div>
-
-          <button onClick={() => setIsKiosk(true)} className="btn-royal h-10 px-5 text-xs tracking-widest">
-            <i className="fa-solid fa-expand" /> KIOSK
+        {/* Actions - The Action Hub */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+          <button onClick={() => setIsKiosk(true)}
+            style={{ height: 48, padding: '0 24px', borderRadius: 12, background: '#0056B3', border: '1px solid rgba(0,86,179,0.3)', color: '#fff', fontWeight: 900, fontSize: 13, textTransform: 'uppercase', cursor: 'pointer', zIndex: 1000, position: 'relative', boxShadow: '0 0 20px rgba(0,86,179,0.4)', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: 10 }}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.boxShadow = '0 0 30px rgba(0,86,179,0.8)'}
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.boxShadow = '0 0 20px rgba(0,86,179,0.4)'}
+          >
+            <i className="fa-solid fa-expand" /> KIOSK MODE
           </button>
 
           {editMode && (
-            <button onClick={addColumn} style={{ height: 40, padding: '0 14px', borderRadius: 10, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)', fontWeight: 700, fontSize: 11, cursor: 'pointer' }}>
+            <button onClick={addColumn} style={{ height: 48, padding: '0 24px', borderRadius: 12, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)', fontWeight: 700, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10 }}>
               <i className="fa-solid fa-plus" /> ADD COL
             </button>
           )}
 
           {editMode && hasChanges && (
             <button onClick={() => { fetchProjectAndSettings(); fetchProgram(); setEditMode(false); }}
-              style={{ height: 40, padding: '0 14px', borderRadius: 10, background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)', color: '#ff9999', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer' }}>
+              style={{ height: 48, padding: '0 24px', borderRadius: 12, background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)', color: '#ff9999', fontWeight: 900, fontSize: 13, textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10 }}>
               DISCARD
             </button>
           )}
 
           <button onClick={editMode ? saveScript : toggleEditMode} disabled={isSaving}
-            className="btn-royal h-10 px-6 text-xs tracking-widest"
-            style={!editMode ? { background: '#fff', color: '#0056B3', boxShadow: 'none' } : {}}>
+            style={{ height: 48, padding: '0 24px', borderRadius: 12, background: '#0056B3', border: '1px solid rgba(0,86,179,0.3)', color: '#fff', fontWeight: 900, fontSize: 13, textTransform: 'uppercase', cursor: 'pointer', zIndex: 1000, position: 'relative', boxShadow: '0 0 20px rgba(0,86,179,0.4)', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: 10 }}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.boxShadow = '0 0 30px rgba(0,86,179,0.8)'}
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.boxShadow = '0 0 20px rgba(0,86,179,0.4)'}
+          >
             <i className={`fa-solid ${isSaving ? 'fa-spinner fa-spin' : editMode ? 'fa-save' : 'fa-pencil'}`} />
-            {' '}{isSaving ? 'SAVING...' : editMode ? 'SAVE SCRIPT' : 'MODIFY SEQUENCE'}
+            {isSaving ? 'SAVING...' : editMode ? 'SAVE SCRIPT' : 'MODIFY SEQUENCE'}
           </button>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingLeft: 12, borderLeft: '1px solid rgba(255,255,255,0.1)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <CopyProgramButton projectId={projectId} />
             <PrintReportButton title="Event Program" />
           </div>
