@@ -266,22 +266,21 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
       </div>
 
       {/* Action Floating Group */}
-      <div className="print:hidden fixed top-6 right-8 z-[9999] pointer-events-auto flex items-center gap-2 bg-[#050505]/90 backdrop-blur-xl border border-[#0056B3]/40 p-2 rounded-2xl shadow-[0_8px_32px_rgba(0,86,179,0.2)]">
-
+      <div className="print:hidden fixed top-6 right-8 z-[9999] pointer-events-auto flex items-center gap-4 bg-[#050505]/90 backdrop-blur-xl border border-[#0056B3]/40 p-3 rounded-2xl shadow-[0_8px_32px_rgba(0,86,179,0.4)]">
         <div className="flex items-center gap-3 flex-wrap">
           {/* Font size */}
-          <div className="flex items-center gap-1 bg-black/50 p-1.5 rounded-xl border border-white/10 mr-2">
-            <button onClick={() => setFontSize('text-xs')} title="Small" className={`w-8 h-8 rounded-lg font-bold text-xs flex items-center justify-center transition-all ${fontSize === 'text-xs' ? 'bg-white text-black' : 'text-zinc-500 hover:text-white'}`}>A-</button>
-            <button onClick={() => setFontSize('text-base')} title="Medium" className={`w-8 h-8 rounded-lg font-bold text-sm flex items-center justify-center transition-all ${fontSize === 'text-base' ? 'bg-white text-black' : 'text-zinc-500 hover:text-white'}`}>A</button>
-            <button onClick={() => setFontSize('text-xl')} title="Large" className={`w-8 h-8 rounded-lg font-bold text-base flex items-center justify-center transition-all ${fontSize === 'text-xl' ? 'bg-white text-black' : 'text-zinc-500 hover:text-white'}`}>A+</button>
+          <div className="flex items-center gap-1 bg-black/50 p-1.5 rounded-xl border border-[#0056B3]/30 mr-2 shadow-inner">
+            <button onClick={() => setFontSize('text-sm')} title="Small" className={`w-8 h-8 rounded-lg font-black text-xs flex items-center justify-center transition-all ${fontSize === 'text-sm' ? 'bg-[#0056B3] text-white shadow-[0_0_10px_rgba(0,86,179,0.8)]' : 'text-zinc-500 hover:text-white'}`}>A-</button>
+            <button onClick={() => setFontSize('text-lg')} title="Medium" className={`w-8 h-8 rounded-lg font-black text-sm flex items-center justify-center transition-all ${fontSize === 'text-lg' ? 'bg-[#0056B3] text-white shadow-[0_0_10px_rgba(0,86,179,0.8)]' : 'text-zinc-500 hover:text-white'}`}>A</button>
+            <button onClick={() => setFontSize('text-2xl')} title="Large" className={`w-8 h-8 rounded-lg font-black text-base flex items-center justify-center transition-all ${fontSize === 'text-2xl' ? 'bg-[#0056B3] text-white shadow-[0_0_10px_rgba(0,86,179,0.8)]' : 'text-zinc-500 hover:text-white'}`}>A+</button>
           </div>
           
-          <button onClick={() => setIsKiosk(true)} className="h-10 px-4 bg-transparent border border-white/10 hover:bg-white/5 rounded-xl text-zinc-300 text-xs font-bold tracking-widest flex items-center gap-2 transition-all">
-            <i className="fa-solid fa-expand text-[10px]" /> KIOSK
+          <button onClick={() => setIsKiosk(true)} className="btn-royal h-11 px-8 shadow-[0_0_20px_rgba(0,86,179,0.5)] tracking-widest text-sm">
+            <i className="fa-solid fa-expand" /> KIOSK
           </button>
           
           {editMode && hasChanges && (
-            <button onClick={() => { fetchProjectAndSettings(); fetchProgram(); setEditMode(false); }} className="h-10 px-4 bg-transparent border border-red-500/30 hover:bg-red-500/10 text-red-400 rounded-xl text-xs font-bold tracking-widest transition-all">
+            <button onClick={() => { fetchProjectAndSettings(); fetchProgram(); setEditMode(false); }} className="h-11 px-6 bg-[#ef4444]/20 border border-[#ef4444]/50 hover:bg-[#ef4444] text-[#ff9999] hover:text-black rounded-xl text-xs font-black tracking-widest transition-all">
               DISCARD
             </button>
           )}
@@ -289,13 +288,13 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
           <button
             onClick={editMode ? saveScript : toggleEditMode}
             disabled={isSaving}
-            className={editMode ? 'btn-royal h-10 px-6' : 'h-10 px-6 bg-transparent border border-[#0056B3]/60 hover:bg-[#0056B3]/20 text-[#4da3ff] rounded-xl text-xs font-bold tracking-widest flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(0,86,179,0.3)]'}
+            className={`h-11 px-8 text-sm tracking-widest shadow-[0_0_20px_rgba(0,86,179,0.5)] ${editMode ? 'btn-royal' : 'btn-royal bg-white text-[#0056B3] hover:bg-gray-200'}`}
           >
-            <i className={`fa-solid ${isSaving ? 'fa-spinner fa-spin' : editMode ? 'fa-save' : 'fa-pencil'} text-[10px]`} />
+            <i className={`fa-solid ${isSaving ? 'fa-spinner fa-spin' : editMode ? 'fa-save' : 'fa-pencil'}`} />
             {isSaving ? 'SAVING...' : editMode ? 'SAVE SCRIPT' : 'MODIFY SEQUENCE'}
           </button>
           
-          <div className="flex items-center gap-2 border-l border-white/10 pl-2 ml-1">
+          <div className="flex items-center gap-2 border-l border-white/10 pl-3 ml-2">
             <CopyProgramButton projectId={projectId} />
             <PrintReportButton title="Event Program" />
           </div>
@@ -305,21 +304,19 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
       <div className="bg-transparent relative z-10 w-full overflow-x-auto">
         <div className="overflow-x-auto print:overflow-visible print:w-full">
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <table className="w-full text-left border-separate min-w-[1200px] print:min-w-full print:w-full" style={{ borderSpacing: '0 12px' }}>
-              <thead>
-                <tr className="text-[10px] uppercase font-black tracking-[0.2em] text-zinc-400">
-                  {editMode && <th className="p-4 w-20 text-center">Ctrls</th>}
-                  {columns.map(col => (
-                    <ColumnHeader key={`col_${col.id}`} col={col} editMode={editMode} removeColumn={removeColumn} updateColumnWidth={updateColumnWidth} moveColumn={moveColumn} theme={theme} />
-                  ))}
-                  {editMode && (
-                    <th className="p-4 w-32 border-l border-white/5 text-center">
-                      <button onClick={addColumn} className={`text-[10px] ${theme.text} font-black hover:scale-110 transition-transform`}><i className="fa-solid fa-plus mr-1"></i>ADD COL</button>
-                    </th>
-                  )}
-                </tr>
-              </thead>
-              <tbody>
+            <div className="w-full flex flex-col gap-4 min-w-[1200px] print:min-w-full print:w-full">
+              <div className="flex w-full text-[10px] uppercase font-black tracking-[0.2em] text-zinc-400 mb-2">
+                {editMode && <div className="p-4 w-20 shrink-0 text-center">Ctrls</div>}
+                {columns.map(col => (
+                  <ColumnHeader key={`col_${col.id}`} col={col} editMode={editMode} removeColumn={removeColumn} updateColumnWidth={updateColumnWidth} moveColumn={moveColumn} theme={theme} />
+                ))}
+                {editMode && (
+                  <div className="p-4 w-32 shrink-0 border-l border-white/5 text-center">
+                    <button onClick={addColumn} className={`text-[10px] ${theme.text} font-black hover:scale-110 transition-transform`}><i className="fa-solid fa-plus mr-1"></i>ADD COL</button>
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-col gap-4">
                 <SortableContext items={rows.map(r => r.id)} strategy={verticalListSortingStrategy}>
                   <AnimatePresence initial={false}>
                     {rows.map(row => (
@@ -327,8 +324,8 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
                     ))}
                   </AnimatePresence>
                 </SortableContext>
-              </tbody>
-            </table>
+              </div>
+            </div>
           </DndContext>
           
           {(rows.length === 0 && !loading) && (
@@ -448,7 +445,7 @@ function ColumnHeader({ col, editMode, removeColumn, updateColumnWidth, moveColu
     e.preventDefault();
     e.stopPropagation();
     const startX = e.clientX;
-    const th = (e.target as HTMLElement).closest('th');
+    const th = (e.target as HTMLElement).closest('[data-col-header]');
     const startWidth = th?.getBoundingClientRect().width || 150;
 
     const onMouseMove = (moveEvent: MouseEvent) => {
@@ -466,7 +463,7 @@ function ColumnHeader({ col, editMode, removeColumn, updateColumnWidth, moveColu
   };
 
   return (
-    <th style={style} className={`p-4 border-r border-white/5 relative group align-middle w-[var(--col-width)] min-w-[var(--col-width)] max-w-[var(--col-width)] print:w-auto print:min-w-0 print:max-w-none ${editMode ? 'hover:bg-white/[0.02]' : ''}`}>
+    <div data-col-header="true" style={style} className={`p-4 shrink-0 border-r border-white/5 relative group align-middle w-[var(--col-width)] min-w-[var(--col-width)] max-w-[var(--col-width)] print:w-auto print:min-w-0 print:max-w-none ${editMode ? 'hover:bg-white/[0.02]' : ''}`}>
       <div className="flex items-center justify-between gap-2 h-full">
         <div className="flex-1 flex items-center gap-3">
            {editMode && (
@@ -492,7 +489,7 @@ function ColumnHeader({ col, editMode, removeColumn, updateColumnWidth, moveColu
             className={`absolute right-0 top-0 bottom-0 w-2 cursor-col-resize hover:bg-white/20 transition-colors z-10`}
         />
       )}
-    </th>
+    </div>
   );
 }
 
@@ -515,7 +512,7 @@ function SortableRow({ row, columns, editMode, updateCell, removeRow, theme, isP
     e.preventDefault();
     e.stopPropagation();
     const startY = e.clientY;
-    const tr = (e.target as HTMLElement).closest('tr');
+    const tr = (e.target as HTMLElement).closest('[data-row-container]');
     const startHeight = tr?.getBoundingClientRect().height || 50;
 
     const onMouseMove = (moveEvent: MouseEvent) => {
@@ -534,13 +531,13 @@ function SortableRow({ row, columns, editMode, updateCell, removeRow, theme, isP
   };
 
   return (
-    <motion.tr 
-      ref={setNodeRef} style={style}
+    <motion.div 
+      ref={setNodeRef} style={style} data-row-container="true"
       initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}
-      className={`group transition-colors relative ${row.is_important ? '' : ''} ${isPageBreak ? 'print:break-before-page' : ''}`}
+      className={`group transition-all relative flex w-full rounded-[15px] hover:shadow-[0_0_25px_rgba(0,86,179,0.3)] hover:-translate-y-0.5 ${row.is_important ? '' : ''} ${isPageBreak ? 'print:break-before-page' : ''}`}
     >
       {editMode && (
-        <td className="p-0 text-center align-top relative min-h-full bg-white/[0.03] border-y border-l border-[#0056B3]/30 rounded-l-2xl backdrop-blur-md">
+        <div className="p-0 text-center shrink-0 w-20 min-w-[5rem] max-w-[5rem] align-top relative min-h-full bg-white/[0.03] border-y border-l border-[#0056B3]/20 rounded-l-[15px] backdrop-blur-md">
            <div className="flex flex-col gap-3 items-center pt-4 relative z-10 h-full">
               <button {...attributes} {...listeners} className="text-zinc-600 hover:text-white cursor-grab active:cursor-grabbing p-2"><i className="fa-solid fa-grip-lines"></i></button>
               <button onClick={() => removeRow(row.id)} className="text-zinc-700 hover:text-red-500 p-2 rounded-xl transition-all"><i className="fa-solid fa-trash-can"></i></button>
@@ -549,34 +546,54 @@ function SortableRow({ row, columns, editMode, updateCell, removeRow, theme, isP
            <div 
              onMouseDown={handleResizeStart}
              title="Drag to resize row height"
-             className="absolute bottom-0 left-0 right-0 h-3 cursor-row-resize hover:bg-white/10 z-20 transition-all flex items-center justify-center print:hidden border-b border-transparent hover:border-white/20"
+             className="absolute bottom-0 left-0 right-0 h-3 cursor-row-resize hover:bg-white/10 z-20 transition-all flex items-center justify-center print:hidden border-b border-transparent hover:border-white/20 rounded-bl-[15px]"
            >
               <div className="w-4 h-0.5 bg-zinc-600 opacity-50 rounded-full" />
            </div>
-        </td>
+        </div>
       )}
       
       {columns.map((col: any, index: number) => {
         const val = col.isCustom ? (row.custom_data?.[col.id] || '') : row[col.id];
         const isFirst = !editMode && index === 0;
         const isLast = index === columns.length - 1;
+        const cellStyle = { '--col-width': col.width || 'auto' } as React.CSSProperties;
+        
+        let textColor = 'text-zinc-200';
+        let textSize = fontSize;
+        let textWeight = 'font-bold';
+        
+        if (col.id === 'time') {
+            textColor = 'text-[#DEFF9A]'; // Cyber Lime
+            textSize = fontSize === 'text-sm' ? 'text-base' : fontSize === 'text-lg' ? 'text-xl' : 'text-3xl';
+            textWeight = 'font-black';
+        } else if (col.id === 'activities') {
+            textColor = 'text-white';
+            textWeight = 'font-black';
+            if (row.is_important) textColor = 'text-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.4)]';
+        } else if (col.id === 'movement' || col.id === 'cues' || col.id === 'song' || col.id === 'volume') {
+            textColor = 'text-zinc-400';
+            textWeight = 'font-medium';
+            textSize = fontSize === 'text-sm' ? 'text-xs' : fontSize === 'text-lg' ? 'text-sm' : 'text-xl';
+        }
+        
         return (
-          <td key={col.id} className={`p-0 align-top relative bg-white/[0.03] border-y border-[#0056B3]/30 backdrop-blur-md ${isFirst ? 'border-l rounded-l-2xl' : ''} ${isLast ? 'border-r rounded-r-2xl' : 'border-r border-r-white/5'} ${row.is_important ? 'bg-red-500/5 border-[#ef4444]/30' : ''}`}>
+          <div key={col.id} style={cellStyle} className={`shrink-0 w-[var(--col-width)] min-w-[var(--col-width)] max-w-[var(--col-width)] p-0 align-top relative bg-white/[0.03] border-y border-[#0056B3]/20 backdrop-blur-md ${isFirst ? 'border-l rounded-l-[15px]' : ''} ${isLast ? 'border-r rounded-r-[15px]' : 'border-r border-r-white/5'} ${row.is_important ? 'bg-red-500/5 border-[#ef4444]/30' : ''}`}>
             {editMode ? (
               <textarea
                 value={val}
                 onChange={(e) => updateCell(row.id, col.id, e.target.value, col.isCustom)}
-                className={`w-full h-full min-h-0 p-3 md:p-4 bg-transparent resize-none outline-none ${theme.bgFocus} ${fontSize} font-bold ${row.is_important && col.id === 'activities' ? 'text-red-500' : 'text-zinc-200'} placeholder-zinc-700 transition-colors`}
+                className={`w-full h-full min-h-0 p-4 md:p-5 bg-transparent resize-none outline-none ${theme.bgFocus} ${textSize} ${textWeight} ${textColor} placeholder-zinc-700 transition-colors`}
                 placeholder={col.label.toUpperCase()}
               />
             ) : (
-              <div className={`p-3 md:p-4 ${fontSize} whitespace-pre-wrap leading-relaxed font-bold ${row.is_important && col.id === 'activities' ? 'text-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.4)]' : 'text-zinc-200'}`}>
+              <div className={`p-4 md:p-5 ${textSize} whitespace-pre-wrap leading-relaxed ${textWeight} ${textColor}`}>
                 {val}
               </div>
             )}
-          </td>
+          </div>
         );
       })}
-    </motion.tr>
+    </motion.div>
   );
 }

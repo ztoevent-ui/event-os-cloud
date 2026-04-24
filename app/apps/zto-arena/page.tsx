@@ -109,7 +109,7 @@ export default function ArenaHubRoot() {
       <div className="max-w-4xl w-full z-10">
         {/* Header */}
         <header className="mb-12 text-center relative">
-          <Link href="/" className="absolute left-0 top-1/2 -translate-y-1/2 flex items-center gap-2 text-[10px] font-black uppercase text-zinc-600 hover:text-white transition-colors tracking-widest group">
+          <Link href="/projects" className="absolute left-0 top-1/2 -translate-y-1/2 flex items-center gap-2 text-[10px] font-black uppercase text-zinc-600 hover:text-white transition-colors tracking-widest group">
             <i className="fa-solid fa-arrow-left group-hover:-translate-x-1 transition-transform" />
             Back to OS
           </Link>
