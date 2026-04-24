@@ -229,14 +229,14 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
   }
 
   return (
-    <div className={isKiosk ? "fixed inset-0 z-[100] bg-[#050505] h-screen w-screen overflow-y-auto p-4 md:p-12 pb-32 print:relative print:inset-auto" : "flex flex-col gap-0"}>
-      
+    <div className={isKiosk ? "fixed inset-0 z-[100] bg-[#050505] h-screen w-screen overflow-y-auto p-4 md:p-12 pb-32" : ""}>
+
       {isKiosk && (
-          <div className="fixed bottom-8 right-8 z-[200]">
-              <button onClick={() => setIsKiosk(false)} className="h-14 px-8 bg-black hover:bg-zinc-900 border border-red-500 text-red-500 rounded-full font-black text-xs tracking-widest flex items-center gap-3 transition-all">
-                  <i className="fa-solid fa-compress"></i> EXIT KIOSK
-              </button>
-          </div>
+        <div style={{ position: 'fixed', bottom: 32, right: 32, zIndex: 200 }}>
+          <button onClick={() => setIsKiosk(false)} className="h-14 px-8 bg-black hover:bg-zinc-900 border border-red-500 text-red-500 rounded-full font-black text-xs tracking-widest flex items-center gap-3 transition-all">
+            <i className="fa-solid fa-compress"></i> EXIT KIOSK
+          </button>
+        </div>
       )}
 
       {/* Print-only compact header */}
@@ -245,42 +245,92 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
           <h1 style={{ fontSize: '11pt', fontWeight: 900, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'black', fontStyle: 'italic', margin: 0 }}>
             Tentative Program: {project?.name || ''}
           </h1>
-          <span style={{ fontSize: '7pt', fontWeight: 700, color: '#888', letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap', marginLeft: '12px', paddingBottom: '1px' }}>
+          <span style={{ fontSize: '7pt', fontWeight: 700, color: '#888', letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap', marginLeft: 12 }}>
             ZTO Event OS
           </span>
         </div>
         <div style={{ height: '1px', background: '#ccc' }} />
       </div>
 
-      {/* ─── Sticky Top Action Bar — lives inside the scrollable main area, not fixed to viewport ─── */}
-      <div className="print:hidden sticky top-0 z-[100] w-full bg-[#050505]/95 backdrop-blur-xl border-b border-[#0056B3]/30 shadow-[0_4px_24px_rgba(0,86,179,0.15)] mb-8">
-        <div className="flex items-center justify-between gap-4 px-6 py-4 max-w-[1440px] mx-auto">
-          {/* Left: Page Identity */}
-          <div className="flex items-center gap-4 shrink-0">
-            <div className="w-10 h-10 bg-[#0056B3]/20 border border-[#0056B3]/40 rounded-xl flex items-center justify-center text-[#4da3ff] shrink-0">
-              <i className="fa-solid fa-list-ol" />
+      {/* ── Safe Container: max-width centered, no overflow ── */}
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 0 96px 0' }}>
+
+        {/* ── Page Header + Action Bar ── */}
+        <div
+          className="print:hidden"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 16,
+            padding: '24px 0 20px 0',
+            borderBottom: '1px solid rgba(0,86,179,0.2)',
+            marginBottom: 24,
+            flexWrap: 'wrap',
+          }}
+        >
+          {/* Left: Identity */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{
+              width: 44, height: 44, borderRadius: 12,
+              background: 'rgba(0,86,179,0.15)',
+              border: '1px solid rgba(0,86,179,0.4)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: '#4da3ff', flexShrink: 0,
+            }}>
+              <i className="fa-solid fa-list-ol" style={{ fontSize: 16 }} />
             </div>
             <div>
-              <h1 className="m-0 text-lg font-black text-white uppercase tracking-widest leading-none">Tentative Program</h1>
-              <p className="m-0 text-[11px] text-zinc-500 mt-0.5 font-medium tracking-wide">{project?.name || 'Event Sequence Control'}</p>
+              <h1 style={{ margin: 0, fontSize: 18, fontWeight: 900, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.08em', lineHeight: 1 }}>
+                Tentative Program
+              </h1>
+              <p style={{ margin: '4px 0 0', fontSize: 12, color: 'rgba(255,255,255,0.35)', fontWeight: 500, letterSpacing: '0.05em' }}>
+                {project?.name || 'Event Sequence Control'}
+              </p>
             </div>
           </div>
 
           {/* Right: Action Hub */}
-          <div className="flex items-center gap-3 shrink-0">
-            {/* Font size */}
-            <div className="flex items-center gap-1 bg-black/60 p-1.5 rounded-xl border border-[#0056B3]/30">
-              <button onClick={() => setFontSize('text-sm')} title="Small" className={`w-8 h-8 rounded-lg font-black text-xs flex items-center justify-center transition-all ${fontSize === 'text-sm' ? 'bg-[#0056B3] text-white shadow-[0_0_10px_rgba(0,86,179,0.8)]' : 'text-zinc-500 hover:text-white'}`}>A-</button>
-              <button onClick={() => setFontSize('text-lg')} title="Medium" className={`w-8 h-8 rounded-lg font-black text-sm flex items-center justify-center transition-all ${fontSize === 'text-lg' ? 'bg-[#0056B3] text-white shadow-[0_0_10px_rgba(0,86,179,0.8)]' : 'text-zinc-500 hover:text-white'}`}>A</button>
-              <button onClick={() => setFontSize('text-2xl')} title="Large" className={`w-8 h-8 rounded-lg font-black text-base flex items-center justify-center transition-all ${fontSize === 'text-2xl' ? 'bg-[#0056B3] text-white shadow-[0_0_10px_rgba(0,86,179,0.8)]' : 'text-zinc-500 hover:text-white'}`}>A+</button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            {/* Font size picker */}
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 4,
+              background: 'rgba(0,0,0,0.5)', padding: '6px 8px', borderRadius: 12,
+              border: '1px solid rgba(0,86,179,0.3)',
+            }}>
+              {(['text-sm', 'text-lg', 'text-2xl'] as const).map((size, i) => (
+                <button
+                  key={size}
+                  onClick={() => setFontSize(size)}
+                  title={['Small', 'Medium', 'Large'][i]}
+                  style={{
+                    width: 32, height: 32, borderRadius: 8, border: 'none',
+                    background: fontSize === size ? '#0056B3' : 'transparent',
+                    color: fontSize === size ? '#fff' : 'rgba(255,255,255,0.35)',
+                    fontWeight: 900, fontSize: [11, 13, 15][i], cursor: 'pointer',
+                    boxShadow: fontSize === size ? '0 0 10px rgba(0,86,179,0.6)' : 'none',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  {['A-', 'A', 'A+'][i]}
+                </button>
+              ))}
             </div>
 
-            <button onClick={() => setIsKiosk(true)} className="btn-royal h-10 px-5 tracking-widest text-xs">
+            <button onClick={() => setIsKiosk(true)} className="btn-royal h-10 px-5 text-xs tracking-widest">
               <i className="fa-solid fa-expand" /> KIOSK
             </button>
 
             {editMode && hasChanges && (
-              <button onClick={() => { fetchProjectAndSettings(); fetchProgram(); setEditMode(false); }} className="h-10 px-4 bg-[#ef4444]/20 border border-[#ef4444]/50 hover:bg-[#ef4444] text-[#ff9999] hover:text-black rounded-xl text-xs font-black tracking-widest transition-all">
+              <button
+                onClick={() => { fetchProjectAndSettings(); fetchProgram(); setEditMode(false); }}
+                style={{
+                  height: 40, padding: '0 16px', borderRadius: 10,
+                  background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)',
+                  color: '#ff9999', fontWeight: 900, fontSize: 11, letterSpacing: '0.1em',
+                  textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.15s',
+                }}
+              >
                 DISCARD
               </button>
             )}
@@ -288,38 +338,41 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
             <button
               onClick={editMode ? saveScript : toggleEditMode}
               disabled={isSaving}
-              className={`btn-royal h-10 px-6 tracking-widest text-xs ${!editMode ? 'bg-white text-[#0056B3] hover:bg-zinc-100 shadow-none' : ''}`}
+              className="btn-royal h-10 px-6 text-xs tracking-widest"
+              style={!editMode ? { background: '#fff', color: '#0056B3', boxShadow: 'none' } : {}}
             >
               <i className={`fa-solid ${isSaving ? 'fa-spinner fa-spin' : editMode ? 'fa-save' : 'fa-pencil'}`} />
               {isSaving ? 'SAVING...' : editMode ? 'SAVE SCRIPT' : 'MODIFY SEQUENCE'}
             </button>
 
-            <div className="flex items-center gap-2 border-l border-white/10 pl-3">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingLeft: 12, borderLeft: '1px solid rgba(255,255,255,0.1)' }}>
               <CopyProgramButton projectId={projectId} />
               <PrintReportButton title="Event Program" />
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Card Content Area */}
-      <div className="pb-24 max-w-[1440px] mx-auto w-full">
-      <div className="bg-transparent relative z-10 w-full">
-        <div className="overflow-x-auto print:overflow-visible print:w-full">
+        {/* ── Card Data Area ── */}
+        <div style={{ width: '100%', overflowX: 'auto' }}>
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <div className="w-full flex flex-col gap-4 print:w-full">
-              <div className="flex w-full text-[10px] uppercase font-black tracking-[0.2em] text-zinc-400 mb-2">
-                {editMode && <div className="p-4 w-20 shrink-0 text-center">Ctrls</div>}
+            <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {/* Column Headers */}
+              <div style={{ display: 'flex', width: '100%' }} className="text-[10px] uppercase font-black tracking-[0.2em] text-zinc-400">
+                {editMode && <div style={{ padding: 16, width: 80, flexShrink: 0, textAlign: 'center' }}>Ctrls</div>}
                 {columns.map(col => (
                   <ColumnHeader key={`col_${col.id}`} col={col} editMode={editMode} removeColumn={removeColumn} updateColumnWidth={updateColumnWidth} moveColumn={moveColumn} theme={theme} />
                 ))}
                 {editMode && (
-                  <div className="p-4 w-32 shrink-0 border-l border-white/5 text-center">
-                    <button onClick={addColumn} className={`text-[10px] ${theme.text} font-black hover:scale-110 transition-transform`}><i className="fa-solid fa-plus mr-1"></i>ADD COL</button>
+                  <div style={{ padding: 16, width: 128, flexShrink: 0, borderLeft: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
+                    <button onClick={addColumn} className={`text-[10px] ${theme.text} font-black hover:scale-110 transition-transform`}>
+                      <i className="fa-solid fa-plus mr-1"></i>ADD COL
+                    </button>
                   </div>
                 )}
               </div>
-              <div className="flex flex-col gap-4">
+
+              {/* Rows */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <SortableContext items={rows.map(r => r.id)} strategy={verticalListSortingStrategy}>
                   <AnimatePresence initial={false}>
                     {rows.map(row => (
@@ -330,9 +383,9 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
               </div>
             </div>
           </DndContext>
-          
-          {(rows.length === 0 && !loading) && (
-            <div className="py-32 flex flex-col items-center justify-center bg-white/[0.02] border-t border-white/5">
+
+          {rows.length === 0 && !loading && (
+            <div style={{ padding: '96px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
               <h3 className="text-2xl font-black text-zinc-400 uppercase tracking-[0.3em] mb-3 italic">No Sequence Defined</h3>
               <p className="text-zinc-600 font-medium text-xs mt-2 uppercase tracking-widest">Initialize the sequence.</p>
               <div className="mt-10 print:hidden">
@@ -340,17 +393,17 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
               </div>
             </div>
           )}
-          
+
           {editMode && rows.length > 0 && (
-            <div className="p-8 bg-zinc-900/20 border-t border-white/5 flex justify-center">
-              <button onClick={addRow} className={`h-14 px-12 bg-zinc-800 text-white ${theme.bgHover} active:scale-95 text-[10px] uppercase tracking-[0.3em] font-black rounded-full transition-all flex items-center gap-4 shadow-2xl`}>
+            <div style={{ padding: 32, borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'center' }}>
+              <button onClick={addRow} className={`h-14 px-12 bg-zinc-800 text-white active:scale-95 text-[10px] uppercase tracking-[0.3em] font-black rounded-full transition-all flex items-center gap-4 shadow-2xl`}>
                 <i className="fa-solid fa-plus-circle text-lg"></i> Append Sequence Row
               </button>
             </div>
           )}
         </div>
-      </div>
-      </div>
+
+      </div> {/* end safe container */}
       
       {/* Visual Footer — hidden on print */}
       <div className="print:hidden flex justify-between items-center px-8 text-[10px] font-black tracking-[0.4em] text-zinc-800 uppercase sticky bottom-0 bg-black/80 backdrop-blur-md py-4 z-20">

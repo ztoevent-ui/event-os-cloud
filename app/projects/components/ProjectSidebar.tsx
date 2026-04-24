@@ -5,16 +5,16 @@ import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 
 const NAV_ITEMS = [
-    { label: 'Dashboard', path: '', icon: 'fa-solid fa-chart-line' },
-    { label: 'Tasks', path: '/tasks', icon: 'fa-solid fa-list-check' },
-    { label: 'Timeline', path: '/timelines', icon: 'fa-solid fa-clock' },
-    { label: 'Schedule', path: '/schedule', icon: 'fa-solid fa-calendar-days' },
-    { label: 'Tentative Program', path: '/program', icon: 'fa-solid fa-clipboard-list' },
-    { label: 'Budget', path: '/budget', icon: 'fa-solid fa-wallet' },
-    { label: 'Vendors', path: '/vendors', icon: 'fa-solid fa-truck-fast' },
-    { label: 'Venue', path: '/venue-layout', icon: 'fa-solid fa-map-location-dot' },
-    { label: '3D', path: '/stage-layout', icon: 'fa-solid fa-cube' },
-    { label: 'Reg', path: '/registration', icon: 'fa-solid fa-users' },
+    { label: 'Dashboard',          path: '',                    icon: 'fa-solid fa-chart-line' },
+    { label: 'Tasks',              path: '/tasks',              icon: 'fa-solid fa-list-check' },
+    { label: 'Timeline',           path: '/timelines',          icon: 'fa-solid fa-clock' },
+    { label: 'Schedule',           path: '/schedule',           icon: 'fa-solid fa-calendar-days' },
+    { label: 'Tentative Program',  path: '/program',            icon: 'fa-solid fa-clipboard-list' },
+    { label: 'Budget',             path: '/budget',             icon: 'fa-solid fa-wallet' },
+    { label: 'Vendors',            path: '/vendors',            icon: 'fa-solid fa-truck-fast' },
+    { label: 'Venue',              path: '/venue-layout',       icon: 'fa-solid fa-map-location-dot' },
+    { label: '3D Stage',           path: '/stage-layout',       icon: 'fa-solid fa-cube' },
+    { label: 'Registration',       path: '/registration',       icon: 'fa-solid fa-users' },
 ];
 
 export default function ProjectSidebar({
@@ -33,49 +33,101 @@ export default function ProjectSidebar({
     const [collapsed, setCollapsed] = useState(false);
 
     const allItems = isTournament
-        ? [...NAV_ITEMS, { label: 'Pub', path: '/registration#tournament', icon: 'fa-solid fa-globe' }]
+        ? [...NAV_ITEMS, { label: 'Tournament Page', path: '/registration#tournament', icon: 'fa-solid fa-globe' }]
         : NAV_ITEMS;
 
+    const sidebarWidth = collapsed ? 72 : 256;
+
     return (
-        <aside 
-            className={`flex flex-col bg-[#050505] border-r border-white/[0.06] transition-all duration-300 ${collapsed ? 'w-20' : 'w-64'} shrink-0`}
-            style={{ fontFamily: "'Urbanist', sans-serif" }}
+        /*
+          The sidebar is a plain block element.
+          Its parent in layout.tsx is a flex container,
+          so it participates in normal flow — no absolute/relative tricks.
+        */
+        <aside
+            style={{
+                width: sidebarWidth,
+                minWidth: sidebarWidth,
+                maxWidth: sidebarWidth,
+                height: '100vh',
+                display: 'flex',
+                flexDirection: 'column',
+                background: '#050505',
+                borderRight: '1px solid rgba(0,86,179,0.25)',
+                transition: 'width 0.25s ease, min-width 0.25s ease, max-width 0.25s ease',
+                fontFamily: "'Urbanist', sans-serif",
+                overflow: 'hidden',
+            }}
         >
-            {/* Header / Logo */}
-            <div className="h-20 flex items-center px-6 border-b border-white/[0.06] justify-between">
-                <Link href="/projects" className={`flex items-center gap-3 transition-opacity duration-300 ${collapsed ? 'w-full justify-center' : ''}`}>
+            {/* ── Header: Logo + Collapse ── */}
+            <div style={{
+                height: 72,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: collapsed ? '0 16px' : '0 20px',
+                borderBottom: '1px solid rgba(255,255,255,0.06)',
+                flexShrink: 0,
+            }}>
+                <Link href="/projects" style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flex: 1, textDecoration: 'none' }}>
                     <img
                         src="https://zihjzbweasaqqbwilshx.supabase.co/storage/v1/object/public/logo/icon.png.JPG"
                         alt="ZTO"
-                        className="w-8 h-8 rounded-lg object-cover"
+                        style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }}
                     />
-                    {!collapsed && <span className="text-white font-bold text-[16px] tracking-tight whitespace-nowrap">ZTO Event OS</span>}
+                    {!collapsed && (
+                        <span style={{ color: '#fff', fontWeight: 700, fontSize: 15, letterSpacing: '0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            ZTO Event OS
+                        </span>
+                    )}
                 </Link>
-            </div>
 
-            {/* Toggle Button — anchored to sidebar right edge, does not bleed into content */}
-            <div className="absolute top-6 right-0 translate-x-1/2 z-50">
-                <button 
+                {/* Collapse button — inline-block, NO absolute positioning */}
+                <button
                     onClick={() => setCollapsed(!collapsed)}
-                    className="w-8 h-8 bg-[#0a0a0a] border border-white/[0.08] rounded-full flex items-center justify-center text-white/50 hover:text-white hover:bg-white/5 hover:border-[#0056B3]/50 transition-all shadow-lg"
+                    title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                    style={{
+                        width: 28, height: 28, borderRadius: '50%',
+                        background: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(0,86,179,0.3)',
+                        color: 'rgba(255,255,255,0.4)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        cursor: 'pointer', flexShrink: 0, marginLeft: collapsed ? 'auto' : 8,
+                        transition: 'all 0.2s',
+                    }}
                 >
-                    <i className={`fa-solid ${collapsed ? 'fa-chevron-right' : 'fa-chevron-left'} text-[10px]`}></i>
+                    <i className={`fa-solid ${collapsed ? 'fa-chevron-right' : 'fa-chevron-left'}`} style={{ fontSize: 9 }} />
                 </button>
             </div>
 
-            {/* Context Info */}
+            {/* ── Project Context ── */}
             {!collapsed && (
-                <div className="p-6 border-b border-white/[0.06]">
-                    <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1">Current Project</div>
-                    <div className="text-sm font-bold text-white leading-tight truncate">{projectName}</div>
-                    <div className="mt-2 inline-flex items-center px-2 py-0.5 rounded-full border border-[#0056B3]/30 bg-[#0056B3]/10 text-[#6BB8FF] text-[10px] font-black uppercase tracking-widest">
-                        {projectStatus}
+                <div style={{
+                    padding: '16px 20px',
+                    borderBottom: '1px solid rgba(255,255,255,0.06)',
+                    flexShrink: 0,
+                }}>
+                    <div style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(255,255,255,0.3)', marginBottom: 6 }}>
+                        Current Project
                     </div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: 8 }}>
+                        {projectName}
+                    </div>
+                    <span style={{
+                        display: 'inline-flex', alignItems: 'center',
+                        padding: '3px 10px', borderRadius: 999,
+                        border: '1px solid rgba(0,86,179,0.35)',
+                        background: 'rgba(0,86,179,0.12)',
+                        color: '#6BB8FF',
+                        fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em',
+                    }}>
+                        {projectStatus}
+                    </span>
                 </div>
             )}
 
-            {/* Nav Links */}
-            <div className="flex-1 overflow-y-auto py-6 px-3 space-y-1">
+            {/* ── Nav Links ── */}
+            <nav style={{ flex: 1, overflowY: 'auto', padding: '16px 10px' }}>
                 {allItems.map(item => {
                     const href = `${base}${item.path}`;
                     const exactPath = href.split('#')[0];
@@ -88,30 +140,63 @@ export default function ProjectSidebar({
                             key={href}
                             href={href}
                             title={collapsed ? item.label : undefined}
-                            className={`flex items-center ${collapsed ? 'justify-center px-0 py-3' : 'px-4 py-3 gap-3'} rounded-xl transition-all duration-200 ${
-                                isActive
-                                    ? 'bg-[#0056B3] text-white shadow-[0_0_20px_rgba(0,86,179,0.3)]'
-                                    : 'text-white/40 hover:text-white hover:bg-white/[0.04]'
-                            }`}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: collapsed ? 0 : 12,
+                                justifyContent: collapsed ? 'center' : 'flex-start',
+                                padding: '10px 12px',
+                                borderRadius: 10,
+                                marginBottom: 2,
+                                textDecoration: 'none',
+                                transition: 'all 0.15s',
+                                background: isActive ? '#0056B3' : 'transparent',
+                                color: isActive ? '#fff' : 'rgba(255,255,255,0.38)',
+                                boxShadow: isActive ? '0 0 16px rgba(0,86,179,0.35)' : 'none',
+                            }}
+                            className={!isActive ? 'hover-nav-item' : ''}
                         >
-                            <i className={`${item.icon} text-[14px] ${isActive ? 'text-white' : ''} ${collapsed ? '' : 'w-5 text-center'}`} />
-                            {!collapsed && <span className="text-[13px] font-semibold whitespace-nowrap">{item.label}</span>}
+                            <i className={`${item.icon}`} style={{ fontSize: 14, width: 18, textAlign: 'center', flexShrink: 0 }} />
+                            {!collapsed && (
+                                <span style={{ fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap' }}>
+                                    {item.label}
+                                </span>
+                            )}
                         </Link>
                     );
                 })}
-            </div>
+            </nav>
 
-            {/* Footer / Back */}
-            <div className="p-4 border-t border-white/[0.06]">
+            {/* ── Footer: Exit ── */}
+            <div style={{ padding: '12px 10px', borderTop: '1px solid rgba(255,255,255,0.06)', flexShrink: 0 }}>
                 <Link
                     href="/projects"
-                    className={`flex items-center ${collapsed ? 'justify-center px-0' : 'px-4 gap-3'} py-3 rounded-xl text-white/30 hover:text-red-400 hover:bg-red-400/10 transition-all`}
-                    title={collapsed ? "Exit to Projects" : undefined}
+                    title={collapsed ? 'Exit to Projects' : undefined}
+                    style={{
+                        display: 'flex', alignItems: 'center',
+                        gap: collapsed ? 0 : 12,
+                        justifyContent: collapsed ? 'center' : 'flex-start',
+                        padding: '10px 12px', borderRadius: 10,
+                        textDecoration: 'none', transition: 'all 0.15s',
+                        color: 'rgba(255,255,255,0.25)',
+                    }}
+                    className="hover-nav-exit"
                 >
-                    <i className="fa-solid fa-arrow-right-from-bracket text-[14px] rotate-180" />
-                    {!collapsed && <span className="text-[13px] font-semibold whitespace-nowrap">Exit to Projects</span>}
+                    <i className="fa-solid fa-right-from-bracket" style={{ fontSize: 14, width: 18, textAlign: 'center' }} />
+                    {!collapsed && <span style={{ fontSize: 13, fontWeight: 600 }}>Exit to Projects</span>}
                 </Link>
             </div>
+
+            <style jsx>{`
+                .hover-nav-item:hover {
+                    background: rgba(255,255,255,0.04) !important;
+                    color: #fff !important;
+                }
+                .hover-nav-exit:hover {
+                    background: rgba(239,68,68,0.1) !important;
+                    color: #f87171 !important;
+                }
+            `}</style>
         </aside>
     );
 }

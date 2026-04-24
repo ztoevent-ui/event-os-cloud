@@ -18,8 +18,27 @@ export default async function ProjectLayout({
 
     return (
         <PrintProvider>
-            <div className="flex h-screen bg-[#050505] text-white overflow-hidden selection:bg-[#0056B3] selection:text-white" style={{ fontFamily: "'Urbanist', sans-serif" }}>
-                <div className="print:hidden relative z-50 shrink-0">
+            {/*
+              ┌──────────────────────────────────────────────────────┐
+              │  Root flex container — full viewport, no overflow     │
+              │  Sidebar: fixed-width, never shrinks                  │
+              │  Main: flex-1, clips horizontal overflow              │
+              └──────────────────────────────────────────────────────┘
+            */}
+            <div
+                className="print:block"
+                style={{
+                    display: 'flex',
+                    height: '100vh',
+                    width: '100vw',
+                    overflow: 'hidden',
+                    background: '#050505',
+                    color: '#E5E5E5',
+                    fontFamily: "'Urbanist', sans-serif",
+                }}
+            >
+                {/* ── Sidebar ── */}
+                <div className="print:hidden" style={{ flexShrink: 0 }}>
                     <ProjectSidebar
                         projectId={projectId}
                         projectName={project?.name || ''}
@@ -27,11 +46,20 @@ export default async function ProjectLayout({
                         isTournament={isTournament}
                     />
                 </div>
-                
-                <main className="flex-1 overflow-y-auto bg-[#050505] relative z-10 print:p-0 print:overflow-visible">
-                    <div className="p-6 lg:p-10 max-w-[1600px] mx-auto pb-24 print:p-0">
-                        {children}
-                    </div>
+
+                {/* ── Main Content ── */}
+                <main
+                    style={{
+                        flex: 1,
+                        overflowX: 'hidden',
+                        overflowY: 'auto',
+                        minWidth: 0,        /* prevents flex child from overflowing */
+                        background: '#050505',
+                        position: 'relative',
+                    }}
+                    className="print:overflow-visible print:flex-none print:w-full"
+                >
+                    {children}
                 </main>
             </div>
         </PrintProvider>
