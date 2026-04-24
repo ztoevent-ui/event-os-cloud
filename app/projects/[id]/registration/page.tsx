@@ -253,23 +253,30 @@ export default function RegistrationStudio() {
     };
 
     return (
-        <div className="space-y-5">
-            {/* Page Header */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-[#0d0d0d] border border-white/[0.07] px-6 py-4 rounded-2xl print:hidden">
-                <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 bg-[#a855f7]/10 border border-[#a855f7]/30 rounded-xl flex items-center justify-center text-[#a855f7]">
-                        <i className="fa-solid fa-id-card" />
-                    </div>
-                    <div>
-                        <h1 className="text-base font-black text-white tracking-tight">Registration Studio</h1>
-                        <p className="text-[11px] text-zinc-600">Design your form, build tournament page & manage submissions</p>
-                    </div>
-                </div>
+        <div className="space-y-10">
+            {/* Action Floating Group */}
+            <div className="print:hidden fixed top-6 right-8 z-[9999] pointer-events-auto flex items-center gap-3 bg-[#050505]/90 backdrop-blur-xl border border-[#0056B3]/40 p-2 rounded-2xl shadow-[0_8px_32px_rgba(0,86,179,0.2)]">
                 {activeTab === 'submissions' && (
-                    <div className="print:hidden mt-3 sm:mt-0">
+                    <div className="px-2 border-r border-white/10 mr-2">
                         <PrintReportButton title="Registration Submissions" />
                     </div>
                 )}
+                <button onClick={handleSave} className="btn-royal h-10 px-6 shadow-[0_0_15px_rgba(0,86,179,0.3)]">
+                    <i className="fa-solid fa-save text-[10px]" /> SAVE SETTINGS
+                </button>
+            </div>
+
+            {/* Page Header */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-[#0d0d0d] border border-[#0056B3]/30 px-6 py-5 rounded-2xl print:hidden shadow-[0_4px_24px_rgba(0,86,179,0.1)]">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-[#0056B3]/20 border border-[#0056B3]/40 rounded-xl flex items-center justify-center text-[#4da3ff] shrink-0">
+                        <i className="fa-solid fa-id-card text-lg" />
+                    </div>
+                    <div>
+                        <h1 className="text-xl font-black text-white tracking-widest uppercase font-['Urbanist'] m-0 leading-none">Registration Studio</h1>
+                        <p className="text-sm text-zinc-400 mt-1 font-medium tracking-wide m-0">Design your form, build tournament page & manage submissions</p>
+                    </div>
+                </div>
             </div>
 
             {/* ── Tabs ──────────────────────────────────────────────── */}
@@ -303,7 +310,7 @@ export default function RegistrationStudio() {
                    TAB 1: DESIGN & SETTINGS (original)
                 ════════════════════════════════════════════════════════ */
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div className="lg:col-span-2 space-y-6 bg-white/5 border border-white/10 backdrop-blur-xl p-6 md:p-8 rounded-3xl shadow-xl">
+                    <div className="lg:col-span-2 space-y-6 bg-white/[0.03] border border-[#0056B3]/30 backdrop-blur-xl p-6 md:p-8 rounded-3xl shadow-xl">
 
                         {/* Template */}
                         <div>
@@ -325,7 +332,7 @@ export default function RegistrationStudio() {
                                 <label className="text-xs font-black tracking-widest uppercase text-zinc-400">Data Collection Fields</label>
                                 <span className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest">Toggle ON / OFF</span>
                             </div>
-                            <div className="grid grid-cols-2 gap-4 bg-black/50 p-5 rounded-2xl border border-zinc-800">
+                            <div className="grid grid-cols-2 gap-4 bg-white/[0.03] p-5 rounded-2xl border border-[#0056B3]/30">
                                 {[
                                     { key: 'show_team_name', label: 'Team Name' },
                                     { key: 'show_team_dupr_average', label: 'Team Average DUPR' },
@@ -355,7 +362,7 @@ export default function RegistrationStudio() {
                         <AnimatePresence>
                             {settings.fields_config.show_medical && (
                                 <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-                                    <div className="bg-zinc-950 border border-white/5 p-6 rounded-2xl">
+                                    <div className="bg-white/[0.03] border border-[#0056B3]/30 p-6 rounded-2xl mt-4">
                                         <div className="flex items-center justify-between mb-4">
                                             <label className="text-xs font-black tracking-widest uppercase text-[#0056B3]500">Medical Conditions List</label>
                                             <button onClick={() => setSettings({ ...settings, medical_options: [...settings.medical_options, 'New Condition'] })} className="px-3 py-1.5 bg-[#0056B3]/10 text-[#0056B3]500 hover:bg-[#0056B3] hover:text-black rounded-lg text-[9px] font-black uppercase tracking-widest transition-colors">
@@ -403,17 +410,10 @@ export default function RegistrationStudio() {
                                 <input type="text" className="w-full bg-[#0a0a0a]/50 border border-[#222] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]" value={settings.title_sponsor || ''} onChange={e => setSettings({ ...settings, title_sponsor: e.target.value })} placeholder="Enter Name" />
                             </div>
                         </div>
-
-                        <div className="pt-4 border-t border-zinc-800 text-right">
-                            <button onClick={handleSave} className="bg-[#0056B3] hover:bg-[#0056B3]400 text-black font-black uppercase tracking-widest px-8 py-3 rounded-xl transition-colors shadow-lg shadow-blue-900/20">
-                                Save Settings
-                            </button>
-                        </div>
                     </div>
-
                     {/* QR + Link sidebar */}
                     <div className="space-y-6">
-                        <div className="bg-white/5 border border-white/10 backdrop-blur-xl p-6 rounded-3xl shadow-xl text-center">
+                        <div className="bg-white/[0.03] border border-[#0056B3]/30 backdrop-blur-xl p-6 rounded-3xl shadow-xl text-center">
                             <h3 className="text-sm font-black tracking-widest uppercase text-zinc-400 mb-6">Scan to Register</h3>
                             <div className="bg-white p-4 rounded-2xl inline-block mx-auto mb-6">
                                 <QRCodeSVG value={publicRegUrl || 'placeholder'} size={160} />
@@ -442,7 +442,7 @@ export default function RegistrationStudio() {
                         </div>
 
                         {/* Arena Connection */}
-                        <div className="bg-white/5 border border-white/10 backdrop-blur-xl p-6 rounded-3xl shadow-xl">
+                        <div className="bg-white/[0.03] border border-[#0056B3]/30 backdrop-blur-xl p-6 rounded-3xl shadow-xl">
                             <div className="flex items-center gap-3 mb-4">
                                 <div className="w-8 h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center text-emerald-500">
                                     <i className="fa-solid fa-link" />

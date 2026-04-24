@@ -19,7 +19,7 @@ export default async function ProjectLayout({
     return (
         <PrintProvider>
             <div className="flex h-screen bg-[#050505] text-white overflow-hidden selection:bg-[#0056B3] selection:text-white" style={{ fontFamily: "'Urbanist', sans-serif" }}>
-                <div className="print:hidden relative z-50">
+                <div className="print:hidden relative z-50 shrink-0">
                     <ProjectSidebar
                         projectId={projectId}
                         projectName={project?.name || ''}

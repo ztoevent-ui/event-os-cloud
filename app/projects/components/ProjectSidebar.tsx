@@ -43,7 +43,7 @@ export default function ProjectSidebar({
         >
             {/* Header / Logo */}
             <div className="h-20 flex items-center px-6 border-b border-white/[0.06] justify-between">
-                <Link href="/" className={`flex items-center gap-3 transition-opacity duration-300 ${collapsed ? 'w-full justify-center' : ''}`}>
+                <Link href="/projects" className={`flex items-center gap-3 transition-opacity duration-300 ${collapsed ? 'w-full justify-center' : ''}`}>
                     <img
                         src="https://zihjzbweasaqqbwilshx.supabase.co/storage/v1/object/public/logo/icon.png.JPG"
                         alt="ZTO"

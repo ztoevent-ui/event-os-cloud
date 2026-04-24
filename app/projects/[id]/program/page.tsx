@@ -252,32 +252,36 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
         <div style={{ height: '1px', background: '#ccc' }} />
       </div>
 
-      {/* Action Area Card */}
-      <div className="print:hidden bg-white/[0.02] border border-white/[0.08] backdrop-blur-xl rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-20">
+      {/* Page Title */}
+      <div className="print:hidden mb-6">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-[#0056B3]/20 border border-[#0056B3]/40 rounded-xl flex items-center justify-center text-[#4da3ff] shrink-0">
             <i className="fa-solid fa-list-ol text-lg" />
           </div>
           <div>
-            <h1 className="m-0 text-xl font-black text-white uppercase tracking-widest leading-none font-['Urbanist']">Tentative Program</h1>
-            <p className="m-0 text-xs text-zinc-400 mt-1 font-medium tracking-wide">Live event sequence control and production cues</p>
+            <h1 className="m-0 text-2xl font-black text-white uppercase tracking-widest leading-none font-['Urbanist']">Tentative Program</h1>
+            <p className="m-0 text-sm text-zinc-400 mt-1 font-medium tracking-wide">Live event sequence control and production cues</p>
           </div>
         </div>
+      </div>
+
+      {/* Action Floating Group */}
+      <div className="print:hidden fixed top-6 right-8 z-[9999] pointer-events-auto flex items-center gap-2 bg-[#050505]/90 backdrop-blur-xl border border-[#0056B3]/40 p-2 rounded-2xl shadow-[0_8px_32px_rgba(0,86,179,0.2)]">
 
         <div className="flex items-center gap-3 flex-wrap">
           {/* Font size */}
-          <div className="flex items-center gap-1 bg-black/50 p-1.5 rounded-xl border border-white/10">
+          <div className="flex items-center gap-1 bg-black/50 p-1.5 rounded-xl border border-white/10 mr-2">
             <button onClick={() => setFontSize('text-xs')} title="Small" className={`w-8 h-8 rounded-lg font-bold text-xs flex items-center justify-center transition-all ${fontSize === 'text-xs' ? 'bg-white text-black' : 'text-zinc-500 hover:text-white'}`}>A-</button>
             <button onClick={() => setFontSize('text-base')} title="Medium" className={`w-8 h-8 rounded-lg font-bold text-sm flex items-center justify-center transition-all ${fontSize === 'text-base' ? 'bg-white text-black' : 'text-zinc-500 hover:text-white'}`}>A</button>
             <button onClick={() => setFontSize('text-xl')} title="Large" className={`w-8 h-8 rounded-lg font-bold text-base flex items-center justify-center transition-all ${fontSize === 'text-xl' ? 'bg-white text-black' : 'text-zinc-500 hover:text-white'}`}>A+</button>
           </div>
           
-          <button onClick={() => setIsKiosk(true)} className="h-11 px-5 bg-transparent border border-white/10 hover:bg-white/5 rounded-xl text-zinc-400 text-xs font-bold tracking-widest flex items-center gap-2 transition-all">
+          <button onClick={() => setIsKiosk(true)} className="h-10 px-4 bg-transparent border border-white/10 hover:bg-white/5 rounded-xl text-zinc-300 text-xs font-bold tracking-widest flex items-center gap-2 transition-all">
             <i className="fa-solid fa-expand text-[10px]" /> KIOSK
           </button>
           
           {editMode && hasChanges && (
-            <button onClick={() => { fetchProjectAndSettings(); fetchProgram(); setEditMode(false); }} className="h-11 px-5 bg-transparent border border-red-500/30 hover:bg-red-500/10 text-red-400 rounded-xl text-xs font-bold tracking-widest transition-all">
+            <button onClick={() => { fetchProjectAndSettings(); fetchProgram(); setEditMode(false); }} className="h-10 px-4 bg-transparent border border-red-500/30 hover:bg-red-500/10 text-red-400 rounded-xl text-xs font-bold tracking-widest transition-all">
               DISCARD
             </button>
           )}
@@ -285,25 +289,25 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
           <button
             onClick={editMode ? saveScript : toggleEditMode}
             disabled={isSaving}
-            className={editMode ? 'btn-royal h-11' : 'h-11 px-5 bg-transparent border border-[#0056B3]/40 hover:bg-[#0056B3]/10 text-[#4da3ff] rounded-xl text-xs font-bold tracking-widest flex items-center gap-2 transition-all'}
+            className={editMode ? 'btn-royal h-10 px-6' : 'h-10 px-6 bg-transparent border border-[#0056B3]/60 hover:bg-[#0056B3]/20 text-[#4da3ff] rounded-xl text-xs font-bold tracking-widest flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(0,86,179,0.3)]'}
           >
             <i className={`fa-solid ${isSaving ? 'fa-spinner fa-spin' : editMode ? 'fa-save' : 'fa-pencil'} text-[10px]`} />
             {isSaving ? 'SAVING...' : editMode ? 'SAVE SCRIPT' : 'MODIFY SEQUENCE'}
           </button>
           
-          <div className="flex items-center gap-2 border-l border-white/10 pl-3 ml-1">
+          <div className="flex items-center gap-2 border-l border-white/10 pl-2 ml-1">
             <CopyProgramButton projectId={projectId} />
             <PrintReportButton title="Event Program" />
           </div>
         </div>
       </div>
 
-      <div className="bg-white/[0.02] border border-white/[0.08] backdrop-blur-xl rounded-[2rem] overflow-hidden relative z-10 shadow-2xl">
+      <div className="bg-transparent relative z-10 w-full overflow-x-auto">
         <div className="overflow-x-auto print:overflow-visible print:w-full">
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <table className="w-full text-left border-collapse min-w-[1200px] print:min-w-full print:w-full">
+            <table className="w-full text-left border-separate min-w-[1200px] print:min-w-full print:w-full" style={{ borderSpacing: '0 12px' }}>
               <thead>
-                <tr className="bg-zinc-900 border-b border-white/5 text-[10px] uppercase font-black tracking-[0.2em] text-zinc-400">
+                <tr className="text-[10px] uppercase font-black tracking-[0.2em] text-zinc-400">
                   {editMode && <th className="p-4 w-20 text-center">Ctrls</th>}
                   {columns.map(col => (
                     <ColumnHeader key={`col_${col.id}`} col={col} editMode={editMode} removeColumn={removeColumn} updateColumnWidth={updateColumnWidth} moveColumn={moveColumn} theme={theme} />
@@ -315,7 +319,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
                   )}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody>
                 <SortableContext items={rows.map(r => r.id)} strategy={verticalListSortingStrategy}>
                   <AnimatePresence initial={false}>
                     {rows.map(row => (
@@ -533,10 +537,10 @@ function SortableRow({ row, columns, editMode, updateCell, removeRow, theme, isP
     <motion.tr 
       ref={setNodeRef} style={style}
       initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}
-      className={`group transition-colors relative ${row.is_important ? 'bg-red-500/5' : 'hover:bg-white/[0.02]'} ${isPageBreak ? 'print:break-before-page' : ''}`}
+      className={`group transition-colors relative ${row.is_important ? '' : ''} ${isPageBreak ? 'print:break-before-page' : ''}`}
     >
       {editMode && (
-        <td className="p-0 border-r border-white/5 text-center bg-[#050505]/50 align-top relative min-h-full">
+        <td className="p-0 text-center align-top relative min-h-full bg-white/[0.03] border-y border-l border-[#0056B3]/30 rounded-l-2xl backdrop-blur-md">
            <div className="flex flex-col gap-3 items-center pt-4 relative z-10 h-full">
               <button {...attributes} {...listeners} className="text-zinc-600 hover:text-white cursor-grab active:cursor-grabbing p-2"><i className="fa-solid fa-grip-lines"></i></button>
               <button onClick={() => removeRow(row.id)} className="text-zinc-700 hover:text-red-500 p-2 rounded-xl transition-all"><i className="fa-solid fa-trash-can"></i></button>
@@ -552,19 +556,21 @@ function SortableRow({ row, columns, editMode, updateCell, removeRow, theme, isP
         </td>
       )}
       
-      {columns.map((col: any) => {
+      {columns.map((col: any, index: number) => {
         const val = col.isCustom ? (row.custom_data?.[col.id] || '') : row[col.id];
+        const isFirst = !editMode && index === 0;
+        const isLast = index === columns.length - 1;
         return (
-          <td key={col.id} className="p-0 border-r border-white/5 align-top relative">
+          <td key={col.id} className={`p-0 align-top relative bg-white/[0.03] border-y border-[#0056B3]/30 backdrop-blur-md ${isFirst ? 'border-l rounded-l-2xl' : ''} ${isLast ? 'border-r rounded-r-2xl' : 'border-r border-r-white/5'} ${row.is_important ? 'bg-red-500/5 border-[#ef4444]/30' : ''}`}>
             {editMode ? (
               <textarea
                 value={val}
                 onChange={(e) => updateCell(row.id, col.id, e.target.value, col.isCustom)}
-                className={`w-full h-full min-h-0 p-1 md:p-2 bg-transparent resize-none outline-none ${theme.bgFocus} ${fontSize} font-bold ${row.is_important && col.id === 'activities' ? 'text-red-500' : 'text-zinc-300'} placeholder-zinc-800 transition-colors`}
+                className={`w-full h-full min-h-0 p-3 md:p-4 bg-transparent resize-none outline-none ${theme.bgFocus} ${fontSize} font-bold ${row.is_important && col.id === 'activities' ? 'text-red-500' : 'text-zinc-200'} placeholder-zinc-700 transition-colors`}
                 placeholder={col.label.toUpperCase()}
               />
             ) : (
-              <div className={`p-1 md:p-2 ${fontSize} whitespace-pre-wrap leading-relaxed font-bold ${row.is_important && col.id === 'activities' ? 'text-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.4)]' : 'text-zinc-300'}`}>
+              <div className={`p-3 md:p-4 ${fontSize} whitespace-pre-wrap leading-relaxed font-bold ${row.is_important && col.id === 'activities' ? 'text-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.4)]' : 'text-zinc-200'}`}>
                 {val}
               </div>
             )}
