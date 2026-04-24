@@ -229,7 +229,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
   }
 
   return (
-    <div className={isKiosk ? "fixed inset-0 z-[100] bg-[#050505] h-screen w-screen overflow-y-auto p-4 md:p-12 pb-32 print:relative print:inset-auto" : "flex flex-col gap-6"}>
+    <div className={isKiosk ? "fixed inset-0 z-[100] bg-[#050505] h-screen w-screen overflow-y-auto p-4 md:p-12 pb-32 print:relative print:inset-auto" : "flex flex-col gap-0"}>
       
       {isKiosk && (
           <div className="fixed bottom-8 right-8 z-[200]">
@@ -252,59 +252,62 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
         <div style={{ height: '1px', background: '#ccc' }} />
       </div>
 
-      {/* Page Title */}
-      <div className="print:hidden mb-6">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-[#0056B3]/20 border border-[#0056B3]/40 rounded-xl flex items-center justify-center text-[#4da3ff] shrink-0">
-            <i className="fa-solid fa-list-ol text-lg" />
+      {/* ─── Sticky Top Action Bar — lives inside the scrollable main area, not fixed to viewport ─── */}
+      <div className="print:hidden sticky top-0 z-[100] w-full bg-[#050505]/95 backdrop-blur-xl border-b border-[#0056B3]/30 shadow-[0_4px_24px_rgba(0,86,179,0.15)] mb-8">
+        <div className="flex items-center justify-between gap-4 px-6 py-4 max-w-[1440px] mx-auto">
+          {/* Left: Page Identity */}
+          <div className="flex items-center gap-4 shrink-0">
+            <div className="w-10 h-10 bg-[#0056B3]/20 border border-[#0056B3]/40 rounded-xl flex items-center justify-center text-[#4da3ff] shrink-0">
+              <i className="fa-solid fa-list-ol" />
+            </div>
+            <div>
+              <h1 className="m-0 text-lg font-black text-white uppercase tracking-widest leading-none">Tentative Program</h1>
+              <p className="m-0 text-[11px] text-zinc-500 mt-0.5 font-medium tracking-wide">{project?.name || 'Event Sequence Control'}</p>
+            </div>
           </div>
-          <div>
-            <h1 className="m-0 text-2xl font-black text-white uppercase tracking-widest leading-none font-['Urbanist']">Tentative Program</h1>
-            <p className="m-0 text-sm text-zinc-400 mt-1 font-medium tracking-wide">Live event sequence control and production cues</p>
-          </div>
-        </div>
-      </div>
 
-      {/* Action Floating Group */}
-      <div className="print:hidden fixed top-6 right-8 z-[9999] pointer-events-auto flex items-center gap-4 bg-[#050505]/90 backdrop-blur-xl border border-[#0056B3]/40 p-3 rounded-2xl shadow-[0_8px_32px_rgba(0,86,179,0.4)]">
-        <div className="flex items-center gap-3 flex-wrap">
-          {/* Font size */}
-          <div className="flex items-center gap-1 bg-black/50 p-1.5 rounded-xl border border-[#0056B3]/30 mr-2 shadow-inner">
-            <button onClick={() => setFontSize('text-sm')} title="Small" className={`w-8 h-8 rounded-lg font-black text-xs flex items-center justify-center transition-all ${fontSize === 'text-sm' ? 'bg-[#0056B3] text-white shadow-[0_0_10px_rgba(0,86,179,0.8)]' : 'text-zinc-500 hover:text-white'}`}>A-</button>
-            <button onClick={() => setFontSize('text-lg')} title="Medium" className={`w-8 h-8 rounded-lg font-black text-sm flex items-center justify-center transition-all ${fontSize === 'text-lg' ? 'bg-[#0056B3] text-white shadow-[0_0_10px_rgba(0,86,179,0.8)]' : 'text-zinc-500 hover:text-white'}`}>A</button>
-            <button onClick={() => setFontSize('text-2xl')} title="Large" className={`w-8 h-8 rounded-lg font-black text-base flex items-center justify-center transition-all ${fontSize === 'text-2xl' ? 'bg-[#0056B3] text-white shadow-[0_0_10px_rgba(0,86,179,0.8)]' : 'text-zinc-500 hover:text-white'}`}>A+</button>
-          </div>
-          
-          <button onClick={() => setIsKiosk(true)} className="btn-royal h-11 px-8 shadow-[0_0_20px_rgba(0,86,179,0.5)] tracking-widest text-sm">
-            <i className="fa-solid fa-expand" /> KIOSK
-          </button>
-          
-          {editMode && hasChanges && (
-            <button onClick={() => { fetchProjectAndSettings(); fetchProgram(); setEditMode(false); }} className="h-11 px-6 bg-[#ef4444]/20 border border-[#ef4444]/50 hover:bg-[#ef4444] text-[#ff9999] hover:text-black rounded-xl text-xs font-black tracking-widest transition-all">
-              DISCARD
+          {/* Right: Action Hub */}
+          <div className="flex items-center gap-3 shrink-0">
+            {/* Font size */}
+            <div className="flex items-center gap-1 bg-black/60 p-1.5 rounded-xl border border-[#0056B3]/30">
+              <button onClick={() => setFontSize('text-sm')} title="Small" className={`w-8 h-8 rounded-lg font-black text-xs flex items-center justify-center transition-all ${fontSize === 'text-sm' ? 'bg-[#0056B3] text-white shadow-[0_0_10px_rgba(0,86,179,0.8)]' : 'text-zinc-500 hover:text-white'}`}>A-</button>
+              <button onClick={() => setFontSize('text-lg')} title="Medium" className={`w-8 h-8 rounded-lg font-black text-sm flex items-center justify-center transition-all ${fontSize === 'text-lg' ? 'bg-[#0056B3] text-white shadow-[0_0_10px_rgba(0,86,179,0.8)]' : 'text-zinc-500 hover:text-white'}`}>A</button>
+              <button onClick={() => setFontSize('text-2xl')} title="Large" className={`w-8 h-8 rounded-lg font-black text-base flex items-center justify-center transition-all ${fontSize === 'text-2xl' ? 'bg-[#0056B3] text-white shadow-[0_0_10px_rgba(0,86,179,0.8)]' : 'text-zinc-500 hover:text-white'}`}>A+</button>
+            </div>
+
+            <button onClick={() => setIsKiosk(true)} className="btn-royal h-10 px-5 tracking-widest text-xs">
+              <i className="fa-solid fa-expand" /> KIOSK
             </button>
-          )}
 
-          <button
-            onClick={editMode ? saveScript : toggleEditMode}
-            disabled={isSaving}
-            className={`h-11 px-8 text-sm tracking-widest shadow-[0_0_20px_rgba(0,86,179,0.5)] ${editMode ? 'btn-royal' : 'btn-royal bg-white text-[#0056B3] hover:bg-gray-200'}`}
-          >
-            <i className={`fa-solid ${isSaving ? 'fa-spinner fa-spin' : editMode ? 'fa-save' : 'fa-pencil'}`} />
-            {isSaving ? 'SAVING...' : editMode ? 'SAVE SCRIPT' : 'MODIFY SEQUENCE'}
-          </button>
-          
-          <div className="flex items-center gap-2 border-l border-white/10 pl-3 ml-2">
-            <CopyProgramButton projectId={projectId} />
-            <PrintReportButton title="Event Program" />
+            {editMode && hasChanges && (
+              <button onClick={() => { fetchProjectAndSettings(); fetchProgram(); setEditMode(false); }} className="h-10 px-4 bg-[#ef4444]/20 border border-[#ef4444]/50 hover:bg-[#ef4444] text-[#ff9999] hover:text-black rounded-xl text-xs font-black tracking-widest transition-all">
+                DISCARD
+              </button>
+            )}
+
+            <button
+              onClick={editMode ? saveScript : toggleEditMode}
+              disabled={isSaving}
+              className={`btn-royal h-10 px-6 tracking-widest text-xs ${!editMode ? 'bg-white text-[#0056B3] hover:bg-zinc-100 shadow-none' : ''}`}
+            >
+              <i className={`fa-solid ${isSaving ? 'fa-spinner fa-spin' : editMode ? 'fa-save' : 'fa-pencil'}`} />
+              {isSaving ? 'SAVING...' : editMode ? 'SAVE SCRIPT' : 'MODIFY SEQUENCE'}
+            </button>
+
+            <div className="flex items-center gap-2 border-l border-white/10 pl-3">
+              <CopyProgramButton projectId={projectId} />
+              <PrintReportButton title="Event Program" />
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="bg-transparent relative z-10 w-full overflow-x-auto">
+      {/* Card Content Area */}
+      <div className="pb-24 max-w-[1440px] mx-auto w-full">
+      <div className="bg-transparent relative z-10 w-full">
         <div className="overflow-x-auto print:overflow-visible print:w-full">
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <div className="w-full flex flex-col gap-4 min-w-[1200px] print:min-w-full print:w-full">
+            <div className="w-full flex flex-col gap-4 print:w-full">
               <div className="flex w-full text-[10px] uppercase font-black tracking-[0.2em] text-zinc-400 mb-2">
                 {editMode && <div className="p-4 w-20 shrink-0 text-center">Ctrls</div>}
                 {columns.map(col => (
@@ -346,6 +349,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
             </div>
           )}
         </div>
+      </div>
       </div>
       
       {/* Visual Footer — hidden on print */}
@@ -463,7 +467,7 @@ function ColumnHeader({ col, editMode, removeColumn, updateColumnWidth, moveColu
   };
 
   return (
-    <div data-col-header="true" style={style} className={`p-4 shrink-0 border-r border-white/5 relative group align-middle w-[var(--col-width)] min-w-[var(--col-width)] max-w-[var(--col-width)] print:w-auto print:min-w-0 print:max-w-none ${editMode ? 'hover:bg-white/[0.02]' : ''}`}>
+    <div data-col-header="true" style={{ flex: `0 0 ${col.width || '16%'}` }} className={`p-4 min-w-0 border-r border-white/5 relative group align-middle print:flex-1 ${editMode ? 'hover:bg-white/[0.02]' : ''}`}>
       <div className="flex items-center justify-between gap-2 h-full">
         <div className="flex-1 flex items-center gap-3">
            {editMode && (
@@ -578,7 +582,7 @@ function SortableRow({ row, columns, editMode, updateCell, removeRow, theme, isP
         }
         
         return (
-          <div key={col.id} style={cellStyle} className={`shrink-0 w-[var(--col-width)] min-w-[var(--col-width)] max-w-[var(--col-width)] p-0 align-top relative bg-white/[0.03] border-y border-[#0056B3]/20 backdrop-blur-md ${isFirst ? 'border-l rounded-l-[15px]' : ''} ${isLast ? 'border-r rounded-r-[15px]' : 'border-r border-r-white/5'} ${row.is_important ? 'bg-red-500/5 border-[#ef4444]/30' : ''}`}>
+          <div key={col.id} style={{ flex: `0 0 ${col.width || '16%'}` }} className={`min-w-0 p-0 align-top relative bg-white/[0.03] border-y border-[#0056B3]/20 backdrop-blur-md ${isFirst ? 'border-l rounded-l-[15px]' : ''} ${isLast ? 'border-r rounded-r-[15px]' : 'border-r border-r-white/5'} ${row.is_important ? 'bg-red-500/5 border-[#ef4444]/30' : ''}`}>
             {editMode ? (
               <textarea
                 value={val}

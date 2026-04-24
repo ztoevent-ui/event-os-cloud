@@ -53,11 +53,11 @@ export default function ProjectSidebar({
                 </Link>
             </div>
 
-            {/* Toggle Button */}
-            <div className="absolute top-6 -right-4 z-50">
+            {/* Toggle Button — anchored to sidebar right edge, does not bleed into content */}
+            <div className="absolute top-6 right-0 translate-x-1/2 z-50">
                 <button 
                     onClick={() => setCollapsed(!collapsed)}
-                    className="w-8 h-8 bg-[#0a0a0a] border border-white/[0.08] rounded-full flex items-center justify-center text-white/50 hover:text-white hover:bg-white/5 hover:border-white/20 transition-all shadow-lg"
+                    className="w-8 h-8 bg-[#0a0a0a] border border-white/[0.08] rounded-full flex items-center justify-center text-white/50 hover:text-white hover:bg-white/5 hover:border-[#0056B3]/50 transition-all shadow-lg"
                 >
                     <i className={`fa-solid ${collapsed ? 'fa-chevron-right' : 'fa-chevron-left'} text-[10px]`}></i>
                 </button>

@@ -28,8 +28,8 @@ export default async function ProjectLayout({
                     />
                 </div>
                 
-                <main className="flex-1 overflow-y-auto bg-[#050505] relative z-10 p-6 lg:p-10 print:p-0 print:overflow-visible">
-                    <div className="max-w-[1600px] mx-auto pb-24">
+                <main className="flex-1 overflow-y-auto bg-[#050505] relative z-10 print:p-0 print:overflow-visible">
+                    <div className="p-6 lg:p-10 max-w-[1600px] mx-auto pb-24 print:p-0">
                         {children}
                     </div>
                 </main>
