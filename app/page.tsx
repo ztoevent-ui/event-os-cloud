@@ -154,7 +154,9 @@ const projectCategories = [
     id: 'midea-malaysia-launch',
     name: 'Midea Malaysia 18Outlets Launching Ceremony',
     items: [
-      { id: 'm1', tag: 'Live Stream', src: 'https://youtu.be/yEjsN9evB7k', size: 'wide' }
+      { id: 'm1', tag: 'Live Stream', src: 'https://youtu.be/yEjsN9evB7k', size: 'full' },
+      { id: 'm2', tag: 'Event', src: '/projects/MIDEA 2025 18 Outlet Launching/Live 1.jpg', size: 'wide' },
+      { id: 'm3', tag: 'Event', src: '/projects/MIDEA 2025 18 Outlet Launching/live 2.jpg', size: 'normal' }
     ]
   }
 ];
@@ -1129,6 +1131,8 @@ function MemoirsSection() {
                 id={`memoir-card-${project.id}`}
                 style={{
                   breakInside: 'avoid',
+                  columnSpan: project.size === 'full' ? 'all' : 'none',
+                  WebkitColumnSpan: project.size === 'full' ? 'all' : 'none',
                   marginBottom: 16,
                   position: 'relative',
                   borderRadius: 16,
@@ -1143,7 +1147,9 @@ function MemoirsSection() {
                 <div
                   style={{
                     aspectRatio:
-                      project.size === 'tall'
+                      project.size === 'full'
+                        ? '16/9'
+                        : project.size === 'tall'
                         ? '4/5'
                         : project.size === 'wide'
                         ? '16/9'
