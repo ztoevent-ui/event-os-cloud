@@ -446,14 +446,28 @@ function Hero() {
           zIndex: 0,
         }}
       >
+        <video
+          src="/assets/videos/hero-corporate.mp4"
+          autoPlay
+          muted
+          loop
+          playsInline
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            zIndex: -1,
+          }}
+        />
         {/* Gradient overlay on top of video */}
         <div
           style={{
             position: 'absolute',
             inset: 0,
-            zIndex: 2,
-            background:
-              'linear-gradient(to bottom, rgba(5,5,5,0.55) 0%, rgba(5,5,5,0.3) 40%, rgba(5,5,5,0.7) 100%)',
+            zIndex: 1,
+            background: 'linear-gradient(to bottom, rgba(0,0,0,0.6), rgba(0,0,0,0.4))',
           }}
         />
         {/* Blue radial glow */}
@@ -461,19 +475,10 @@ function Hero() {
           style={{
             position: 'absolute',
             inset: 0,
-            zIndex: 3,
+            zIndex: 2,
             background:
               'radial-gradient(ellipse 80% 60% at 50% 60%, rgba(0,86,179,0.08) 0%, transparent 70%)',
-          }}
-        />
-        {/* Placeholder cinematic bg (replaced by actual video embed below) */}
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            zIndex: 1,
-            background:
-              'linear-gradient(135deg, #050505 0%, #080d14 40%, #050e1a 100%)',
+            pointerEvents: 'none',
           }}
         />
         {/* Grid lines atmosphere */}
@@ -481,10 +486,11 @@ function Hero() {
           style={{
             position: 'absolute',
             inset: 0,
-            zIndex: 1,
+            zIndex: 2,
             backgroundImage:
               'linear-gradient(rgba(0,86,179,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,86,179,0.04) 1px, transparent 1px)',
             backgroundSize: '80px 80px',
+            pointerEvents: 'none',
           }}
         />
       </div>
@@ -513,28 +519,17 @@ function Hero() {
         <h1
           className="hero-headline"
           style={{
-            fontFamily: 'Inter, sans-serif',
+            fontFamily: "'Urbanist', sans-serif",
             fontWeight: 800,
             fontSize: 'clamp(32px, 4.5vw, 62px)',
             lineHeight: 1.12,
             color: '#FFFFFF',
             letterSpacing: '-2px',
             marginBottom: 20,
+            textTransform: 'uppercase',
           }}
         >
-          Premier Event Management{' '}
-          <span
-            style={{
-              background: 'linear-gradient(90deg, #0056B3, #2196F3, #0099FF)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              display: 'inline',
-            }}
-          >
-            &amp; Technical Production
-          </span>{' '}
-          in Sarawak.
+          EMPOWERING EVENTS ACROSS SARAWAK
         </h1>
 
         {/* Sub-headline */}
