@@ -74,7 +74,7 @@ export default function ProjectsPage() {
     return (
         <div className="min-h-screen bg-[#050505] p-6 lg:p-10 font-sans text-white">
             {/* Header */}
-            <header className="max-w-[1400px] mx-auto mb-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-[#222] pb-6">
+            <header className="max-w-[1200px] mx-auto mb-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-[#222] pb-6">
                 <div>
                     <h1 className="text-2xl lg:text-3xl font-black text-white tracking-tight uppercase">Event Manager</h1>
                     <p className="text-zinc-500 mt-1 text-sm tracking-wide">Oversee and coordinate active deployments.</p>
@@ -93,7 +93,7 @@ export default function ProjectsPage() {
             </header>
 
             {/* Content */}
-            <div className="max-w-[1400px] mx-auto">
+            <div className="max-w-[1200px] mx-auto">
                 {loading ? (
                     <div className="flex flex-col items-center justify-center py-32 opacity-50">
                         <div className="w-12 h-12 border-2 border-[#0056B3]/30 border-t-[#0056B3] rounded-full animate-spin mb-4"></div>

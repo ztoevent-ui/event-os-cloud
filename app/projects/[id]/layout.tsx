@@ -61,7 +61,7 @@ export default async function ProjectLayout({
                 >
                     {/* ENFORCED ANTIGRAVITY CONTAINER */}
                     <div style={{
-                        maxWidth: 1400,
+                        maxWidth: 1200,
                         margin: '0 auto',
                         padding: '2.5rem',
                         width: '100%',

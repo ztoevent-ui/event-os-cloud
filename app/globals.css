@@ -239,4 +239,5 @@ article.rounded-3xl,
 .bg-\[\#0a0a0a\]\/60 {
   padding: 40px !important;
   border-radius: 24px !important;
+  box-sizing: border-box !important;
 }

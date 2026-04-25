@@ -64,70 +64,64 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
     return (
         <div className="flex flex-col gap-12 animate-in fade-in duration-700">
             {/* ── Strategic Hero Section ── */}
-            <div className="relative rounded-[40px] border border-white/5 bg-white/[0.02] overflow-hidden p-12 lg:p-16 group box-border">
-                {/* Ambient Strategic Glow */}
-                <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#0056B3]/10 rounded-full blur-[120px] pointer-events-none group-hover:bg-[#0056B3]/15 transition-all duration-1000" />
-                <div className="absolute -bottom-20 -left-20 w-[400px] h-[400px] bg-white/[0.02] rounded-full blur-[80px] pointer-events-none" />
-
-                <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-12 mt-4 ml-4">
-                    <div className="flex-1">
-                        <div className="flex flex-wrap items-center gap-3 mb-6">
-                            <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[9px] font-black tracking-[0.2em] text-white uppercase">
-                                {project?.status || 'PLANNING'}
+            <div className="flex flex-col gap-6 rounded-[40px] border border-white/5 bg-white/[0.02] p-10 lg:p-12 group box-border relative">
+                <div className="flex flex-col gap-[32px]">
+                    <div className="flex flex-wrap items-center gap-3">
+                        <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[9px] font-black tracking-[0.2em] text-white uppercase">
+                            {project?.status || 'PLANNING'}
+                        </span>
+                        {isTournament && (
+                            <span className="px-3 py-1 bg-[#0056B3]/10 border border-[#0056B3]/20 text-[#4da3ff] rounded-full text-[9px] font-black tracking-[0.2em] uppercase flex items-center gap-2">
+                                <i className="fa-solid fa-trophy text-[8px]" /> Tournament
                             </span>
-                            {isTournament && (
-                                <span className="px-3 py-1 bg-[#0056B3]/10 border border-[#0056B3]/20 text-[#4da3ff] rounded-full text-[9px] font-black tracking-[0.2em] uppercase flex items-center gap-2">
-                                    <i className="fa-solid fa-trophy text-[8px]" /> Tournament
-                                </span>
-                            )}
-                            {project?.type === 'wedding' && (
-                                <span className="px-3 py-1 bg-rose-500/10 border border-rose-500/20 text-rose-500 rounded-full text-[9px] font-black tracking-[0.2em] uppercase flex items-center gap-2">
-                                    <i className="fa-solid fa-rings-wedding text-[8px]" /> Wedding
-                                </span>
-                            )}
-                        </div>
-                        
-                        <h1 className="text-5xl lg:text-7xl font-black text-white tracking-tighter leading-none mb-8 font-['Urbanist'] uppercase">
-                            {project?.name || 'Untitled Project'}
-                        </h1>
+                        )}
+                        {project?.type === 'wedding' && (
+                            <span className="px-3 py-1 bg-rose-500/10 border border-rose-500/20 text-rose-500 rounded-full text-[9px] font-black tracking-[0.2em] uppercase flex items-center gap-2">
+                                <i className="fa-solid fa-rings-wedding text-[8px]" /> Wedding
+                            </span>
+                        )}
+                    </div>
+                    
+                    <h1 className="text-5xl lg:text-7xl font-black text-white tracking-tighter leading-none font-['Urbanist'] uppercase">
+                        {project?.name || 'Untitled Project'}
+                    </h1>
 
-                        <div className="flex flex-wrap gap-8">
-                            <div className="flex flex-col">
-                                <span className="text-[9px] font-black text-zinc-600 uppercase tracking-[0.3em] mb-1">Location</span>
-                                <span className="text-sm font-bold text-zinc-300">📍 {project?.venue || 'Virtual HQ'}</span>
-                            </div>
-                            <div className="flex flex-col">
-                                <span className="text-[9px] font-black text-zinc-600 uppercase tracking-[0.3em] mb-1">Execution Period</span>
-                                <span className="text-sm font-bold text-zinc-300">
-                                    {fmt(project?.start_date)} — {fmt(project?.end_date)}
-                                </span>
-                            </div>
+                    <div className="flex flex-wrap gap-8">
+                        <div className="flex flex-col gap-1">
+                            <span className="text-[9px] font-black text-zinc-600 uppercase tracking-[0.3em]">Location</span>
+                            <span className="text-sm font-bold text-zinc-300">📍 {project?.venue || 'Virtual HQ'}</span>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                            <span className="text-[9px] font-black text-zinc-600 uppercase tracking-[0.3em]">Execution Period</span>
+                            <span className="text-sm font-bold text-zinc-300">
+                                {fmt(project?.start_date)} — {fmt(project?.end_date)}
+                            </span>
                         </div>
                     </div>
+                </div>
 
-                    {/* Right: Mission Countdown */}
-                    <div className="shrink-0 flex items-center gap-10 bg-zinc-900 border border-white/5 p-8 rounded-[32px] shadow-2xl relative overflow-hidden group/countdown">
-                        <div className="absolute inset-0 bg-[#0056B3]/[0.02] opacity-0 group-hover/countdown:opacity-100 transition-opacity" />
-                        
-                        {diffDays != null && !isEnded && (
-                            <div className="text-right relative z-10">
-                                <p className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.3em] mb-2">Operation T-Minus</p>
-                                <div className="text-7xl font-black text-white tabular-nums leading-none tracking-tighter font-['Urbanist']">
-                                    {diffDays}
-                                </div>
-                                <p className="text-[10px] font-black text-[#4da3ff] uppercase tracking-[0.3em] mt-2">Days Remaining</p>
+                {/* Right: Mission Countdown */}
+                <div className="mt-8 self-start flex items-center gap-10 bg-zinc-900 border border-white/5 p-8 rounded-[32px] shadow-2xl relative overflow-hidden group/countdown">
+                    <div className="absolute inset-0 bg-[#0056B3]/[0.02] opacity-0 group-hover/countdown:opacity-100 transition-opacity" />
+                    
+                    {diffDays != null && !isEnded && (
+                        <div className="text-left relative z-10">
+                            <p className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.3em] mb-2">Operation T-Minus</p>
+                            <div className="text-7xl font-black text-white tabular-nums leading-none tracking-tighter font-['Urbanist']">
+                                {diffDays}
                             </div>
-                        )}
-                        {isEnded && (
-                            <div className="text-right relative z-10">
-                                <p className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.3em] mb-2">Operation Status</p>
-                                <div className="text-4xl font-black text-white uppercase tracking-tighter font-['Urbanist']">Complete</div>
-                            </div>
-                        )}
-                        <div className="w-px h-20 bg-white/5 mx-2 relative z-10" />
-                        <div className="relative z-10">
-                            <PrintReportButton title="Project Summary" />
+                            <p className="text-[10px] font-black text-[#4da3ff] uppercase tracking-[0.3em] mt-2">Days Remaining</p>
                         </div>
+                    )}
+                    {isEnded && (
+                        <div className="text-left relative z-10">
+                            <p className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.3em] mb-2">Operation Status</p>
+                            <div className="text-4xl font-black text-white uppercase tracking-tighter font-['Urbanist']">Complete</div>
+                        </div>
+                    )}
+                    <div className="w-px h-20 bg-white/5 mx-2 relative z-10" />
+                    <div className="relative z-10">
+                        <PrintReportButton title="Project Summary" />
                     </div>
                 </div>
 

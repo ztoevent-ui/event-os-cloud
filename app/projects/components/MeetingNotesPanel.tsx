@@ -115,45 +115,48 @@ export default function MeetingNotesPanel({ project }: { project: any }) {
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
             >
-                {/* Drag Overlay */}
-                {isDragging && (
-                    <div className="absolute inset-0 z-50 flex items-center justify-center bg-[#050505]/80 backdrop-blur-sm pointer-events-none">
-                        <div className="text-center">
-                            <div className="w-20 h-20 bg-[#0056B3] text-white rounded-full flex items-center justify-center text-4xl mb-4 mx-auto animate-bounce shadow-[0_0_40px_rgba(0,86,179,0.5)]">
-                                <i className="fa-solid fa-cloud-arrow-up" />
-                            </div>
-                            <h3 className="text-xl font-black text-white uppercase tracking-widest font-['Urbanist']">Drop Media Here</h3>
-                            <p className="text-[10px] font-bold text-[#4da3ff] uppercase tracking-[0.3em] mt-2">Auto-sync to Supabase Storage</p>
-                        </div>
-                    </div>
-                )}
-
-                <textarea
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Type meeting minutes, action items, or drop images directly here..."
-                    className="flex-1 w-full bg-transparent p-2 text-sm text-zinc-300 font-['Urbanist'] tracking-wide leading-relaxed resize-none focus:outline-none placeholder-zinc-700 custom-scrollbar box-border"
-                />
-
-                {/* Assets Gallery */}
-                {assets.length > 0 && (
-                    <div className="pt-8 mt-4 border-t border-[#0056B3]/20 bg-transparent">
-                        <p className="text-[9px] font-black text-zinc-600 uppercase tracking-[0.3em] mb-4">Attached Media ({assets.length})</p>
-                        <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar">
-                            {assets.map((url, i) => (
-                                <div key={i} className="relative shrink-0 group rounded-2xl overflow-hidden border border-white/10 w-40 h-28 bg-zinc-900">
-                                    <img src={url} alt={`Asset ${i}`} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
-                                    <button 
-                                        onClick={() => removeAsset(url)}
-                                        className="absolute top-2 right-2 w-6 h-6 bg-red-500/80 hover:bg-red-500 text-white rounded-full flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 transition-opacity"
-                                    >
-                                        <i className="fa-solid fa-xmark" />
-                                    </button>
+                {/* Suspended Inner Window */}
+                <div className="flex-1 flex flex-col bg-black/20 border border-white/5 rounded-3xl p-6 relative overflow-hidden shadow-inner">
+                    {/* Drag Overlay */}
+                    {isDragging && (
+                        <div className="absolute inset-0 z-50 flex items-center justify-center bg-[#050505]/80 backdrop-blur-sm pointer-events-none">
+                            <div className="text-center">
+                                <div className="w-20 h-20 bg-[#0056B3] text-white rounded-full flex items-center justify-center text-4xl mb-4 mx-auto animate-bounce shadow-[0_0_40px_rgba(0,86,179,0.5)]">
+                                    <i className="fa-solid fa-cloud-arrow-up" />
                                 </div>
-                            ))}
+                                <h3 className="text-xl font-black text-white uppercase tracking-widest font-['Urbanist']">Drop Media Here</h3>
+                                <p className="text-[10px] font-bold text-[#4da3ff] uppercase tracking-[0.3em] mt-2">Auto-sync to Supabase Storage</p>
+                            </div>
                         </div>
-                    </div>
-                )}
+                    )}
+
+                    <textarea
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                        placeholder="Type meeting minutes, action items, or drop images directly here..."
+                        className="flex-1 w-full bg-transparent p-2 text-sm text-zinc-300 font-['Urbanist'] tracking-wide leading-relaxed resize-none focus:outline-none placeholder-zinc-700 custom-scrollbar box-border"
+                    />
+
+                    {/* Assets Gallery */}
+                    {assets.length > 0 && (
+                        <div className="pt-8 mt-4 border-t border-[#0056B3]/20 bg-transparent">
+                            <p className="text-[9px] font-black text-zinc-600 uppercase tracking-[0.3em] mb-4">Attached Media ({assets.length})</p>
+                            <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar">
+                                {assets.map((url, i) => (
+                                    <div key={i} className="relative shrink-0 group rounded-2xl overflow-hidden border border-white/10 w-40 h-28 bg-zinc-900">
+                                        <img src={url} alt={`Asset ${i}`} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                                        <button 
+                                            onClick={() => removeAsset(url)}
+                                            className="absolute top-2 right-2 w-6 h-6 bg-red-500/80 hover:bg-red-500 text-white rounded-full flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 transition-opacity"
+                                        >
+                                            <i className="fa-solid fa-xmark" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
             
             <style jsx global>{`
