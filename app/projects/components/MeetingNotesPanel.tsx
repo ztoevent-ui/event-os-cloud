@@ -132,7 +132,7 @@ export default function MeetingNotesPanel({ project }: { project: any }) {
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder="Type meeting minutes, action items, or drop images directly here..."
-                    className="flex-1 w-full bg-transparent p-8 text-sm text-zinc-300 font-['Urbanist'] tracking-wide leading-relaxed resize-none focus:outline-none placeholder-zinc-700 custom-scrollbar"
+                    className="flex-1 w-full bg-transparent p-10 text-sm text-zinc-300 font-['Urbanist'] tracking-wide leading-relaxed resize-none focus:outline-none placeholder-zinc-700 custom-scrollbar box-border"
                 />
 
                 {/* Assets Gallery */}

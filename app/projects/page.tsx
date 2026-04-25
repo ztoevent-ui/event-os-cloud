@@ -117,8 +117,7 @@ export default function ProjectsPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8 auto-rows-fr">
                         {projects.map((project) => (
                             <Link key={project.id} href={`/projects/${project.id}`} className="group block h-full">
-                                <article className="bg-[#0a0a0a]/60 backdrop-blur-xl h-full rounded-3xl p-6 border border-[#222] transition-all duration-300 hover:border-[#0056B3]/80 hover:shadow-[0_0_30px_rgba(0,86,179,0.15)] hover:bg-[#0a0a0a] hover:-translate-y-1.5 relative flex flex-col">
-                                    
+                                <article className="box-border bg-[#0a0a0a]/60 backdrop-blur-xl min-h-[280px] rounded-3xl p-8 border border-[#222] transition-all duration-300 hover:border-[#0056B3]/80 hover:shadow-[0_0_30px_rgba(0,86,179,0.15)] hover:bg-[#0a0a0a] hover:-translate-y-1.5 relative flex flex-col">
                                     {/* Top Row: Icon & Status */}
                                     <div className="flex justify-between items-start mb-6">
                                         <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg border transition-all ${project.type === 'wedding' || project.type === 'wedding_fair' ? 'bg-[#ec4899]/10 text-[#ec4899] border-[#ec4899]/20 group-hover:bg-[#ec4899] group-hover:text-[#050505]' : project.type === 'corporate' ? 'bg-[#3b82f6]/10 text-[#3b82f6] border-[#3b82f6]/20 group-hover:bg-[#3b82f6] group-hover:text-[#050505]' : 'bg-[#10b981]/10 text-[#10b981] border-[#10b981]/20 group-hover:bg-[#10b981] group-hover:text-[#050505]'}`}>

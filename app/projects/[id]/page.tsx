@@ -64,12 +64,12 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
     return (
         <div className="flex flex-col gap-12 animate-in fade-in duration-700">
             {/* ── Strategic Hero Section ── */}
-            <div className="relative rounded-[40px] border border-white/5 bg-white/[0.02] overflow-hidden p-10 lg:p-14 group">
+            <div className="relative rounded-[40px] border border-white/5 bg-white/[0.02] overflow-hidden p-12 lg:p-16 group box-border">
                 {/* Ambient Strategic Glow */}
                 <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#0056B3]/10 rounded-full blur-[120px] pointer-events-none group-hover:bg-[#0056B3]/15 transition-all duration-1000" />
                 <div className="absolute -bottom-20 -left-20 w-[400px] h-[400px] bg-white/[0.02] rounded-full blur-[80px] pointer-events-none" />
 
-                <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-12">
+                <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-12 mt-4 ml-2">
                     <div className="flex-1">
                         <div className="flex flex-wrap items-center gap-3 mb-6">
                             <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[9px] font-black tracking-[0.2em] text-white uppercase">
@@ -164,7 +164,7 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
                     { label: 'Network Enquiries', val: stats.enquiries, sub: 'Inbound Interest', icon: 'fa-envelope', color: '#a855f7', href: null },
                 ].map(card => {
                     const content = (
-                        <div className="bg-white/[0.03] border border-white/5 rounded-[32px] p-8 hover:border-[#0056B3]/40 transition-all group h-full relative overflow-hidden">
+                        <div className="box-border bg-white/[0.03] border border-white/5 rounded-[32px] p-10 hover:border-[#0056B3]/40 transition-all group h-full relative overflow-hidden flex flex-col">
                             <div className="absolute top-0 right-0 p-8 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity">
                                 <i className={`fa-solid ${card.icon} text-6xl`} />
                             </div>
