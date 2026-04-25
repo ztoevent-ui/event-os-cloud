@@ -95,20 +95,22 @@ export default function MeetingNotesPanel({ project }: { project: any }) {
     };
 
     return (
-        <div className="flex flex-col gap-4 w-full h-[600px]">
-            <div className="flex items-center justify-between px-2">
-                <div className="flex items-center gap-3">
-                    <i className="fa-solid fa-clipboard-list text-[#0056B3]" />
-                    <h2 className="text-sm font-black uppercase tracking-[0.4em] text-white font-['Urbanist']">Meeting Logs & Notes</h2>
+        <div className="flex flex-col gap-6 w-full h-[650px]">
+            <div className="flex items-center justify-between px-8">
+                <div className="flex items-center gap-4">
+                    <div className="w-8 h-8 bg-[#0056B3]/10 rounded-lg flex items-center justify-center border border-[#0056B3]/30">
+                        <i className="fa-solid fa-clipboard-list text-[#4da3ff] text-xs" />
+                    </div>
+                    <h2 className="text-[11px] font-black uppercase tracking-[0.4em] text-white font-['Urbanist']">Meeting Logs & Notes</h2>
                 </div>
                 <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 h-4">
-                    {saveStatus === 'saving' && <span className="text-[#0056B3]"><i className="fa-solid fa-circle-notch fa-spin mr-2" />Saving...</span>}
-                    {saveStatus === 'saved' && <span className="text-emerald-400"><i className="fa-solid fa-check mr-2" />Saved</span>}
+                    {saveStatus === 'saving' && <span className="text-[#0056B3]"><i className="fa-solid fa-circle-notch fa-spin mr-2" />Syncing Hub...</span>}
+                    {saveStatus === 'saved' && <span className="text-emerald-400/80"><i className="fa-solid fa-check mr-2" />Cloud Synced</span>}
                 </div>
             </div>
 
             <div 
-                className={`relative flex-1 flex flex-col bg-white/[0.03] border rounded-[32px] overflow-hidden transition-all duration-300 ${isDragging ? 'border-[#4da3ff] bg-[#0056B3]/10 shadow-[0_0_30px_rgba(0,86,179,0.3)]' : 'border-[#0056B3]/30'}`}
+                className={`relative flex-1 flex flex-col bg-white/[0.03] border rounded-[40px] overflow-hidden transition-all duration-500 shadow-2xl ${isDragging ? 'border-[#4da3ff] bg-[#0056B3]/10 shadow-[0_0_50px_rgba(0,86,179,0.2)]' : 'border-[#0056B3]/20'}`}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
