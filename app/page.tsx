@@ -424,6 +424,37 @@ function Nav() {
 // ---------------------------------------------------------------------------
 // Hero
 // ---------------------------------------------------------------------------
+function HeroVideo() {
+  const [currentClip, setCurrentClip] = useState(0);
+  const clips = [
+    "/assets/video/hero-corporate.mp4/clip_1_202604251238.mp4",
+    "/assets/video/hero-corporate.mp4/clip_2_202604251238.mp4",
+    "/assets/video/hero-corporate.mp4/clip_3_202604251238.mp4",
+    "/assets/video/hero-corporate.mp4/clip_4_202604251238.mp4",
+    "/assets/video/hero-corporate.mp4/clip_5_202604251238.mp4",
+    "/assets/video/hero-corporate.mp4/clip_6_202604251238.mp4"
+  ];
+
+  return (
+    <video
+      key={currentClip}
+      src={clips[currentClip]}
+      autoPlay
+      muted
+      playsInline
+      onEnded={() => setCurrentClip((prev) => (prev + 1) % clips.length)}
+      style={{
+        position: 'absolute',
+        inset: 0,
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover',
+        zIndex: -1,
+      }}
+    />
+  );
+}
+
 function Hero() {
   return (
     <section
@@ -446,21 +477,7 @@ function Hero() {
           zIndex: 0,
         }}
       >
-        <video
-          src="/assets/videos/hero-corporate.mp4"
-          autoPlay
-          muted
-          loop
-          playsInline
-          style={{
-            position: 'absolute',
-            inset: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            zIndex: -1,
-          }}
-        />
+        <HeroVideo />
         {/* Gradient overlay on top of video */}
         <div
           style={{
