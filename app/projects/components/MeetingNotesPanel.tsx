@@ -1,0 +1,175 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabaseClient';
+
+export default function MeetingNotesPanel({ project }: { project: any }) {
+    const [notes, setNotes] = useState(project?.meeting_notes || '');
+    const [assets, setAssets] = useState<string[]>(project?.project_assets || []);
+    const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+    const [isDragging, setIsDragging] = useState(false);
+
+    // Sync initial state if project updates
+    useEffect(() => {
+        if (project) {
+            setNotes(project.meeting_notes || '');
+            setAssets(project.project_assets || []);
+        }
+    }, [project]);
+
+    // Debounced Auto-save for notes
+    useEffect(() => {
+        if (!project || notes === (project.meeting_notes || '')) return;
+        
+        const handler = setTimeout(async () => {
+            setSaveStatus('saving');
+            const { error } = await supabase.from('projects').update({ meeting_notes: notes }).eq('id', project.id);
+            if (!error) {
+                setSaveStatus('saved');
+                setTimeout(() => setSaveStatus('idle'), 2000);
+                // Update local project object reference to prevent re-triggering
+                project.meeting_notes = notes;
+            } else {
+                setSaveStatus('idle');
+                console.error("Failed to save notes:", error);
+            }
+        }, 1500);
+
+        return () => clearTimeout(handler);
+    }, [notes, project]);
+
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(true);
+    };
+
+    const handleDragLeave = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(false);
+    };
+
+    const handleDrop = async (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(false);
+        const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+        if (!files.length) return;
+
+        setSaveStatus('saving');
+        const newAssets = [...assets];
+        
+        for (const file of files) {
+            const fileName = `${Date.now()}_${file.name}`;
+            const filePath = `project-notes/${project.id}/${fileName}`;
+            const { error: uploadError } = await supabase.storage.from('event-assets').upload(filePath, file);
+            
+            if (!uploadError) {
+                const { data: urlData } = supabase.storage.from('event-assets').getPublicUrl(filePath);
+                newAssets.push(urlData.publicUrl);
+            } else {
+                console.error("Upload error:", uploadError);
+            }
+        }
+
+        setAssets(newAssets);
+        const { error: dbError } = await supabase.from('projects').update({ project_assets: newAssets }).eq('id', project.id);
+        
+        if (!dbError) {
+            setSaveStatus('saved');
+            project.project_assets = newAssets;
+            setTimeout(() => setSaveStatus('idle'), 2000);
+        } else {
+            setSaveStatus('idle');
+            console.error("Failed to update assets array in DB:", dbError);
+        }
+    };
+
+    const removeAsset = async (urlToRemove: string) => {
+        const newAssets = assets.filter(url => url !== urlToRemove);
+        setAssets(newAssets);
+        await supabase.from('projects').update({ project_assets: newAssets }).eq('id', project.id);
+        project.project_assets = newAssets;
+        
+        // Optional: Delete from storage as well to save space
+        // const filePath = urlToRemove.split('/event-assets/')[1];
+        // if (filePath) supabase.storage.from('event-assets').remove([filePath]);
+    };
+
+    return (
+        <div className="flex flex-col gap-4 w-full h-[600px]">
+            <div className="flex items-center justify-between px-2">
+                <div className="flex items-center gap-3">
+                    <i className="fa-solid fa-clipboard-list text-[#0056B3]" />
+                    <h2 className="text-sm font-black uppercase tracking-[0.4em] text-white font-['Urbanist']">Meeting Logs & Notes</h2>
+                </div>
+                <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 h-4">
+                    {saveStatus === 'saving' && <span className="text-[#0056B3]"><i className="fa-solid fa-circle-notch fa-spin mr-2" />Saving...</span>}
+                    {saveStatus === 'saved' && <span className="text-emerald-400"><i className="fa-solid fa-check mr-2" />Saved</span>}
+                </div>
+            </div>
+
+            <div 
+                className={`relative flex-1 flex flex-col bg-white/[0.03] border rounded-[32px] overflow-hidden transition-all duration-300 ${isDragging ? 'border-[#4da3ff] bg-[#0056B3]/10 shadow-[0_0_30px_rgba(0,86,179,0.3)]' : 'border-[#0056B3]/30'}`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+            >
+                {/* Drag Overlay */}
+                {isDragging && (
+                    <div className="absolute inset-0 z-50 flex items-center justify-center bg-[#050505]/80 backdrop-blur-sm pointer-events-none">
+                        <div className="text-center">
+                            <div className="w-20 h-20 bg-[#0056B3] text-white rounded-full flex items-center justify-center text-4xl mb-4 mx-auto animate-bounce shadow-[0_0_40px_rgba(0,86,179,0.5)]">
+                                <i className="fa-solid fa-cloud-arrow-up" />
+                            </div>
+                            <h3 className="text-xl font-black text-white uppercase tracking-widest font-['Urbanist']">Drop Media Here</h3>
+                            <p className="text-[10px] font-bold text-[#4da3ff] uppercase tracking-[0.3em] mt-2">Auto-sync to Supabase Storage</p>
+                        </div>
+                    </div>
+                )}
+
+                <textarea
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    placeholder="Type meeting minutes, action items, or drop images directly here..."
+                    className="flex-1 w-full bg-transparent p-8 text-sm text-zinc-300 font-['Urbanist'] tracking-wide leading-relaxed resize-none focus:outline-none placeholder-zinc-700 custom-scrollbar"
+                />
+
+                {/* Assets Gallery */}
+                {assets.length > 0 && (
+                    <div className="p-6 border-t border-[#0056B3]/20 bg-black/40">
+                        <p className="text-[9px] font-black text-zinc-600 uppercase tracking-[0.3em] mb-4">Attached Media ({assets.length})</p>
+                        <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar">
+                            {assets.map((url, i) => (
+                                <div key={i} className="relative shrink-0 group rounded-2xl overflow-hidden border border-white/10 w-40 h-28 bg-zinc-900">
+                                    <img src={url} alt={`Asset ${i}`} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                                    <button 
+                                        onClick={() => removeAsset(url)}
+                                        className="absolute top-2 right-2 w-6 h-6 bg-red-500/80 hover:bg-red-500 text-white rounded-full flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 transition-opacity"
+                                    >
+                                        <i className="fa-solid fa-xmark" />
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </div>
+            
+            <style jsx global>{`
+                .custom-scrollbar::-webkit-scrollbar {
+                    width: 6px;
+                    height: 6px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-track {
+                    background: transparent;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background: rgba(255, 255, 255, 0.1);
+                    border-radius: 10px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                    background: rgba(0, 86, 179, 0.5);
+                }
+            `}</style>
+        </div>
+    );
+}

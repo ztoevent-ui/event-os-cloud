@@ -47,81 +47,98 @@ export default function TimelinesPage({ params }: { params: Promise<{ id: string
     };
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500 max-w-4xl mx-auto">
-            <div className="flex justify-between items-center mb-8 print:hidden">
-                <div>
-                    <h1 className="text-3xl font-serif font-bold text-white mb-2">Project Timeline</h1>
-                    <p className="text-zinc-400 font-medium">Key phases and milestones.</p>
+        <div className="flex flex-col flex-1 animate-in fade-in duration-700">
+            {/* ── Page Header + Action Bar ── */}
+            <div className="print:hidden flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
+                <div className="flex flex-col">
+                    <p className="text-xs font-black uppercase tracking-[0.2em] text-[#0056B3] mb-2">Project Roadmap</p>
+                    <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tight leading-none font-['Urbanist']">
+                        Strategic Timeline
+                    </h1>
                 </div>
-                <div className="flex gap-4">
+
+                {/* Action Hub */}
+                <div className="flex items-center gap-3">
                     <PrintReportButton title="Project Timeline" />
                     <AddTimelineButton projectId={id} isWedding={isWedding} />
                 </div>
             </div>
 
-            <div className="relative border-l-2 border-zinc-800 ml-4 md:ml-6 space-y-12 pb-12 print:border-black">
-                {timelines?.map((phase, index) => (
-                    <div key={phase.id} className={`${pageBreakIds.includes(phase.id) ? 'print:break-before-page pt-8' : ''}`}>
-                      <div className="relative pl-8 md:pl-12 group">
-                        {/* Dot */}
-                        <div className={`absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-zinc-900 border-2 ${theme.dot} group-hover:scale-125 transition-transform z-10 print:bg-white print:border-black`}></div>
-
-                        <div className={`bg-zinc-900/50 backdrop-blur-sm border border-zinc-800 p-6 rounded-2xl ${theme.border} transition-all cursor-pointer relative overflow-hidden print:bg-white print:border-zinc-200 print:shadow-none print:p-4 mb-4`}>
-                            <div className="absolute top-0 right-0 p-4 opacity-10 font-black text-6xl text-zinc-700 pointer-events-none print:hidden">
-                                {index + 1}
-                            </div>
-
-                            <DeleteTimelineButton id={phase.id} projectId={id} />
-
-                            <h3 className={`text-xl font-bold text-white mb-2 ${theme.hover} transition-colors print:text-black`}>
-                                {phase.name}
-                            </h3>
-
-                            <div className="flex flex-col sm:flex-row gap-4 text-sm text-zinc-400 mb-4 print:text-zinc-600">
-                                <div className="flex items-center gap-2 bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-800 print:bg-white print:border-zinc-100">
-                                    <i className="fa-regular fa-calendar-plus text-green-500"></i>
-                                    <span>Start: {phase.start_date ? new Date(phase.start_date).toLocaleDateString() : 'TBD'}</span>
-                                </div>
-                                <div className="flex items-center gap-2 bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-800 print:bg-white print:border-zinc-100">
-                                    <i className="fa-regular fa-calendar-check text-red-500"></i>
-                                    <span>End: {phase.end_date ? new Date(phase.end_date).toLocaleDateString() : 'TBD'}</span>
-                                </div>
-                            </div>
-                        </div>
-                      </div>
-                      <PrintBreakTrigger id={phase.id} />
+            {/* ── Vertical Roadmap ── */}
+            <div className="relative ml-4 md:ml-12 border-l-2 border-white/5 pb-20 print:border-black space-y-12">
+                {timelines.length === 0 ? (
+                    <div className="pl-12 py-12 text-zinc-700 italic text-sm tracking-widest uppercase">
+                        No Strategic Phases Defined
                     </div>
-                ))}
+                ) : (
+                    timelines.map((phase, index) => (
+                        <div key={phase.id} className={`relative pl-12 group ${pageBreakIds.includes(phase.id) ? 'print:break-before-page pt-8' : ''}`}>
+                            {/* Roadmap Dot */}
+                            <div className="absolute -left-[9px] top-4 w-4 h-4 rounded-full bg-[#050505] border-2 border-[#0056B3]/40 shadow-[0_0_15px_rgba(0,86,179,0.3)] group-hover:border-[#0056B3] group-hover:scale-125 transition-all z-10" />
 
-                {(!timelines || timelines.length === 0) && (
-                    <div className="pl-8 text-zinc-500 italic">No timeline phases defined.</div>
+                            {/* Phase Card */}
+                            <div className="bg-white/[0.03] border border-white/5 backdrop-blur-xl p-8 rounded-[32px] hover:border-[#0056B3]/40 hover:shadow-[0_8px_32px_rgba(0,86,179,0.15)] transition-all relative overflow-hidden group">
+                                <div className="absolute -right-4 -bottom-8 font-black text-9xl text-white/[0.02] pointer-events-none group-hover:text-[#0056B3]/[0.03] transition-colors select-none">
+                                    {index + 1}
+                                </div>
+
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+                                    <div className="flex-1">
+                                        <div className="flex items-center gap-4 mb-3">
+                                            <span className="px-3 py-1 bg-[#0056B3]/10 border border-[#0056B3]/20 rounded-full text-[9px] font-black text-[#4da3ff] uppercase tracking-widest">
+                                                Phase {index + 1}
+                                            </span>
+                                            {phase.end_date && new Date(phase.end_date) < new Date() && (
+                                                <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-[9px] font-black text-emerald-500 uppercase tracking-widest">
+                                                    Completed
+                                                </span>
+                                            )}
+                                        </div>
+                                        <h3 className="text-2xl font-black text-white uppercase tracking-tight font-['Urbanist'] group-hover:text-[#4da3ff] transition-colors">
+                                            {phase.name}
+                                        </h3>
+                                    </div>
+
+                                    <div className="flex flex-col sm:flex-row gap-3">
+                                        <div className="flex items-center gap-3 bg-zinc-900/50 border border-white/5 px-5 py-3 rounded-2xl group-hover:border-[#0056B3]/20 transition-all">
+                                            <i className="fa-regular fa-calendar text-[#4da3ff] text-xs" />
+                                            <div className="flex flex-col">
+                                                <span className="text-[8px] font-black text-zinc-600 uppercase tracking-widest">Start</span>
+                                                <span className="text-xs font-bold text-zinc-300">
+                                                    {phase.start_date ? new Date(phase.start_date).toLocaleDateString() : 'TBD'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-3 bg-zinc-900/50 border border-white/5 px-5 py-3 rounded-2xl group-hover:border-[#0056B3]/20 transition-all">
+                                            <i className="fa-regular fa-calendar-check text-[#DEFF9A] text-xs" />
+                                            <div className="flex flex-col">
+                                                <span className="text-[8px] font-black text-zinc-600 uppercase tracking-widest">Completion</span>
+                                                <span className="text-xs font-bold text-zinc-300">
+                                                    {phase.end_date ? new Date(phase.end_date).toLocaleDateString() : 'TBD'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="print:hidden flex items-center gap-2">
+                                        <DeleteTimelineButton id={phase.id} projectId={id} />
+                                    </div>
+                                </div>
+                            </div>
+                            <PrintBreakTrigger id={phase.id} />
+                        </div>
+                    ))
                 )}
             </div>
 
             <style jsx global>{`
                 @media print {
-                    @page { margin: 15mm; }
-                    html, body, main {
-                        background: white !important;
-                        color: black !important;
-                    }
-                    .print\\:hidden, nav, header, footer, button {
-                        display: none !important;
-                    }
-                    .bg-zinc-900, .bg-zinc-900\\/50, .bg-zinc-800 {
-                        background: transparent !important;
-                        color: black !important;
-                        border-color: #eee !important;
-                    }
-                    .text-white, .text-zinc-400, .text-zinc-500 {
-                        color: black !important;
-                    }
-                    .print\\:break-before-page {
-                        break-before: page !important;
-                    }
-                    .border-l-2 {
-                        border-left-color: #000 !important;
-                    }
+                    @page { size: A4 portrait; margin: 15mm; }
+                    html, body, main { background: white !important; color: black !important; }
+                    .print\\:hidden, nav, header, footer, button { display: none !important; }
+                    .bg-white\\/\\[0\\.03\\] { background: transparent !important; border: 1px solid #eee !important; border-radius: 12px !important; }
+                    .text-white, .text-zinc-600, .text-zinc-700 { color: black !important; }
+                    .border-l-2 { border-left-color: #000 !important; }
                 }
             `}</style>
         </div>

@@ -48,62 +48,66 @@ export default function TasksPage({ params }: { params: Promise<{ id: string }> 
     };
 
     return (
-        <div className="space-y-5 animate-in fade-in duration-500">
-            <div className={`print:hidden flex items-center justify-between bg-[#0d0d0d] border border-white/[0.07] px-6 py-4 rounded-2xl`}>
-                <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 bg-[#3b82f6]/10 border border-[#3b82f6]/30 rounded-xl flex items-center justify-center text-[#3b82f6]">
-                        <i className="fa-solid fa-check-double" />
-                    </div>
-                    <div>
-                        <h1 className="text-base font-black text-white tracking-tight">Tasks</h1>
-                        <p className="text-[11px] text-zinc-600">Manage project deliverables and track progress</p>
-                    </div>
+        <div className="flex flex-col flex-1 animate-in fade-in duration-700">
+            {/* ── Page Header + Action Bar ── */}
+            <div className="print:hidden flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
+                <div className="flex flex-col">
+                    <p className="text-xs font-black uppercase tracking-[0.2em] text-[#0056B3] mb-2">Operations Hub</p>
+                    <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tight leading-none font-['Urbanist']">
+                        Strategic Tasks
+                    </h1>
                 </div>
-                <div className="flex gap-2">
+
+                {/* Action Hub */}
+                <div className="flex items-center gap-3">
                     <PrintReportButton title="Task Board" />
                     <AddTaskButton projectId={id} isWedding={isWedding} />
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 print:grid-cols-2 print:gap-4">
+            {/* ── Kanban Board ── */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 print:grid-cols-2 print:gap-4 items-start">
                 {['todo', 'in_progress', 'review', 'done'].map((status) => {
                     const statusTasks = tasks?.filter((t) => t.status === status) || [];
 
-                    let statusIcon = 'fa-circle';
-                    let statusTitleColor = 'text-zinc-500';
+                    const statusConfig = {
+                        todo: { icon: 'fa-circle', color: 'text-zinc-500', glow: 'shadow-none' },
+                        in_progress: { icon: 'fa-spinner fa-spin', color: 'text-[#4da3ff]', glow: 'shadow-[0_0_15px_rgba(77,163,255,0.3)]' },
+                        review: { icon: 'fa-eye', color: 'text-purple-500', glow: 'shadow-[0_0_15px_rgba(168,85,247,0.3)]' },
+                        done: { icon: 'fa-check-circle', color: 'text-emerald-500', glow: 'shadow-[0_0_15px_rgba(16,185,129,0.3)]' }
+                    };
 
-                    if (status === 'todo') { statusIcon = 'fa-circle'; statusTitleColor = 'text-zinc-500'; }
-                    if (status === 'in_progress') { statusIcon = 'fa-spinner fa-spin'; statusTitleColor = 'text-blue-500'; }
-                    if (status === 'review') { statusIcon = 'fa-eye'; statusTitleColor = 'text-purple-500'; }
-                    if (status === 'done') { statusIcon = 'fa-check-circle'; statusTitleColor = 'text-green-500'; }
+                    const config = statusConfig[status as keyof typeof statusConfig];
 
                     return (
-                        <div key={status} className={`bg-zinc-900/40 backdrop-blur-sm border border-zinc-800 rounded-xl p-4 flex flex-col h-full min-h-[500px] ${status === 'todo' ? 'border-dashed' : ''} print:bg-white print:border-zinc-200 print:min-h-0 print:break-inside-avoid print:mb-4`}>
-                            <div className="flex justify-between items-center mb-6 pb-4 border-b border-zinc-800">
-                                <div className="flex items-center gap-2">
-                                    <i className={`fa-solid ${statusIcon} ${statusTitleColor} text-sm`}></i>
-                                    <h3 className={`font-bold ${statusTitleColor} uppercase tracking-wider text-sm print:text-black`}>
+                        <div key={status} className="flex flex-col gap-6">
+                            {/* Column Header */}
+                            <div className="flex justify-between items-center px-2">
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-2 h-2 rounded-full ${config.color.replace('text-', 'bg-')} ${config.glow}`} />
+                                    <h3 className={`text-[10px] font-black uppercase tracking-[0.2em] ${config.color}`}>
                                         {status.replace('_', ' ')}
                                     </h3>
                                 </div>
-                                <span className="text-xs bg-zinc-800 text-zinc-400 px-2.5 py-1 rounded-full font-mono border border-zinc-700 print:text-black print:bg-white print:border-zinc-200">
+                                <span className="text-[9px] font-black bg-white/5 text-zinc-600 px-3 py-1 rounded-full border border-white/5 font-mono">
                                     {statusTasks.length}
                                 </span>
                             </div>
 
-                            <div className="space-y-4 flex-1">
-                                {statusTasks.map((task) => (
-                                    <div key={task.id} className={pageBreakIds.includes(task.id) ? 'print:break-before-page' : ''}>
-                                        <TaskCard task={task} projectId={id} isWedding={isWedding} />
-                                        <PrintBreakTrigger id={task.id} />
+                            {/* Task Column */}
+                            <div className={`bg-white/[0.02] border border-white/5 rounded-[32px] p-4 flex flex-col gap-4 min-h-[600px] transition-all hover:bg-white/[0.03] print:bg-white print:border-zinc-200 print:min-h-0`}>
+                                {statusTasks.length === 0 ? (
+                                    <div className="flex-1 flex flex-col items-center justify-center opacity-10">
+                                        <i className={`fa-solid ${config.icon} text-3xl mb-4`} />
+                                        <p className="text-[8px] font-black uppercase tracking-widest">Queue Empty</p>
                                     </div>
-                                ))}
-
-                                {statusTasks.length === 0 && (
-                                    <div className="h-32 flex flex-col items-center justify-center border-2 border-dashed border-zinc-800/50 rounded-xl text-zinc-600 text-sm gap-2 opacity-50 print:hidden">
-                                        <i className="fa-regular fa-clipboard text-zinc-700 text-2xl"></i>
-                                        <span>No tasks</span>
-                                    </div>
+                                ) : (
+                                    statusTasks.map((task) => (
+                                        <div key={task.id} className={`${pageBreakIds.includes(task.id) ? 'print:break-before-page' : ''} group`}>
+                                            <TaskCard task={task} projectId={id} isWedding={isWedding} />
+                                            <PrintBreakTrigger id={task.id} />
+                                        </div>
+                                    ))
                                 )}
                             </div>
                         </div>
@@ -113,25 +117,11 @@ export default function TasksPage({ params }: { params: Promise<{ id: string }> 
 
             <style jsx global>{`
                 @media print {
-                    @page { margin: 15mm; }
-                    html, body, main {
-                        background: white !important;
-                        color: black !important;
-                    }
-                    .print\\:hidden, nav, header, footer, button {
-                        display: none !important;
-                    }
-                    .bg-zinc-900, .bg-zinc-900\\/40, .bg-zinc-800 {
-                        background: transparent !important;
-                        color: black !important;
-                        border-color: #eee !important;
-                    }
-                    .text-white, .text-zinc-400, .text-zinc-500 {
-                        color: black !important;
-                    }
-                    .print\\:break-before-page {
-                        break-before: page !important;
-                    }
+                    @page { size: A4 landscape; margin: 10mm; }
+                    html, body, main { background: white !important; color: black !important; }
+                    .print\\:hidden, nav, header, footer, button { display: none !important; }
+                    .bg-white\\/\\[0\\.02\\], .bg-white\\/\\[0\\.03\\] { background: transparent !important; border: 1px solid #eee !important; border-radius: 12px !important; }
+                    .text-white, .text-zinc-600 { color: black !important; }
                 }
             `}</style>
         </div>

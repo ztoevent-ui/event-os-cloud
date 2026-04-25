@@ -111,49 +111,51 @@ export default function TeamManagementPage() {
     };
 
     return (
-        <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            {/* Header Area */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-zinc-900 border border-zinc-800 p-8 rounded-[2.5rem] shadow-2xl relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none group-hover:scale-110 transition-transform duration-1000">
-                    <i className="fa-solid fa-users-gear text-9xl"></i>
-                </div>
-                
-                <div className="relative z-10">
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className="w-2 h-2 bg-[#0056B3] rounded-full animate-pulse"></div>
-                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">Personnel Hub</span>
-                    </div>
-                    <h1 className="text-4xl font-black text-white uppercase italic tracking-tighter">Team & Permissions</h1>
-                    <p className="text-zinc-500 text-sm mt-1 max-w-md">Manage roles, project isolation, and tournament officials.</p>
+        <div className="flex flex-col flex-1 animate-in fade-in duration-700">
+            {/* ── Page Header + Action Bar ── */}
+            <div className="print:hidden flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
+                <div className="flex flex-col">
+                    <p className="text-xs font-black uppercase tracking-[0.2em] text-[#0056B3] mb-2">Personnel Hub</p>
+                    <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tight leading-none font-['Urbanist']">
+                        Team & Security
+                    </h1>
                 </div>
 
-                <div className="flex gap-4 mt-6 md:mt-0 relative z-10 print:hidden">
+                {/* Action Hub */}
+                <div className="flex flex-wrap items-center gap-3">
                     <PrintReportButton title="Team Roster" />
                     <button 
                         onClick={() => setIsInviting(true)}
-                        className="px-8 py-3 bg-white text-black font-black rounded-2xl text-[11px] uppercase tracking-widest hover:bg-zinc-200 transition-all transform hover:scale-105 shadow-xl shadow-white/5"
+                        className="h-11 px-8 rounded-xl bg-white text-black font-black text-[10px] tracking-widest uppercase hover:bg-zinc-200 transition-all flex items-center gap-2.5 shadow-[0_0_20px_rgba(255,255,255,0.1)]"
                     >
-                        + Add Member
+                        <i className="fa-solid fa-user-plus text-[10px]" /> Add Member
                     </button>
                     <button 
                         onClick={generateRefereeCode}
                         disabled={isGeneratingCode}
-                        className="px-8 py-3 bg-[#0056B3] text-black font-black rounded-2xl text-[11px] uppercase tracking-widest hover:bg-[#0056B3] transition-all transform hover:scale-105 shadow-xl shadow-blue-900/20 disabled:opacity-50"
+                        className="h-11 px-8 rounded-xl bg-[#0056B3] text-white font-black text-[10px] tracking-widest uppercase shadow-[0_0_20px_rgba(0,86,179,0.3)] hover:shadow-[0_0_30px_rgba(0,86,179,0.5)] transition-all flex items-center gap-2.5 disabled:opacity-50"
                     >
-                        {isGeneratingCode ? 'Generating...' : 'New Referee Code'}
+                        <i className="fa-solid fa-key text-[10px]" /> {isGeneratingCode ? 'Generating...' : 'Referee Key'}
                     </button>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Team List */}
-                <div className="lg:col-span-2 space-y-6">
-                    <h2 className="text-xs font-black uppercase tracking-[0.4em] text-zinc-600 ml-4">Current Staff</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                {/* ── Team List ── */}
+                <div className="lg:col-span-2 flex flex-col gap-8">
+                    <div className="flex items-center gap-3 border-b border-white/5 pb-4">
+                        <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-600">Authorized Personnel</h2>
+                        <span className="text-[9px] font-black bg-white/5 text-zinc-600 px-3 py-1 rounded-full border border-white/5 font-mono">
+                            {members.length}
+                        </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <AnimatePresence mode="popLayout">
                             {members.length === 0 && !loading && (
-                                <div className="col-span-2 p-12 text-center border-2 border-dashed border-zinc-800 rounded-[2rem] text-zinc-600 italic uppercase text-[10px] font-black tracking-widest">
-                                    No direct members assigned. Owner has full access.
+                                <div className="col-span-2 py-32 border border-dashed border-white/5 rounded-[32px] bg-white/[0.02] flex flex-col items-center justify-center opacity-30">
+                                    <i className="fa-solid fa-users-slash text-4xl mb-4" />
+                                    <p className="text-[10px] font-black uppercase tracking-[0.2em]">No assigned personnel</p>
                                 </div>
                             )}
                             {members.map((member) => (
@@ -161,26 +163,25 @@ export default function TeamManagementPage() {
                                     <motion.div 
                                         initial={{ opacity: 0, scale: 0.95 }}
                                         animate={{ opacity: 1, scale: 1 }}
-                                        className={`bg-zinc-900 border border-white/5 p-6 rounded-3xl flex items-center gap-5 hover:border-white/10 transition-all group print:bg-white print:border-zinc-200 print:text-black ${pageBreakIds.includes(member.id) ? 'print:break-before-page pt-8' : ''}`}
+                                        className={`bg-white/[0.03] border border-white/5 p-8 rounded-[32px] flex items-center gap-6 hover:border-[#0056B3]/40 transition-all group relative overflow-hidden print:bg-white print:border-zinc-200 print:text-black ${pageBreakIds.includes(member.id) ? 'print:break-before-page pt-8' : ''}`}
                                     >
-                                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-zinc-800 to-black border border-white/10 flex items-center justify-center text-2xl font-black text-[#0056B3] overflow-hidden shadow-2xl transition-transform group-hover:scale-105 print:hidden">
+                                        <div className="w-16 h-16 rounded-2xl bg-zinc-900 border border-white/10 flex items-center justify-center text-2xl font-black text-[#0056B3] overflow-hidden shadow-2xl transition-transform group-hover:scale-105 print:hidden">
                                             {member.avatar_url ? <img src={member.avatar_url} className="w-full h-full object-cover" /> : member.full_name[0]}
                                         </div>
                                         <div className="flex-1">
-                                            <h3 className="font-black text-white text-lg tracking-tight leading-none mb-1 print:text-black">{member.full_name}</h3>
+                                            <h3 className="text-xl font-black text-white uppercase tracking-tight leading-none mb-2 font-['Urbanist'] group-hover:text-[#4da3ff] transition-colors">{member.full_name}</h3>
                                             <div className="flex items-center gap-2">
-                                                <span className={`text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-widest ${
-                                                    member.role === 'SUPER_ADMIN' ? 'bg-purple-500/10 text-purple-500' : 
-                                                    member.role === 'PROJECT_MANAGER' ? 'bg-[#0056B3]/10 text-[#0056B3]' : 
-                                                    'bg-zinc-500/10 text-zinc-500'
-                                                } print:text-black print:border-zinc-200`}>
+                                                <span className={`text-[8px] font-black px-2.5 py-1 rounded-md uppercase tracking-widest border ${
+                                                    member.role === 'SUPER_ADMIN' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' : 
+                                                    member.role === 'PROJECT_MANAGER' ? 'bg-[#0056B3]/10 text-[#4da3ff] border-[#0056B3]/20' : 
+                                                    'bg-white/5 text-zinc-500 border-white/10'
+                                                }`}>
                                                     {member.role.replace('_', ' ')}
                                                 </span>
-                                                {member.role === 'PROJECT_MANAGER' && <span className="text-[9px] text-zinc-600 font-bold uppercase tracking-tighter underline decoration-zinc-800 print:text-black">Isolated Access</span>}
                                             </div>
                                         </div>
-                                        <button className="opacity-0 group-hover:opacity-100 p-3 text-zinc-600 hover:text-red-500 transition-all print:hidden">
-                                            <i className="fa-solid fa-trash-can"></i>
+                                        <button className="opacity-0 group-hover:opacity-100 w-10 h-10 rounded-xl bg-red-500/5 text-red-500/30 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center print:hidden">
+                                            <i className="fa-solid fa-trash-can text-sm" />
                                         </button>
                                     </motion.div>
                                     <div className="print:hidden">
@@ -192,93 +193,107 @@ export default function TeamManagementPage() {
                     </div>
                 </div>
 
-                {/* Referee Access Codes */}
-                <div className="space-y-6 print:break-before-page print:mt-8">
-                    <h2 className="text-xs font-black uppercase tracking-[0.4em] text-zinc-600 ml-4 print:text-black">Referee Quick Codes</h2>
-                    <div className="bg-zinc-900 border border-white/5 rounded-[2.5rem] p-8 space-y-6 print:bg-white print:border-zinc-200">
-                        <div className="bg-[#0056B3]/5 border border-[#0056B3]/30 p-5 rounded-2xl">
-                            <p className="text-[10px] text-[#0056B3] leading-relaxed font-bold uppercase tracking-wider italic">
-                                codes allow temporary, account-free access to the Referee Dashboard for this event. Expiring codes recommended for BPO 2026.
+                {/* ── Referee Keys ── */}
+                <div className="flex flex-col gap-8">
+                    <div className="flex items-center gap-3 border-b border-white/5 pb-4">
+                        <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-600">Referee Access Keys</h2>
+                        <span className="text-[9px] font-black bg-white/5 text-zinc-600 px-3 py-1 rounded-full border border-white/5 font-mono">
+                            {refereeCodes.length}
+                        </span>
+                    </div>
+
+                    <div className="bg-white/[0.03] border border-white/5 rounded-[32px] p-8 space-y-8 print:bg-white print:border-zinc-200">
+                        <div className="bg-[#0056B3]/5 border border-[#0056B3]/10 p-5 rounded-2xl">
+                            <p className="text-[9px] text-[#4da3ff] leading-relaxed font-bold uppercase tracking-widest italic opacity-60">
+                                Access keys bypass accounts for temporary tournament officials. Strategic rotation recommended.
                             </p>
                         </div>
 
-                        <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                            {refereeCodes.length === 0 && (
-                                <div className="text-center py-10 text-zinc-700 text-[10px] font-black uppercase tracking-widest">
-                                    No active codes
+                        <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                            {refereeCodes.length === 0 ? (
+                                <div className="text-center py-20 opacity-10">
+                                    <i className="fa-solid fa-key text-4xl mb-4" />
+                                    <p className="text-[8px] font-black uppercase tracking-widest">No keys active</p>
                                 </div>
-                            )}
-                            {refereeCodes.map((c) => (
-                                <div key={c.id} className="flex items-center justify-between p-4 bg-black/40 rounded-2xl border border-white/5 hover:border-white/10 transition-all">
-                                    <div className="flex flex-col">
-                                        <span className={`text-xl font-mono font-black tracking-widest ${c.is_active ? 'text-white' : 'text-zinc-700'}`}>
-                                            {c.code}
-                                        </span>
-                                        <span className="text-[8px] font-black text-zinc-600 uppercase tracking-widest">Active Status</span>
+                            ) : (
+                                refereeCodes.map((c) => (
+                                    <div key={c.id} className="flex items-center justify-between p-6 bg-zinc-900 border border-white/5 rounded-2xl hover:border-[#0056B3]/20 transition-all group">
+                                        <div className="flex flex-col">
+                                            <span className={`text-2xl font-mono font-black tracking-[0.2em] ${c.is_active ? 'text-white' : 'text-zinc-800'}`}>
+                                                {c.code}
+                                            </span>
+                                            <span className="text-[8px] font-black text-zinc-600 uppercase tracking-widest mt-1">Status: {c.is_active ? 'Online' : 'Revoked'}</span>
+                                        </div>
+                                        <button 
+                                            onClick={() => toggleCode(c.id, c.is_active)}
+                                            className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all shadow-lg ${
+                                                c.is_active 
+                                                ? 'bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white shadow-emerald-500/5' 
+                                                : 'bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white shadow-red-500/5'
+                                            }`}
+                                        >
+                                            <i className={`fa-solid ${c.is_active ? 'fa-lock-open' : 'fa-lock'} text-base`} />
+                                        </button>
                                     </div>
-                                    <button 
-                                        onClick={() => toggleCode(c.id, c.is_active)}
-                                        className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
-                                            c.is_active ? 'bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20' : 'bg-red-500/10 text-red-500 hover:bg-red-500/20'
-                                        }`}
-                                    >
-                                        <i className={`fa-solid ${c.is_active ? 'fa-toggle-on' : 'fa-toggle-off'} text-xl`}></i>
-                                    </button>
-                                </div>
-                            ))}
+                                ))
+                            )}
                         </div>
-
-                        {refereeCodes.length > 0 && (
-                            <div className="pt-4 border-t border-white/5 mt-4">
-                                <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-zinc-600">
-                                    <span>Total Session Keys</span>
-                                    <span>{refereeCodes.length}</span>
-                                </div>
-                            </div>
-                        )}
                     </div>
                 </div>
             </div>
 
-            {/* Invite Modal Mockup */}
+            {/* ── Invite Modal ── */}
             <AnimatePresence>
                 {isInviting && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
                         <motion.div 
                             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+                            className="absolute inset-0 bg-black/90 backdrop-blur-md"
                             onClick={() => setIsInviting(false)}
-                        ></motion.div>
+                        />
                         <motion.div 
                             initial={{ scale: 0.9, opacity: 0, y: 20 }} 
                             animate={{ scale: 1, opacity: 1, y: 0 }} 
                             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                            className="bg-zinc-900 border border-white/10 rounded-[2.5rem] w-full max-w-md p-10 relative z-10 shadow-3xl"
+                            className="bg-[#0d0d0d] border border-white/10 rounded-[40px] w-full max-w-lg p-12 relative z-10 shadow-[0_24px_80px_rgba(0,0,0,0.8)] overflow-hidden"
                         >
-                            <h2 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-8 text-center">Add Staff Member</h2>
-                            <div className="space-y-6">
+                            <div className="absolute top-0 right-0 p-12 opacity-[0.02] pointer-events-none">
+                                <i className="fa-solid fa-user-shield text-[12rem]" />
+                            </div>
+
+                            <h2 className="text-4xl font-black text-white uppercase tracking-tight font-['Urbanist'] mb-10 text-center">Add Personnel</h2>
+                            
+                            <div className="space-y-8 relative z-10">
                                 <div>
-                                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2 block">User Email</label>
+                                    <label className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.3em] mb-3 block">Network Identity (Email)</label>
                                     <input 
                                         autoFocus
                                         type="email" 
-                                        className="w-full bg-black border border-zinc-800 rounded-2xl px-6 py-4 text-white font-bold focus:border-[#0056B3]/30 outline-none transition-all"
-                                        placeholder="user@example.com"
+                                        className="w-full bg-white/5 border border-white/5 rounded-2xl px-8 py-5 text-white font-bold focus:border-[#0056B3]/40 focus:bg-white/[0.08] outline-none transition-all placeholder:text-zinc-800"
+                                        placeholder="user@ztoevent.com"
                                     />
                                 </div>
+
                                 <div>
-                                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2 block">Assigned Role</label>
+                                    <label className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.3em] mb-3 block">Operational Role</label>
                                     <div className="grid grid-cols-2 gap-4">
-                                        <button className="p-4 bg-[#0056B3]/10 border-2 border-[#0056B3]/30 text-[#0056B3] rounded-2xl text-[10px] font-black uppercase tracking-widest">PM (Isolated)</button>
-                                        <button className="p-4 bg-zinc-800 border-2 border-transparent text-zinc-500 rounded-2xl text-[10px] font-black uppercase tracking-widest">Referee</button>
+                                        <button className="flex flex-col items-center gap-2 p-6 bg-[#0056B3]/10 border-2 border-[#0056B3]/40 text-[#4da3ff] rounded-3xl transition-all">
+                                            <i className="fa-solid fa-briefcase text-lg" />
+                                            <span className="text-[9px] font-black uppercase tracking-widest">Project Manager</span>
+                                        </button>
+                                        <button className="flex flex-col items-center gap-2 p-6 bg-white/5 border-2 border-transparent text-zinc-600 rounded-3xl hover:bg-white/10 transition-all">
+                                            <i className="fa-solid fa-whistle text-lg" />
+                                            <span className="text-[9px] font-black uppercase tracking-widest">Referee Hub</span>
+                                        </button>
                                     </div>
                                 </div>
-                                <div className="pt-4">
+
+                                <div className="pt-6">
                                     <button 
                                         onClick={handleInvite}
-                                        className="w-full py-5 bg-white text-black font-black rounded-2xl text-xs uppercase tracking-widest hover:bg-zinc-200 transition-all shadow-xl shadow-white/5"
+                                        className="w-full h-16 bg-white text-black font-black rounded-2xl text-[11px] uppercase tracking-[0.2em] hover:bg-zinc-200 transition-all shadow-[0_0_40px_rgba(255,255,255,0.1)] active:scale-95"
                                     >
-                                        Send Invitation
+                                        Authorize Access
                                     </button>
                                 </div>
                             </div>
@@ -289,25 +304,11 @@ export default function TeamManagementPage() {
 
             <style jsx global>{`
                 @media print {
-                    @page { margin: 15mm; }
-                    html, body, main {
-                        background: white !important;
-                        color: black !important;
-                    }
-                    .print\\:hidden, nav, header, footer, button {
-                        display: none !important;
-                    }
-                    .bg-zinc-900, .bg-zinc-800 {
-                        background: transparent !important;
-                        color: black !important;
-                        border-color: #eee !important;
-                    }
-                    .text-white, .text-zinc-400, .text-zinc-500 {
-                        color: black !important;
-                    }
-                    .print\\:break-before-page {
-                        break-before: page !important;
-                    }
+                    @page { size: A4 portrait; margin: 15mm; }
+                    html, body, main { background: white !important; color: black !important; }
+                    .print\\:hidden, nav, header, footer, button { display: none !important; }
+                    .bg-white\\/\\[0\\.03\\] { background: transparent !important; border: 1px solid #eee !important; border-radius: 12px !important; }
+                    .text-white, .text-zinc-600 { color: black !important; }
                 }
             `}</style>
         </div>

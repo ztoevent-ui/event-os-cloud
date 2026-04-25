@@ -267,20 +267,27 @@ export default function RegistrationStudio() {
             </div>
 
             {/* Page Header */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-[#0d0d0d] border border-[#0056B3]/30 px-6 py-5 rounded-2xl print:hidden shadow-[0_4px_24px_rgba(0,86,179,0.1)]">
-                <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-[#0056B3]/20 border border-[#0056B3]/40 rounded-xl flex items-center justify-center text-[#4da3ff] shrink-0">
-                        <i className="fa-solid fa-id-card text-lg" />
-                    </div>
-                    <div>
-                        <h1 className="text-xl font-black text-white tracking-widest uppercase font-['Urbanist'] m-0 leading-none">Registration Studio</h1>
-                        <p className="text-sm text-zinc-400 mt-1 font-medium tracking-wide m-0">Design your form, build tournament page & manage submissions</p>
-                    </div>
+            <div className="print:hidden flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
+                <div className="flex flex-col">
+                    <p className="text-xs font-black uppercase tracking-[0.2em] text-[#0056B3] mb-2">Project Registration</p>
+                    <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tight leading-none font-['Urbanist']">
+                        Registration Studio
+                    </h1>
+                    <p className="text-zinc-500 text-sm mt-3 font-medium tracking-wide">Design your form, build tournament page & manage submissions</p>
+                </div>
+
+                <div className="flex items-center gap-3">
+                    <button onClick={handleSave} className="h-11 px-8 rounded-xl bg-[#0056B3] text-white font-black text-[10px] tracking-widest uppercase shadow-[0_0_20px_rgba(0,86,179,0.3)] hover:shadow-[0_0_30px_rgba(0,86,179,0.5)] transition-all flex items-center gap-2.5">
+                        <i className="fa-solid fa-save text-[10px]" /> Save Settings
+                    </button>
+                    {activeTab === 'submissions' && (
+                        <PrintReportButton title="Registration Submissions" />
+                    )}
                 </div>
             </div>
 
             {/* ── Tabs ──────────────────────────────────────────────── */}
-            <div className="flex gap-1 border-b border-zinc-800/60 pb-0">
+            <div className="flex gap-2 border-b border-white/5 pb-0 mb-8">
                 {[
                     { id: 'settings',    label: 'Design & Settings',  icon: 'fa-sliders' },
                     { id: 'tournament',  label: 'Tournament Page',     icon: 'fa-globe' },
@@ -289,192 +296,191 @@ export default function RegistrationStudio() {
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as any)}
-                        className={`pb-3 px-5 font-bold text-xs tracking-widest uppercase transition-all flex items-center gap-2 border-b-2 ${
+                        className={`pb-4 px-6 font-black text-[10px] tracking-widest uppercase transition-all flex items-center gap-2.5 border-b-2 ${
                             activeTab === tab.id
-                                ? 'text-[#0056B3]500 border-[#0056B3]500'
+                                ? 'text-[#0056B3] border-[#0056B3]'
                                 : 'text-zinc-500 hover:text-white border-transparent'
                         }`}
                     >
-                        <i className={`fa-solid ${tab.icon}`} />
+                        <i className={`fa-solid ${tab.icon} text-xs`} />
                         {tab.label}
                     </button>
                 ))}
             </div>
 
             {isLoading ? (
-                <div className="h-64 flex items-center justify-center text-zinc-500">
-                    <i className="fa-solid fa-circle-notch animate-spin mr-3" />Loading...
+                <div className="h-64 flex flex-col items-center justify-center text-zinc-500">
+                    <i className="fa-solid fa-circle-notch animate-spin text-3xl mb-4 text-[#0056B3]" />
+                    <p className="text-[10px] font-black uppercase tracking-widest">Loading Studio...</p>
                 </div>
             ) : activeTab === 'settings' ? (
                 /* ═══════════════════════════════════════════════════════
-                   TAB 1: DESIGN & SETTINGS (original)
+                   TAB 1: DESIGN & SETTINGS
                 ════════════════════════════════════════════════════════ */
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div className="lg:col-span-2 space-y-6 bg-white/[0.03] border border-[#0056B3]/30 backdrop-blur-xl p-6 md:p-8 rounded-3xl shadow-xl">
-
-                        {/* Template */}
-                        <div>
-                            <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-2">Registration Template</label>
-                            <select
-                                className="w-full bg-[#0a0a0a]/50 border border-[#222] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)] appearance-none font-bold"
-                                value={settings.template_type}
-                                onChange={e => setSettings({ ...settings, template_type: e.target.value })}
-                            >
-                                <option value="guild_team_item">公会团体项目战 (Guild Team Item Battle)</option>
-                                <option value="guild_team_semi_free">公会团体半自由战 (Guild Team Semi-free Battle)</option>
-                                <option value="business_pro_item">商业职业项目战 (Business Pro Item Battle)</option>
-                            </select>
-                        </div>
-
-                        {/* Data Collection Fields */}
-                        <div>
-                            <div className="flex items-center justify-between mb-2">
-                                <label className="text-xs font-black tracking-widest uppercase text-zinc-400">Data Collection Fields</label>
-                                <span className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest">Toggle ON / OFF</span>
+                    <div className="lg:col-span-2 space-y-6">
+                        <div className="bg-white/[0.03] border border-white/5 backdrop-blur-xl p-8 rounded-[32px] space-y-8">
+                            {/* Template */}
+                            <div>
+                                <label className="block text-[10px] font-black tracking-widest uppercase text-zinc-500 mb-3">Registration Template</label>
+                                <select
+                                    className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-[#0056B3]/50 focus:ring-1 focus:ring-[#0056B3]/30 font-bold text-sm appearance-none cursor-pointer"
+                                    value={settings.template_type}
+                                    onChange={e => setSettings({ ...settings, template_type: e.target.value })}
+                                >
+                                    <option value="guild_team_item">公会团体项目战 (Guild Team Item Battle)</option>
+                                    <option value="guild_team_semi_free">公会团体半自由战 (Guild Team Semi-free Battle)</option>
+                                    <option value="business_pro_item">商业职业项目战 (Business Pro Item Battle)</option>
+                                </select>
                             </div>
-                            <div className="grid grid-cols-2 gap-4 bg-white/[0.03] p-5 rounded-2xl border border-[#0056B3]/30">
-                                {[
-                                    { key: 'show_team_name', label: 'Team Name' },
-                                    { key: 'show_team_dupr_average', label: 'Team Average DUPR' },
-                                    { key: 'requires_gender', label: 'Require Gender' },
-                                    { key: 'show_ic_passport', label: 'IC / Passport' },
-                                    { key: 'show_phone', label: 'Phone Number' },
-                                    { key: 'show_email', label: 'Email Address' },
-                                    { key: 'show_dupr', label: 'DUPR ID' },
-                                    { key: 'show_city_state', label: 'City & State' },
-                                    { key: 'show_work_school', label: 'Work / School' },
-                                    { key: 'show_emergency_contact', label: 'Emergency Contact' },
-                                    { key: 'show_medical', label: 'Medical History' },
-                                ].map(field => (
-                                    <label key={field.key} className="flex items-center gap-3 cursor-pointer group">
-                                        <div
+
+                            {/* Data Collection Fields */}
+                            <div>
+                                <label className="block text-[10px] font-black tracking-widest uppercase text-zinc-500 mb-4">Data Collection Fields</label>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    {[
+                                        { key: 'show_team_name', label: 'Team Name' },
+                                        { key: 'show_team_dupr_average', label: 'Team Average DUPR' },
+                                        { key: 'requires_gender', label: 'Require Gender' },
+                                        { key: 'show_ic_passport', label: 'IC / Passport' },
+                                        { key: 'show_phone', label: 'Phone Number' },
+                                        { key: 'show_email', label: 'Email Address' },
+                                        { key: 'show_dupr', label: 'DUPR ID' },
+                                        { key: 'show_city_state', label: 'City & State' },
+                                        { key: 'show_work_school', label: 'Work / School' },
+                                        { key: 'show_emergency_contact', label: 'Emergency Contact' },
+                                        { key: 'show_medical', label: 'Medical History' },
+                                    ].map(field => (
+                                        <div 
+                                            key={field.key} 
                                             onClick={() => setSettings({ ...settings, fields_config: { ...settings.fields_config, [field.key]: !settings.fields_config[field.key] } })}
-                                            className={`w-5 h-5 rounded flex items-center justify-center transition-all ${settings.fields_config[field.key] ? 'bg-[#0056B3] border-[#0056B3]500' : 'bg-zinc-900 border-zinc-700'} border shrink-0`}
+                                            className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between group ${settings.fields_config[field.key] ? 'bg-[#0056B3]/5 border-[#0056B3]/30' : 'bg-black/20 border-white/5 hover:border-white/10'}`}
                                         >
-                                            {settings.fields_config[field.key] && <i className="fa-solid fa-check text-black text-[10px]" />}
+                                            <span className={`text-[11px] font-black uppercase tracking-wider ${settings.fields_config[field.key] ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-400'}`}>{field.label}</span>
+                                            <div className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${settings.fields_config[field.key] ? 'bg-[#0056B3] border-[#0056B3] text-white' : 'border-white/10 text-transparent'}`}>
+                                                <i className="fa-solid fa-check text-[10px]" />
+                                            </div>
                                         </div>
-                                        <span className={`text-xs transition-colors uppercase tracking-wider font-bold ${settings.fields_config[field.key] ? 'text-[#0056B3]500' : 'text-zinc-500 group-hover:text-zinc-400'}`}>{field.label}</span>
-                                    </label>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
-                        </div>
 
-                        <AnimatePresence>
-                            {settings.fields_config.show_medical && (
-                                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-                                    <div className="bg-white/[0.03] border border-[#0056B3]/30 p-6 rounded-2xl mt-4">
-                                        <div className="flex items-center justify-between mb-4">
-                                            <label className="text-xs font-black tracking-widest uppercase text-[#0056B3]500">Medical Conditions List</label>
-                                            <button onClick={() => setSettings({ ...settings, medical_options: [...settings.medical_options, 'New Condition'] })} className="px-3 py-1.5 bg-[#0056B3]/10 text-[#0056B3]500 hover:bg-[#0056B3] hover:text-black rounded-lg text-[9px] font-black uppercase tracking-widest transition-colors">
-                                                <i className="fa-solid fa-plus mr-2" />Add Option
-                                            </button>
+                            {/* Medical options - same logic just cleaner UI */}
+                            <AnimatePresence>
+                                {settings.fields_config.show_medical && (
+                                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
+                                        <div className="bg-black/20 border border-white/5 p-6 rounded-2xl">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <label className="text-[9px] font-black tracking-widest uppercase text-[#4da3ff]">Medical Conditions List</label>
+                                                <button onClick={() => setSettings({ ...settings, medical_options: [...settings.medical_options, 'New Condition'] })} className="px-3 py-1.5 bg-[#0056B3]/10 text-[#4da3ff] hover:bg-[#0056B3] hover:text-white rounded-lg text-[9px] font-black uppercase tracking-widest transition-colors">
+                                                    <i className="fa-solid fa-plus mr-2" />Add Option
+                                                </button>
+                                            </div>
+                                            <div className="space-y-2">
+                                                {settings.medical_options.map((opt: string, i: number) => (
+                                                    <div key={i} className="flex items-center gap-2">
+                                                        <input value={opt} onChange={e => { const n = [...settings.medical_options]; n[i] = e.target.value; setSettings({ ...settings, medical_options: n }); }} className="flex-1 bg-black/40 border border-white/5 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#0056B3]/40" />
+                                                        <button onClick={() => setSettings({ ...settings, medical_options: settings.medical_options.filter((_: any, idx: number) => idx !== i) })} className="w-9 h-9 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-colors"><i className="fa-solid fa-minus" /></button>
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
-                                        <div className="space-y-3">
-                                            {settings.medical_options.map((opt: string, i: number) => (
-                                                <div key={i} className="flex items-center gap-3">
-                                                    <input value={opt} onChange={e => { const n = [...settings.medical_options]; n[i] = e.target.value; setSettings({ ...settings, medical_options: n }); }} className="flex-1 bg-black border border-white/10 rounded-lg px-4 py-2 text-xs text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]" />
-                                                    <button onClick={() => setSettings({ ...settings, medical_options: settings.medical_options.filter((_: any, idx: number) => idx !== i) })} className="w-8 h-8 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-colors"><i className="fa-solid fa-minus" /></button>
-                                                </div>
-                                            ))}
-                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+
+                            {/* Slogan & Branding */}
+                            <div className="space-y-6 pt-4 border-t border-white/5">
+                                <div>
+                                    <label className="block text-[10px] font-black tracking-widest uppercase text-zinc-500 mb-3">Tournament Slogan / Name</label>
+                                    <input type="text" className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white font-bold text-sm focus:outline-none focus:border-[#0056B3]/40" value={settings.slogan || ''} onChange={e => setSettings({ ...settings, slogan: e.target.value })} placeholder="e.g. Bintulu Inter-Surname Clan Championship" />
+                                </div>
+
+                                <ImageUploadField
+                                    label="Tournament Logo"
+                                    value={settings.logo_url || ''}
+                                    onChange={v => setSettings({ ...settings, logo_url: v })}
+                                    bucket="logo"
+                                    folder={projectId}
+                                    placeholder="Enter URL or upload"
+                                    preview="thumbnail"
+                                />
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-[10px] font-black tracking-widest uppercase text-zinc-500 mb-2">Sponsor Label</label>
+                                        <input type="text" className="w-full bg-black/40 border border-white/5 rounded-2xl px-4 py-3 text-white text-xs focus:outline-none focus:border-[#0056B3]/40" value={settings.title_sponsor_label || ''} onChange={e => setSettings({ ...settings, title_sponsor_label: e.target.value })} placeholder="e.g. Official Sponsorship" />
                                     </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-
-                        {/* Slogan */}
-                        <div>
-                            <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-2">Tournament Slogan / Name</label>
-                            <input type="text" className="w-full bg-[#0a0a0a]/50 border border-[#222] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]" value={settings.slogan || ''} onChange={e => setSettings({ ...settings, slogan: e.target.value })} placeholder="e.g. Bintulu Inter-Surname Clan Championship" />
-                        </div>
-
-                        {/* Logo */}
-                        <ImageUploadField
-                            label="Tournament Logo URL"
-                            value={settings.logo_url || ''}
-                            onChange={v => setSettings({ ...settings, logo_url: v })}
-                            bucket="logo"
-                            folder={projectId}
-                            placeholder="Enter URL or upload"
-                            preview="thumbnail"
-                        />
-
-                        {/* Sponsor */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-4 border-b border-zinc-800/50">
-                            <div>
-                                <label className="block text-[10px] font-black tracking-widest uppercase text-[#0056B3]500 mb-2">Label for Sponsor Field</label>
-                                <input type="text" className="w-full bg-[#0a0a0a]/50 border border-[#222] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]" value={settings.title_sponsor_label || ''} onChange={e => setSettings({ ...settings, title_sponsor_label: e.target.value })} placeholder="e.g. Official Sponsorship" />
-                            </div>
-                            <div>
-                                <label className="block text-[10px] font-black tracking-widest uppercase text-zinc-400 mb-2">Sponsor Name / 赞助商名字</label>
-                                <input type="text" className="w-full bg-[#0a0a0a]/50 border border-[#222] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]" value={settings.title_sponsor || ''} onChange={e => setSettings({ ...settings, title_sponsor: e.target.value })} placeholder="Enter Name" />
+                                    <div>
+                                        <label className="block text-[10px] font-black tracking-widest uppercase text-zinc-500 mb-2">Sponsor Name</label>
+                                        <input type="text" className="w-full bg-black/40 border border-white/5 rounded-2xl px-4 py-3 text-white text-xs focus:outline-none focus:border-[#0056B3]/40" value={settings.title_sponsor || ''} onChange={e => setSettings({ ...settings, title_sponsor: e.target.value })} placeholder="Enter Name" />
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
+
                     {/* QR + Link sidebar */}
                     <div className="space-y-6">
-                        <div className="bg-white/[0.03] border border-[#0056B3]/30 backdrop-blur-xl p-6 rounded-3xl shadow-xl text-center">
-                            <h3 className="text-sm font-black tracking-widest uppercase text-zinc-400 mb-6">Scan to Register</h3>
-                            <div className="bg-white p-4 rounded-2xl inline-block mx-auto mb-6">
-                                <QRCodeSVG value={publicRegUrl || 'placeholder'} size={160} />
+                        <div className="bg-white/[0.03] border border-white/5 backdrop-blur-xl p-8 rounded-[32px] text-center shadow-xl">
+                            <h3 className="text-[10px] font-black tracking-widest uppercase text-zinc-500 mb-8">Scan to Register</h3>
+                            <div className="bg-white p-5 rounded-3xl inline-block mx-auto mb-8 shadow-2xl">
+                                <QRCodeSVG value={publicRegUrl || 'placeholder'} size={180} />
                             </div>
-                            <div className="text-left space-y-4">
+                            <div className="text-left space-y-5">
                                 <div>
-                                    <label className="block text-[10px] font-black tracking-widest uppercase text-zinc-500 mb-2">Registration URL</label>
+                                    <label className="block text-[9px] font-black tracking-widest uppercase text-zinc-600 mb-2">Registration URL</label>
                                     <div className="flex gap-2">
-                                        <input type="text" readOnly value={publicRegUrl} className="w-full bg-[#0a0a0a]/50 border border-[#222] rounded-lg px-3 py-2 text-xs text-zinc-300" />
-                                        <button onClick={() => { navigator.clipboard.writeText(publicRegUrl); Swal.fire({ title: 'Copied!', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, background: '#18181b', color: '#fff' }); }} className="bg-zinc-800 hover:bg-zinc-700 px-3 py-2 rounded-lg text-zinc-300">
+                                        <input type="text" readOnly value={publicRegUrl} className="w-full bg-black/40 border border-white/5 rounded-xl px-4 py-3 text-[10px] text-zinc-400 font-mono" />
+                                        <button onClick={() => { navigator.clipboard.writeText(publicRegUrl); Swal.fire({ title: 'Copied!', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, background: '#18181b', color: '#fff' }); }} className="h-11 w-11 bg-zinc-900 border border-white/5 rounded-xl text-zinc-400 hover:text-white transition-colors flex items-center justify-center shrink-0">
                                             <i className="fa-solid fa-copy" />
                                         </button>
                                     </div>
                                 </div>
                                 {publicPageUrl && (
-                                    <div>
-                                        <label className="block text-[10px] font-black tracking-widest uppercase text-[#0056B3]500 mb-2">Tournament Info Page</label>
-                                        <Link href={publicPageUrl} target="_blank" className="flex items-center gap-2 w-full bg-zinc-950 border border-[#0056B3]500/20 rounded-lg px-4 py-3 hover:bg-zinc-800 transition-colors group text-xs font-bold text-white">
-                                            <i className="fa-solid fa-globe text-[#0056B3]500" />
-                                            <span className="truncate flex-1">{publicPageUrl}</span>
-                                            <i className="fa-solid fa-external-link text-zinc-500 group-hover:text-[#0056B3]500 transition-colors" />
-                                        </Link>
-                                    </div>
+                                    <Link href={publicPageUrl} target="_blank" className="flex items-center gap-3 w-full bg-[#0056B3]/5 border border-[#0056B3]/20 rounded-2xl px-5 py-4 hover:bg-[#0056B3]/10 transition-all group">
+                                        <i className="fa-solid fa-globe text-[#4da3ff] text-base" />
+                                        <div className="flex-1 overflow-hidden">
+                                            <div className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-0.5">Info Page</div>
+                                            <div className="text-[11px] font-bold text-white truncate">{publicPageUrl}</div>
+                                        </div>
+                                        <i className="fa-solid fa-external-link text-zinc-600 group-hover:text-[#4da3ff] transition-colors" />
+                                    </Link>
                                 )}
                             </div>
                         </div>
 
                         {/* Arena Connection */}
-                        <div className="bg-white/[0.03] border border-[#0056B3]/30 backdrop-blur-xl p-6 rounded-3xl shadow-xl">
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="w-8 h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center text-emerald-500">
+                        <div className="bg-white/[0.03] border border-white/5 backdrop-blur-xl p-8 rounded-[32px]">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="w-10 h-10 bg-[#0056B3]/10 border border-[#0056B3]/20 rounded-xl flex items-center justify-center text-[#4da3ff]">
                                     <i className="fa-solid fa-link" />
                                 </div>
-                                <h3 className="text-sm font-black tracking-widest uppercase text-zinc-400">Arena Connection</h3>
+                                <h3 className="text-[10px] font-black tracking-widest uppercase text-white">Arena Sync</h3>
                             </div>
-                            <p className="text-[10px] text-zinc-500 mb-4 leading-relaxed">
-                                Link this project to an Arena Tournament to enable team synchronization and match management.
-                            </p>
                             
                             {settings.linked_tournament_id ? (
                                 <div className="space-y-4">
-                                    <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl">
-                                        <div className="text-[9px] font-black uppercase text-emerald-500 mb-1">Status: CONNECTED</div>
+                                    <div className="bg-[#0056B3]/5 border border-[#0056B3]/20 p-5 rounded-2xl">
+                                        <div className="text-[9px] font-black uppercase text-[#4da3ff] mb-2 tracking-[0.2em]">CONNECTED</div>
                                         <div className="text-[10px] text-zinc-400 font-mono truncate">{settings.linked_tournament_id}</div>
                                     </div>
                                     <button 
                                         onClick={handleLinkArena}
                                         disabled={isLinking}
-                                        className="w-full py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                                        className="w-full h-12 bg-zinc-900 border border-white/5 text-zinc-500 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
                                     >
-                                        Change Connection
+                                        Switch Connection
                                     </button>
                                 </div>
                             ) : (
                                 <button 
                                     onClick={handleLinkArena}
                                     disabled={isLinking}
-                                    className="w-full py-4 border-2 border-dashed border-zinc-800 hover:border-emerald-500/50 hover:bg-emerald-500/5 text-zinc-500 hover:text-emerald-500 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex flex-col items-center gap-2"
+                                    className="w-full py-8 border-2 border-dashed border-white/5 hover:border-[#0056B3]/40 hover:bg-[#0056B3]/5 text-zinc-600 hover:text-[#4da3ff] rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex flex-col items-center gap-3"
                                 >
-                                    <i className="fa-solid fa-plus-circle text-lg" />
-                                    {isLinking ? 'Connecting...' : 'Link Tournament'}
+                                    <i className="fa-solid fa-circle-plus text-2xl" />
+                                    {isLinking ? 'Linking...' : 'Link Arena Tournament'}
                                 </button>
                             )}
                         </div>
@@ -486,315 +492,188 @@ export default function RegistrationStudio() {
                    TAB 2: TOURNAMENT PAGE BUILDER
                 ════════════════════════════════════════════════════════ */
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div className="lg:col-span-2 space-y-8">
-
-                        {/* ── URL Slug ─────────────────────────────── */}
-                        <div className="bg-white/5 border border-white/10 backdrop-blur-xl p-6 rounded-3xl">
-                            <label className="block text-xs font-black tracking-widest uppercase text-[#0056B3]500 mb-1">Public URL Slug</label>
-                            <p className="text-zinc-500 text-xs mb-4">Short readable ID (max 10 chars). e.g. <span className="text-[#0056B3]400 font-bold">sipc2026</span> → ztoevent.com/t/sipc2026</p>
-                            <div className="relative">
-                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-sm font-bold pointer-events-none">ztoevent.com/t/</span>
-                                <input
-                                    type="text"
-                                    className={`w-full bg-black border rounded-xl pl-[138px] pr-12 py-3 text-white font-bold focus:outline-none transition-colors ${slugTaken ? 'border-red-500' : settings.page_slug ? 'border-emerald-500/60' : 'border-zinc-800 focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]'}`}
-                                    value={settings.page_slug || ''}
-                                    onChange={e => handleSlugChange(e.target.value)}
-                                    placeholder="sipc2026"
-                                    maxLength={10}
-                                />
-                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold">
-                                    {slugChecking ? <i className="fa-solid fa-circle-notch animate-spin text-zinc-500" /> :
-                                     slugTaken ? <i className="fa-solid fa-xmark text-red-500" title="Slug taken" /> :
-                                     settings.page_slug ? <i className="fa-solid fa-check text-emerald-500" title="Available" /> : null}
-                                </span>
-                            </div>
-                            {slugTaken && <p className="text-red-400 text-xs mt-2 font-bold"><i className="fa-solid fa-triangle-exclamation mr-1" />This slug is already taken. Choose another.</p>}
-
-                            {/* Registration date window */}
-                            <div className="grid grid-cols-2 gap-4 mt-5">
-                                <div>
-                                    <label className="block text-[9px] font-black tracking-widest uppercase text-zinc-500 mb-2">Registration Opens</label>
-                                    <input type="date" value={settings.reg_open_date?.split('T')[0] || ''} onChange={e => setSettings({ ...settings, reg_open_date: e.target.value })} className="w-full bg-[#0a0a0a]/50 border border-[#222] rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]" />
-                                </div>
-                                <div>
-                                    <label className="block text-[9px] font-black tracking-widest uppercase text-zinc-500 mb-2">Registration Closes</label>
-                                    <input type="date" value={settings.reg_close_date?.split('T')[0] || ''} onChange={e => setSettings({ ...settings, reg_close_date: e.target.value })} className="w-full bg-[#0a0a0a]/50 border border-[#222] rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]" />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* ── Theme Color ──────────────────────────── */}
-                        <div className="bg-white/5 border border-white/10 backdrop-blur-xl p-6 rounded-3xl">
-                            <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-4">Page Theme Color</label>
-                            <div className="flex flex-wrap gap-3 mb-4">
-                                {THEME_PRESETS.map(p => (
-                                    <button
-                                        key={p.value}
-                                        title={p.label}
-                                        onClick={() => setSettings({ ...settings, theme_color: p.value })}
-                                        className={`w-10 h-10 rounded-xl transition-all hover:scale-110 ${settings.theme_color === p.value ? 'ring-2 ring-white ring-offset-2 ring-offset-zinc-900 scale-110' : ''}`}
-                                        style={{ backgroundColor: p.value }}
-                                    />
-                                ))}
+                    <div className="lg:col-span-2 space-y-6">
+                        <div className="bg-white/[0.03] border border-white/5 backdrop-blur-xl p-8 rounded-[32px] space-y-10">
+                            {/* URL Slug */}
+                            <div>
+                                <label className="block text-[10px] font-black tracking-widest uppercase text-[#0056B3] mb-2">Public URL Slug</label>
                                 <div className="relative">
+                                    <span className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-600 text-sm font-bold pointer-events-none">ztoevent.com/t/</span>
                                     <input
-                                        type="color"
-                                        value={settings.theme_color || '#f59e0b'}
-                                        onChange={e => setSettings({ ...settings, theme_color: e.target.value })}
-                                        className="w-10 h-10 rounded-xl cursor-pointer opacity-0 absolute inset-0"
+                                        type="text"
+                                        className={`w-full bg-black/40 border rounded-2xl pl-[138px] pr-12 py-4 text-white font-black text-sm focus:outline-none transition-all ${slugTaken ? 'border-red-500' : settings.page_slug ? 'border-[#0056B3]/40' : 'border-white/5 focus:border-[#0056B3]/40'}`}
+                                        value={settings.page_slug || ''}
+                                        onChange={e => handleSlugChange(e.target.value)}
+                                        placeholder="sipc2026"
+                                        maxLength={10}
                                     />
-                                    <div className="w-10 h-10 rounded-xl border-2 border-dashed border-zinc-600 flex items-center justify-center text-zinc-500 text-xs hover:border-white/40 transition-colors">
-                                        <i className="fa-solid fa-plus" />
+                                    <div className="absolute right-5 top-1/2 -translate-y-1/2">
+                                        {slugChecking ? <i className="fa-solid fa-circle-notch animate-spin text-zinc-500" /> :
+                                         slugTaken ? <i className="fa-solid fa-circle-xmark text-red-500" /> :
+                                         settings.page_slug ? <i className="fa-solid fa-circle-check text-emerald-500" /> : null}
                                     </div>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-lg" style={{ backgroundColor: settings.theme_color }} />
-                                <span className="text-zinc-400 font-mono text-sm">{settings.theme_color}</span>
-                                <div className="flex-1 h-6 rounded-full" style={{ background: `linear-gradient(to right, ${settings.theme_color}20, ${settings.theme_color})` }} />
-                            </div>
-                        </div>
 
-                        {/* ── Hero Banner ──────────────────────────── */}
-                        <div className="bg-white/5 border border-white/10 backdrop-blur-xl p-6 rounded-3xl">
-                            <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-2">Hero Banner Image</label>
-                            <p className="text-zinc-500 text-xs mb-4">Full-width background for the top of your tournament page. Recommended: 1920×1080px.</p>
-                            <ImageUploadField
-                                value={settings.hero_banner_url || ''}
-                                onChange={v => setSettings({ ...settings, hero_banner_url: v })}
-                                bucket="tournament-banners"
-                                folder={projectId}
-                                placeholder="https://... (paste URL or upload)"
-                                preview="banner"
-                            />
-                        </div>
-
-                        {/* ── Event Description ────────────────────── */}
-                        <div className="bg-white/5 border border-white/10 backdrop-blur-xl p-6 rounded-3xl">
-                            <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-2">Event Description</label>
-                            <textarea rows={4} className="w-full bg-[#0a0a0a]/50 border border-[#222] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)] resize-none text-sm leading-relaxed" value={settings.event_description || ''} onChange={e => setSettings({ ...settings, event_description: e.target.value })} placeholder="Describe your tournament — who it's for, what makes it special…" />
-                        </div>
-
-                        {/* ── Prize Pool ───────────────────────────── */}
-                        <div className="bg-white/5 border border-white/10 backdrop-blur-xl p-6 rounded-3xl">
-                            <div className="flex items-center justify-between mb-4">
-                                <label className="text-xs font-black tracking-widest uppercase text-zinc-400">Prize Pool</label>
-                                <button onClick={() => addRow('prize_pool', { category: '', amount: '', currency: 'RM' })} className="px-3 py-1.5 bg-[#0056B3]/10 text-[#0056B3]500 hover:bg-[#0056B3] hover:text-black rounded-lg text-[9px] font-black uppercase tracking-widest transition-colors">
-                                    <i className="fa-solid fa-plus mr-1" />Add Category
-                                </button>
-                            </div>
-                            <div className="space-y-3">
-                                {settings.prize_pool.map((prize: any, i: number) => (
-                                    <div key={i} className="grid grid-cols-12 gap-2 items-center">
-                                        <input className="col-span-5 bg-[#0a0a0a]/50 border border-[#222] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]" value={prize.category} onChange={e => updateRow('prize_pool', i, 'category', e.target.value)} placeholder="Category (e.g. Men's Doubles)" />
-                                        <select className="col-span-2 bg-[#0a0a0a]/50 border border-[#222] rounded-lg px-2 py-2 text-sm text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)] appearance-none" value={prize.currency} onChange={e => updateRow('prize_pool', i, 'currency', e.target.value)}>
-                                            <option value="RM">RM</option>
-                                            <option value="USD">USD</option>
-                                            <option value="SGD">SGD</option>
-                                        </select>
-                                        <input type="number" className="col-span-4 bg-[#0a0a0a]/50 border border-[#222] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]" value={prize.amount} onChange={e => updateRow('prize_pool', i, 'amount', e.target.value)} placeholder="Amount" />
-                                        <button onClick={() => removeRow('prize_pool', i)} className="col-span-1 w-8 h-9 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-colors"><i className="fa-solid fa-minus text-xs" /></button>
-                                    </div>
-                                ))}
-                                {settings.prize_pool.length === 0 && <p className="text-zinc-600 text-xs italic">No prize categories added yet.</p>}
-                            </div>
-                        </div>
-
-                        {/* ── Categories / Divisions ───────────────── */}
-                        <div className="bg-white/5 border border-white/10 backdrop-blur-xl p-6 rounded-3xl">
-                            <div className="flex items-center justify-between mb-4">
-                                <label className="text-xs font-black tracking-widest uppercase text-zinc-400">Categories / Divisions</label>
-                                <button onClick={() => addRow('categories', { name: '', description: '', open_to: '' })} className="px-3 py-1.5 bg-[#0056B3]/10 text-[#0056B3]500 hover:bg-[#0056B3] hover:text-black rounded-lg text-[9px] font-black uppercase tracking-widest transition-colors">
-                                    <i className="fa-solid fa-plus mr-1" />Add Category
-                                </button>
-                            </div>
-                            <div className="space-y-4">
-                                {settings.categories.map((cat: any, i: number) => (
-                                    <div key={i} className="bg-black/50 border border-zinc-800 rounded-xl p-4 space-y-2">
-                                        <div className="grid grid-cols-3 gap-2">
-                                            <input className="col-span-2 bg-[#0a0a0a]/50 border border-[#222] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]" value={cat.name} onChange={e => updateRow('categories', i, 'name', e.target.value)} placeholder="Category name (e.g. Men's Open)" />
-                                            <input className="bg-[#0a0a0a]/50 border border-[#222] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]" value={cat.open_to} onChange={e => updateRow('categories', i, 'open_to', e.target.value)} placeholder="Open to (e.g. M)" />
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <input className="flex-1 bg-[#0a0a0a]/50 border border-[#222] rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]" value={cat.description} onChange={e => updateRow('categories', i, 'description', e.target.value)} placeholder="Short description…" />
-                                            <button onClick={() => removeRow('categories', i)} className="w-9 h-9 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-colors shrink-0"><i className="fa-solid fa-minus text-xs" /></button>
-                                        </div>
-                                    </div>
-                                ))}
-                                {settings.categories.length === 0 && <p className="text-zinc-600 text-xs italic">No categories added yet.</p>}
-                            </div>
-                        </div>
-
-                        {/* ── Format & Rules ───────────────────────── */}
-                        <div className="bg-white/5 border border-white/10 backdrop-blur-xl p-6 rounded-3xl">
+                            {/* Dates */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-2">Tournament Format</label>
-                                    <textarea rows={6} className="w-full bg-[#0a0a0a]/50 border border-[#222] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)] resize-none text-sm leading-relaxed" value={settings.format_description || ''} onChange={e => setSettings({ ...settings, format_description: e.target.value })} placeholder="e.g. Group stage → Knockout. Each group has 4 teams. Top 2 advance…" />
+                                    <label className="block text-[10px] font-black tracking-widest uppercase text-zinc-500 mb-3">Registration Opens</label>
+                                    <input type="date" value={settings.reg_open_date?.split('T')[0] || ''} onChange={e => setSettings({ ...settings, reg_open_date: e.target.value })} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white text-sm focus:outline-none focus:border-[#0056B3]/40" />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-2">Rules</label>
-                                    <textarea rows={6} className="w-full bg-[#0a0a0a]/50 border border-[#222] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)] resize-none text-sm leading-relaxed" value={settings.rules || ''} onChange={e => setSettings({ ...settings, rules: e.target.value })} placeholder="List your tournament rules here…" />
+                                    <label className="block text-[10px] font-black tracking-widest uppercase text-zinc-500 mb-3">Registration Closes</label>
+                                    <input type="date" value={settings.reg_close_date?.split('T')[0] || ''} onChange={e => setSettings({ ...settings, reg_close_date: e.target.value })} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white text-sm focus:outline-none focus:border-[#0056B3]/40" />
                                 </div>
                             </div>
-                        </div>
 
-                        {/* ── Schedule ─────────────────────────────── */}
-                        <div className="bg-white/5 border border-white/10 backdrop-blur-xl p-6 rounded-3xl">
-                            <div className="flex items-center justify-between mb-4">
-                                <label className="text-xs font-black tracking-widest uppercase text-zinc-400">Event Schedule</label>
-                                <button onClick={() => addRow('event_schedule', { date: '', label: '', time_start: '', time_end: '', notes: '' })} className="px-3 py-1.5 bg-[#0056B3]/10 text-[#0056B3]500 hover:bg-[#0056B3] hover:text-black rounded-lg text-[9px] font-black uppercase tracking-widest transition-colors">
-                                    <i className="fa-solid fa-plus mr-1" />Add Day
-                                </button>
-                            </div>
-                            <div className="space-y-4">
-                                {settings.event_schedule.map((day: any, i: number) => (
-                                    <div key={i} className="bg-black/50 border border-zinc-800 rounded-xl p-4 space-y-2">
-                                        <div className="grid grid-cols-12 gap-2">
-                                            <input type="date" className="col-span-3 bg-[#0a0a0a]/50 border border-[#222] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]" value={day.date} onChange={e => updateRow('event_schedule', i, 'date', e.target.value)} />
-                                            <input className="col-span-5 bg-[#0a0a0a]/50 border border-[#222] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]" value={day.label} onChange={e => updateRow('event_schedule', i, 'label', e.target.value)} placeholder="Label (e.g. Group Stage)" />
-                                            <input type="time" className="col-span-2 bg-[#0a0a0a]/50 border border-[#222] rounded-lg px-2 py-2 text-sm text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]" value={day.time_start} onChange={e => updateRow('event_schedule', i, 'time_start', e.target.value)} />
-                                            <input type="time" className="col-span-2 bg-[#0a0a0a]/50 border border-[#222] rounded-lg px-2 py-2 text-sm text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]" value={day.time_end} onChange={e => updateRow('event_schedule', i, 'time_end', e.target.value)} />
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <input className="flex-1 bg-[#0a0a0a]/50 border border-[#222] rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]" value={day.notes} onChange={e => updateRow('event_schedule', i, 'notes', e.target.value)} placeholder="Notes (optional)" />
-                                            <button onClick={() => removeRow('event_schedule', i)} className="w-9 h-9 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-colors shrink-0"><i className="fa-solid fa-minus text-xs" /></button>
+                            {/* Theme & Banner */}
+                            <div className="space-y-6 pt-10 border-t border-white/5">
+                                <div>
+                                    <label className="block text-[10px] font-black tracking-widest uppercase text-zinc-500 mb-4">Branding Theme Color</label>
+                                    <div className="flex flex-wrap gap-3">
+                                        {THEME_PRESETS.map(p => (
+                                            <button key={p.value} onClick={() => setSettings({ ...settings, theme_color: p.value })} className={`w-11 h-11 rounded-xl transition-all hover:scale-110 ${settings.theme_color === p.value ? 'ring-2 ring-white ring-offset-4 ring-offset-black scale-110' : 'opacity-60 hover:opacity-100'}`} style={{ backgroundColor: p.value }} />
+                                        ))}
+                                        <div className="relative w-11 h-11 rounded-xl border-2 border-dashed border-zinc-800 flex items-center justify-center text-zinc-600 hover:border-white/20 transition-all cursor-pointer">
+                                            <input type="color" value={settings.theme_color || '#0056B3'} onChange={e => setSettings({ ...settings, theme_color: e.target.value })} className="absolute inset-0 opacity-0 cursor-pointer" />
+                                            <i className="fa-solid fa-plus text-xs" />
                                         </div>
                                     </div>
-                                ))}
-                                {settings.event_schedule.length === 0 && <p className="text-zinc-600 text-xs italic">No schedule days added yet.</p>}
+                                </div>
+
+                                <ImageUploadField
+                                    label="Hero Banner Image"
+                                    value={settings.hero_banner_url || ''}
+                                    onChange={v => setSettings({ ...settings, hero_banner_url: v })}
+                                    bucket="tournament-banners"
+                                    folder={projectId}
+                                    placeholder="Upload high-res banner (1920x1080)"
+                                    preview="banner"
+                                />
                             </div>
                         </div>
 
-                        {/* ── Venue ──────────────────────────────────── */}
-                        <div className="bg-white/5 border border-white/10 backdrop-blur-xl p-6 rounded-3xl">
-                            <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-4">Venue</label>
-                            <div className="space-y-3">
-                                <input type="text" className="w-full bg-[#0a0a0a]/50 border border-[#222] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]" value={settings.venue_name || ''} onChange={e => setSettings({ ...settings, venue_name: e.target.value })} placeholder="Venue Name (e.g. Parkcity Everly Hotel)" />
-                                <textarea rows={2} className="w-full bg-[#0a0a0a]/50 border border-[#222] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)] resize-none text-sm" value={settings.venue_address || ''} onChange={e => setSettings({ ...settings, venue_address: e.target.value })} placeholder="Full address…" />
-                                <input type="url" className="w-full bg-[#0a0a0a]/50 border border-[#222] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]" value={settings.venue_map_url || ''} onChange={e => setSettings({ ...settings, venue_map_url: e.target.value })} placeholder="Google Maps link (https://maps.app.goo.gl/...)" />
+                        {/* Event Details Content */}
+                        <div className="bg-white/[0.03] border border-white/5 backdrop-blur-xl p-8 rounded-[32px] space-y-8">
+                            <div>
+                                <label className="block text-[10px] font-black tracking-widest uppercase text-zinc-500 mb-4">Event Description</label>
+                                <textarea rows={6} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-[#0056B3]/40 resize-none text-sm leading-relaxed" value={settings.event_description || ''} onChange={e => setSettings({ ...settings, event_description: e.target.value })} placeholder="Describe your tournament — mission, vibe, expectations…" />
                             </div>
-                        </div>
 
-                        {/* ── Social Links ────────────────────────── */}
-                        <div className="bg-white/5 border border-white/10 backdrop-blur-xl p-6 rounded-3xl">
-                            <label className="block text-xs font-black tracking-widest uppercase text-zinc-400 mb-4">Social Links</label>
-                            <div className="space-y-3">
-                                {[
-                                    { key: 'facebook', icon: 'fa-facebook', placeholder: 'https://facebook.com/...' },
-                                    { key: 'instagram', icon: 'fa-instagram', placeholder: 'https://instagram.com/...' },
-                                    { key: 'whatsapp', icon: 'fa-whatsapp', placeholder: 'Phone number e.g. 601134567890' },
-                                ].map(s => (
-                                    <div key={s.key} className="flex items-center gap-3">
-                                        <div className="w-9 h-9 rounded-lg bg-zinc-800 flex items-center justify-center shrink-0">
-                                            <i className={`fa-brands ${s.icon} text-zinc-400`} />
-                                        </div>
-                                        <input
-                                            type="text"
-                                            className="flex-1 bg-[#0a0a0a]/50 border border-[#222] rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] focus:shadow-[0_0_15px_rgba(0,86,179,0.3)]"
-                                            value={settings.social_links?.[s.key] || ''}
-                                            onChange={e => setSettings({ ...settings, social_links: { ...settings.social_links, [s.key]: e.target.value } })}
-                                            placeholder={s.placeholder}
-                                        />
-                                    </div>
-                                ))}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div>
+                                    <label className="block text-[10px] font-black tracking-widest uppercase text-zinc-500 mb-4">Rules & Regulations</label>
+                                    <textarea rows={8} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-[#0056B3]/40 text-xs leading-relaxed" value={settings.rules || ''} onChange={e => setSettings({ ...settings, rules: e.target.value })} placeholder="Enter formal rules list…" />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-black tracking-widest uppercase text-zinc-500 mb-4">Tournament Format</label>
+                                    <textarea rows={8} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-[#0056B3]/40 text-xs leading-relaxed" value={settings.format_description || ''} onChange={e => setSettings({ ...settings, format_description: e.target.value })} placeholder="Explain stages, groups, scoring…" />
+                                </div>
                             </div>
-                        </div>
-
-                        <div className="text-right pt-2">
-                            <button onClick={handleSave} className="bg-[#0056B3] hover:bg-[#0056B3]400 text-black font-black uppercase tracking-widest px-10 py-3 rounded-xl transition-colors shadow-lg shadow-blue-900/20">
-                                <i className="fa-solid fa-floppy-disk mr-2" />Save Tournament Page
-                            </button>
                         </div>
                     </div>
 
                     {/* Preview sidebar */}
-                    <div className="space-y-4">
-                        <div className="bg-white/5 border border-white/10 backdrop-blur-xl p-5 rounded-3xl sticky top-24">
-                            <h3 className="text-xs font-black tracking-widest uppercase text-zinc-400 mb-4">Preview Links</h3>
+                    <div className="space-y-6">
+                        <div className="bg-white/[0.03] border border-white/5 backdrop-blur-xl p-8 rounded-[32px] sticky top-24 shadow-xl">
+                            <h3 className="text-[10px] font-black tracking-widest uppercase text-zinc-500 mb-8">Page Preview</h3>
 
                             {publicPageUrl ? (
-                                <>
-                                    <div className="mb-4">
-                                        <div className="bg-white p-3 rounded-xl inline-block mx-auto w-full flex justify-center mb-3">
-                                            <QRCodeSVG value={publicPageUrl} size={130} />
-                                        </div>
-                                        <Link href={publicPageUrl} target="_blank" className="flex items-center gap-2 w-full bg-black border border-[#0056B3]500/30 rounded-xl px-4 py-3 text-xs font-bold text-[#0056B3]400 hover:bg-zinc-900 transition-colors group">
-                                            <i className="fa-solid fa-globe" />
-                                            <span className="truncate flex-1">{publicPageUrl}</span>
-                                            <i className="fa-solid fa-external-link text-zinc-600 group-hover:text-[#0056B3]500 transition-colors" />
-                                        </Link>
+                                <div className="space-y-8">
+                                    <div className="bg-white p-5 rounded-3xl inline-block mx-auto w-full flex justify-center shadow-2xl">
+                                        <QRCodeSVG value={publicPageUrl} size={160} />
                                     </div>
-                                    <div>
-                                        <p className="text-[9px] font-black tracking-widest uppercase text-zinc-600 mb-2">Registration URL</p>
+                                    <Link href={publicPageUrl} target="_blank" className="flex items-center gap-3 w-full bg-[#0056B3] text-white rounded-2xl px-6 py-4 font-black text-[10px] tracking-widest uppercase shadow-lg shadow-blue-900/20 hover:scale-[1.02] transition-all">
+                                        <i className="fa-solid fa-external-link" />
+                                        Launch Public Page
+                                    </Link>
+                                    <div className="pt-8 border-t border-white/5">
+                                        <p className="text-[9px] font-black tracking-widest uppercase text-zinc-600 mb-4">Registration Link</p>
                                         <div className="flex gap-2">
-                                            <div className="flex-1 bg-[#0a0a0a]/50 border border-[#222] rounded-lg px-3 py-2 text-[10px] text-zinc-400 truncate">{publicRegUrl}</div>
-                                            <button onClick={() => { navigator.clipboard.writeText(publicRegUrl); Swal.fire({ title: 'Copied!', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, background: '#18181b', color: '#fff' }); }} className="bg-zinc-800 hover:bg-zinc-700 px-2 py-1.5 rounded-lg text-zinc-300">
-                                                <i className="fa-solid fa-copy text-xs" />
+                                            <div className="flex-1 bg-black/40 border border-white/5 rounded-xl px-4 py-3 text-[10px] text-zinc-400 truncate font-mono">{publicRegUrl}</div>
+                                            <button onClick={() => { navigator.clipboard.writeText(publicRegUrl); Swal.fire({ title: 'Copied!', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, background: '#18181b', color: '#fff' }); }} className="h-11 w-11 bg-zinc-900 border border-white/5 rounded-xl text-zinc-400 hover:text-white transition-colors flex items-center justify-center shrink-0">
+                                                <i className="fa-solid fa-copy" />
                                             </button>
                                         </div>
                                     </div>
-                                </>
+                                </div>
                             ) : (
-                                <div className="text-center py-8 text-zinc-600">
-                                    <i className="fa-solid fa-link-slash text-2xl mb-3 block" />
-                                    <p className="text-xs font-bold">Enter a slug above to generate your public links.</p>
+                                <div className="text-center py-12 text-zinc-700">
+                                    <i className="fa-solid fa-link-slash text-3xl mb-4 block opacity-20" />
+                                    <p className="text-[10px] font-black uppercase tracking-widest leading-loose">Enter a URL slug<br/>to activate preview</p>
                                 </div>
                             )}
-
-                            {/* Theme preview */}
-                            <div className="mt-5 pt-5 border-t border-zinc-800">
-                                <p className="text-[9px] font-black tracking-widest uppercase text-zinc-600 mb-3">Theme Preview</p>
-                                <div className="rounded-xl overflow-hidden text-[10px]" style={{ background: '#0a0a0a' }}>
-                                    <div className="h-1 w-full" style={{ background: settings.theme_color }} />
-                                    <div className="p-3">
-                                        <div className="font-black text-white text-xs mb-1">{settings.slogan || 'Tournament Name'}</div>
-                                        <div className="font-bold" style={{ color: settings.theme_color }}>Prize Pool · Categories · Schedule</div>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
 
             ) : (
                 /* ═══════════════════════════════════════════════════════
-                   TAB 3: REGISTRATIONS
+                   TAB 3: REGISTRATIONS (Card Grid Refactor)
                 ════════════════════════════════════════════════════════ */
-                <div className="bg-white/5 border border-white/10 backdrop-blur-xl rounded-3xl overflow-hidden shadow-xl">
-                    <div className="overflow-x-auto p-1">
-                        <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="border-b border-zinc-800 bg-black/50">
-                                    <th className="px-6 py-4 text-[10px] font-black tracking-widest uppercase text-zinc-500">Date</th>
-                                    <th className="px-6 py-4 text-[10px] font-black tracking-widest uppercase text-zinc-500">Organization (公会)</th>
-                                    <th className="px-6 py-4 text-[10px] font-black tracking-widest uppercase text-zinc-500">Captain</th>
-                                    <th className="px-6 py-4 text-[10px] font-black tracking-widest uppercase text-zinc-500">Pairs</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {submissions.length === 0 ? (
-                                    <tr><td colSpan={4} className="px-6 py-12 text-center text-zinc-600 font-medium">No registrations received yet.</td></tr>
-                                ) : (
-                                    submissions.map(sub => (
-                                        <React.Fragment key={sub.id}>
-                                            <tr className={`border-b border-zinc-800/50 hover:bg-white/5 transition-colors print:bg-white print:border-zinc-200 print:text-black ${pageBreakIds.includes(sub.id) ? 'print:break-before-page pt-8' : ''}`}>
-                                                <td className="px-6 py-4 text-xs text-zinc-400 print:text-zinc-600 font-mono">{new Date(sub.created_at).toLocaleDateString()}</td>
-                                                <td className="px-6 py-4 text-sm font-bold text-white print:text-black">{sub.organization_name}</td>
-                                                <td className="px-6 py-4"><div className="text-sm text-zinc-200 print:text-black">{sub.captain_name}</div><div className="text-xs text-zinc-500 print:text-zinc-600">{sub.captain_role}</div></td>
-                                                <td className="px-6 py-4 text-sm text-zinc-400 print:text-black">{(sub.players?.length / 2) || 0} Pairs</td>
-                                            </tr>
-                                            <tr className="print:hidden">
-                                                <td colSpan={4} className="p-0">
-                                                    <PrintBreakTrigger id={sub.id} />
-                                                </td>
-                                            </tr>
-                                        </React.Fragment>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                <div className="flex flex-col gap-4">
+                    {submissions.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-32 border-2 border-dashed border-white/5 rounded-[32px] bg-white/[0.02]">
+                            <i className="fa-solid fa-users text-5xl text-zinc-800 mb-6" />
+                            <h3 className="text-lg font-black text-zinc-600 uppercase tracking-widest">No Submissions Yet</h3>
+                            <p className="text-zinc-700 text-[10px] font-black uppercase mt-2 tracking-widest">Waiting for participants to sign up...</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                            {submissions.map(sub => (
+                                <div 
+                                    key={sub.id} 
+                                    className={`bg-white/[0.03] border border-white/5 p-6 rounded-[24px] hover:border-[#0056B3]/40 hover:shadow-[0_8px_32px_rgba(0,86,179,0.15)] transition-all flex flex-col justify-between group ${pageBreakIds.includes(sub.id) ? 'print:break-before-page' : ''}`}
+                                >
+                                    <div className="space-y-4">
+                                        <div className="flex justify-between items-start">
+                                            <div className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[9px] font-black text-zinc-500 uppercase tracking-widest">
+                                                {new Date(sub.created_at).toLocaleDateString()}
+                                            </div>
+                                            <div className="w-8 h-8 rounded-full bg-[#0056B3]/10 flex items-center justify-center text-[#4da3ff] opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <i className="fa-solid fa-chevron-right text-[10px]" />
+                                            </div>
+                                        </div>
+                                        
+                                        <div>
+                                            <div className="text-[10px] font-black text-[#0056B3] uppercase tracking-[0.2em] mb-1">Organization</div>
+                                            <h4 className="text-lg font-black text-white leading-tight uppercase font-['Urbanist']">
+                                                {sub.organization_name}
+                                            </h4>
+                                        </div>
+
+                                        <div className="flex items-center gap-4 py-4 border-y border-white/5">
+                                            <div className="flex-1">
+                                                <div className="text-[9px] font-black text-zinc-600 uppercase tracking-widest mb-1">Captain</div>
+                                                <div className="text-xs font-bold text-zinc-300">{sub.captain_name}</div>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="text-[9px] font-black text-zinc-600 uppercase tracking-widest mb-1">Pairs</div>
+                                                <div className="text-xs font-bold text-white">{(sub.players?.length / 2) || 0}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-4 flex items-center gap-3">
+                                        <div className="flex-1 flex -space-x-2">
+                                            {[...Array(Math.min(4, Math.floor(sub.players?.length / 2 || 0)))].map((_, i) => (
+                                                <div key={i} className="w-7 h-7 rounded-full border-2 border-zinc-900 bg-zinc-800 flex items-center justify-center text-[9px] font-black text-zinc-500">
+                                                    P{i+1}
+                                                </div>
+                                            ))}
+                                            {(sub.players?.length / 2) > 4 && (
+                                                <div className="w-7 h-7 rounded-full border-2 border-zinc-900 bg-[#0056B3]/20 flex items-center justify-center text-[9px] font-black text-[#4da3ff]">
+                                                    +{(sub.players?.length / 2) - 4}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <PrintBreakTrigger id={sub.id} />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             )}
 

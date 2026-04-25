@@ -59,7 +59,16 @@ export default async function ProjectLayout({
                     }}
                     className="print:overflow-visible print:flex-none print:w-full"
                 >
-                    {children}
+                    {/* ENFORCED ANTIGRAVITY CONTAINER */}
+                    <div style={{
+                        maxWidth: 1400,
+                        margin: '0 auto',
+                        padding: '2.5rem',
+                        width: '100%',
+                        minHeight: '100%',
+                    }}>
+                        {children}
+                    </div>
                 </main>
             </div>
         </PrintProvider>

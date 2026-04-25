@@ -44,18 +44,18 @@ type FontSize = 'text-sm' | 'text-base' | 'text-lg' | 'text-xl';
 // ─── Styles ─────────────────────────────────────────────────────────────────
 const S = {
   card: {
-    background: 'rgba(255,255,255,0.05)',
-    backdropFilter: 'blur(12px)',
-    WebkitBackdropFilter: 'blur(12px)',
-    border: '1px solid rgba(0,86,179,0.3)',
-    borderRadius: 15,
-    marginBottom: 12,
+    background: 'rgba(255, 255, 255, 0.03)',
+    backdropFilter: 'blur(16px)',
+    WebkitBackdropFilter: 'blur(16px)',
+    border: '1px solid rgba(0, 86, 179, 0.2)',
+    borderRadius: 16,
+    marginBottom: 16,
     overflow: 'hidden',
-    transition: 'box-shadow 0.2s, transform 0.2s',
+    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   } as React.CSSProperties,
   cardImportant: {
-    background: 'rgba(239,68,68,0.08)',
-    border: '1px solid rgba(239,68,68,0.4)',
+    background: 'rgba(239, 68, 68, 0.05)',
+    border: '1px solid rgba(239, 68, 68, 0.3)',
   } as React.CSSProperties,
 };
 
@@ -175,9 +175,9 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
 
   // ─── Loading state ────────────────────────────────────────────────────────
   if (loading) return (
-    <div style={{ padding: '96px 48px', display: 'flex', flexDirection: 'column', alignItems: 'center', color: 'rgba(255,255,255,0.3)' }}>
-      <i className="fa-solid fa-circle-notch fa-spin" style={{ fontSize: 32, marginBottom: 16, color: '#0056B3' }} />
-      <p style={{ fontWeight: 900, fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase' }}>Syncing with Command Center...</p>
+    <div className="flex flex-col items-center justify-center py-24 text-zinc-500">
+      <i className="fa-solid fa-circle-notch fa-spin text-3xl mb-4 text-[#0056B3]" />
+      <p className="text-[10px] font-black uppercase tracking-[0.2em]">Syncing Sequence Data...</p>
     </div>
   );
 
@@ -216,96 +216,81 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
 
   // ─── Main Page ────────────────────────────────────────────────────────────
   return (
-    <div style={{ fontFamily: "'Urbanist', sans-serif", padding: '40px', maxWidth: 1400, margin: '0 auto', display: 'flex', flexDirection: 'column', flex: 1 }}>
-
+    <div className="flex flex-col flex-1">
       {/* Print Header */}
-      <div className="hidden print:block" style={{ marginBottom: 8 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-          <h1 style={{ margin: 0, fontSize: '11pt', fontWeight: 900, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'black', fontStyle: 'italic' }}>Tentative Program: {project?.name}</h1>
-          <span style={{ fontSize: '7pt', fontWeight: 700, color: '#888', letterSpacing: '0.08em', textTransform: 'uppercase' }}>ZTO Event OS</span>
+      <div className="hidden print:block mb-4">
+        <div className="flex justify-between items-end border-b-2 border-black pb-2">
+          <h1 className="text-xl font-black uppercase italic tracking-wider">Tentative Program: {project?.name}</h1>
+          <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">ZTO Event OS</span>
         </div>
-        <div style={{ height: 1, background: '#ccc', marginTop: 2 }} />
       </div>
 
       {/* ── Page Header + Action Bar ── */}
-      <div className="print:hidden" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 24, marginBottom: '3rem', flexWrap: 'wrap' }}>
-        {/* Identity - Stacked without absolute positioning */}
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <p style={{ margin: '0 0 4px 0', fontSize: 13, color: '#0056B3', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.15em' }}>
-            Project Detail
-          </p>
-          <h1 style={{ margin: 0, fontSize: 48, fontWeight: 900, color: '#fff', textTransform: 'uppercase', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
-            {project?.name || 'Event Sequence'}
+      <div className="print:hidden flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
+        <div className="flex flex-col">
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-[#0056B3] mb-2">Project Sequence</p>
+          <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tight leading-none">
+            {project?.name || 'Loading...'}
           </h1>
         </div>
 
-        {/* Actions - The Action Hub */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-          <button onClick={() => setIsKiosk(true)}
-            style={{ height: 48, padding: '0 24px', borderRadius: 12, background: '#0056B3', border: '1px solid rgba(0,86,179,0.3)', color: '#fff', fontWeight: 900, fontSize: 13, textTransform: 'uppercase', cursor: 'pointer', zIndex: 1000, position: 'relative', boxShadow: '0 0 20px rgba(0,86,179,0.4)', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: 10 }}
-            onMouseEnter={e => (e.currentTarget as HTMLElement).style.boxShadow = '0 0 30px rgba(0,86,179,0.8)'}
-            onMouseLeave={e => (e.currentTarget as HTMLElement).style.boxShadow = '0 0 20px rgba(0,86,179,0.4)'}
+        {/* Action Hub */}
+        <div className="flex flex-wrap items-center gap-3">
+          <button 
+            onClick={() => setIsKiosk(true)}
+            className="h-11 px-6 rounded-xl bg-zinc-900 border border-[#0056B3]/40 text-[#4da3ff] font-black text-[10px] tracking-widest uppercase hover:bg-[#0056B3] hover:text-white hover:shadow-[0_0_20px_rgba(0,86,179,0.4)] transition-all flex items-center gap-2.5"
           >
-            <i className="fa-solid fa-expand" /> KIOSK MODE
+            <i className="fa-solid fa-expand" /> Kiosk Mode
           </button>
 
-          {editMode && (
-            <button onClick={addColumn} style={{ height: 48, padding: '0 24px', borderRadius: 12, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)', fontWeight: 700, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10 }}>
-              <i className="fa-solid fa-plus" /> ADD COL
-            </button>
-          )}
-
-          {editMode && hasChanges && (
-            <button onClick={() => { fetchProjectAndSettings(); fetchProgram(); setEditMode(false); }}
-              style={{ height: 48, padding: '0 24px', borderRadius: 12, background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)', color: '#ff9999', fontWeight: 900, fontSize: 13, textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10 }}>
-              DISCARD
-            </button>
-          )}
-
-          <button onClick={editMode ? saveScript : toggleEditMode} disabled={isSaving}
-            style={{ height: 48, padding: '0 24px', borderRadius: 12, background: '#0056B3', border: '1px solid rgba(0,86,179,0.3)', color: '#fff', fontWeight: 900, fontSize: 13, textTransform: 'uppercase', cursor: 'pointer', zIndex: 1000, position: 'relative', boxShadow: '0 0 20px rgba(0,86,179,0.4)', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: 10 }}
-            onMouseEnter={e => (e.currentTarget as HTMLElement).style.boxShadow = '0 0 30px rgba(0,86,179,0.8)'}
-            onMouseLeave={e => (e.currentTarget as HTMLElement).style.boxShadow = '0 0 20px rgba(0,86,179,0.4)'}
+          <button 
+            onClick={editMode ? saveScript : toggleEditMode}
+            disabled={isSaving}
+            className="h-11 px-8 rounded-xl bg-[#0056B3] text-white font-black text-[10px] tracking-widest uppercase shadow-[0_0_20px_rgba(0,86,179,0.3)] hover:shadow-[0_0_30px_rgba(0,86,179,0.5)] transition-all flex items-center gap-2.5 disabled:opacity-50"
           >
             <i className={`fa-solid ${isSaving ? 'fa-spinner fa-spin' : editMode ? 'fa-save' : 'fa-pencil'}`} />
-            {isSaving ? 'SAVING...' : editMode ? 'SAVE SCRIPT' : 'MODIFY SEQUENCE'}
+            {isSaving ? 'Saving...' : editMode ? 'Save Sequence' : 'Modify Sequence'}
           </button>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div className="flex items-center gap-2">
             <CopyProgramButton projectId={projectId} />
             <PrintReportButton title="Event Program" />
           </div>
         </div>
       </div>
 
-      {/* ── Program Card List ── */}
-      {rows.length === 0 ? (
-        <div style={{ padding: '80px 0', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <i className="fa-solid fa-clipboard-list" style={{ fontSize: 40, color: 'rgba(0,86,179,0.3)', marginBottom: 20 }} />
-          <h3 style={{ fontSize: 18, fontWeight: 900, color: 'rgba(255,255,255,0.2)', textTransform: 'uppercase', letterSpacing: '0.3em', fontStyle: 'italic', marginBottom: 8 }}>No Sequence Defined</h3>
-          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.15)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 28 }}>Initialize the first row to begin.</p>
-          <button onClick={addRow} className="btn-royal h-11 px-10 text-xs tracking-widest">
-            <i className="fa-solid fa-plus" /> Initialize Sequence
-          </button>
-        </div>
-      ) : (
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={rows.map(r => r.id)} strategy={verticalListSortingStrategy}>
-            <AnimatePresence initial={false}>
-              {rows.map(row => (
-                <SortableRow key={row.id} row={row} columns={columns} editMode={editMode}
-                  updateCell={updateCell} removeRow={removeRow} moveColumn={moveColumn}
-                  removeColumn={removeColumn} isPageBreak={pageBreakIds.includes(row.id)} fontSize={fontSize} />
-              ))}
-            </AnimatePresence>
-          </SortableContext>
-        </DndContext>
-      )}
+      {/* ── Program Card Grid ── */}
+      <div className="flex flex-col gap-4">
+        {rows.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-32 border-2 border-dashed border-white/5 rounded-3xl bg-white/[0.02]">
+            <i className="fa-solid fa-clipboard-list text-5xl text-zinc-800 mb-6" />
+            <h3 className="text-lg font-black text-zinc-600 uppercase tracking-widest">No Sequence Defined</h3>
+            <button onClick={addRow} className="mt-8 h-12 px-10 rounded-xl bg-[#0056B3] text-white font-black text-xs tracking-widest uppercase">
+              Initialize Program
+            </button>
+          </div>
+        ) : (
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={rows.map(r => r.id)} strategy={verticalListSortingStrategy}>
+              <AnimatePresence initial={false}>
+                {rows.map(row => (
+                  <SortableRow key={row.id} row={row} columns={columns} editMode={editMode}
+                    updateCell={updateCell} removeRow={removeRow} moveColumn={moveColumn}
+                    removeColumn={removeColumn} isPageBreak={pageBreakIds.includes(row.id)} fontSize={fontSize} />
+                ))}
+              </AnimatePresence>
+            </SortableContext>
+          </DndContext>
+        )}
+      </div>
 
       {editMode && rows.length > 0 && (
-        <div style={{ marginTop: 20, display: 'flex', justifyContent: 'center' }}>
-          <button onClick={addRow} style={{ height: 44, padding: '0 40px', borderRadius: 9999, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(0,86,179,0.3)', color: 'rgba(255,255,255,0.5)', fontWeight: 900, fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10 }}>
-            <i className="fa-solid fa-plus-circle" /> Append Row
+        <div className="mt-10 flex justify-center">
+          <button 
+            onClick={addRow}
+            className="h-12 px-12 rounded-xl bg-white/5 border border-white/10 text-zinc-400 font-black text-[10px] tracking-widest uppercase hover:bg-white/10 hover:text-white transition-all flex items-center gap-3"
+          >
+            <i className="fa-solid fa-plus-circle" /> Append Sequence Row
           </button>
         </div>
       )}
@@ -328,66 +313,58 @@ function SortableRow({ row, columns, editMode, updateCell, removeRow, moveColumn
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: row.id });
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.7 : 1, zIndex: isDragging ? 50 : 'auto' } as React.CSSProperties;
 
-  const fsMap: Record<string, number> = { 'text-sm': 13, 'text-base': 15, 'text-lg': 17, 'text-xl': 20 };
-  const fs = fsMap[fontSize] || 15;
-
   return (
     <motion.div
-      ref={setNodeRef} style={style} data-row-container="true"
-      initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.97 }}
-      className={isPageBreak ? 'print:break-before-page' : ''}
+      ref={setNodeRef} style={style}
+      initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}
+      className={`group ${isPageBreak ? 'print:break-before-page' : ''}`}
     >
-      <div style={{
-        ...S.card, ...(row.is_important ? S.cardImportant : {}),
-        display: 'flex', alignItems: 'stretch', position: 'relative',
-      }}
-        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 0 24px rgba(0,86,179,0.25)'; (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; }}
-        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = 'none'; (e.currentTarget as HTMLElement).style.transform = 'none'; }}
+      <div 
+        style={{ ...S.card, ...(row.is_important ? S.cardImportant : {}) }}
+        className="flex items-stretch hover:border-[#0056B3]/60 hover:shadow-[0_8px_32px_rgba(0,86,179,0.15)] transition-all"
       >
         {/* Drag + Delete controls */}
         {editMode && (
-          <div style={{ width: 52, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 0', borderRight: '1px solid rgba(255,255,255,0.05)' }}>
-            <button {...attributes} {...listeners} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.25)', cursor: 'grab', fontSize: 14, padding: 4 }} title="Drag to reorder">
+          <div className="w-12 bg-white/[0.02] border-r border-white/5 flex flex-col items-center justify-center gap-4 py-4">
+            <button {...attributes} {...listeners} className="text-zinc-600 hover:text-[#4da3ff] cursor-grab p-1 transition-colors">
               <i className="fa-solid fa-grip-lines" />
             </button>
-            <button onClick={() => removeRow(row.id)} style={{ background: 'none', border: 'none', color: 'rgba(239,68,68,0.4)', cursor: 'pointer', fontSize: 13, padding: 4 }} title="Delete row">
-              <i className="fa-solid fa-trash-can" />
+            <button onClick={() => removeRow(row.id)} className="text-zinc-700 hover:text-red-500 p-1 transition-colors">
+              <i className="fa-solid fa-trash-can text-sm" />
             </button>
           </div>
         )}
 
-        {/* Cells */}
-        <div style={{ flex: 1, display: 'flex', alignItems: 'stretch', minWidth: 0 }}>
+        {/* Cells Wrapper */}
+        <div className="flex-1 flex flex-wrap md:flex-nowrap divide-x divide-white/5 overflow-hidden">
           {columns.map((col: ProgramColumn, idx: number) => {
             const val = col.isCustom ? (row.custom_data?.[col.id] || '') : (row as any)[col.id];
             const isTime = col.id === 'time';
             const isActivity = col.id === 'activities';
-            const isRemark = ['movement', 'cues', 'song', 'volume'].includes(col.id);
-
-            const textColor = isTime ? '#DEFF9A' : isActivity ? (row.is_important ? '#ef4444' : '#ffffff') : 'rgba(255,255,255,0.5)';
-            const textFs = isTime ? fs + 2 : isRemark ? fs - 2 : fs;
-            const fw = isTime || isActivity ? 900 : 500;
-
+            
             return (
-              <div key={col.id} style={{ flex: `0 0 ${col.width || '16%'}`, minWidth: 0, borderRight: idx < columns.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none', position: 'relative' }}>
+              <div 
+                key={col.id} 
+                style={{ flexBasis: col.width || 'auto', flexGrow: idx === 1 ? 2 : 1 }}
+                className="min-w-[120px] p-4 flex flex-col"
+              >
                 {editMode ? (
-                  <>
-                    {/* Column header in edit mode */}
-                    {idx === 0 && (
-                      <div style={{ fontSize: 9, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.2)', padding: '8px 14px 0' }}>
-                        {col.label}
-                        {col.isCustom && (
-                          <button onClick={() => removeColumn(col.id)} style={{ marginLeft: 6, background: 'none', border: 'none', color: 'rgba(239,68,68,0.5)', cursor: 'pointer', fontSize: 10 }}>✕</button>
-                        )}
-                      </div>
-                    )}
-                    <textarea value={val} onChange={e => updateCell(row.id, col.id, e.target.value, col.isCustom || false)}
-                      style={{ width: '100%', minHeight: 64, padding: '10px 14px', background: 'transparent', border: 'none', outline: 'none', resize: 'vertical', color: textColor, fontSize: textFs, fontWeight: fw, fontFamily: "'Urbanist', sans-serif", lineHeight: 1.5 }}
-                      placeholder={col.label} />
-                  </>
+                  <div className="flex flex-col h-full">
+                    <span className="text-[8px] font-black uppercase tracking-widest text-zinc-600 mb-2">{col.label}</span>
+                    <textarea 
+                      value={val} 
+                      onChange={e => updateCell(row.id, col.id, e.target.value, col.isCustom || false)}
+                      className={`w-full bg-transparent border-none focus:ring-0 resize-none font-bold placeholder:text-zinc-800 ${isTime ? 'text-[#DEFF9A] text-lg' : isActivity ? 'text-white' : 'text-zinc-500 text-xs'}`}
+                      placeholder={col.label}
+                      rows={2}
+                    />
+                  </div>
                 ) : (
-                  <div style={{ padding: '14px 18px', color: textColor, fontSize: textFs, fontWeight: fw, whiteSpace: 'pre-wrap', lineHeight: 1.5, wordBreak: 'break-word' }}>
-                    {val || (isTime ? '—' : '')}
+                  <div className="flex flex-col h-full justify-center">
+                    {isTime && <span className="text-xs font-black uppercase text-zinc-600 tracking-widest mb-1">Time</span>}
+                    <div className={`${isTime ? 'text-[#DEFF9A] text-xl font-black' : isActivity ? 'text-white font-black text-base' : 'text-zinc-400 text-xs font-medium'} leading-relaxed`}>
+                      {val || (isTime ? '—' : '')}
+                    </div>
                   </div>
                 )}
               </div>
@@ -395,9 +372,9 @@ function SortableRow({ row, columns, editMode, updateCell, removeRow, moveColumn
           })}
         </div>
 
-        {/* Important badge */}
+        {/* Status Indicator */}
         {row.is_important && (
-          <div style={{ position: 'absolute', top: 8, right: 8, width: 6, height: 6, borderRadius: '50%', background: '#ef4444', boxShadow: '0 0 8px rgba(239,68,68,0.6)' }} />
+          <div className="w-1.5 bg-red-600 shadow-[0_0_15px_rgba(220,38,38,0.5)]" />
         )}
       </div>
     </motion.div>

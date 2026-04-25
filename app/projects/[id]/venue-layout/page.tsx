@@ -879,336 +879,324 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
 
   const selectedCount = selectedIds.length;
 
-  return (
-    <div className="space-y-4 -mx-4 sm:-mx-6 lg:-mx-8 -mt-4">
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 px-6 pt-2">
-        <div>
-          <h1 className="text-3xl font-black text-white uppercase italic tracking-tighter">
-            Venue Layout <span className="text-pink-400 font-normal not-italic text-sm tracking-normal ml-2">Studio</span>
-          </h1>
-          <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] mt-1">Interactive 3D Spatial Designer</p>
-        </div>
-        <div className="flex items-center gap-3 print:hidden">
-          {selectedCount > 0 && (
-            <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 rounded-lg text-[10px] font-black uppercase tracking-widest border border-emerald-500/30">
-              {selectedCount} Selected
-            </span>
-          )}
-          <PrintReportButton title="Venue Layout" />
-          <button onClick={saveLayout} disabled={saving} className="px-5 py-2 bg-emerald-500 text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-400 transition-all disabled:opacity-50">
-            {saving ? 'Saving...' : 'Save Changes'}
-          </button>
-        </div>
-      </div>
+    return (
+        <div className="flex flex-col flex-1 animate-in fade-in duration-700 -mt-4">
+            {/* ── Page Header + Action Bar ── */}
+            <div className="print:hidden flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12 px-6">
+                <div className="flex flex-col">
+                    <p className="text-xs font-black uppercase tracking-[0.2em] text-[#0056B3] mb-2">Spatial Architecture</p>
+                    <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tight leading-none font-['Urbanist']">
+                        Venue Studio <span className="text-zinc-600 font-black ml-2 text-2xl uppercase">3D</span>
+                    </h1>
+                </div>
 
-      <div className="flex flex-col xl:flex-row gap-4 px-6 print:px-0">
-        {/* Sidebar Controls */}
-        <div className="w-full xl:w-64 space-y-4 flex-shrink-0 print:hidden">
-          {/* Layout Base */}
-          <div className="bg-zinc-900 border border-white/5 rounded-2xl p-5 space-y-4">
-            <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest border-b border-white/5 pb-2">Layout Base</h3>
-            <div className="grid grid-cols-1 gap-2">
-              {PRESETS.map((p) => (
-                <button
-                  key={p.key}
-                  onClick={() => switchPreset(p.key)}
-                  className={`px-3 py-2 rounded-xl text-[9px] font-black uppercase tracking-tight text-left transition-all border ${
-                    layoutData?.selectedPreset === p.key
-                      ? 'bg-[#0056B3]/10 border-[#0056B3]/30 text-[#0056B3]'
-                      : 'bg-white/5 border-transparent text-zinc-500 hover:bg-white/10'
-                  }`}
-                >
-                  {p.name}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Venue Configuration */}
-          <div className="bg-zinc-900 border border-white/5 rounded-2xl p-5 space-y-4">
-            <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest border-b border-white/5 pb-2">Venue Identity</h3>
-            <div className="space-y-2">
-              <label className="text-[8px] font-black text-zinc-600 uppercase tracking-widest">Venue Name (Studio Title)</label>
-              <input 
-                type="text" 
-                value={layoutData?.venueName || ''} 
-                onChange={(e) => setLayoutData(prev => prev ? { ...prev, venueName: e.target.value.toUpperCase() } : null)}
-                placeholder="ENTER VENUE NAME..."
-                className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-[10px] font-black text-white focus:border-[#0056B3]/30 outline-none transition-all uppercase"
-              />
-            </div>
-          </div>
-
-          {/* Color Settings */}
-          <div className="bg-zinc-900 border border-white/5 rounded-2xl p-5 space-y-4">
-            <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest border-b border-white/5 pb-2">Guest Colors</h3>
-            <div className="space-y-2">
-              <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Tablecloth</label>
-              <div className="flex gap-2">
-                {CLOTH_OPTIONS.map((c) => (
-                  <button key={c.hex} onClick={() => updateGlobalColor('guestTable', c.hex)} className={`w-7 h-7 rounded-lg border-2 transition-all ${layoutData?.globalColors?.guestTable === c.hex ? 'border-white scale-110' : 'border-transparent hover:border-white/30'}`} style={{ backgroundColor: c.hex }} title={c.name} />
-                ))}
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Chair Cover</label>
-              <div className="flex gap-2">
-                {CHAIR_OPTIONS.map((c) => (
-                  <button key={c.hex} onClick={() => updateGlobalColor('guestChair', c.hex)} className={`w-7 h-7 rounded-lg border-2 transition-all ${layoutData?.globalColors?.guestChair === c.hex ? 'border-white scale-110' : 'border-transparent hover:border-white/30'}`} style={{ backgroundColor: c.hex }} title={c.name} />
-                ))}
-              </div>
-            </div>
-
-            <div className="h-px bg-white/5" />
-
-            <h3 className="text-[10px] font-black text-pink-500 uppercase tracking-widest">Bridal Colors</h3>
-            <div className="space-y-2">
-              <label className="text-[9px] font-black text-pink-400/70 uppercase tracking-widest">Tablecloth</label>
-              <div className="flex gap-2">
-                {CLOTH_OPTIONS.map((c) => (
-                  <button key={c.hex} onClick={() => updateGlobalColor('bridalTable', c.hex)} className={`w-7 h-7 rounded-lg border-2 transition-all ${layoutData?.globalColors?.bridalTable === c.hex ? 'border-pink-400 scale-110' : 'border-transparent hover:border-pink-400/30'}`} style={{ backgroundColor: c.hex }} title={c.name} />
-                ))}
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-[9px] font-black text-pink-400/70 uppercase tracking-widest">Chair Cover</label>
-              <div className="flex gap-2">
-                {CHAIR_OPTIONS.map((c) => (
-                  <button key={c.hex} onClick={() => updateGlobalColor('bridalChair', c.hex)} className={`w-7 h-7 rounded-lg border-2 transition-all ${layoutData?.globalColors?.bridalChair === c.hex ? 'border-pink-400 scale-110' : 'border-transparent hover:border-pink-400/30'}`} style={{ backgroundColor: c.hex }} title={c.name} />
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Instructions */}
-          <div className="bg-zinc-900 border border-white/5 rounded-2xl p-5">
-            <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest border-b border-white/5 pb-2">操作说明</h3>
-            <ul className="mt-3 space-y-1.5 text-[9px] text-zinc-500 leading-relaxed">
-              <li className="flex gap-2"><span className="text-emerald-400">●</span> 点击物体选中</li>
-              <li className="flex gap-2"><span className="text-emerald-400">●</span> 选中后拖动移动</li>
-              <li className="flex gap-2"><span className="text-emerald-400">●</span> Shift+点击 多选</li>
-              <li className="flex gap-2"><span className="text-emerald-400">●</span> 右键拖动 移动画面 (PAN)</li>
-              <li className="flex gap-2"><span className="text-emerald-400">●</span> 点击空地取消选中</li>
-              <li className="flex gap-2"><span className="text-emerald-400">●</span> 滚轮 缩放视角 (ZOOM)</li>
-            </ul>
-          </div>
-
-          {/* Asset Library */}
-          <div className="bg-zinc-900 border border-white/5 rounded-2xl p-5 space-y-4">
-            <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest border-b border-white/5 pb-2">Asset Library</h3>
-            <div className="relative">
-              <i className="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600 text-[8px]" />
-              <input 
-                type="text" 
-                placeholder="SEARCH ASSETS..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value.toUpperCase())}
-                className="w-full bg-black/50 border border-white/5 rounded-lg pl-8 pr-3 py-1.5 text-[8px] font-black text-white focus:border-[#0056B3]/30 outline-none transition-all"
-              />
-            </div>
-            <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-              {['Furniture', 'AV', 'Decor', 'Structures'].map(cat => {
-                const items = ASSET_LIBRARY.filter(a => a.category === cat && (a.name.toUpperCase().includes(searchQuery) || cat.toUpperCase().includes(searchQuery)));
-                if (items.length === 0) return null;
-                
-                return (
-                  <div key={cat} className="space-y-2">
-                    <h4 className="text-[8px] font-black text-zinc-600 uppercase tracking-widest">{cat}</h4>
-                    <div className="grid grid-cols-1 gap-1">
-                      {items.map(a => (
-                        <button 
-                          key={a.type} 
-                          onClick={() => addAsset(a.type)}
-                          className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-left transition-all border border-transparent hover:border-white/10 group flex items-center justify-between"
-                        >
-                          <span className="text-[9px] font-black text-zinc-400 uppercase tracking-tight group-hover:text-[#0056B3]">{a.name}</span>
-                          <i className="fa-solid fa-plus text-[8px] text-zinc-600 group-hover:text-[#0056B3]" />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
-        {/* 3D Viewport & Context Sidebar */}
-        <div className="flex-1 flex gap-4 relative">
-          <div className="flex-1 relative h-[72vh] bg-[#080808] rounded-3xl border border-white/5 overflow-hidden">
-            {isDragging && (
-              <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 px-4 py-1.5 bg-emerald-500/20 text-emerald-400 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-500/30 backdrop-blur-sm">
-                拖动中 • Dragging
-              </div>
-            )}
-            {layoutData ? (
-              <Canvas shadows dpr={[1, 2]} onPointerMissed={handleDeselect}>
-                <PerspectiveCamera makeDefault position={[0, 20, 15]} fov={50} />
-                <OrbitControls
-                  makeDefault
-                  enableDamping
-                  dampingFactor={0.05}
-                  maxPolarAngle={Math.PI / 2.15}
-                  minDistance={2}
-                  maxDistance={60}
-                  enablePan={true}
-                  enabled={!isDragging}
-                  mouseButtons={{ LEFT: isDragging ? -1 : THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN } as any}
-                />
-                <Suspense fallback={null}>
-                  <VenueScene
-                    layoutData={layoutData}
-                    selectedIds={selectedIds}
-                    onSelect={handleSelect}
-                    onMoveSelected={moveSelected}
-                    onDragStateChange={handleDragStateChange}
-                  />
-                </Suspense>
-              </Canvas>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full text-zinc-500 uppercase tracking-widest text-[10px]">
-                <i className="fa-solid fa-triangle-exclamation text-[#0056B3] mb-2 text-2xl" />
-                Failed to load spatial data.
-              </div>
-            )}
-          </div>
-
-          {/* Selected Asset Context Menu */}
-          {selectedIds.length > 0 && (
-            <div className="w-64 bg-zinc-900 border border-white/5 rounded-3xl p-6 space-y-6 flex-shrink-0 animate-in slide-in-from-right duration-300">
-              <div className="flex justify-between items-center">
-                <h3 className="text-[10px] font-black text-[#0056B3] uppercase tracking-widest">Properties</h3>
-                <button onClick={removeSelected} className="w-6 h-6 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center">
-                  <i className="fa-solid fa-trash-can text-[10px]" />
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                {/* Find the first selected asset to show properties */}
-                {(() => {
-                  const item = layoutData?.customAssets.find(a => a.id === selectedIds[0]);
-                  if (!item) return null;
-                  
-                  const isTable = item.type === 'guest' || item.type === 'bridal';
-                  const asset = item as AssetDef; // Cast for property access
-
-                  return (
-                    <>
-                      <div className="space-y-1">
-                        <label className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">ID / Type</label>
-                        <p className="text-[10px] font-black text-white">{asset.id} <span className="text-zinc-600 ml-2">({asset.type})</span></p>
-                      </div>
-
-                      {/* Generic dimension controls for assets that support it */}
-                      {(!isTable && ['led', 'rect-6ft', 'bg-wall-16ft', 'bg-wall-20ft', 'dec-pillar', 'carpet'].includes(asset.type)) && (
-                        <>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-1">
-                              <label className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Width (m)</label>
-                              <input 
-                                type="number" step="0.1" 
-                                value={asset.w || 0} 
-                                onChange={(e) => updateAssetProp(asset.id, 'w', parseFloat(e.target.value))}
-                                className="w-full bg-black border border-white/10 rounded-lg px-2 py-1 text-[10px] text-white"
-                              />
-                            </div>
-                            <div className="space-y-1">
-                              <label className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Depth (m)</label>
-                              <input 
-                                type="number" step="0.1" 
-                                value={asset.d || 0} 
-                                onChange={(e) => updateAssetProp(asset.id, 'd', parseFloat(e.target.value))}
-                                className="w-full bg-black border border-white/10 rounded-lg px-2 py-1 text-[10px] text-white"
-                              />
-                            </div>
-                          </div>
-                          {asset.type !== 'carpet' && (
-                            <div className="space-y-1">
-                              <label className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Height (m)</label>
-                              <input 
-                                type="number" step="0.1" 
-                                value={asset.h || 0} 
-                                onChange={(e) => updateAssetProp(asset.id, 'h', parseFloat(e.target.value))}
-                                className="w-full bg-black border border-white/10 rounded-lg px-2 py-1 text-[10px] text-white"
-                              />
-                            </div>
-                          )}
-                        </>
-                      )}
-
-                      {/* Modular segments for tents */}
-                      {(!isTable && ['marquee-tent', 'transparent-marquee', 'arabian-canopy'].includes(asset.type)) && (
-                        <div className="space-y-2">
-                          <label className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Modules (Segments)</label>
-                          <div className="flex items-center gap-4">
-                            <button onClick={() => updateAssetProp(asset.id, 'segments', Math.max(1, (asset.segments || 1) - 1))} className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-white/10 transition-all">-</button>
-                            <span className="text-xl font-black text-white">{asset.segments || 1}</span>
-                            <button onClick={() => updateAssetProp(asset.id, 'segments', (asset.segments || 1) + 1)} className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-white/10 transition-all">+</button>
-                          </div>
-                          <p className="text-[8px] text-zinc-600 uppercase tracking-widest mt-1">Total: {((asset.segments || 1) * (asset.d || 5)).toFixed(1)}m x {asset.w || 10}m</p>
+                {/* Action Hub */}
+                <div className="flex flex-wrap items-center gap-3">
+                    {selectedCount > 0 && (
+                        <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl mr-4">
+                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                            <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">{selectedCount} Active Selections</span>
                         </div>
-                      )}
+                    )}
+                    <PrintReportButton title="Venue Layout" />
+                    <button 
+                        onClick={saveLayout} 
+                        disabled={saving} 
+                        className="h-11 px-8 rounded-xl bg-white text-black font-black text-[10px] tracking-widest uppercase hover:bg-zinc-200 transition-all flex items-center gap-2.5 shadow-[0_0_20px_rgba(255,255,255,0.1)] disabled:opacity-50"
+                    >
+                        {saving ? 'Syncing...' : 'Commit Changes'}
+                    </button>
+                </div>
+            </div>
 
-                      {/* Rotation */}
-                      <div className="space-y-1">
-                        <label className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Horizontal Rotation (Rad)</label>
-                        <input 
-                          type="range" min="0" max={Math.PI * 2} step="0.1"
-                          value={asset.r || 0} 
-                          onChange={(e) => updateAssetProp(asset.id, 'r', parseFloat(e.target.value))}
-                          className="w-full accent-[#0056B3]"
-                        />
-                      </div>
-
-                      {/* Color Picker for specific asset */}
-                      {(!isTable && ['rect-6ft', 'cocktail', 'bar', 'bg-wall-16ft', 'bg-wall-20ft', 'dec-pillar', 'carpet', 'star-lights'].includes(asset.type)) && (
-                        <div className="space-y-2">
-                          <label className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Asset Color</label>
-                          <div className="flex flex-wrap gap-1.5">
-                            {CLOTH_OPTIONS.map(c => (
-                              <button key={c.hex} onClick={() => updateAssetProp(asset.id, 'color', c.hex)} className={`w-5 h-5 rounded-md border ${asset.color === c.hex ? 'border-white' : 'border-transparent'}`} style={{ backgroundColor: c.hex }} />
+            <div className="flex flex-col xl:flex-row gap-8 px-6 print:px-0">
+                {/* ── Designer Console (Left) ── */}
+                <div className="w-full xl:w-72 flex flex-col gap-6 print:hidden">
+                    {/* Primary Layout Engine */}
+                    <div className="bg-white/[0.03] border border-white/5 rounded-[32px] p-8 flex flex-col gap-6">
+                        <h3 className="text-[10px] font-black text-[#0056B3] uppercase tracking-[0.4em] mb-2">Structural Base</h3>
+                        <div className="flex flex-col gap-2">
+                            {PRESETS.map((p) => (
+                                <button
+                                    key={p.key}
+                                    onClick={() => switchPreset(p.key)}
+                                    className={`px-4 py-3 rounded-2xl text-[9px] font-black uppercase tracking-widest text-left transition-all border ${
+                                        layoutData?.selectedPreset === p.key
+                                            ? 'bg-[#0056B3]/10 border-[#0056B3]/40 text-[#4da3ff] shadow-[0_0_20px_rgba(0,86,179,0.1)]'
+                                            : 'bg-white/5 border-white/5 text-zinc-600 hover:bg-white/[0.08] hover:border-white/10'
+                                    }`}
+                                >
+                                    {p.name}
+                                </button>
                             ))}
-                            <button onClick={() => updateAssetProp(asset.id, 'color', '#ffffff')} className={`w-5 h-5 rounded-md border bg-white ${asset.color === '#ffffff' ? 'border-[#0056B3]/30' : 'border-transparent'}`} />
-                            <button onClick={() => updateAssetProp(asset.id, 'color', '#333333')} className={`w-5 h-5 rounded-md border bg-zinc-800 ${asset.color === '#333333' ? 'border-[#0056B3]/30' : 'border-transparent'}`} />
-                          </div>
                         </div>
-                      )}
-                    </>
-                  );
-                })()}
-              </div>
-            </div>
-          )}
-         </div>
-      </div>
+                    </div>
 
-      <style jsx global>{`
-        @media print {
-            @page { 
-                margin: 0; 
-                size: ${orientation === 'landscape' ? 'landscape' : 'portrait'};
-            }
-            html, body, main {
-                background: white !important;
-                color: black !important;
-                height: 100vh;
-                overflow: hidden;
-            }
-            .print\\:hidden, nav, header, footer, button, .xl\\:w-64 {
-                display: none !important;
-            }
-            /* Ensure the canvas fills the page */
-            .px-6.pt-2, .px-6 {
-                padding: 0 !important;
-            }
-            canvas {
-                width: 100vw !important;
-                height: 100vh !important;
-                background: white !important;
-            }
-        }
-      `}</style>
-    </div>
-  );
+                    {/* Studio Identity */}
+                    <div className="bg-white/[0.03] border border-white/5 rounded-[32px] p-8 flex flex-col gap-6">
+                        <h3 className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.4em] mb-2">Venue Signature</h3>
+                        <div>
+                            <input 
+                                type="text" 
+                                value={layoutData?.venueName || ''} 
+                                onChange={(e) => setLayoutData(prev => prev ? { ...prev, venueName: e.target.value.toUpperCase() } : null)}
+                                placeholder="STUDIO TITLE..."
+                                className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-[10px] font-black text-white focus:border-[#0056B3]/40 outline-none transition-all uppercase placeholder:text-zinc-800"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Material Palette */}
+                    <div className="bg-white/[0.03] border border-white/5 rounded-[32px] p-8 flex flex-col gap-8">
+                        <div>
+                            <h3 className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.4em] mb-6">Material — Guests</h3>
+                            <div className="space-y-6">
+                                <div>
+                                    <label className="text-[8px] font-black text-zinc-700 uppercase tracking-widest mb-3 block">Surface Fabric</label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {CLOTH_OPTIONS.map((c) => (
+                                            <button key={c.hex} onClick={() => updateGlobalColor('guestTable', c.hex)} className={`w-8 h-8 rounded-xl border-2 transition-all ${layoutData?.globalColors?.guestTable === c.hex ? 'border-[#0056B3] scale-110 shadow-[0_0_15px_rgba(0,86,179,0.3)]' : 'border-transparent hover:border-white/20'}`} style={{ backgroundColor: c.hex }} title={c.name} />
+                                        ))}
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="text-[8px] font-black text-zinc-700 uppercase tracking-widest mb-3 block">Seating Architecture</label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {CHAIR_OPTIONS.map((c) => (
+                                            <button key={c.hex} onClick={() => updateGlobalColor('guestChair', c.hex)} className={`w-8 h-8 rounded-xl border-2 transition-all ${layoutData?.globalColors?.guestChair === c.hex ? 'border-[#0056B3] scale-110 shadow-[0_0_15px_rgba(0,86,179,0.3)]' : 'border-transparent hover:border-white/20'}`} style={{ backgroundColor: c.hex }} title={c.name} />
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="w-full h-px bg-white/5" />
+
+                        <div>
+                            <h3 className="text-[10px] font-black text-pink-500/50 uppercase tracking-[0.4em] mb-6">Material — Bridal</h3>
+                            <div className="space-y-6">
+                                <div>
+                                    <label className="text-[8px] font-black text-pink-500/20 uppercase tracking-widest mb-3 block">Royal Silk</label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {CLOTH_OPTIONS.map((c) => (
+                                            <button key={c.hex} onClick={() => updateGlobalColor('bridalTable', c.hex)} className={`w-8 h-8 rounded-xl border-2 transition-all ${layoutData?.globalColors?.bridalTable === c.hex ? 'border-pink-500 scale-110 shadow-[0_0_15px_rgba(236,72,153,0.3)]' : 'border-transparent hover:border-pink-500/20'}`} style={{ backgroundColor: c.hex }} title={c.name} />
+                                        ))}
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="text-[8px] font-black text-pink-500/20 uppercase tracking-widest mb-3 block">Royal Cushion</label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {CHAIR_OPTIONS.map((c) => (
+                                            <button key={c.hex} onClick={() => updateGlobalColor('bridalChair', c.hex)} className={`w-8 h-8 rounded-xl border-2 transition-all ${layoutData?.globalColors?.bridalChair === c.hex ? 'border-pink-500 scale-110 shadow-[0_0_15px_rgba(236,72,153,0.3)]' : 'border-transparent hover:border-pink-500/20'}`} style={{ backgroundColor: c.hex }} title={c.name} />
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Neural Assets */}
+                    <div className="bg-white/[0.03] border border-white/5 rounded-[32px] p-8 flex flex-col gap-6">
+                        <h3 className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.4em] mb-2">Asset Intelligence</h3>
+                        <div className="relative">
+                            <i className="fa-solid fa-magnifying-glass absolute left-5 top-1/2 -translate-y-1/2 text-zinc-700 text-[10px]" />
+                            <input 
+                                type="text" 
+                                placeholder="DECRYPT ASSETS..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value.toUpperCase())}
+                                className="w-full bg-black/40 border border-white/5 rounded-2xl pl-12 pr-5 py-3.5 text-[10px] font-black text-white focus:border-[#0056B3]/40 outline-none transition-all uppercase placeholder:text-zinc-800"
+                            />
+                        </div>
+                        <div className="flex flex-col gap-6 max-h-[400px] overflow-y-auto pr-4 custom-scrollbar">
+                            {['Furniture', 'AV', 'Decor', 'Structures'].map(cat => {
+                                const items = ASSET_LIBRARY.filter(a => a.category === cat && (a.name.toUpperCase().includes(searchQuery) || cat.toUpperCase().includes(searchQuery)));
+                                if (items.length === 0) return null;
+                                
+                                return (
+                                    <div key={cat} className="flex flex-col gap-3">
+                                        <h4 className="text-[8px] font-black text-zinc-700 uppercase tracking-[0.3em]">{cat}</h4>
+                                        <div className="flex flex-col gap-1.5">
+                                            {items.map(a => (
+                                                <button 
+                                                    key={a.type} 
+                                                    onClick={() => addAsset(a.type)}
+                                                    className="group flex items-center justify-between p-3.5 bg-white/5 border border-white/5 rounded-2xl hover:border-[#0056B3]/40 hover:bg-white/[0.08] transition-all"
+                                                >
+                                                    <span className="text-[10px] font-black text-zinc-500 uppercase tracking-tight group-hover:text-white">{a.name}</span>
+                                                    <i className="fa-solid fa-plus text-[9px] text-zinc-700 group-hover:text-[#4da3ff]" />
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+
+                {/* ── Studio Viewport (Center) ── */}
+                <div className="flex-1 flex gap-8 relative">
+                    <div className="flex-1 relative h-[80vh] bg-black rounded-[48px] border border-white/5 overflow-hidden shadow-[0_0_80px_rgba(0,0,0,0.5)]">
+                        {isDragging && (
+                            <div className="absolute top-8 left-1/2 -translate-x-1/2 z-20 px-6 py-2.5 bg-emerald-500/20 text-emerald-400 rounded-full text-[10px] font-black uppercase tracking-[0.3em] border border-emerald-500/30 backdrop-blur-xl shadow-[0_0_30px_rgba(16,185,129,0.2)]">
+                                Spatial Realignment Active
+                            </div>
+                        )}
+                        {layoutData ? (
+                            <Canvas shadows dpr={[1, 2]} onPointerMissed={handleDeselect}>
+                                <PerspectiveCamera makeDefault position={[0, 20, 15]} fov={50} />
+                                <OrbitControls
+                                    makeDefault
+                                    enableDamping
+                                    dampingFactor={0.05}
+                                    maxPolarAngle={Math.PI / 2.15}
+                                    minDistance={2}
+                                    maxDistance={60}
+                                    enablePan={true}
+                                    enabled={!isDragging}
+                                    mouseButtons={{ LEFT: isDragging ? -1 : THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN } as any}
+                                />
+                                <Suspense fallback={null}>
+                                    <VenueScene
+                                        layoutData={layoutData}
+                                        selectedIds={selectedIds}
+                                        onSelect={handleSelect}
+                                        onMoveSelected={moveSelected}
+                                        onDragStateChange={handleDragStateChange}
+                                    />
+                                </Suspense>
+                            </Canvas>
+                        ) : (
+                            <div className="flex flex-col items-center justify-center h-full text-zinc-600 uppercase tracking-[0.2em] text-[10px] opacity-30">
+                                <i className="fa-solid fa-atom text-4xl mb-6" />
+                                Analyzing Spatial Coordinates...
+                            </div>
+                        )}
+                    </div>
+
+                    {/* ── Property Editor (Right) ── */}
+                    {selectedIds.length > 0 && (
+                        <div className="w-80 bg-white/[0.03] border border-white/5 rounded-[48px] p-10 flex flex-col gap-10 shrink-0 animate-in slide-in-from-right duration-500 backdrop-blur-xl">
+                            <div className="flex justify-between items-center">
+                                <h3 className="text-[11px] font-black text-[#0056B3] uppercase tracking-[0.4em]">Properties</h3>
+                                <button onClick={removeSelected} className="w-10 h-10 rounded-2xl bg-red-500/5 text-red-500/40 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center">
+                                    <i className="fa-solid fa-trash-can text-sm" />
+                                </button>
+                            </div>
+
+                            <div className="flex flex-col gap-10">
+                                {(() => {
+                                    const item = layoutData?.customAssets.find(a => a.id === selectedIds[0]);
+                                    if (!item) return null;
+                                    
+                                    const isTable = item.type === 'guest' || item.type === 'bridal';
+                                    const asset = item as AssetDef;
+
+                                    return (
+                                        <div className="flex flex-col gap-10">
+                                            <div className="flex flex-col gap-3">
+                                                <label className="text-[9px] font-black text-zinc-700 uppercase tracking-widest">Entity Signature</label>
+                                                <div className="bg-black/40 border border-white/5 rounded-2xl p-5">
+                                                    <p className="text-xs font-black text-white font-mono tracking-widest uppercase">{asset.id}</p>
+                                                    <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest mt-2">Class: {asset.type}</p>
+                                                </div>
+                                            </div>
+
+                                            {/* Dimensions */}
+                                            {(!isTable && ['led', 'rect-6ft', 'bg-wall-16ft', 'bg-wall-20ft', 'dec-pillar', 'carpet'].includes(asset.type)) && (
+                                                <div className="flex flex-col gap-6">
+                                                    <div className="grid grid-cols-2 gap-6">
+                                                        <div className="flex flex-col gap-3">
+                                                            <label className="text-[9px] font-black text-zinc-700 uppercase tracking-widest">Width (m)</label>
+                                                            <input 
+                                                                type="number" step="0.1" 
+                                                                value={asset.w || 0} 
+                                                                onChange={(e) => updateAssetProp(asset.id, 'w', parseFloat(e.target.value))}
+                                                                className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-3 text-xs font-black text-white outline-none focus:border-[#0056B3]/40"
+                                                            />
+                                                        </div>
+                                                        <div className="flex flex-col gap-3">
+                                                            <label className="text-[9px] font-black text-zinc-700 uppercase tracking-widest">Depth (m)</label>
+                                                            <input 
+                                                                type="number" step="0.1" 
+                                                                value={asset.d || 0} 
+                                                                onChange={(e) => updateAssetProp(asset.id, 'd', parseFloat(e.target.value))}
+                                                                className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-3 text-xs font-black text-white outline-none focus:border-[#0056B3]/40"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    {asset.type !== 'carpet' && (
+                                                        <div className="flex flex-col gap-3">
+                                                            <label className="text-[9px] font-black text-zinc-700 uppercase tracking-widest">Elevation (m)</label>
+                                                            <input 
+                                                                type="number" step="0.1" 
+                                                                value={asset.h || 0} 
+                                                                onChange={(e) => updateAssetProp(asset.id, 'h', parseFloat(e.target.value))}
+                                                                className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-3 text-xs font-black text-white outline-none focus:border-[#0056B3]/40"
+                                                            />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {/* Segments */}
+                                            {(!isTable && ['marquee-tent', 'transparent-marquee', 'arabian-canopy'].includes(asset.type)) && (
+                                                <div className="flex flex-col gap-4">
+                                                    <label className="text-[9px] font-black text-zinc-700 uppercase tracking-widest">Modular Sequence</label>
+                                                    <div className="flex items-center justify-between bg-black/40 border border-white/5 rounded-2xl p-4">
+                                                        <button onClick={() => updateAssetProp(asset.id, 'segments', Math.max(1, (asset.segments || 1) - 1))} className="w-10 h-10 rounded-xl bg-white/5 text-white hover:bg-[#0056B3] transition-all flex items-center justify-center font-black">-</button>
+                                                        <span className="text-2xl font-black text-white font-['Urbanist']">{asset.segments || 1}</span>
+                                                        <button onClick={() => updateAssetProp(asset.id, 'segments', (asset.segments || 1) + 1)} className="w-10 h-10 rounded-xl bg-white/5 text-white hover:bg-[#0056B3] transition-all flex items-center justify-center font-black">+</button>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Orientation */}
+                                            <div className="flex flex-col gap-4">
+                                                <div className="flex justify-between items-center">
+                                                    <label className="text-[9px] font-black text-zinc-700 uppercase tracking-widest">Azimuth (Deg)</label>
+                                                    <span className="text-[10px] font-black text-[#4da3ff] font-mono">{((asset.r || 0) * (180/Math.PI)).toFixed(0)}°</span>
+                                                </div>
+                                                <input 
+                                                    type="range" min="0" max={Math.PI * 2} step="0.01"
+                                                    value={asset.r || 0} 
+                                                    onChange={(e) => updateAssetProp(asset.id, 'r', parseFloat(e.target.value))}
+                                                    className="w-full h-1.5 bg-white/5 rounded-full appearance-none accent-[#0056B3] cursor-pointer"
+                                                />
+                                            </div>
+
+                                            {/* Individual Material */}
+                                            {(!isTable && ['rect-6ft', 'cocktail', 'bar', 'bg-wall-16ft', 'bg-wall-20ft', 'dec-pillar', 'carpet', 'star-lights'].includes(asset.type)) && (
+                                                <div className="flex flex-col gap-4">
+                                                    <label className="text-[9px] font-black text-zinc-700 uppercase tracking-widest">Individual Material</label>
+                                                    <div className="flex flex-wrap gap-2.5">
+                                                        {CLOTH_OPTIONS.map(c => (
+                                                            <button key={c.hex} onClick={() => updateAssetProp(asset.id, 'color', c.hex)} className={`w-7 h-7 rounded-lg border-2 ${asset.color === c.hex ? 'border-[#0056B3] scale-110' : 'border-transparent'}`} style={{ backgroundColor: c.hex }} />
+                                                        ))}
+                                                        <button onClick={() => updateAssetProp(asset.id, 'color', '#ffffff')} className={`w-7 h-7 rounded-lg border-2 bg-white ${asset.color === '#ffffff' ? 'border-[#0056B3]' : 'border-transparent'}`} />
+                                                        <button onClick={() => updateAssetProp(asset.id, 'color', '#111111')} className={`w-7 h-7 rounded-lg border-2 bg-zinc-900 ${asset.color === '#111111' ? 'border-[#0056B3]' : 'border-transparent'}`} />
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })()}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            <style jsx global>{`
+                @media print {
+                    @page { size: ${orientation === 'landscape' ? 'landscape' : 'portrait'}; margin: 0; }
+                    html, body, main { background: white !important; color: black !important; height: 100vh; overflow: hidden; }
+                    .print\\:hidden, nav, header, footer, button, .xl\\:w-72 { display: none !important; }
+                    .px-6 { padding: 0 !important; }
+                    canvas { width: 100vw !important; height: 100vh !important; background: white !important; }
+                }
+            `}</style>
+        </div>
+    );
 }

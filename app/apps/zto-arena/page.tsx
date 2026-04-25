@@ -6,10 +6,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabaseClient';
 
 const modules = [
-  { title: 'Master Console',       desc: 'OBS-style studio for direct big-screen stream control.', path: '/admin',     icon: 'fa-tv',     bg: 'bg-amber-500/10',    text: 'text-amber-400',    borderBase: 'border-amber-500/10',    borderHover: 'hover:border-amber-500/40' },
-  { title: 'Tournament Architect', desc: 'Configure round rules, tie templates & scoring logic.', path: '/architect', icon: 'fa-wrench', bg: 'bg-violet-500/10', text: 'text-violet-400', borderBase: 'border-violet-500/10', borderHover: 'hover:border-violet-500/40' },
-  { title: 'Referee Panel',        desc: 'Simplified scoring engine for match officials.',       path: '/referee',   icon: 'fa-eye',    bg: 'bg-blue-500/10',   text: 'text-blue-400',   borderBase: 'border-blue-500/10',   borderHover: 'hover:border-blue-500/40'   },
-  { title: 'Director Dashboard',   desc: 'Real-time overview of all courts & match statuses.',  path: '/director',  icon: 'fa-tower-observation', bg: 'bg-rose-500/10', text: 'text-rose-400', borderBase: 'border-rose-500/10', borderHover: 'hover:border-rose-500/40' },
+  { title: 'Master Console',       desc: 'OBS-style studio for direct big-screen stream control.', path: '/admin',     icon: 'fa-tv',     bg: 'bg-[#0056B3]/10',    text: 'text-[#4da3ff]',    borderBase: 'border-white/5',    borderHover: 'hover:border-[#0056B3]/40' },
+  { title: 'Tournament Architect', desc: 'Configure round rules, tie templates & scoring logic.', path: '/architect', icon: 'fa-wrench', bg: 'bg-[#0056B3]/10', text: 'text-[#4da3ff]', borderBase: 'border-white/5', borderHover: 'hover:border-[#0056B3]/40' },
+  { title: 'Referee Panel',        desc: 'Simplified scoring engine for match officials.',       path: '/referee',   icon: 'fa-eye',    bg: 'bg-[#0056B3]/10',   text: 'text-[#4da3ff]',   borderBase: 'border-white/5',   borderHover: 'hover:border-[#0056B3]/40'   },
+  { title: 'Director Dashboard',   desc: 'Real-time overview of all courts & match statuses.',  path: '/director',  icon: 'fa-tower-observation', bg: 'bg-[#0056B3]/10', text: 'text-[#4da3ff]', borderBase: 'border-white/5', borderHover: 'hover:border-[#0056B3]/40' },
 ];
 
 const SPORTS = [
@@ -27,14 +27,14 @@ const FORMAT_OPTIONS = [
     label: 'Team Tie',
     sub: 'Thomas Cup / Corporate Cup style',
     icon: 'fa-people-group',
-    color: 'violet',
+    color: '#0056B3',
   },
   {
     id: 'INDIVIDUAL',
     label: 'Individual Events',
     sub: 'Singles, Doubles, or Mixed brackets',
     icon: 'fa-person-running',
-    color: 'sky',
+    color: '#0056B3',
   },
 ];
 
@@ -102,140 +102,133 @@ export default function ArenaHubRoot() {
   const linkedProject = projects.find(p => p.id === selectedTournament?.linked_project_id);
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans p-6 md:p-12 flex flex-col items-center justify-center relative overflow-x-hidden">
+    <div className="min-h-screen bg-[#050505] text-white font-['Inter'] p-6 md:p-12 flex flex-col items-center justify-center relative overflow-x-hidden">
       {/* Background */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(245,158,11,0.05),transparent_70%)] pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(0,86,179,0.08),transparent_70%)] pointer-events-none" />
 
-      <div className="max-w-4xl w-full z-10">
+      <div className="max-w-4xl w-full z-10 animate-in fade-in duration-1000">
         {/* Header */}
-        <header className="mb-12 text-center relative">
+        <header className="mb-20 text-center relative">
           <Link href="/projects" className="absolute left-0 top-1/2 -translate-y-1/2 flex items-center gap-2 text-[10px] font-black uppercase text-zinc-600 hover:text-white transition-colors tracking-widest group">
             <i className="fa-solid fa-arrow-left group-hover:-translate-x-1 transition-transform" />
             Back to OS
           </Link>
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-center gap-4 mb-4">
-            <div className="w-12 h-12 bg-amber-500 text-black rounded-2xl flex items-center justify-center text-2xl shadow-[0_0_30px_rgba(245,158,11,0.3)]">
-              <i className="fa-solid fa-trophy" />
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-center gap-6 mb-6">
+            <div className="w-16 h-16 bg-[#0056B3] text-white rounded-[24px] flex items-center justify-center text-3xl shadow-[0_0_40px_rgba(0,86,179,0.4)]">
+              <i className="fa-solid fa-atom animate-spin-slow" />
             </div>
-            <h1 className="text-4xl font-black uppercase tracking-[0.2em] italic">Arena Hub</h1>
+            <h1 className="text-5xl font-black uppercase tracking-tight italic font-['Urbanist'] leading-none">
+              Arena <span className="text-zinc-600 font-black">Command</span>
+            </h1>
           </motion.div>
-          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="text-zinc-500 tracking-widest text-[10px] font-black uppercase">
-            Central orchestration for all tournament projects
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="text-[#0056B3] tracking-[0.4em] text-[10px] font-black uppercase">
+            Production Orchestration for Competitive Sports
           </motion.p>
         </header>
 
         {/* Tournament Selector / Creator */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-10 p-8 bg-zinc-900/40 backdrop-blur-3xl border border-white/5 rounded-[2.5rem] relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
-            <i className="fa-solid fa-layer-group text-8xl" />
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-12 p-10 bg-white/[0.03] backdrop-blur-3xl border border-white/5 rounded-[48px] relative overflow-hidden shadow-2xl">
+          <div className="absolute top-0 right-0 p-10 opacity-[0.02] pointer-events-none">
+            <i className="fa-solid fa-chess-board text-[12rem]" />
           </div>
 
           <div className="relative z-10">
-            <div className="flex items-center justify-between mb-4">
-              <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Active Tournament</label>
+            <div className="flex items-center justify-between mb-8">
+              <label className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.4em]">Active Deployment</label>
               <button onClick={() => setIsCreating(!isCreating)}
-                className={`text-[10px] font-black uppercase tracking-widest transition-colors ${isCreating ? 'text-zinc-500 hover:text-white' : 'text-amber-500 hover:text-amber-400'}`}>
-                {isCreating ? '✕ Cancel' : '+ New Tournament'}
+                className={`text-[10px] font-black uppercase tracking-widest transition-colors px-4 py-2 rounded-full border ${isCreating ? 'text-white border-white/10 hover:bg-white/5' : 'text-[#4da3ff] border-[#0056B3]/30 hover:bg-[#0056B3]/10'}`}>
+                {isCreating ? '✕ Terminate' : '+ New Arena'}
               </button>
             </div>
 
             <AnimatePresence mode="wait">
               {/* ——— CREATE FORM ——— */}
               {isCreating ? (
-                <motion.div key="create" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
+                <motion.div key="create" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-8">
                   {/* Name + Sport */}
-                  <div className="flex gap-3">
+                  <div className="flex gap-4">
                     <input autoFocus type="text" value={draft.name}
-                      onChange={(e) => setDraft(p => ({ ...p, name: e.target.value }))}
+                      onChange={(e) => setDraft(p => ({ ...p, name: e.target.value.toUpperCase() }))}
                       onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
-                      placeholder="Tournament name..."
-                      className="flex-1 bg-black/50 border border-amber-500/20 rounded-2xl px-5 py-4 font-bold text-sm focus:outline-none focus:border-amber-500 transition-all placeholder-zinc-700" />
+                      placeholder="TOURNAMENT CODNAME..."
+                      className="flex-1 bg-black/40 border border-white/5 rounded-2xl px-6 py-5 font-black text-xs uppercase tracking-widest focus:outline-none focus:border-[#0056B3]/40 transition-all placeholder-zinc-800" />
                     <select value={draft.sport} onChange={(e) => setDraft(p => ({ ...p, sport: e.target.value }))}
-                      className="bg-black/50 border border-amber-500/20 rounded-2xl px-4 py-4 font-black text-xs uppercase tracking-widest focus:outline-none focus:border-amber-500 cursor-pointer">
-                      {SPORTS.map(s => <option key={s.id} value={s.id}>{s.icon} {s.name}</option>)}
+                      className="bg-black/40 border border-white/5 rounded-2xl px-6 py-5 font-black text-[10px] uppercase tracking-[0.2em] focus:outline-none focus:border-[#0056B3]/40 cursor-pointer text-white">
+                      {SPORTS.map(s => <option key={s.id} value={s.id}>{s.icon} {s.name.toUpperCase()}</option>)}
                     </select>
                   </div>
 
                   {/* Format Toggle */}
-                  <div>
-                    <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3">Tournament Format</label>
-                    <div className="grid grid-cols-2 gap-3">
-                      {FORMAT_OPTIONS.map(opt => (
-                        <button key={opt.id} onClick={() => setDraft(p => ({ ...p, format: opt.id as any }))}
-                          className={`p-4 rounded-2xl border-2 text-left transition-all ${
-                            draft.format === opt.id
-                              ? opt.id === 'TIE_TEAM'
-                                ? 'border-violet-500 bg-violet-500/10'
-                                : 'border-sky-500 bg-sky-500/10'
-                              : 'border-white/10 hover:border-white/20'
-                          }`}>
-                          <div className={`text-lg mb-1 ${draft.format === opt.id ? (opt.id === 'TIE_TEAM' ? 'text-violet-400' : 'text-sky-400') : 'text-zinc-600'}`}>
-                            <i className={`fa-solid ${opt.icon}`} />
-                          </div>
-                          <div className="font-black text-sm text-white">{opt.label}</div>
-                          <div className="text-[10px] text-zinc-500 mt-0.5">{opt.sub}</div>
-                        </button>
-                      ))}
-                    </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    {FORMAT_OPTIONS.map(opt => (
+                      <button key={opt.id} onClick={() => setDraft(p => ({ ...p, format: opt.id as any }))}
+                        className={`p-8 rounded-[32px] border-2 text-left transition-all relative overflow-hidden group ${
+                          draft.format === opt.id
+                            ? 'border-[#0056B3] bg-[#0056B3]/10'
+                            : 'border-white/5 bg-black/20 hover:border-white/10'
+                        }`}>
+                        <div className={`text-2xl mb-4 ${draft.format === opt.id ? 'text-[#4da3ff]' : 'text-zinc-700'} group-hover:scale-110 transition-transform`}>
+                          <i className={`fa-solid ${opt.icon}`} />
+                        </div>
+                        <div className="font-black text-xs text-white uppercase tracking-widest mb-1">{opt.label}</div>
+                        <div className="text-[9px] font-bold text-zinc-600 uppercase tracking-tight leading-tight">{opt.sub}</div>
+                      </button>
+                    ))}
                   </div>
 
                   {/* Link Registration Project */}
-                  <div>
-                    <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">
-                      Link Registration Project <span className="text-zinc-700">(optional)</span>
+                  <div className="flex flex-col gap-4">
+                    <label className="text-[10px] font-black text-zinc-700 uppercase tracking-widest">
+                      Bridge Data <span className="text-zinc-800 ml-2">(PROJECT OVERRIDE)</span>
                     </label>
                     <select value={draft.linked_project_id} onChange={(e) => setDraft(p => ({ ...p, linked_project_id: e.target.value }))}
-                      className="w-full bg-black/50 border border-white/10 rounded-2xl px-5 py-4 font-bold text-sm focus:outline-none focus:border-amber-500 transition-all cursor-pointer text-white">
-                      <option value="">— No project linked —</option>
-                      {projects.map(p => <option key={p.id} value={p.id}>{p.name} ({p.type})</option>)}
+                      className="w-full bg-black/40 border border-white/5 rounded-2xl px-6 py-5 font-black text-[10px] uppercase tracking-widest focus:outline-none focus:border-[#0056B3]/40 transition-all cursor-pointer text-white">
+                      <option value="">— NULL SELECTION —</option>
+                      {projects.map(p => <option key={p.id} value={p.id}>{p.name.toUpperCase()} [{p.type.toUpperCase()}]</option>)}
                     </select>
-                    {draft.linked_project_id && (
-                      <p className="text-emerald-400 text-[10px] font-black uppercase tracking-widest mt-2">
-                        <i className="fa-solid fa-link mr-1" /> Registered participants will auto-populate as tournament teams.
-                      </p>
-                    )}
                   </div>
 
                   <button onClick={handleCreate} disabled={!draft.name.trim() || creating}
-                    className="w-full py-4 bg-amber-500 text-black rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-amber-400 transition-all disabled:opacity-50">
-                    {creating ? <><i className="fa-solid fa-spinner fa-spin mr-2" />Creating...</> : 'Initialize Tournament'}
+                    className="w-full py-5 bg-white text-black rounded-2xl font-black text-xs uppercase tracking-[0.4em] hover:bg-zinc-200 transition-all disabled:opacity-20 shadow-[0_0_30px_rgba(255,255,255,0.1)]">
+                    {creating ? <><i className="fa-solid fa-spinner fa-spin mr-2" />Deploying...</> : 'Deploy Arena'}
                   </button>
                 </motion.div>
               ) : (
                 /* ——— SELECT ——— */
                 <motion.div key="select" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}>
-                  <select value={selectedTournament?.id || ''}
-                    onChange={(e) => setSelectedTournament(tournaments.find(t => t.id === e.target.value))}
-                    className="w-full bg-black/50 border border-white/10 rounded-2xl px-5 py-4 font-bold text-sm focus:outline-none focus:border-amber-500 transition-all appearance-none cursor-pointer">
-                    {loading ? <option>Loading...</option> :
-                     tournaments.length === 0 ? <option>No tournaments — create one above</option> :
-                     tournaments.map(t => (
-                       <option key={t.id} value={t.id}>
-                         {t.name} • {t.sport_type} • {t.format === 'TIE_TEAM' ? 'Team Tie' : 'Individual'}
-                       </option>
-                     ))}
-                  </select>
+                  <div className="relative group">
+                    <select value={selectedTournament?.id || ''}
+                      onChange={(e) => setSelectedTournament(tournaments.find(t => t.id === e.target.value))}
+                      className="w-full bg-black/60 border border-white/5 rounded-2xl px-8 py-6 font-black text-xs uppercase tracking-[0.2em] focus:outline-none focus:border-[#0056B3]/40 transition-all appearance-none cursor-pointer text-white">
+                      {loading ? <option>CALIBRATING...</option> :
+                       tournaments.length === 0 ? <option>NULL REGISTRY — INITIALIZE FIRST</option> :
+                       tournaments.map(t => (
+                         <option key={t.id} value={t.id}>
+                           {t.name} • {t.sport_type} • {t.format === 'TIE_TEAM' ? 'TEAM TIE' : 'INDIVIDUAL'}
+                         </option>
+                       ))}
+                    </select>
+                    <div className="absolute right-8 top-1/2 -translate-y-1/2 pointer-events-none text-[#0056B3]">
+                        <i className="fa-solid fa-chevron-down text-xs" />
+                    </div>
+                  </div>
 
                   {/* Selected tournament meta */}
                   {selectedTournament && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4 flex flex-wrap items-center gap-3">
-                      <span className={`text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border ${
-                        selectedTournament.format === 'TIE_TEAM'
-                          ? 'border-violet-500/30 bg-violet-500/10 text-violet-400'
-                          : 'border-sky-500/30 bg-sky-500/10 text-sky-400'
-                      }`}>
-                        <i className={`fa-solid ${selectedTournament.format === 'TIE_TEAM' ? 'fa-people-group' : 'fa-person-running'} mr-1`} />
-                        {selectedTournament.format === 'TIE_TEAM' ? 'Team Tie' : 'Individual Events'}
-                      </span>
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-8 flex flex-wrap items-center gap-3">
+                      <div className="px-4 py-2 rounded-full border border-[#0056B3]/20 bg-[#0056B3]/10 text-[#4da3ff] text-[9px] font-black uppercase tracking-[0.2em]">
+                        <i className={`fa-solid ${selectedTournament.format === 'TIE_TEAM' ? 'fa-people-group' : 'fa-person-running'} mr-2`} />
+                        {selectedTournament.format === 'TIE_TEAM' ? 'Team Tie Matrix' : 'Individual Brackets'}
+                      </div>
                       {selectedTournament.has_third_place && (
-                        <span className="text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border border-sky-500/30 bg-sky-500/10 text-sky-400">
-                          <i className="fa-solid fa-medal mr-1" />3rd Place Playoff
-                        </span>
+                        <div className="px-4 py-2 rounded-full border border-white/5 bg-white/[0.03] text-zinc-500 text-[9px] font-black uppercase tracking-[0.2em]">
+                          <i className="fa-solid fa-medal mr-2" />Bronze Playoff Included
+                        </div>
                       )}
                       {linkedProject && (
-                        <span className="text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
-                          <i className="fa-solid fa-link mr-1" />Linked: {linkedProject.name}
-                        </span>
+                        <div className="px-4 py-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 text-emerald-400 text-[9px] font-black uppercase tracking-[0.2em]">
+                          <i className="fa-solid fa-link mr-2" />OS BRIDGE: {linkedProject.name}
+                        </div>
                       )}
                     </motion.div>
                   )}
@@ -246,23 +239,35 @@ export default function ArenaHubRoot() {
         </motion.div>
 
         {/* Module Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {modules.map((mod, idx) => (
-            <motion.div key={mod.title} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 * idx }}>
+            <motion.div key={mod.title} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 * idx }}>
               <Link
                 href={selectedTournament ? `/arena/${selectedTournament.id}${mod.path}` : '#'}
-                className={`group block p-8 bg-zinc-900/40 backdrop-blur-xl border ${mod.borderBase} rounded-[2.5rem] ${mod.borderHover} transition-all duration-500 hover:shadow-[0_0_40px_rgba(0,0,0,0.5)] relative overflow-hidden ${!selectedTournament ? 'opacity-30 pointer-events-none grayscale' : ''}`}>
-                <div className={`absolute -right-4 -bottom-4 opacity-5 text-8xl transition-transform duration-700 group-hover:scale-125 group-hover:rotate-12 ${mod.text}`}>
+                className={`group block p-10 bg-white/[0.03] backdrop-blur-2xl border ${mod.borderBase} rounded-[40px] ${mod.borderHover} transition-all duration-700 relative overflow-hidden ${!selectedTournament ? 'opacity-20 pointer-events-none' : ''}`}>
+                
+                <div className={`absolute -right-6 -bottom-6 opacity-[0.03] text-9xl transition-all duration-1000 group-hover:scale-150 group-hover:-rotate-12 ${mod.text}`}>
                   <i className={`fa-solid ${mod.icon}`} />
                 </div>
-                <div className={`w-14 h-14 ${mod.bg} ${mod.text} rounded-2xl flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform`}>
-                  <i className={`fa-solid ${mod.icon}`} />
+
+                <div className="flex items-center gap-6 mb-8">
+                    <div className={`w-16 h-16 ${mod.bg} ${mod.text} rounded-[20px] flex items-center justify-center text-2xl group-hover:scale-110 group-hover:shadow-[0_0_30px_rgba(0,86,179,0.3)] transition-all duration-500`}>
+                      <i className={`fa-solid ${mod.icon}`} />
+                    </div>
+                    <div>
+                        <h3 className="text-xl font-black text-white uppercase tracking-tight font-['Urbanist'] mb-1">{mod.title}</h3>
+                        <p className="text-[10px] font-black text-[#0056B3] uppercase tracking-[0.4em]">System Node</p>
+                    </div>
                 </div>
-                <h3 className="text-xl font-bold mb-2 text-zinc-100 group-hover:text-white transition-colors">{mod.title}</h3>
-                <p className="text-zinc-500 text-[11px] font-medium leading-relaxed uppercase tracking-wider">{mod.desc}</p>
-                <div className="mt-8 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-600 group-hover:text-zinc-300 transition-colors">
-                  <span>Enter</span>
-                  <i className="fa-solid fa-arrow-right-long transition-transform group-hover:translate-x-2" />
+
+                <p className="text-zinc-600 text-[11px] font-bold leading-relaxed uppercase tracking-widest h-12">{mod.desc}</p>
+                
+                <div className="mt-10 flex items-center justify-between">
+                    <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-zinc-700 group-hover:text-white transition-colors">
+                        <span>Execute Protocol</span>
+                        <i className="fa-solid fa-arrow-right-long transition-transform group-hover:translate-x-3" />
+                    </div>
+                    <div className="w-2 h-2 rounded-full bg-zinc-800 group-hover:bg-[#0056B3] group-hover:shadow-[0_0_10px_#0056B3] transition-all" />
                 </div>
               </Link>
             </motion.div>
@@ -270,14 +275,15 @@ export default function ArenaHubRoot() {
         </div>
 
         {/* Screen Shortcut */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="mt-12 text-center">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="mt-20 text-center">
           <Link href="/apps/zto-arena/screen"
-            className="inline-flex items-center gap-3 px-6 py-3 bg-zinc-900 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white hover:border-amber-500/20 transition-all">
-            <i className="fa-solid fa-display text-amber-500" />
-            Public Screen Picker
+            className="inline-flex items-center gap-4 px-10 py-4 bg-white/[0.03] border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-[0.4em] text-zinc-600 hover:text-[#4da3ff] hover:border-[#0056B3]/30 hover:bg-[#0056B3]/10 transition-all">
+            <i className="fa-solid fa-display text-[#0056B3]" />
+            Arena Display Registry
           </Link>
         </motion.div>
       </div>
     </div>
   );
+}
 }

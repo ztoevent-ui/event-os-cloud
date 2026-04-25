@@ -164,164 +164,169 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
     );
   }
 
-  return (
-    <div className="space-y-8">
-      <div className={`flex justify-between items-end bg-black/40 backdrop-blur-md p-6 rounded-2xl border ${theme.border900_30} shadow-2xl`}>
-        <div>
-          <h1 className={`text-3xl font-black tracking-widest ${theme.text} uppercase italic`}>Production Schedule</h1>
-          <p className="text-zinc-500 mt-2 font-medium tracking-wide">Event day master logistics timeline.</p>
-        </div>
-        <div className="flex gap-4">
-          <div className="flex flex-col items-end mr-4">
-            <span className="text-xs font-bold text-zinc-600 uppercase tracking-widest">Progress</span>
-            <div className={`text-2xl font-black ${theme.text400}`}>
-              {schedule.length > 0 ? Math.round((schedule.filter(s => s.status === 'DONE').length / schedule.length) * 100) : 0}%
-            </div>
-          </div>
-          <button 
-            onClick={() => setEditMode(!editMode)}
-            className={`px-6 py-3 font-black text-xs uppercase tracking-widest rounded-full transition-all flex items-center gap-2 border ${editMode ? '${theme.bg} text-black ${theme.border}' : 'bg-white/5 ${theme.text} border-white/10 hover:bg-white/10'}`}
-          >
-            <i className={`fa-solid ${editMode ? 'fa-check' : 'fa-pencil'}`}></i>
-            {editMode ? 'Finish' : 'Edit'}
-          </button>
-          <PrintReportButton title="Production Schedule" />
-        </div>
-      </div>
-
-      <div className={`bg-zinc-950/80 rounded-3xl p-8 border ${theme.border900_20} shadow-2xl relative overflow-hidden`}>
-        {/* Decorative Grid Background */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none"></div>
-        
-        <div className="relative z-10 space-y-4">
-          {schedule.map((item, index) => (
-            <div key={item.id} className={`flex flex-col group transition-all duration-300 ${item.status === 'DONE' && !editMode ? 'opacity-50' : ''}`}>
-              <div className={`flex items-stretch gap-6 ${pageBreakIds.includes(item.id) ? 'print:break-before-page' : ''}`}>
-                
-                {/* Timeline Connector */}
-                <div className="flex flex-col items-center min-w-[60px] print:hidden">
-                  <div className={`w-3 h-3 rounded-full mt-6 shadow-[0_0_10px_rgba(0,0,0,0.5)] z-10 transition-colors ${item.status === 'DONE' ? 'bg-emerald-500' : item.status === 'IN_PROGRESS' ? '${theme.bg} ${theme.shadow}' : 'bg-zinc-700'}`}></div>
-                  {index !== schedule.length - 1 && (
-                    <div className={`w-0.5 flex-1 mt-2 mb-2 transition-colors ${item.status === 'DONE' ? 'bg-emerald-900/50' : 'bg-zinc-800'}`}></div>
-                  )}
+    return (
+        <div className="flex flex-col flex-1 animate-in fade-in duration-700">
+            {/* ── Page Header + Action Bar ── */}
+            <div className="print:hidden flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
+                <div className="flex flex-col">
+                    <p className="text-xs font-black uppercase tracking-[0.2em] text-[#0056B3] mb-2">Operations Hub</p>
+                    <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tight leading-none font-['Urbanist']">
+                        Strategic Schedule
+                    </h1>
                 </div>
 
-                {/* Event Card */}
-                <div className={`flex-1 bg-zinc-900/60 backdrop-blur-md border border-zinc-800/80 ${theme.hoverBorder900_50} rounded-2xl p-6 transition-all group-hover:bg-zinc-900/90 shadow-lg print:bg-white print:border-zinc-200 print:text-black print:shadow-none print:rounded-none print:m-0`}>
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div className="flex items-center gap-6 flex-1">
-                      <div className="w-24 shrink-0">
-                        {editMode ? (
-                          <input 
-                            type="text" 
-                            defaultValue={item.time} 
-                            onBlur={(e) => handleFieldChange(item.id, 'time', e.target.value)}
-                            className={`w-full bg-transparent border-b border-zinc-800 ${theme.text} font-black focus:${theme.border} outline-none text-xl tabular-nums`}
-                          />
-                        ) : (
-                          <div className={`text-xl font-black tabular-nums ${theme.text80} tracking-wider print:text-black`}>
-                            {item.time || 'TBD'}
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        {editMode ? (
-                          <input 
-                            type="text" 
-                            defaultValue={item.title} 
-                            onBlur={(e) => handleFieldChange(item.id, 'title', e.target.value)}
-                            className={`w-full bg-transparent border-b border-zinc-800 text-zinc-100 font-bold focus:${theme.border} outline-none text-lg`}
-                          />
-                        ) : (
-                          <h3 className={`text-lg font-bold tracking-wide transition-colors ${item.status === 'DONE' ? 'text-zinc-500 line-through' : 'text-zinc-100'} print:text-black`}>
-                            {item.title}
-                          </h3>
-                        )}
-                        <div className="flex items-center gap-2 mt-2 text-sm text-zinc-500 print:text-zinc-500">
-                          <i className="fa-solid fa-user-gear"></i> 
-                          {editMode ? (
-                            <input 
-                              type="text" 
-                              defaultValue={item.assignee} 
-                              onBlur={(e) => handleFieldChange(item.id, 'assignee', e.target.value)}
-                              className={`bg-transparent border-b border-zinc-800 focus:${theme.border} outline-none w-32`}
-                            />
-                          ) : (
-                            item.assignee
-                          )}
+                {/* Action Hub */}
+                <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex flex-col items-end mr-6 px-6 border-r border-white/5">
+                        <span className="text-[9px] font-black text-zinc-600 uppercase tracking-[0.3em] mb-1">Execution Density</span>
+                        <div className="text-2xl font-black text-[#4da3ff] font-['Urbanist'] tracking-tight leading-none">
+                            {schedule.length > 0 ? Math.round((schedule.filter(s => s.status === 'DONE').length / schedule.length) * 100) : 0}%
                         </div>
-                      </div>
                     </div>
 
-                    <div className="flex items-center gap-3 print:hidden">
-                      {editMode && (
-                        <button onClick={() => removeItem(item.id)} className="text-zinc-700 hover:text-red-500 p-2 transition-colors">
-                          <i className="fa-solid fa-trash-can"></i>
-                        </button>
-                      )}
-                      <button 
-                        onClick={() => cycleStatus(item.id, item.status)}
-                        className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest border transition-all hover:scale-105 active:scale-95 cursor-pointer ${getStatusColor(item.status)}`}
-                      >
-                        {getStatusLabel(item.status)}
-                      </button>
-                    </div>
-                  </div>
+                    <button 
+                        onClick={() => setEditMode(!editMode)}
+                        className={`h-11 px-8 rounded-xl font-black text-[10px] tracking-widest uppercase transition-all flex items-center gap-2.5 shadow-[0_0_20px_rgba(255,255,255,0.05)] ${
+                            editMode 
+                            ? 'bg-[#0056B3] text-white' 
+                            : 'bg-white text-black hover:bg-zinc-200'
+                        }`}
+                    >
+                        <i className={`fa-solid ${editMode ? 'fa-check-double' : 'fa-pen-to-square'} text-[10px]`} />
+                        {editMode ? 'Finalize' : 'Deploy Editor'}
+                    </button>
+                    <PrintReportButton title="Production Schedule" />
                 </div>
-              </div>
-              <PrintBreakTrigger id={item.id} />
             </div>
-          ))}
-          
-          {editMode && (
-            <div className="pt-8 flex justify-center">
-               <button 
-                onClick={addItem}
-                className={`h-12 px-10 bg-zinc-800 ${theme.text} hover:bg-white hover:text-black font-black text-[10px] uppercase tracking-widest rounded-full transition-all flex items-center gap-3 shadow-2xl border border-white/5`}
-              >
-                <i className="fa-solid fa-plus-circle"></i> Add Schedule Row
-              </button>
-            </div>
-          )}
 
-          {schedule.length === 0 && !loading && (
-            <div className="py-32 flex flex-col items-center justify-center border-2 border-dashed border-zinc-800 rounded-[3rem] bg-zinc-950/20 group hover:border-zinc-700 transition-all duration-500">
-              <div className="relative mb-8">
-                <div className={`absolute inset-0 blur-3xl opacity-20 ${theme.bg}`}></div>
-                <i className={`fa-solid fa-calendar-xmark text-6xl relative z-10 ${theme.text} opacity-40 group-hover:scale-110 transition-transform duration-700`}></i>
-              </div>
-              <h3 className="text-xl font-bold text-zinc-400 uppercase tracking-widest mb-2 italic">No Sequence Defined</h3>
-              <p className="text-zinc-600 font-medium text-xs max-w-xs text-center border-t border-zinc-900 pt-4 mt-2">Initialize your event timeline to generate a high-performance tentative program.</p>
-              <div className="mt-8 print:hidden">
-                <button 
-                  onClick={addItem}
-                  className={`px-8 py-3 bg-zinc-900 ${theme.text} rounded-2xl border ${theme.border} text-[10px] font-black uppercase tracking-[0.2em] shadow-2xl hover:bg-white hover:text-black transition-all`}
-                >
-                   Create First Entry
-                </button>
-              </div>
+            {/* ── Timeline Console ── */}
+            <div className="flex flex-col gap-12 relative">
+                {/* Strategic Timeline Background */}
+                <div className="absolute left-[39px] top-4 bottom-4 w-px bg-white/5 hidden md:block" />
+
+                {loading ? (
+                    <div className="py-32 flex flex-col items-center justify-center opacity-30">
+                        <i className="fa-solid fa-clock-rotate-left fa-spin text-4xl mb-4" />
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em]">Synchronizing Master Logistics...</p>
+                    </div>
+                ) : schedule.length === 0 ? (
+                    <div className="py-32 border border-dashed border-white/5 rounded-[32px] bg-white/[0.02] flex flex-col items-center justify-center opacity-30">
+                        <i className="fa-solid fa-calendar-xmark text-4xl mb-4" />
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em]">No mission sequence detected</p>
+                        <button 
+                            onClick={addItem}
+                            className="mt-8 h-12 px-10 bg-[#0056B3] text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all hover:shadow-[0_0_40px_rgba(0,86,179,0.3)]"
+                        >
+                            Initialize Sequence
+                        </button>
+                    </div>
+                ) : (
+                    <div className="flex flex-col gap-8">
+                        {schedule.map((item, index) => (
+                            <div key={item.id} className={`${pageBreakIds.includes(item.id) ? 'print:break-before-page' : ''} group relative pl-0 md:pl-24`}>
+                                {/* Timeline Node */}
+                                <div className="absolute left-8 top-10 w-4 h-4 rounded-full bg-zinc-900 border-2 border-white/10 z-10 hidden md:flex items-center justify-center transition-all group-hover:scale-125 group-hover:border-[#4da3ff]">
+                                    <div className={`w-1.5 h-1.5 rounded-full transition-colors ${item.status === 'DONE' ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : item.status === 'IN_PROGRESS' ? 'bg-[#4da3ff] shadow-[0_0_10px_rgba(77,163,255,0.5)]' : 'bg-zinc-700'}`} />
+                                </div>
+
+                                {/* Logistics Card */}
+                                <div className={`bg-white/[0.03] border border-white/5 p-8 rounded-[32px] flex flex-col md:flex-row md:items-center justify-between gap-8 hover:border-[#0056B3]/40 transition-all relative overflow-hidden print:bg-white print:border-zinc-200 print:text-black ${item.status === 'DONE' && !editMode ? 'opacity-40 grayscale' : ''}`}>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-12 flex-1">
+                                        {/* Time Indicator */}
+                                        <div className="shrink-0 flex flex-col min-w-[100px]">
+                                            <span className="text-[8px] font-black text-zinc-600 uppercase tracking-[0.3em] mb-1">Time Delta</span>
+                                            {editMode ? (
+                                                <input 
+                                                    type="text" 
+                                                    defaultValue={item.time} 
+                                                    onBlur={(e) => handleFieldChange(item.id, 'time', e.target.value)}
+                                                    className="bg-transparent border-b border-white/10 text-2xl font-black text-[#4da3ff] font-['Urbanist'] outline-none py-1 focus:border-[#0056B3] transition-all"
+                                                />
+                                            ) : (
+                                                <span className="text-3xl font-black text-white font-['Urbanist'] tabular-nums tracking-tight uppercase">{item.time || 'TBD'}</span>
+                                            )}
+                                        </div>
+
+                                        {/* Title & Assignee */}
+                                        <div className="flex-1">
+                                            {editMode ? (
+                                                <input 
+                                                    type="text" 
+                                                    defaultValue={item.title} 
+                                                    onBlur={(e) => handleFieldChange(item.id, 'title', e.target.value)}
+                                                    className="w-full bg-transparent border-b border-white/10 text-xl font-black text-white font-['Urbanist'] outline-none py-1 focus:border-[#0056B3] transition-all uppercase placeholder:text-zinc-800"
+                                                    placeholder="Operational Title"
+                                                />
+                                            ) : (
+                                                <h3 className={`text-xl font-black uppercase tracking-tight font-['Urbanist'] mb-2 ${item.status === 'DONE' ? 'text-zinc-600' : 'text-white'}`}>
+                                                    {item.title}
+                                                </h3>
+                                            )}
+                                            <div className="flex items-center gap-3">
+                                                <i className="fa-solid fa-id-badge text-[10px] text-[#0056B3]" />
+                                                {editMode ? (
+                                                    <input 
+                                                        type="text" 
+                                                        defaultValue={item.assignee} 
+                                                        onBlur={(e) => handleFieldChange(item.id, 'assignee', e.target.value)}
+                                                        className="bg-transparent border-b border-white/10 text-[10px] font-black text-zinc-400 uppercase tracking-widest outline-none py-1 focus:border-[#0056B3] transition-all"
+                                                        placeholder="Personnel Assigned"
+                                                    />
+                                                ) : (
+                                                    <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">{item.assignee || 'Unassigned'}</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Action Hub */}
+                                    <div className="shrink-0 flex items-center gap-3">
+                                        {editMode && (
+                                            <button onClick={() => removeItem(item.id)} className="w-12 h-12 rounded-2xl bg-red-500/5 text-red-500/30 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center print:hidden">
+                                                <i className="fa-solid fa-trash-can" />
+                                            </button>
+                                        )}
+                                        <button 
+                                            onClick={() => cycleStatus(item.id, item.status)}
+                                            className={`h-11 px-6 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all active:scale-95 shadow-lg ${
+                                                item.status === 'DONE' 
+                                                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-emerald-500/5' 
+                                                : item.status === 'IN_PROGRESS' 
+                                                ? 'bg-[#0056B3]/10 text-[#4da3ff] border-[#0056B3]/20 shadow-[#0056B3]/5' 
+                                                : 'bg-white/5 text-zinc-500 border-white/5 shadow-none'
+                                            }`}
+                                        >
+                                            {getStatusLabel(item.status)}
+                                        </button>
+                                    </div>
+                                </div>
+                                <PrintBreakTrigger id={item.id} />
+                            </div>
+                        ))}
+
+                        {editMode && (
+                            <div className="pt-12 flex justify-center pl-0 md:pl-24">
+                                <button 
+                                    onClick={addItem}
+                                    className="h-14 px-12 bg-white text-black font-black text-[11px] uppercase tracking-[0.2em] rounded-2xl transition-all hover:bg-zinc-200 flex items-center gap-3 shadow-[0_0_40px_rgba(255,255,255,0.1)] active:scale-95"
+                                >
+                                    <i className="fa-solid fa-plus-circle text-lg" /> Append Sequence
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
-          )}
+
+            <style jsx global>{`
+                @media print {
+                    @page { size: A4 portrait; margin: 15mm; }
+                    html, body, main { background: white !important; color: black !important; }
+                    .print\\:hidden, nav, header, footer, button { display: none !important; }
+                    .bg-white\\/\\[0\\.03\\] { background: transparent !important; border: 1px solid #eee !important; border-radius: 12px !important; }
+                    .text-white, .text-zinc-600 { color: black !important; }
+                }
+            `}</style>
         </div>
-      </div>
-
-      <style jsx global>{`
-        @media print {
-          @page { margin: 15mm; }
-          nav, button, .print\\:hidden { display: none !important; }
-          body { background: white !important; color: black !important; padding: 0 !important; }
-          .bg-zinc-950\\/80, .bg-zinc-900\\/60, .bg-black\\/40 { background: transparent !important; color: black !important; }
-          .border-[#0056B3]/30\\/30, .border-[#0056B3]/30\\/20, .border-zinc-800\\/80, .border-zinc-800 { border-color: #eee !important; }
-          .border-pink-900\\/30, .border-pink-900\\/20 { border-color: #eee !important; }
-          .text-zinc-500, .text-zinc-600 { color: #666 !important; }
-          .text-white, .text-zinc-100, .text-zinc-200 { color: black !important; }
-          .shadow-2xl, .shadow-lg { box-shadow: none !important; }
-          .rounded-3xl, .rounded-2xl { border-radius: 0 !important; }
-          .print\\:break-before-page { break-before: page !important; }
-          .max-w-7xl { max-width: none !important; width: 100% !important; margin: 0 !important; }
-          main { padding: 0 !important; }
-        }
-      `}</style>
-    </div>
-  );
+    );
 }

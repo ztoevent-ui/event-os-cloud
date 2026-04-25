@@ -844,417 +844,65 @@ export default function StageLayoutPage({ params }: { params: Promise<{ id: stri
   const totalEquipmentCost = equipment.reduce((s, e) => s + e.qty * e.unit_price, 0);
   const selectedAsset = scene.assets.find(a => selectedIds.length === 1 && a.id === selectedIds[0]);
 
-  const isWedding = project?.type === 'wedding' || project?.type === 'wedding_fair';
-  const accentColor = isWedding ? '#ec4899' : '#f59e0b';
-  const accentGlow = isWedding ? 'rgba(236,72,153,0.2)' : 'rgba(245,158,11,0.2)';
-
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-[70vh] gap-4">
-        <div className="w-16 h-16 border-2 border-[#0056B3]/30 border-t-[#0056B3] rounded-full animate-spin" />
-        <p className="text-zinc-500 uppercase tracking-widest text-xs font-black">Initializing Stage Engine...</p>
-      </div>
-    );
-  }
-
-  // ── RENDER ──
   return (
-    <div className="space-y-4 -mx-4 sm:-mx-6 lg:-mx-8 -mt-4 pb-8">
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 px-6 pt-3">
-        <div>
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: accentGlow, border: `1px solid ${accentColor}44` }}>
-              <i className="fa-solid fa-cube text-sm" style={{ color: accentColor }} />
+    <div className="flex flex-col flex-1 animate-in fade-in duration-700 -mt-4">
+        {/* ── Page Header + Action Bar ── */}
+        <div className="print:hidden flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12 px-6">
+            <div className="flex flex-col">
+                <p className="text-xs font-black uppercase tracking-[0.2em] text-[#0056B3] mb-2">Stage Engineering</p>
+                <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tight leading-none font-['Urbanist']">
+                    Production Studio <span className="text-zinc-600 font-black ml-2 text-2xl uppercase">3D</span>
+                </h1>
             </div>
-            <h1 className="text-3xl font-black text-white uppercase italic tracking-tighter">
-              3D Stage Layout
-              <span className="text-xs font-normal not-italic tracking-normal ml-3 text-zinc-500">Production Designer</span>
-            </h1>
-          </div>
-          <p className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.3em] mt-1 ml-11">
-            {scene.assets.length} Assets · {equipment.length} Equipment Items · RM {totalEquipmentCost.toLocaleString()}
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          {isMobile && (
-            <span className="px-3 py-1 bg-[#0056B3]/10 text-[#0056B3] border border-[#0056B3]/30 rounded-lg text-[9px] font-black uppercase tracking-widest">
-              <i className="fa-solid fa-eye mr-1" />Read-Only
-            </span>
-          )}
-          {saving && <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest animate-pulse">Saving...</span>}
-          {selectedIds.length > 0 && (
-            <button onClick={deleteSelected} className="px-3 py-2 bg-red-500/10 text-red-400 border border-red-500/30 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-red-500/20 transition-all">
-              <i className="fa-solid fa-trash mr-1" />Delete ({selectedIds.length})
-            </button>
-          )}
-          <button
-            onClick={captureScreenshot}
-            disabled={capturing || !isActive}
-            className="px-4 py-2 bg-purple-500/10 text-purple-400 border border-purple-500/30 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-purple-500/20 transition-all disabled:opacity-40"
-          >
-            <i className={`fa-solid ${capturing ? 'fa-spinner fa-spin' : 'fa-camera'} mr-1`} />
-            {capturing ? 'Capturing...' : 'Screenshot'}
-          </button>
-          <button
-            onClick={exportToBudget}
-            disabled={equipment.length === 0}
-            className="px-4 py-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-emerald-500/20 transition-all disabled:opacity-40"
-          >
-            <i className="fa-solid fa-file-invoice-dollar mr-1" />Export to Budget
-          </button>
-        </div>
-      </div>
 
-      {/* Mobile overlay (read-only badge) when canvas is open on mobile */}
-      {isMobile && isActive && (
-        <div className="mx-6 px-4 py-3 bg-[#0056B3]/10 border border-[#0056B3]/30 rounded-2xl flex items-center gap-3">
-          <i className="fa-solid fa-triangle-exclamation text-[#0056B3]" />
-          <span className="text-xs font-black text-[#0056B3] uppercase tracking-widest">Mobile View: Read-Only. Use desktop for editing.</span>
-        </div>
-      )}
-
-      <div className="flex flex-col xl:flex-row gap-4 px-6">
-        {/* ─── LEFT SIDEBAR ─── */}
-        <div className="w-full xl:w-72 space-y-3 flex-shrink-0">
-          {/* Sidebar tabs */}
-          <div className="flex gap-1 bg-zinc-900/80 border border-white/5 rounded-2xl p-1">
-            {(['assets', 'equipment', 'settings'] as const).map(tab => (
-              <button key={tab} onClick={() => setSidebarTab(tab)}
-                className={`flex-1 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${sidebarTab === tab ? 'bg-white/10 text-white' : 'text-zinc-600 hover:text-zinc-400'}`}>
-                {tab === 'assets' ? '📦 Assets' : tab === 'equipment' ? '📋 List' : '⚙️ Scene'}
-              </button>
-            ))}
-          </div>
-
-          {/* ─ ASSETS TAB ─ */}
-          {sidebarTab === 'assets' && (
-            <div className="bg-zinc-900 border border-white/5 rounded-2xl p-4 space-y-3">
-              <div className="relative">
-                <i className="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600 text-[8px]" />
-                <input type="text" placeholder="SEARCH EQUIPMENT..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-                  className="w-full bg-black/50 border border-white/5 rounded-lg pl-8 pr-3 py-2 text-[8px] font-black text-white focus:border-[#0056B3]/30 outline-none uppercase" />
-              </div>
-
-              {/* Category pills */}
-              <div className="flex flex-wrap gap-1">
-                {categories.map(cat => (
-                  <button key={cat} onClick={() => setActiveCategory(cat)}
-                    className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-tight transition-all ${activeCategory === cat ? 'text-black' : 'bg-white/5 text-zinc-500 hover:text-zinc-300'}`}
-                    style={activeCategory === cat ? { backgroundColor: CATEGORY_COLORS[cat] || '#f59e0b' } : {}}>
-                    {cat}
-                  </button>
-                ))}
-              </div>
-
-              <div className="space-y-1 max-h-[50vh] overflow-y-auto pr-1" style={{ scrollbarWidth: 'thin' }}>
-                {filteredLibrary.map(entry => (
-                  <button key={entry.type} onClick={() => { addAsset(entry); if (!isActive) setIsActive(true); }}
-                    className="w-full px-3 py-2.5 bg-white/5 hover:bg-white/10 border border-transparent hover:border-white/10 rounded-xl text-left transition-all group flex items-center gap-3">
-                    <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-[10px]"
-                      style={{ background: `${CATEGORY_COLORS[entry.category] || '#888'}22`, color: CATEGORY_COLORS[entry.category] || '#888' }}>
-                      <i className={`fa-solid ${entry.icon}`} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-[9px] font-black text-zinc-300 uppercase tracking-tight group-hover:text-white truncate">{entry.name}</div>
-                      <div className="text-[7px] font-bold text-zinc-600 uppercase tracking-widest">{entry.category}</div>
-                    </div>
-                    <i className="fa-solid fa-plus text-[8px] text-zinc-700 group-hover:text-[#0056B3] flex-shrink-0" />
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* ─ EQUIPMENT LIST TAB ─ */}
-          {sidebarTab === 'equipment' && (
-            <div className="bg-zinc-900 border border-white/5 rounded-2xl p-4 space-y-3">
-              <div className="flex justify-between items-center">
-                <h3 className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Equipment List</h3>
-                <button onClick={() => setShowAddEquipment(v => !v)}
-                  className="w-6 h-6 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 flex items-center justify-center transition-all">
-                  <i className="fa-solid fa-plus text-[9px]" />
-                </button>
-              </div>
-
-              {/* Add Equipment Form */}
-              {showAddEquipment && (
-                <div className="bg-black/50 border border-white/10 rounded-xl p-3 space-y-2">
-                  <input type="text" placeholder="Equipment Name" value={newEquipmentForm.name} onChange={e => setNewEquipmentForm(p => ({ ...p, name: e.target.value }))}
-                    className="w-full bg-transparent border border-white/10 rounded-lg px-2 py-1.5 text-[9px] text-white outline-none focus:border-[#0056B3]/30" />
-                  <div className="grid grid-cols-2 gap-2">
-                    <input type="number" placeholder="Qty" value={newEquipmentForm.qty} onChange={e => setNewEquipmentForm(p => ({ ...p, qty: parseInt(e.target.value) || 1 }))}
-                      className="bg-transparent border border-white/10 rounded-lg px-2 py-1.5 text-[9px] text-white outline-none focus:border-[#0056B3]/30" />
-                    <input type="number" placeholder="Unit Price (RM)" value={newEquipmentForm.unit_price} onChange={e => setNewEquipmentForm(p => ({ ...p, unit_price: parseFloat(e.target.value) || 0 }))}
-                      className="bg-transparent border border-white/10 rounded-lg px-2 py-1.5 text-[9px] text-white outline-none focus:border-[#0056B3]/30" />
-                  </div>
-                  <button onClick={addEquipmentItem} className="w-full py-1.5 bg-emerald-500/20 text-emerald-400 rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-emerald-500/30 transition-all">
-                    Add Item
-                  </button>
+            {/* Action Hub */}
+            <div className="flex flex-wrap items-center gap-3">
+                <div className="hidden lg:flex flex-col items-end mr-6 border-r border-white/5 pr-6">
+                    <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-1">Estimated Load-Out</p>
+                    <p className="text-lg font-black text-[#0056B3] font-mono">RM {totalEquipmentCost.toLocaleString()}</p>
                 </div>
-              )}
-
-              {/* Equipment items */}
-              <div className="space-y-1 max-h-[50vh] overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
-                {equipment.length === 0 && (
-                  <div className="text-center py-8 text-zinc-700 text-[9px] uppercase tracking-widest">No equipment yet</div>
-                )}
-                {equipment.map(eq => (
-                  <div key={eq.id} className="bg-black/30 border border-white/5 rounded-xl p-3 group">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1 min-w-0">
-                        <div className="text-[9px] font-black text-zinc-200 truncate">{eq.name}</div>
-                        <div className="text-[7px] text-zinc-600 uppercase tracking-widest mt-0.5">{eq.category}</div>
-                      </div>
-                      <button onClick={() => deleteEquipment(eq.id)} className="opacity-0 group-hover:opacity-100 w-5 h-5 rounded bg-red-500/10 text-red-500 hover:bg-red-500/20 flex items-center justify-center transition-all flex-shrink-0 ml-2">
-                        <i className="fa-solid fa-xmark text-[8px]" />
-                      </button>
-                    </div>
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="text-[8px] text-zinc-600">Qty</span>
-                      <input type="number" min="1" value={eq.qty} onChange={e => updateEquipment(eq.id, 'qty', parseInt(e.target.value) || 1)}
-                        className="w-12 bg-transparent border border-white/10 rounded px-1 py-0.5 text-[8px] text-white text-center outline-none focus:border-[#0056B3]/30" />
-                      <span className="text-[8px] text-zinc-600">×</span>
-                      <span className="text-[8px] text-zinc-400 font-mono flex-1">RM {eq.unit_price.toFixed(0)}</span>
-                      <span className="text-[8px] font-black text-emerald-400 font-mono">RM {(eq.qty * eq.unit_price).toLocaleString()}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {equipment.length > 0 && (
-                <div className="border-t border-white/5 pt-3 flex justify-between items-center">
-                  <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Total</span>
-                  <span className="font-mono font-black text-emerald-400 text-sm">RM {totalEquipmentCost.toLocaleString()}</span>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ─ SETTINGS TAB ─ */}
-          {sidebarTab === 'settings' && (
-            <div className="bg-zinc-900 border border-white/5 rounded-2xl p-4 space-y-4">
-              <div className="space-y-2">
-                <label className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Venue Name</label>
-                <input type="text" value={scene.venueName} onChange={e => updateSceneSetting('venueName', e.target.value.toUpperCase())}
-                  className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-[10px] font-black text-white uppercase outline-none focus:border-[#0056B3]/30" />
-              </div>
-
-              <div className="grid grid-cols-3 gap-2">
-                {([['width', 'W (m)'], ['depth', 'D (m)'], ['height', 'H (m)']] as const).map(([key, label]) => (
-                  <div key={key} className="space-y-1">
-                    <label className="text-[7px] font-black text-zinc-600 uppercase">{label}</label>
-                    <input type="number" step="1" value={(scene.venueBounds as any)[key]}
-                      onChange={e => updateSceneSetting('venueBounds', { ...scene.venueBounds, [key]: parseFloat(e.target.value) })}
-                      className="w-full bg-black border border-white/10 rounded px-2 py-1 text-[9px] text-white outline-none" />
-                  </div>
-                ))}
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Show Grid</span>
-                  <button onClick={() => updateSceneSetting('showGrid', !scene.showGrid)}
-                    className={`w-10 h-5 rounded-full transition-all ${scene.showGrid ? 'bg-[#0056B3]' : 'bg-zinc-700'}`}>
-                    <div className={`w-4 h-4 rounded-full bg-white transition-all ${scene.showGrid ? 'translate-x-5' : 'translate-x-0.5'}`} />
-                  </button>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Snap to Grid</span>
-                  <button onClick={() => updateSceneSetting('snapToGrid', !scene.snapToGrid)}
-                    className={`w-10 h-5 rounded-full transition-all ${scene.snapToGrid ? 'bg-emerald-500' : 'bg-zinc-700'}`}>
-                    <div className={`w-4 h-4 rounded-full bg-white transition-all ${scene.snapToGrid ? 'translate-x-5' : 'translate-x-0.5'}`} />
-                  </button>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Grid Size: {scene.gridSize}m</label>
-                  <input type="range" min="0.25" max="2" step="0.25" value={scene.gridSize} onChange={e => updateSceneSetting('gridSize', parseFloat(e.target.value))}
-                    className="w-full accent-[#0056B3]" />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Ambient Light: {scene.ambientIntensity.toFixed(1)}</label>
-                  <input type="range" min="0" max="1" step="0.1" value={scene.ambientIntensity} onChange={e => updateSceneSetting('ambientIntensity', parseFloat(e.target.value))}
-                    className="w-full accent-[#0056B3]" />
-                </div>
-              </div>
-
-              {/* Memoirs preview */}
-              {memoirs.length > 0 && (
-                <div className="space-y-2 border-t border-white/5 pt-3">
-                  <h4 className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Recent Screenshots</h4>
-                  <div className="grid grid-cols-2 gap-1">
-                    {memoirs.slice(0, 4).map(m => (
-                      <a key={m.id} href={m.url} target="_blank" rel="noopener noreferrer"
-                        className="aspect-video bg-zinc-800 rounded-lg overflow-hidden border border-white/5 hover:border-white/20 transition-all">
-                        <img src={m.url} alt="Stage capture" className="w-full h-full object-cover opacity-80 hover:opacity-100 transition-all" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Controls guide */}
-          <div className="bg-zinc-900/50 border border-white/5 rounded-2xl p-4">
-            <h4 className="text-[8px] font-black text-zinc-600 uppercase tracking-widest mb-3">Controls</h4>
-            <ul className="space-y-1.5 text-[8px] text-zinc-600">
-              <li><span className="text-[#0056B3] mr-2">●</span>Click to select</li>
-              <li><span className="text-[#0056B3] mr-2">●</span>Selected + drag to move</li>
-              <li><span className="text-[#0056B3] mr-2">●</span>Right drag to pan</li>
-              <li><span className="text-[#0056B3] mr-2">●</span>Scroll to zoom</li>
-              <li><span className="text-[#0056B3] mr-2">●</span>Delete/⌫ removes selection</li>
-              <li><span className="text-emerald-500 mr-2">●</span>Grid snap: {scene.snapToGrid ? `ON (${scene.gridSize}m)` : 'OFF'}</li>
-            </ul>
-          </div>
-        </div>
-
-        {/* ─── MAIN CANVAS AREA ─── */}
-        <div className="flex-1 flex flex-col gap-3">
-          {!isActive ? (
-            /* Lazy trigger */
-            <div
-              className="h-[68vh] flex flex-col items-center justify-center bg-zinc-900/50 border border-white/5 rounded-3xl gap-6 cursor-pointer group hover:border-[#0056B3]/30 transition-all"
-              onClick={() => setIsActive(true)}
-            >
-              <div className="w-20 h-20 rounded-2xl bg-[#0056B3]/10 border border-[#0056B3]/30 flex items-center justify-center group-hover:scale-110 transition-all">
-                <i className="fa-solid fa-cube text-3xl text-[#0056B3]" />
-              </div>
-              <div className="text-center">
-                <p className="text-white font-black uppercase tracking-widest text-lg">Launch 3D Engine</p>
-                <p className="text-zinc-500 text-xs mt-1 uppercase tracking-widest">Click to initialize Three.js scene</p>
-              </div>
-              <div className="flex gap-4">
-                {['Drag & Drop', 'Grid Snap', 'Equipment Sync', 'Screenshot Export'].map(f => (
-                  <div key={f} className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black text-zinc-500 uppercase tracking-tight">{f}</div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="flex gap-3 flex-col xl:flex-row flex-1">
-              {/* Canvas */}
-              <div ref={canvasRef} className="flex-1 relative h-[68vh] bg-[#060810] rounded-3xl border border-white/5 overflow-hidden">
-                {/* Status overlays */}
-                {isDragging && (
-                  <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 px-4 py-1.5 bg-emerald-500/20 text-emerald-400 rounded-full text-[9px] font-black uppercase tracking-widest border border-emerald-500/30 backdrop-blur-sm">
-                    Moving Asset
-                  </div>
-                )}
-                {isMobile && (
-                  <div className="absolute top-3 left-3 z-10 px-3 py-1 bg-[#0056B3]/20 border border-[#0056B3]/30 rounded-full text-[#0056B3] text-[8px] font-black uppercase tracking-widest backdrop-blur-sm">
-                    <i className="fa-solid fa-eye mr-1" />Read-Only
-                  </div>
-                )}
-                <div className="absolute bottom-3 left-3 z-10 text-[8px] font-black text-zinc-700 uppercase tracking-widest">
-                  {scene.assets.length} objects · {scene.venueBounds.width}×{scene.venueBounds.depth}×{scene.venueBounds.height}m
-                </div>
-
-                <Canvas
-                  shadows
-                  dpr={[1, 2]}
-                  gl={{ preserveDrawingBuffer: true }}
-                  onCreated={({ gl }) => { glRef.current = gl; }}
-                  onPointerMissed={handleDeselect}
+                
+                <button 
+                    onClick={captureScreenshot}
+                    disabled={capturing || !isActive}
+                    className="h-11 px-6 rounded-xl bg-white/[0.03] border border-white/10 text-white font-black text-[10px] tracking-widest uppercase hover:bg-white/[0.08] transition-all flex items-center gap-2.5 disabled:opacity-40"
                 >
-                  <PerspectiveCamera makeDefault position={[10, 14, 12]} fov={50} />
-                  <OrbitControls
-                    makeDefault
-                    enableDamping
-                    dampingFactor={0.06}
-                    maxPolarAngle={Math.PI / 2.05}
-                    minDistance={2}
-                    maxDistance={80}
-                    enablePan
-                    enabled={!isDragging}
-                    mouseButtons={{
-                      LEFT: isDragging ? -1 : THREE.MOUSE.ROTATE,
-                      MIDDLE: THREE.MOUSE.DOLLY,
-                      RIGHT: THREE.MOUSE.PAN,
-                    } as any}
-                  />
-                  <GizmoHelper alignment="bottom-right" margin={[80, 80]}>
-                    <GizmoViewport axisColors={['#ff4444', '#44ff44', '#4488ff']} labelColor="white" />
-                  </GizmoHelper>
-                  <Suspense fallback={null}>
-                    <StageScene
-                      scene={scene}
-                      selectedIds={selectedIds}
-                      onSelect={handleSelect}
-                      onMove={handleMove}
-                      onDragStateChange={setIsDragging}
-                      isMobile={isMobile}
-                    />
-                  </Suspense>
-                </Canvas>
-              </div>
+                    <i className={`fa-solid ${capturing ? 'fa-spinner fa-spin' : 'fa-camera'}`} />
+                    {capturing ? 'Processing...' : 'Capture'}
+                </button>
 
-              {/* Properties panel (when asset selected) */}
-              {selectedAsset && !isMobile && (
-                <div className="w-64 bg-zinc-900 border border-white/5 rounded-3xl p-5 space-y-5 flex-shrink-0 animate-in slide-in-from-right duration-300">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-[9px] font-black uppercase tracking-widest" style={{ color: accentColor }}>Properties</h3>
-                    <button onClick={() => setSelectedIds([])} className="w-5 h-5 rounded bg-white/5 text-zinc-500 hover:text-white flex items-center justify-center transition-all">
-                      <i className="fa-solid fa-xmark text-[8px]" />
-                    </button>
-                  </div>
+                <button 
+                    onClick={exportToBudget}
+                    disabled={equipment.length === 0}
+                    className="h-11 px-6 rounded-xl bg-[#0056B3]/10 border border-[#0056B3]/20 text-[#4da3ff] font-black text-[10px] tracking-widest uppercase hover:bg-[#0056B3]/20 transition-all flex items-center gap-2.5 disabled:opacity-40"
+                >
+                    <i className="fa-solid fa-file-invoice-dollar" />
+                    Sync Budget
+                </button>
+                
+                <button 
+                    onClick={() => {}} // Auto-saved
+                    className="h-11 px-8 rounded-xl bg-white text-black font-black text-[10px] tracking-widest uppercase hover:bg-zinc-200 transition-all flex items-center gap-2.5 shadow-[0_0_20px_rgba(255,255,255,0.1)]"
+                >
+                    {saving ? 'Syncing...' : 'Committed'}
+                </button>
+            </div>
+        </div>
 
-                  <div className="space-y-1">
-                    <label className="text-[7px] font-black text-zinc-600 uppercase tracking-widest">Label</label>
-                    <input type="text" value={selectedAsset.label} onChange={e => updateAssetProp(selectedAsset.id, 'label', e.target.value)}
-                      className="w-full bg-black border border-white/10 rounded-lg px-2 py-1.5 text-[9px] text-white outline-none focus:border-[#0056B3]/30" />
-                  </div>
-
-                  {/* Position */}
-                  <div>
-                    <label className="text-[7px] font-black text-zinc-600 uppercase tracking-widest mb-1 block">Position (m)</label>
-                    <div className="grid grid-cols-3 gap-1.5">
-                      {(['x', 'y', 'z'] as const).map(axis => (
-                        <div key={axis}>
-                          <label className="text-[6px] font-black uppercase text-zinc-600">{axis.toUpperCase()}</label>
-                          <input type="number" step="0.5" value={selectedAsset[axis].toFixed(2)}
-                            onChange={e => updateAssetProp(selectedAsset.id, axis, parseFloat(e.target.value) || 0)}
-                            className="w-full bg-black border border-white/10 rounded px-1 py-1 text-[8px] text-white text-center outline-none focus:border-[#0056B3]/30" />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Dimensions */}
-                  <div>
-                    <label className="text-[7px] font-black text-zinc-600 uppercase tracking-widest mb-1 block">Dimensions (m)</label>
-                    <div className="grid grid-cols-3 gap-1.5">
-                      {(['w', 'h', 'd'] as const).map(dim => (
-                        <div key={dim}>
-                          <label className="text-[6px] font-black uppercase text-zinc-600">{dim === 'w' ? 'W' : dim === 'h' ? 'H' : 'D'}</label>
-                          <input type="number" step="0.1" min="0.05" value={selectedAsset[dim].toFixed(2)}
-                            onChange={e => updateAssetProp(selectedAsset.id, dim, Math.max(0.05, parseFloat(e.target.value) || 0.1))}
-                            className="w-full bg-black border border-white/10 rounded px-1 py-1 text-[8px] text-white text-center outline-none focus:border-[#0056B3]/30" />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Rotation Y */}
-                  <div className="space-y-1">
-                    <label className="text-[7px] font-black text-zinc-600 uppercase tracking-widest">Rotation Y (rad)</label>
-                    <input type="range" min="0" max={Math.PI * 2} step="0.05" value={selectedAsset.ry}
-                      onChange={e => updateAssetProp(selectedAsset.id, 'ry', parseFloat(e.target.value))}
-                      className="w-full accent-[#0056B3]" />
-                    <div className="text-[7px] text-zinc-600 text-right">{(selectedAsset.ry * 180 / Math.PI).toFixed(0)}°</div>
-                  </div>
-
-                  {/* Color */}
-                  <div className="space-y-2">
-                    <label className="text-[7px] font-black text-zinc-600 uppercase tracking-widest">Color</label>
-                    <div className="flex gap-2 flex-wrap">
-                      {['#c0c0c0', '#ffaa00', '#00aaff', '#ff4400', '#00ff88', '#ffffff', '#111111', '#aa4400'].map(c => (
-                        <button key={c} onClick={() => updateAssetProp(selectedAsset.id, 'color', c)}
-                          className={`w-6 h-6 rounded-lg border-2 transition-all ${selectedAsset.color === c ? 'border-white scale-110' : 'border-transparent hover:border-white/30'}`}
-                          style={{ backgroundColor: c }} />
-                      ))}
-                    </div>
-                  </div>
-
+        <div className="flex flex-col xl:flex-row gap-8 px-6 print:px-0">
+            {/* ── Production Console (Left) ── */}
+            <div className="w-full xl:w-80 flex flex-col gap-6 print:hidden">
+                {/* Navigation Tabs */}
+                <div className="flex gap-1 bg-white/[0.03] border border-white/5 rounded-2xl p-1.5">
+                    {(['assets', 'equipment', 'settings'] as const).map(tab => (
+                        <button 
+                            key={tab} 
+                            onClick={() => setSidebarTab(tab)}
+                            className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${sidebarTab === tab ? 'bg-white/10 text-white shadow-xl' : 'text-zinc-600 hover:text-zinc-400'}`}
+                        >
+                            {tab}
+                        </button>
+                    ))}
                   <button onClick={deleteSelected} className="w-full py-2 bg-red-500/10 text-red-400 border border-red-500/20 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-red-500/20 transition-all">
                     <i className="fa-solid fa-trash mr-1" />Delete Asset
                   </button>
