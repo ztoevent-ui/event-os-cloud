@@ -224,3 +224,19 @@ body {
   cursor: not-allowed;
   transform: none;
 }
+
+/* ─── Global Card Overrides (Enforced by User) ─────────────────────────── */
+/* ─── Global Card Overrides (Enforced by User) ─────────────────────────── */
+.rounded-\[32px\]\.p-8,
+.rounded-\[32px\]\.p-10,
+.rounded-\[40px\]\.p-8,
+.rounded-\[40px\]\.p-10,
+.rounded-\[40px\]\.p-12,
+.rounded-\[48px\]\.p-8,
+.rounded-\[48px\]\.p-10,
+.rounded-3xl\.p-8,
+article.rounded-3xl,
+.bg-\[\#0a0a0a\]\/60 {
+  padding: 40px !important;
+  border-radius: 24px !important;
+}

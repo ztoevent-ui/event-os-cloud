@@ -110,7 +110,7 @@ export default function MeetingNotesPanel({ project }: { project: any }) {
             </div>
 
             <div 
-                className={`relative flex-1 flex flex-col bg-white/[0.03] border rounded-[40px] overflow-hidden transition-all duration-500 shadow-2xl ${isDragging ? 'border-[#4da3ff] bg-[#0056B3]/10 shadow-[0_0_50px_rgba(0,86,179,0.2)]' : 'border-[#0056B3]/20'}`}
+                className={`relative flex-1 flex flex-col bg-white/[0.03] border rounded-[40px] overflow-hidden transition-all duration-500 shadow-2xl p-8 box-border ${isDragging ? 'border-[#4da3ff] bg-[#0056B3]/10 shadow-[0_0_50px_rgba(0,86,179,0.2)]' : 'border-[#0056B3]/20'}`}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
@@ -132,12 +132,12 @@ export default function MeetingNotesPanel({ project }: { project: any }) {
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder="Type meeting minutes, action items, or drop images directly here..."
-                    className="flex-1 w-full bg-transparent p-10 text-sm text-zinc-300 font-['Urbanist'] tracking-wide leading-relaxed resize-none focus:outline-none placeholder-zinc-700 custom-scrollbar box-border"
+                    className="flex-1 w-full bg-transparent p-2 text-sm text-zinc-300 font-['Urbanist'] tracking-wide leading-relaxed resize-none focus:outline-none placeholder-zinc-700 custom-scrollbar box-border"
                 />
 
                 {/* Assets Gallery */}
                 {assets.length > 0 && (
-                    <div className="p-6 border-t border-[#0056B3]/20 bg-black/40">
+                    <div className="pt-8 mt-4 border-t border-[#0056B3]/20 bg-transparent">
                         <p className="text-[9px] font-black text-zinc-600 uppercase tracking-[0.3em] mb-4">Attached Media ({assets.length})</p>
                         <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar">
                             {assets.map((url, i) => (
