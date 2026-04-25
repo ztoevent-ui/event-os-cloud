@@ -149,6 +149,13 @@ const projectCategories = [
       { id: 'l5', tag: 'Motorsport', src: '/projects/petronas-langkawi/21-5.webp', size: 'tall' },
       { id: 'l6', tag: 'Motorsport', src: '/projects/petronas-langkawi/26-5.webp', size: 'normal' },
     ]
+  },
+  {
+    id: 'midea-malaysia-launch',
+    name: 'Midea Malaysia 18Outlets Launching Ceremony',
+    items: [
+      { id: 'm1', tag: 'Live Stream', src: 'https://youtu.be/yEjsN9evB7k', size: 'wide' }
+    ]
   }
 ];
 
@@ -1146,7 +1153,19 @@ function MemoirsSection() {
                     background: 'rgba(255,255,255,0.02)',
                   }}
                 >
-                  {project.src.toLowerCase().match(/\.(mp4|mov|webm)$/) ? (
+                  {project.src.includes('youtube.com') || project.src.includes('youtu.be') ? (
+                    <iframe
+                      src={`https://www.youtube.com/embed/${project.src.split('/').pop()?.split('?')[0]}?autoplay=1&mute=1&loop=1&playlist=${project.src.split('/').pop()?.split('?')[0]}&controls=0`}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        border: 'none',
+                        pointerEvents: 'none'
+                      }}
+                      allow="autoplay; encrypted-media"
+                      title={project.tag}
+                    />
+                  ) : project.src.toLowerCase().match(/\.(mp4|mov|webm)$/) ? (
                     <video
                       src={project.src}
                       autoPlay
