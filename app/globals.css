@@ -227,6 +227,16 @@ body {
 
 /* ─── Global Card Overrides (Enforced by User) ─────────────────────────── */
 /* ─── Global Card Overrides (Enforced by User) ─────────────────────────── */
+[class*="rounded-xl"],
+[class*="rounded-2xl"],
+[class*="rounded-3xl"],
+[class*="rounded-[24px]"],
+[class*="rounded-[32px]"],
+[class*="rounded-[40px]"],
+[class*="rounded-[48px]"] {
+  border-radius: 0 !important;
+}
+
 .rounded-\[32px\]\.p-8,
 .rounded-\[32px\]\.p-10,
 .rounded-\[40px\]\.p-8,
@@ -238,6 +248,5 @@ body {
 article.rounded-3xl,
 .bg-\[\#0a0a0a\]\/60 {
   padding: 40px !important;
-  border-radius: 24px !important;
   box-sizing: border-box !important;
 }
