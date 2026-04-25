@@ -907,11 +907,8 @@ export default function StageLayoutPage({ params }: { params: Promise<{ id: stri
                     <i className="fa-solid fa-trash mr-1" />Delete Asset
                   </button>
                 </div>
-              )}
             </div>
-          )}
         </div>
-      </div>
 
       {/* Print styles */}
       <style jsx global>{`
