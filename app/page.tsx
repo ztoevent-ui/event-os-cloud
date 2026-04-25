@@ -1118,9 +1118,9 @@ function MemoirsSection() {
           <div
             id="memoirs-grid"
             style={{
-              columns: '3 300px',
+              columns: activeProjects.length === 1 ? '1' : '3 300px',
               columnGap: 16,
-              minHeight: 400, // Reduces jumpiness when switching tabs
+              minHeight: activeProjects.length === 1 ? 0 : 400,
             }}
           >
             {activeProjects.map((project, i) => (
