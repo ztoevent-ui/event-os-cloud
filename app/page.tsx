@@ -1148,7 +1148,7 @@ function MemoirsSection() {
                   style={{
                     aspectRatio:
                       project.size === 'full'
-                        ? '16/9'
+                        ? '21/9'
                         : project.size === 'tall'
                         ? '4/5'
                         : project.size === 'wide'
@@ -1161,12 +1161,12 @@ function MemoirsSection() {
                 >
                   {project.src.includes('youtube.com') || project.src.includes('youtu.be') ? (
                     <iframe
-                      src={`https://www.youtube.com/embed/${project.src.split('/').pop()?.split('?')[0]}?autoplay=1&mute=1&loop=1&playlist=${project.src.split('/').pop()?.split('?')[0]}&controls=0`}
+                      src={`https://www.youtube.com/embed/${project.src.split('/').pop()?.split('?')[0]}?autoplay=1&mute=1&loop=1&playlist=${project.src.split('/').pop()?.split('?')[0]}&controls=1`}
                       style={{
                         width: '100%',
                         height: '100%',
                         border: 'none',
-                        pointerEvents: 'none'
+                        pointerEvents: 'auto'
                       }}
                       allow="autoplay; encrypted-media"
                       title={project.tag}
