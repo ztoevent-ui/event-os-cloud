@@ -80,12 +80,12 @@ export default function ProjectsPage() {
                     <p className="text-zinc-500 mt-1 text-sm tracking-wide">Oversee and coordinate active deployments.</p>
                 </div>
                 <div className="flex items-center gap-3 w-full md:w-auto">
-                    <Link href="/dashboard" className="flex-1 md:flex-none text-center px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest text-zinc-400 border border-[#222] hover:bg-white/5 hover:text-white hover:border-zinc-700 transition-all">
+                    <Link href="/dashboard" className="flex-1 md:flex-none text-center px-4 py-2.5 rounded-none text-xs font-black uppercase tracking-widest text-zinc-400 border border-[#222] hover:bg-white/5 hover:text-white hover:border-zinc-700 transition-all">
                         <i className="fa-solid fa-arrow-left mr-2"></i> Dashboard
                     </Link>
                     <button
                         onClick={() => setShowModal(true)}
-                        className="flex-1 md:flex-none text-center px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest text-[#050505] bg-[#0056B3] hover:bg-[#003d82] shadow-[0_0_15px_rgba(0,86,179,0.3)] hover:shadow-[0_0_25px_rgba(0,86,179,0.6)] hover:-translate-y-0.5 transition-all"
+                        className="flex-1 md:flex-none text-center px-4 py-2.5 rounded-none text-xs font-black uppercase tracking-widest text-[#050505] bg-[#0056B3] hover:bg-[#003d82] shadow-[0_0_15px_rgba(0,86,179,0.3)] hover:shadow-[0_0_25px_rgba(0,86,179,0.6)] hover:-translate-y-0.5 transition-all"
                     >
                         <i className="fa-solid fa-plus mr-2"></i> Deploy Event
                     </button>
@@ -96,19 +96,19 @@ export default function ProjectsPage() {
             <div className="max-w-[1200px] mx-auto">
                 {loading ? (
                     <div className="flex flex-col items-center justify-center py-32 opacity-50">
-                        <div className="w-12 h-12 border-2 border-[#0056B3]/30 border-t-[#0056B3] rounded-full animate-spin mb-4"></div>
+                        <div className="w-12 h-12 border-2 border-[#0056B3]/30 border-t-[#0056B3] rounded-none animate-spin mb-4"></div>
                         <p className="text-[#0056B3] font-black uppercase tracking-[0.2em] text-xs">Synchronizing Nodes...</p>
                     </div>
                 ) : projects.length === 0 ? (
-                    <div className="bg-[#0a0a0a] rounded-3xl border border-dashed border-[#222] p-16 text-center flex flex-col items-center max-w-2xl mx-auto mt-10">
-                        <div className="w-16 h-16 bg-[#0056B3]/10 border border-[#0056B3]/20 rounded-2xl flex items-center justify-center text-[#0056B3] text-2xl mb-6">
+                    <div className="bg-[#0a0a0a] rounded-none border border-dashed border-[#222] p-16 text-center flex flex-col items-center max-w-2xl mx-auto mt-10">
+                        <div className="w-16 h-16 bg-[#0056B3]/10 border border-[#0056B3]/20 rounded-none flex items-center justify-center text-[#0056B3] text-2xl mb-6">
                             <i className="fa-solid fa-layer-group"></i>
                         </div>
                         <h3 className="text-xl font-bold text-white mb-2 uppercase tracking-wide">No Active Deployments</h3>
                         <p className="text-zinc-500 mb-8 max-w-sm text-sm">Initialize your first event project to orchestrate tasks, coordinate vendors, and deploy operations.</p>
                         <button
                             onClick={() => setShowModal(true)}
-                            className="px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest text-[#050505] bg-[#0056B3] hover:bg-[#003d82] shadow-[0_0_15px_rgba(0,86,179,0.4)] transition-all"
+                            className="px-6 py-3 rounded-none text-xs font-black uppercase tracking-widest text-[#050505] bg-[#0056B3] hover:bg-[#003d82] shadow-[0_0_15px_rgba(0,86,179,0.4)] transition-all"
                         >
                             <i className="fa-solid fa-bolt mr-2"></i> Initialize Project
                         </button>
@@ -117,14 +117,14 @@ export default function ProjectsPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8 auto-rows-fr">
                         {projects.map((project) => (
                             <Link key={project.id} href={`/projects/${project.id}`} className="group block h-full">
-                                <article className="box-border bg-[#0a0a0a]/60 backdrop-blur-xl min-h-[280px] rounded-3xl p-8 border border-[#222] transition-all duration-300 hover:border-[#0056B3]/80 hover:shadow-[0_0_30px_rgba(0,86,179,0.15)] hover:bg-[#0a0a0a] hover:-translate-y-1.5 relative flex flex-col">
+                                <article className="box-border bg-[#0a0a0a]/60 backdrop-blur-xl min-h-[280px] rounded-none p-8 border border-[#222] transition-all duration-300 hover:border-[#0056B3]/80 hover:shadow-[0_0_30px_rgba(0,86,179,0.15)] hover:bg-[#0a0a0a] hover:-translate-y-1.5 relative flex flex-col">
                                     {/* Top Row: Icon & Status */}
                                     <div className="flex justify-between items-start mb-6">
-                                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg border transition-all ${project.type === 'wedding' || project.type === 'wedding_fair' ? 'bg-[#ec4899]/10 text-[#ec4899] border-[#ec4899]/20 group-hover:bg-[#ec4899] group-hover:text-[#050505]' : project.type === 'corporate' ? 'bg-[#3b82f6]/10 text-[#3b82f6] border-[#3b82f6]/20 group-hover:bg-[#3b82f6] group-hover:text-[#050505]' : 'bg-[#10b981]/10 text-[#10b981] border-[#10b981]/20 group-hover:bg-[#10b981] group-hover:text-[#050505]'}`}>
+                                        <div className={`w-12 h-12 rounded-none flex items-center justify-center text-lg border transition-all ${project.type === 'wedding' || project.type === 'wedding_fair' ? 'bg-[#ec4899]/10 text-[#ec4899] border-[#ec4899]/20 group-hover:bg-[#ec4899] group-hover:text-[#050505]' : project.type === 'corporate' ? 'bg-[#3b82f6]/10 text-[#3b82f6] border-[#3b82f6]/20 group-hover:bg-[#3b82f6] group-hover:text-[#050505]' : 'bg-[#10b981]/10 text-[#10b981] border-[#10b981]/20 group-hover:bg-[#10b981] group-hover:text-[#050505]'}`}>
                                             <i className={`fa-regular ${project.type === 'wedding' || project.type === 'wedding_fair' ? 'fa-heart' : project.type === 'corporate' ? 'fa-building' : 'fa-calendar-check'}`}></i>
                                         </div>
                                         
-                                        <div className="flex items-center gap-2 px-3 py-1.5 bg-[#0056B3]/10 border border-[#0056B3]/30 rounded-full text-[9px] font-black uppercase tracking-[0.2em] text-[#6BB8FF] group-hover:border-[#0056B3]/60 group-hover:bg-[#0056B3]/20 group-hover:text-white transition-all">
+                                        <div className="flex items-center gap-2 px-3 py-1.5 bg-[#0056B3]/10 border border-[#0056B3]/30 rounded-none text-[9px] font-black uppercase tracking-[0.2em] text-[#6BB8FF] group-hover:border-[#0056B3]/60 group-hover:bg-[#0056B3]/20 group-hover:text-white transition-all">
                                             <span className={`w-1.5 h-1.5 rounded-full ${project.status === 'completed' ? 'bg-zinc-600' : 'bg-[#0056B3] animate-pulse shadow-[0_0_8px_#0056B3]'}`}></span>
                                             {project.status || 'PLANNING'}
                                         </div>
@@ -153,7 +153,7 @@ export default function ProjectsPage() {
                                     <div className="mt-6 pt-5 border-t border-[#222] flex items-center justify-between">
                                         <button
                                             onClick={(e) => deleteProject(e, project.id, project.name)}
-                                            className="w-8 h-8 flex items-center justify-center rounded-full text-zinc-600 hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/30 border border-transparent transition-all"
+                                            className="w-8 h-8 flex items-center justify-center rounded-none text-zinc-600 hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/30 border border-transparent transition-all"
                                             title="Terminate Project"
                                         >
                                             <i className="fa-regular fa-trash-can text-xs"></i>
@@ -161,7 +161,7 @@ export default function ProjectsPage() {
                                         
                                         <div className="flex items-center gap-3">
                                             <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest group-hover:text-[#0056B3] transition-colors">Enter</span>
-                                            <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 text-white flex items-center justify-center group-hover:bg-[#0056B3] group-hover:border-[#0056B3] transition-all shadow-sm">
+                                            <div className="w-8 h-8 rounded-none bg-white/5 border border-white/10 text-white flex items-center justify-center group-hover:bg-[#0056B3] group-hover:border-[#0056B3] transition-all shadow-sm">
                                                 <i className="fa-solid fa-arrow-right -rotate-45 text-xs group-hover:rotate-0 transition-transform duration-300"></i>
                                             </div>
                                         </div>
@@ -178,13 +178,13 @@ export default function ProjectsPage() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowModal(false)}></div>
 
-                    <div className="relative bg-[#0a0a0a] border border-[#222] rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.8)] w-full max-w-lg p-8 animate-[fadeIn_0.2s_ease-out]">
-                        <button onClick={() => setShowModal(false)} className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-zinc-400 border border-white/5 hover:text-white hover:border-[#222] transition-all">
+                    <div className="relative bg-[#0a0a0a] border border-[#222] rounded-none shadow-[0_0_50px_rgba(0,0,0,0.8)] w-full max-w-lg p-8 animate-[fadeIn_0.2s_ease-out]">
+                        <button onClick={() => setShowModal(false)} className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-none bg-white/5 text-zinc-400 border border-white/5 hover:text-white hover:border-[#222] transition-all">
                             <i className="fa-solid fa-xmark text-sm"></i>
                         </button>
 
                         <div className="flex items-center gap-3 mb-2">
-                            <div className="w-2 h-2 bg-[#0056B3] rounded-full animate-pulse shadow-[0_0_8px_#0056B3]"></div>
+                            <div className="w-2 h-2 bg-[#0056B3] rounded-none animate-pulse shadow-[0_0_8px_#0056B3]"></div>
                             <h2 className="text-xl font-bold text-white uppercase tracking-wider">Initialize Project</h2>
                         </div>
                         <p className="text-xs font-mono text-zinc-500 mb-8 pb-4 border-b border-[#222]">Configure root parameters. Metadata can be altered post-deployment.</p>
@@ -197,7 +197,7 @@ export default function ProjectsPage() {
                                     value={formData.name}
                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                     placeholder="e.g. OPERATION NEBULA 2026"
-                                    className="w-full px-4 py-3 bg-black rounded-xl border border-[#222] focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] outline-none transition-all text-white font-mono text-sm placeholder:text-zinc-700"
+                                    className="w-full px-4 py-3 bg-black rounded-none border border-[#222] focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] outline-none transition-all text-white font-mono text-sm placeholder:text-zinc-700"
                                     autoFocus
                                 />
                             </div>
@@ -207,7 +207,7 @@ export default function ProjectsPage() {
                                 <select
                                     value={formData.type}
                                     onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                                    className="w-full px-4 py-3 bg-black rounded-xl border border-[#222] focus:border-[#0056B3] outline-none transition-all text-white font-mono text-sm appearance-none"
+                                    className="w-full px-4 py-3 bg-black rounded-none border border-[#222] focus:border-[#0056B3] outline-none transition-all text-white font-mono text-sm appearance-none"
                                     style={{ backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 1rem center', backgroundSize: '1em' }}
                                 >
                                     <option value="corporate" className="bg-[#0a0a0a]">Corporate Node</option>
@@ -226,7 +226,7 @@ export default function ProjectsPage() {
                                         type="date"
                                         value={formData.start_date}
                                         onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                                        className="w-full px-4 py-3 bg-black rounded-xl border border-[#222] focus:border-[#0056B3] outline-none transition-all text-white font-mono text-sm [color-scheme:dark]"
+                                        className="w-full px-4 py-3 bg-black rounded-none border border-[#222] focus:border-[#0056B3] outline-none transition-all text-white font-mono text-sm [color-scheme:dark]"
                                     />
                                 </div>
                                 <div>
@@ -235,7 +235,7 @@ export default function ProjectsPage() {
                                         type="date"
                                         value={formData.end_date}
                                         onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-                                        className="w-full px-4 py-3 bg-black rounded-xl border border-[#222] focus:border-[#0056B3] outline-none transition-all text-white font-mono text-sm [color-scheme:dark]"
+                                        className="w-full px-4 py-3 bg-black rounded-none border border-[#222] focus:border-[#0056B3] outline-none transition-all text-white font-mono text-sm [color-scheme:dark]"
                                     />
                                 </div>
                             </div>
@@ -247,7 +247,7 @@ export default function ProjectsPage() {
                                     value={formData.venue}
                                     onChange={(e) => setFormData({ ...formData, venue: e.target.value })}
                                     placeholder="e.g. Parkcity Sector-4"
-                                    className="w-full px-4 py-3 bg-black rounded-xl border border-[#222] focus:border-[#0056B3] outline-none transition-all text-white font-mono text-sm placeholder:text-zinc-700"
+                                    className="w-full px-4 py-3 bg-black rounded-none border border-[#222] focus:border-[#0056B3] outline-none transition-all text-white font-mono text-sm placeholder:text-zinc-700"
                                 />
                             </div>
                         </div>
@@ -255,14 +255,14 @@ export default function ProjectsPage() {
                         <div className="flex gap-4 mt-8">
                             <button
                                 onClick={() => setShowModal(false)}
-                                className="flex-1 px-5 py-3 rounded-xl border border-[#222] text-xs font-black tracking-widest uppercase text-zinc-400 hover:bg-white/5 transition-all"
+                                className="flex-1 px-5 py-3 rounded-none border border-[#222] text-xs font-black tracking-widest uppercase text-zinc-400 hover:bg-white/5 transition-all"
                             >
                                 Abort
                             </button>
                             <button
                                 onClick={createProject}
                                 disabled={creating}
-                                className="flex-1 px-5 py-3 rounded-xl text-xs font-black tracking-widest uppercase text-[#0a0a0a] bg-[#0056B3] shadow-[0_0_15px_rgba(0,86,179,0.3)] hover:shadow-[0_0_25px_rgba(0,86,179,0.6)] transition-all disabled:opacity-50 disabled:shadow-none"
+                                className="flex-1 px-5 py-3 rounded-none text-xs font-black tracking-widest uppercase text-[#0a0a0a] bg-[#0056B3] shadow-[0_0_15px_rgba(0,86,179,0.3)] hover:shadow-[0_0_25px_rgba(0,86,179,0.6)] transition-all disabled:opacity-50 disabled:shadow-none"
                             >
                                 {creating ? (
                                     <><i className="fa-solid fa-circle-notch animate-spin mr-2"></i> Initializing...</>

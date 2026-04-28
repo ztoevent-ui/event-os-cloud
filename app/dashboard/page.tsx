@@ -18,9 +18,6 @@ const tools = [
     label: 'Event Manager',
     desc: 'Projects, timelines, budgets & tasks',
     accent: '#0056B3',
-    glow: 'rgba(0,86,179,0.25)',
-    bg: 'rgba(0,86,179,0.08)',
-    border: 'rgba(0,86,179,0.2)',
     tag: 'CORE',
   },
   {
@@ -30,9 +27,6 @@ const tools = [
     label: 'ZTO Arena Hub',
     desc: 'Tournament orchestration & master controls',
     accent: '#F59E0B',
-    glow: 'rgba(245,158,11,0.25)',
-    bg: 'rgba(245,158,11,0.07)',
-    border: 'rgba(245,158,11,0.2)',
     tag: 'ARENA',
   },
   {
@@ -42,9 +36,6 @@ const tools = [
     label: 'Lucky Draw',
     desc: 'Master control for spin wheel & draws',
     accent: '#A855F7',
-    glow: 'rgba(168,85,247,0.25)',
-    bg: 'rgba(168,85,247,0.07)',
-    border: 'rgba(168,85,247,0.2)',
     tag: 'DISPLAY',
   },
   {
@@ -54,9 +45,6 @@ const tools = [
     label: 'Arena Screen',
     desc: 'Live LAN sync scoreboard billboard',
     accent: '#06B6D4',
-    glow: 'rgba(6,182,212,0.25)',
-    bg: 'rgba(6,182,212,0.07)',
-    border: 'rgba(6,182,212,0.2)',
     tag: 'DISPLAY',
   },
   {
@@ -66,9 +54,6 @@ const tools = [
     label: 'Registration Studio',
     desc: 'Form fields, branding, sponsors & T&C',
     accent: '#F97316',
-    glow: 'rgba(249,115,22,0.25)',
-    bg: 'rgba(249,115,22,0.07)',
-    border: 'rgba(249,115,22,0.2)',
     tag: 'ADMIN',
   },
   {
@@ -78,9 +63,6 @@ const tools = [
     label: 'User Management',
     desc: 'Add, edit & manage staff accounts',
     accent: '#8B5CF6',
-    glow: 'rgba(139,92,246,0.25)',
-    bg: 'rgba(139,92,246,0.07)',
-    border: 'rgba(139,92,246,0.2)',
     tag: 'ADMIN',
   },
   {
@@ -90,18 +72,15 @@ const tools = [
     label: 'Enquiries',
     desc: 'View received consultation leads',
     accent: '#10B981',
-    glow: 'rgba(16,185,129,0.25)',
-    bg: 'rgba(16,185,129,0.07)',
-    border: 'rgba(16,185,129,0.2)',
     tag: 'ADMIN',
   },
 ];
 
 const tagColors: Record<string, string> = {
-  CORE: '#0077CC',
-  ARENA: '#D97706',
-  DISPLAY: '#0891B2',
-  ADMIN: '#7C3AED',
+  CORE: '#0056B3',
+  ARENA: '#F59E0B',
+  DISPLAY: '#A855F7',
+  ADMIN: '#10B981',
 };
 
 export default function Dashboard() {
@@ -134,17 +113,10 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', background: '#050505', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{
-            width: 48, height: 48, borderRadius: '50%',
-            border: '3px solid rgba(0,86,179,0.2)',
-            borderTopColor: '#0056B3',
-            animation: 'spin 0.8s linear infinite',
-            margin: '0 auto 16px',
-          }} />
-          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-          <p style={{ color: 'rgba(255,255,255,0.4)', fontFamily: 'Inter, sans-serif', fontSize: 14 }}>Loading...</p>
+      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+        <div className="flex flex-col items-center">
+          <div className="w-12 h-12 border-2 border-[#0056B3]/30 border-t-[#0056B3] rounded-none animate-spin mb-4" />
+          <p className="text-[#0056B3] font-black uppercase tracking-[0.2em] text-xs">Initializing OS...</p>
         </div>
       </div>
     );
@@ -154,266 +126,150 @@ export default function Dashboard() {
   const visibleTools = isAdmin ? tools : tools.filter(t => !['users', 'registration'].includes(t.id));
 
   return (
-    <div style={{ minHeight: '100vh', background: '#050505', color: '#fff', fontFamily: 'Inter, sans-serif' }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        .tool-card {
-          position: relative;
-          background: rgba(255,255,255,0.03);
-          border: 1px solid rgba(255,255,255,0.08);
-          border-radius: 18px;
-          padding: 28px;
-          cursor: pointer;
-          transition: all 0.25s ease;
-          text-decoration: none;
-          display: block;
-          overflow: hidden;
-        }
-        .tool-card:hover {
-          transform: translateY(-4px);
-          background: rgba(255,255,255,0.05);
-        }
-        .tool-card .glow-bg {
-          position: absolute;
-          bottom: -40px; right: -40px;
-          width: 120px; height: 120px;
-          border-radius: 50%;
-          filter: blur(50px);
-          opacity: 0;
-          transition: opacity 0.3s ease;
-        }
-        .tool-card:hover .glow-bg { opacity: 1; }
-
-        .dash-grid {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 16px;
-        }
-        @media (max-width: 1199px) {
-          .dash-grid { grid-template-columns: repeat(3, 1fr); }
-        }
-        @media (max-width: 899px) {
-          .dash-grid { grid-template-columns: repeat(2, 1fr); }
-          .dash-header { padding: 20px 24px !important; }
-          .dash-main { padding: 24px !important; }
-        }
-        @media (max-width: 599px) {
-          .dash-grid { grid-template-columns: 1fr; }
-          .tool-card { padding: 20px; }
-          .dash-header { padding: 16px 20px !important; }
-          .dash-main { padding: 16px !important; }
-        }
-      `}</style>
-
+    <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-[#0056B3] selection:text-white">
       {/* Header */}
-      <header
-        className="dash-header"
-        style={{
-          borderBottom: '1px solid rgba(255,255,255,0.07)',
-          background: 'rgba(5,5,5,0.9)',
-          backdropFilter: 'blur(20px)',
-          position: 'sticky', top: 0, zIndex: 50,
-          padding: '18px 48px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 16,
-        }}
-      >
-        {/* Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
-          <div style={{ width: 34, height: 34, borderRadius: 8, overflow: 'hidden', border: '1px solid rgba(0,86,179,0.4)', flexShrink: 0 }}>
+      <header className="sticky top-0 z-50 bg-[#050505]/90 backdrop-blur-xl border-b border-white/5 px-6 lg:px-12 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 border border-[#0056B3]/40 bg-[#0056B3]/10 flex items-center justify-center overflow-hidden rounded-none shadow-[0_0_15px_rgba(0,86,179,0.2)]">
             <img
               src="https://zihjzbweasaqqbwilshx.supabase.co/storage/v1/object/public/logo/icon.png.JPG"
               alt="ZTO"
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              className="w-full h-full object-cover mix-blend-screen"
             />
           </div>
           <div>
-            <div style={{ fontWeight: 800, fontSize: 15, letterSpacing: '-0.3px', lineHeight: 1.1 }}>
-              ZTO Event <span style={{ color: '#0056B3' }}>OS</span>
+            <div className="font-black text-lg tracking-tight uppercase">
+              ZTO Event <span className="text-[#0056B3]">OS</span>
             </div>
-            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', fontWeight: 600, letterSpacing: '1.5px', textTransform: 'uppercase' }}>
+            <div className="text-[10px] text-zinc-500 font-bold tracking-[0.2em] uppercase">
               Operating System
             </div>
           </div>
         </div>
 
-        {/* Right side */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          {/* User info */}
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 10,
-            background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.09)',
-            borderRadius: 10, padding: '8px 14px',
-          }}>
-            <div style={{
-              width: 28, height: 28, borderRadius: '50%',
-              background: 'linear-gradient(135deg, #0056B3, #0077CC)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 12, fontWeight: 700, flexShrink: 0,
-            }}>
+        <div className="flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-3 bg-white/5 border border-white/10 px-4 py-2 rounded-none">
+            <div className="w-6 h-6 bg-gradient-to-br from-[#0056B3] to-[#003d82] flex items-center justify-center text-xs font-bold rounded-none">
               {(profile?.display_name || 'S')[0].toUpperCase()}
             </div>
-            <div style={{ lineHeight: 1.2 }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>
+            <div>
+              <div className="text-xs font-bold text-white uppercase tracking-wider">
                 {profile?.display_name || 'Staff'}
               </div>
-              <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+              <div className="text-[9px] text-[#0056B3] font-black tracking-[0.1em] uppercase">
                 {profile?.role || 'Staff'}
               </div>
             </div>
           </div>
 
-          {/* Back to site */}
           <Link
             href="/"
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              background: 'rgba(255,255,255,0.04)',
-              border: '1px solid rgba(255,255,255,0.09)',
-              borderRadius: 8, padding: '8px 14px',
-              color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: 500,
-              textDecoration: 'none', transition: 'all 0.2s', whiteSpace: 'nowrap',
-            }}
+            className="flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-2 text-xs font-bold text-zinc-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all uppercase tracking-widest rounded-none"
           >
-            <i className="fa-solid fa-arrow-left" style={{ fontSize: 11 }} />
-            Site
+            <i className="fa-solid fa-arrow-left text-[10px]" /> Site
           </Link>
 
-          {/* Sign out */}
           <button
             onClick={handleSignOut}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              background: 'rgba(255,50,50,0.06)',
-              border: '1px solid rgba(255,50,50,0.15)',
-              borderRadius: 8, padding: '8px 14px',
-              color: 'rgba(255,100,100,0.7)', fontSize: 12, fontWeight: 500,
-              cursor: 'pointer', transition: 'all 0.2s', whiteSpace: 'nowrap',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,50,50,0.12)'; e.currentTarget.style.color = '#ff6464'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,50,50,0.06)'; e.currentTarget.style.color = 'rgba(255,100,100,0.7)'; }}
+            className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 px-4 py-2 text-xs font-bold text-red-500 hover:bg-red-500/20 hover:border-red-500/40 transition-all uppercase tracking-widest rounded-none"
           >
-            <i className="fa-solid fa-right-from-bracket" style={{ fontSize: 11 }} />
-            Sign Out
+            <i className="fa-solid fa-power-off text-[10px]" /> Exit
           </button>
         </div>
       </header>
 
-      {/* Main */}
-      <main className="dash-main" style={{ maxWidth: 1280, margin: '0 auto', padding: '40px 48px' }}>
-
-        {/* Welcome */}
-        <div style={{ marginBottom: 40 }}>
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: 8,
-            background: 'rgba(0,86,179,0.1)', border: '1px solid rgba(0,86,179,0.25)',
-            borderRadius: 100, padding: '4px 14px',
-            fontSize: 11, fontWeight: 700, color: '#6BB8FF',
-            letterSpacing: '1.5px', textTransform: 'uppercase',
-            marginBottom: 16,
-          }}>
-            <i className="fa-solid fa-circle" style={{ fontSize: 6, color: '#4ade80' }} />
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-6 lg:px-12 py-12 lg:py-20">
+        
+        {/* Welcome Section */}
+        <div className="mb-16 relative">
+          <div className="absolute top-0 left-0 w-32 h-32 bg-[#0056B3] blur-[120px] opacity-30 rounded-full pointer-events-none" />
+          <div className="inline-flex items-center gap-2 bg-[#0056B3]/10 border border-[#0056B3]/30 px-3 py-1.5 text-[10px] font-black text-[#6BB8FF] uppercase tracking-[0.2em] mb-6 rounded-none">
+            <i className="fa-solid fa-circle text-[6px] text-green-500 animate-pulse" />
             System Online
           </div>
-          <h1 style={{ fontSize: 'clamp(24px, 3vw, 36px)', fontWeight: 800, letterSpacing: '-1px', lineHeight: 1.1, marginBottom: 8 }}>
-            Welcome back, <span style={{ color: '#6BB8FF' }}>{profile?.display_name?.split(' ')[0] || 'Staff'}</span>
+          <h1 className="text-4xl lg:text-5xl font-black uppercase tracking-tight mb-4 text-white">
+            Master <span className="text-[#0056B3]">Console</span>
           </h1>
-          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 15 }}>
-            Zero To One Event Operating System — select a tool to get started.
+          <p className="text-zinc-500 text-sm font-mono max-w-xl">
+            Select an operational module to proceed. Ensure all actions comply with ZTO Event OS protocol.
           </p>
         </div>
 
-        {/* Divider */}
-        <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)', marginBottom: 32 }} />
-
-        {/* Tools Label */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-          <i className="fa-solid fa-grid-2" style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13 }} />
-          <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.35)', letterSpacing: '1.5px', textTransform: 'uppercase' }}>
-            All Tools
-          </span>
+        {/* Tools Section */}
+        <div className="flex items-center gap-3 mb-8">
+          <i className="fa-solid fa-server text-zinc-600 text-sm" />
+          <h2 className="text-xs font-black text-zinc-500 uppercase tracking-[0.2em]">Available Nodes</h2>
         </div>
 
-        {/* Tool Cards Grid */}
-        <div className="dash-grid">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {visibleTools.map((tool) => (
-            <Link key={tool.id} href={tool.href} className="tool-card" style={{ borderColor: tool.border }}>
-              {/* Glow bg on hover */}
-              <div className="glow-bg" style={{ background: tool.glow }} />
+            <Link
+              key={tool.id}
+              href={tool.href}
+              className="group relative block bg-[#0a0a0a]/60 backdrop-blur-xl border border-white/5 hover:border-[#0056B3]/50 p-8 transition-all duration-300 hover:bg-[#0a0a0a] hover:-translate-y-1 rounded-none overflow-hidden"
+            >
+              {/* Hover Glow */}
+              <div 
+                className="absolute -bottom-20 -right-20 w-40 h-40 blur-[60px] opacity-0 group-hover:opacity-20 transition-opacity duration-500"
+                style={{ backgroundColor: tool.accent }}
+              />
 
-              {/* Tag */}
-              <div style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                background: `${tagColors[tool.tag]}22`,
-                border: `1px solid ${tagColors[tool.tag]}44`,
-                color: tagColors[tool.tag],
-                borderRadius: 6,
-                fontSize: 9, fontWeight: 800, letterSpacing: '1.5px',
-                padding: '3px 8px',
-                marginBottom: 20,
-                textTransform: 'uppercase',
-              }}>
-                {tool.tag}
+              <div className="flex justify-between items-start mb-12">
+                <div 
+                  className="w-14 h-14 flex items-center justify-center text-xl border transition-all duration-300 rounded-none group-hover:scale-110"
+                  style={{ 
+                    backgroundColor: `${tool.accent}15`, 
+                    color: tool.accent,
+                    borderColor: `${tool.accent}30` 
+                  }}
+                >
+                  <i className={tool.icon} />
+                </div>
+                
+                <div 
+                  className="px-2 py-1 border text-[9px] font-black uppercase tracking-[0.2em] rounded-none transition-all"
+                  style={{
+                    backgroundColor: `${tagColors[tool.tag]}10`,
+                    borderColor: `${tagColors[tool.tag]}30`,
+                    color: tagColors[tool.tag]
+                  }}
+                >
+                  {tool.tag}
+                </div>
               </div>
 
-              {/* Icon */}
-              <div style={{
-                width: 48, height: 48, borderRadius: 14,
-                background: tool.bg,
-                border: `1px solid ${tool.border}`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                marginBottom: 16, fontSize: 20, color: tool.accent,
-                transition: 'transform 0.2s ease',
-              }}>
-                <i className={tool.icon} />
-              </div>
-
-              {/* Label & desc */}
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#fff', marginBottom: 6, lineHeight: 1.2 }}>
+              <h3 className="text-lg font-black text-white mb-3 group-hover:text-[#4da3ff] transition-colors tracking-wide uppercase">
                 {tool.label}
-              </div>
-              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', lineHeight: 1.5 }}>
+              </h3>
+              <p className="text-zinc-500 text-xs font-mono leading-relaxed group-hover:text-zinc-400 transition-colors">
                 {tool.desc}
-              </div>
+              </p>
 
-              {/* Arrow */}
-              <div style={{
-                position: 'absolute', bottom: 22, right: 22,
-                color: tool.accent, fontSize: 13, opacity: 0.6,
-                transition: 'opacity 0.2s, transform 0.2s',
-              }}>
-                <i className="fa-solid fa-arrow-right" />
+              {/* Enter Action */}
+              <div className="mt-8 pt-6 border-t border-white/5 flex items-center justify-between">
+                <span className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.2em] group-hover:text-[#0056B3] transition-colors">
+                  Access Node
+                </span>
+                <i className="fa-solid fa-arrow-right text-zinc-600 group-hover:text-[#0056B3] group-hover:translate-x-1 transition-all text-xs" />
               </div>
             </Link>
           ))}
         </div>
 
         {/* Footer */}
-        <div style={{
-          marginTop: 60,
-          paddingTop: 24,
-          borderTop: '1px solid rgba(255,255,255,0.06)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: 12,
-        }}>
-          <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)' }}>
-            © {new Date().getFullYear()} Zero To One Event. Internal use only.
-          </span>
-          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.15)', fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase' }}>
-            Event OS v2
-          </span>
+        <div className="mt-24 pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">
+            © {new Date().getFullYear()} ZTO. Internal Network.
+          </p>
+          <div className="flex gap-4">
+            <span className="w-1.5 h-1.5 bg-zinc-700 rounded-none" />
+            <span className="w-1.5 h-1.5 bg-zinc-700 rounded-none" />
+            <span className="w-1.5 h-1.5 bg-[#0056B3] rounded-none animate-pulse" />
+          </div>
         </div>
       </main>
     </div>
   );
 }
+
