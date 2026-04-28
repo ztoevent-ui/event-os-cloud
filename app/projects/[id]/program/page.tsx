@@ -9,22 +9,6 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, us
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
-interface ProgramColumn {
-  id: string;
-  label: string;
-  width?: string;
-  isCustom?: boolean;
-}
-
-const DEFAULT_COLUMNS: ProgramColumn[] = [
-  { id: 'time',       label: 'Time',               width: '12%' },
-  { id: 'activities', label: 'Activities',          width: '26%' },
-  { id: 'movement',   label: 'Movement',            width: '18%' },
-  { id: 'cues',       label: 'Staff Cues / Extra',  width: '20%' },
-  { id: 'song',       label: 'Song (BGM)',           width: '14%' },
-  { id: 'volume',     label: 'Volume',              width: '10%' },
-];
-
 interface ProgramRow {
   id: string;
   project_id: string;
@@ -39,39 +23,32 @@ interface ProgramRow {
   custom_data: Record<string, string>;
 }
 
-type FontSize = 'text-sm' | 'text-base' | 'text-lg' | 'text-xl';
+interface ProgramColumn {
+  id: string;
+  label: string;
+  width?: string;
+  isCustom?: boolean;
+}
 
-// ─── Styles ─────────────────────────────────────────────────────────────────
-const S = {
-  card: {
-    background: 'rgba(255, 255, 255, 0.03)',
-    backdropFilter: 'blur(20px)',
-    WebkitBackdropFilter: 'blur(20px)',
-    border: '1px solid rgba(0, 86, 179, 0.3)',
-    borderRadius: 24,
-    padding: 40,
-    marginBottom: 24,
-    display: 'flex',
-    alignItems: 'center',
-    gap: 24,
-    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  } as React.CSSProperties,
-  cardImportant: {
-    background: 'rgba(239, 68, 68, 0.05)',
-    border: '1px solid rgba(239, 68, 68, 0.3)',
-  } as React.CSSProperties,
-};
+const DEFAULT_COLUMNS: ProgramColumn[] = [
+  { id: 'time',       label: 'Time',              width: '12%' },
+  { id: 'activities', label: 'Activities',         width: '26%' },
+  { id: 'movement',   label: 'Movement',           width: '18%' },
+  { id: 'cues',       label: 'Staff Cues / Extra', width: '20%' },
+  { id: 'song',       label: 'Song (BGM)',          width: '14%' },
+  { id: 'volume',     label: 'Volume',             width: '10%' },
+];
 
 export default function TentativeProgramPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: projectId } = use(params);
-  const [rows, setRows]       = useState<ProgramRow[]>([]);
-  const [columns, setColumns] = useState<ProgramColumn[]>(DEFAULT_COLUMNS);
-  const [loading, setLoading]   = useState(true);
-  const [editMode, setEditMode] = useState(false);
+  const [rows, setRows]             = useState<ProgramRow[]>([]);
+  const [columns, setColumns]       = useState<ProgramColumn[]>(DEFAULT_COLUMNS);
+  const [loading, setLoading]       = useState(true);
+  const [editMode, setEditMode]     = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [isSaving, setIsSaving]     = useState(false);
   const [isKiosk, setIsKiosk]       = useState(false);
-  const [fontSize, setFontSize]     = useState<FontSize>('text-base');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [project, setProject]       = useState<any>(null);
   const { pageBreakIds } = usePrint();
 
@@ -86,7 +63,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
     const { data: projData } = await supabase.from('projects').select('type, name').eq('id', projectId).single();
     setProject(projData);
     const { data: settingsData } = await supabase.from('tournament_settings').select('program_columns').eq('project_id', projectId).single();
-    if (settingsData?.program_columns && settingsData.program_columns.length > 0) setColumns(settingsData.program_columns);
+    if (settingsData?.program_columns?.length > 0) setColumns(settingsData.program_columns);
   };
 
   const fetchProgram = async () => {
@@ -102,7 +79,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
     if (!over || active.id === over.id) return;
     setRows(items => {
       const reordered = arrayMove(items, items.findIndex(i => i.id === active.id), items.findIndex(i => i.id === over.id));
-      return reordered.map((item, index) => ({ ...item, sort_order: index }));
+      return reordered.map((item, idx) => ({ ...item, sort_order: idx }));
     });
     setHasChanges(true);
   };
@@ -110,13 +87,19 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
   const updateCell = (rowId: string, colId: string, value: string, isCustom: boolean) => {
     setRows(rows.map(row => {
       if (row.id !== rowId) return row;
-      return isCustom ? { ...row, custom_data: { ...row.custom_data, [colId]: value } } : { ...row, [colId]: value };
+      return isCustom
+        ? { ...row, custom_data: { ...row.custom_data, [colId]: value } }
+        : { ...row, [colId]: value };
     }));
     setHasChanges(true);
   };
 
   const addRow = () => {
-    const newRow: ProgramRow = { id: `temp_${Date.now()}`, project_id: projectId, time: '', activities: '', movement: '', cues: '', song: '', volume: '', is_important: false, sort_order: rows.length, custom_data: {} };
+    const newRow: ProgramRow = {
+      id: `temp_${Date.now()}`, project_id: projectId,
+      time: '', activities: '', movement: '', cues: '', song: '', volume: '',
+      is_important: false, sort_order: rows.length, custom_data: {},
+    };
     setRows([...rows, newRow]);
     setHasChanges(true);
   };
@@ -127,26 +110,8 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
     setHasChanges(true);
   };
 
-  const addColumn = () => {
-    const colName = prompt('New column name');
-    if (!colName) return;
-    setColumns([...columns, { id: `custom_${Date.now()}`, label: colName, isCustom: true, width: '150px' }]);
-    setHasChanges(true);
-  };
-
-  const removeColumn = (colId: string) => {
-    if (!confirm('Confirm column deletion?')) return;
-    setColumns(columns.filter(c => c.id !== colId));
-    setHasChanges(true);
-  };
-
-  const moveColumn = (colId: string, dir: 'left' | 'right') => {
-    setColumns(prev => {
-      const idx = prev.findIndex(c => c.id === colId);
-      if (dir === 'left' && idx > 0) return arrayMove(prev, idx, idx - 1);
-      if (dir === 'right' && idx < prev.length - 1) return arrayMove(prev, idx, idx + 1);
-      return prev;
-    });
+  const toggleImportant = (id: string) => {
+    setRows(rows.map(r => r.id === id ? { ...r, is_important: !r.is_important } : r));
     setHasChanges(true);
   };
 
@@ -168,6 +133,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
     if (idsToDelete.length > 0) await supabase.from('program_items').delete().in('id', idsToDelete);
     const indexed = rows.map((row, i) => ({ ...row, sort_order: i }));
     const toUpdate = indexed.filter(r => !r.id.startsWith('temp_'));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const toInsert = indexed.filter(r => r.id.startsWith('temp_')).map(r => { const p = { ...r }; delete (p as any).id; return p; });
     if (toUpdate.length > 0) await supabase.from('program_items').upsert(toUpdate);
     if (toInsert.length > 0) await supabase.from('program_items').insert(toInsert);
@@ -176,100 +142,121 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
     setIsSaving(false);
   };
 
-  // ─── Loading state ────────────────────────────────────────────────────────
+  // ── Loading ──────────────────────────────────────────────────────────────────
   if (loading) return (
-    <div className="flex flex-col items-center justify-center py-24 text-zinc-500">
-      <i className="fa-solid fa-circle-notch fa-spin text-3xl mb-4 text-[#0056B3]" />
-      <p className="text-[10px] font-black uppercase tracking-[0.2em]">Syncing Sequence Data...</p>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 300, gap: 16, opacity: 0.5 }}>
+      <div style={{ width: 36, height: 36, border: '2px solid rgba(0,86,179,0.2)', borderTopColor: '#0056B3', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+      <p style={{ color: '#0056B3', fontSize: 10, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', fontFamily: 'Urbanist, sans-serif' }}>
+        Syncing Sequence Data...
+      </p>
+      <style jsx>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 
-  // ─── Kiosk Mode ──────────────────────────────────────────────────────────
+  // ── Kiosk Mode ───────────────────────────────────────────────────────────────
   if (isKiosk) return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: '#050505', overflowY: 'auto', padding: '48px 64px 120px', fontFamily: "'Urbanist', sans-serif" }}>
-      <div style={{ position: 'fixed', bottom: 32, right: 32, zIndex: 200 }}>
-        <button onClick={() => setIsKiosk(false)} style={{ height: 52, padding: '0 28px', borderRadius: 9999, background: 'transparent', border: '1px solid #ef4444', color: '#ef4444', fontWeight: 900, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10 }}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 2000, background: '#050505', overflowY: 'auto', padding: '48px 64px 120px', fontFamily: "'Urbanist', sans-serif" }}>
+      <div style={{ position: 'fixed', bottom: 32, right: 32, zIndex: 2100 }}>
+        <button
+          onClick={() => setIsKiosk(false)}
+          className="zto-btn zto-btn-danger"
+          style={{ padding: '12px 24px', fontSize: 12 }}
+        >
           <i className="fa-solid fa-compress" /> EXIT KIOSK
         </button>
       </div>
       <div style={{ marginBottom: 32, paddingBottom: 20, borderBottom: '1px solid rgba(0,86,179,0.2)' }}>
-        <h1 style={{ margin: 0, fontSize: 28, fontWeight: 900, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{project?.name}</h1>
-        <p style={{ margin: '6px 0 0', fontSize: 12, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.05em' }}>Tentative Program — ZTO Event OS</p>
+        <div className="zto-label" style={{ marginBottom: 8 }}>Tentative Program</div>
+        <h1 style={{ margin: 0, fontSize: 32, fontWeight: 800, color: '#fff', textTransform: 'uppercase', letterSpacing: '-0.02em' }}>
+          {project?.name}
+        </h1>
       </div>
-      {rows.map(row => (
-        <div key={row.id} style={{ ...S.card, ...(row.is_important ? S.cardImportant : {}), padding: '20px 28px', marginBottom: 16, display: 'flex', alignItems: 'flex-start', gap: 24 }}>
-          <div style={{ minWidth: 120, flexShrink: 0 }}>
-            <span style={{ fontSize: 22, fontWeight: 900, color: '#DEFF9A', letterSpacing: '0.04em' }}>{row.time || '—'}</span>
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 18, fontWeight: 900, color: row.is_important ? '#ef4444' : '#fff', marginBottom: 6 }}>{row.activities}</div>
-            {row.movement && <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginBottom: 3 }}>{row.movement}</div>}
-            {row.cues && <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>{row.cues}</div>}
-          </div>
-          {(row.song || row.volume) && (
-            <div style={{ textAlign: 'right', flexShrink: 0 }}>
-              {row.song && <div style={{ fontSize: 12, color: 'rgba(0,86,179,0.8)', fontWeight: 600 }}>{row.song}</div>}
-              {row.volume && <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>{row.volume}</div>}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {rows.map(row => (
+          <div key={row.id} className="zto-card" style={{
+            display: 'flex', alignItems: 'center', gap: 32,
+            padding: '24px 32px',
+            ...(row.is_important ? { background: 'rgba(239,68,68,0.05)', borderColor: 'rgba(239,68,68,0.3)' } : {}),
+          }}>
+            <div style={{ minWidth: 120, flexShrink: 0 }}>
+              <span style={{ fontSize: 24, fontWeight: 800, color: '#DEFF9A', letterSpacing: '0.02em' }}>
+                {row.time || '—'}
+              </span>
             </div>
-          )}
-        </div>
-      ))}
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 20, fontWeight: 700, color: row.is_important ? '#ef4444' : '#fff', marginBottom: 6 }}>
+                {row.activities}
+              </div>
+              {row.movement && <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginBottom: 3 }}>{row.movement}</div>}
+              {row.cues && <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>{row.cues}</div>}
+            </div>
+            {(row.song || row.volume) && (
+              <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                {row.song && <div style={{ fontSize: 13, color: '#4da3ff', fontWeight: 600 }}><i className="fa-solid fa-music" style={{ marginRight: 6 }} />{row.song}</div>}
+                {row.volume && <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 4 }}>{row.volume}</div>}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 
-  // ─── Main Page ────────────────────────────────────────────────────────────
+  // ── Main Page ─────────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col flex-1">
+    <div className="page-transition" style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+
       {/* Print Header */}
-      <div className="hidden print:block mb-4">
-        <div className="flex justify-between items-end border-b-2 border-black pb-2">
-          <h1 className="text-xl font-black uppercase italic tracking-wider">Tentative Program: {project?.name}</h1>
-          <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">ZTO Event OS</span>
+      <div className="hidden print:block" style={{ marginBottom: 16 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderBottom: '2px solid #000', paddingBottom: 8 }}>
+          <h1 style={{ fontSize: 20, fontWeight: 800, textTransform: 'uppercase' }}>Tentative Program: {project?.name}</h1>
+          <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.15em', color: '#666' }}>ZTO Event OS</span>
         </div>
       </div>
 
-      {/* ── Page Header + Action Bar ── */}
-      <div className="print:hidden flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
-        <div className="flex flex-col">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#0056B3] mb-2">Project Sequence</p>
-          <h1 className="text-4xl md:text-5xl font-bold text-white uppercase tracking-tight leading-none">
-            {project?.name || 'Loading...'}
+      {/* ── Page Header ── */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16 }} className="print:hidden">
+        <div>
+          <div className="zto-label" style={{ marginBottom: 8 }}>Project Sequence</div>
+          <h1 style={{ fontSize: 'clamp(1.8rem, 4vw, 3rem)', fontWeight: 800, color: '#fff', textTransform: 'uppercase', letterSpacing: '-0.02em', lineHeight: 1 }}>
+            {project?.name || 'Tentative Program'}
           </h1>
         </div>
-
-        {/* Action Hub */}
-        <div className="flex flex-wrap items-center gap-4 fixed top-8 right-8 z-50 bg-[#050505]/80 backdrop-blur-xl p-4 rounded-[24px] border border-white/10 shadow-2xl">
-          <button 
-            onClick={() => setIsKiosk(true)}
-            className="zto-btn-glow text-[10px] tracking-widest uppercase"
-          >
-            <i className="fa-solid fa-expand" /> Kiosk
-          </button>
-
-          <button 
-            onClick={editMode ? saveScript : toggleEditMode}
-            disabled={isSaving}
-            className="zto-btn-glow text-[10px] tracking-widest uppercase disabled:opacity-50"
-          >
-            <i className={`fa-solid ${isSaving ? 'fa-spinner fa-spin' : editMode ? 'fa-save' : 'fa-pencil'}`} />
-            {isSaving ? 'Saving' : editMode ? 'Save' : 'Modify'}
-          </button>
-
-          <div className="flex items-center gap-2">
-            <CopyProgramButton projectId={projectId} />
-            <PrintReportButton title="Event Program" />
-          </div>
-        </div>
       </div>
 
-      {/* ── Program Card Grid ── */}
-      <div className="flex flex-col gap-4">
+      {/* ── Fixed Action Bar ── */}
+      <div className="zto-action-bar print:hidden">
+        <button onClick={() => setIsKiosk(true)} className="zto-btn zto-btn-ghost" style={{ fontSize: 11 }}>
+          <i className="fa-solid fa-expand" /> Kiosk
+        </button>
+        <button
+          onClick={editMode ? saveScript : toggleEditMode}
+          disabled={isSaving}
+          className="zto-btn zto-btn-primary"
+          style={{ fontSize: 11 }}
+        >
+          <i className={`fa-solid ${isSaving ? 'fa-circle-notch fa-spin' : editMode ? 'fa-floppy-disk' : 'fa-pencil'}`} />
+          {isSaving ? 'Saving' : editMode ? 'Save' : 'Modify'}
+        </button>
+        <CopyProgramButton projectId={projectId} />
+        <PrintReportButton title="Event Program" />
+        {editMode && (
+          <button onClick={addRow} className="zto-btn zto-btn-ghost" style={{ fontSize: 11 }}>
+            <i className="fa-solid fa-plus" /> Add Row
+          </button>
+        )}
+      </div>
+
+      {/* ── Program Cards (Vertical Stack) ── */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingTop: 4 }}>
         {rows.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-32 border-2 border-dashed border-white/5 rounded-3xl bg-white/[0.02]">
-            <i className="fa-solid fa-clipboard-list text-5xl text-zinc-800 mb-6" />
-            <h3 className="text-lg font-black text-zinc-600 uppercase tracking-widest">No Sequence Defined</h3>
-            <button onClick={addRow} className="mt-8 h-12 px-10 rounded-xl bg-[#0056B3] text-white font-black text-xs tracking-widest uppercase">
-              Initialize Program
+          <div className="zto-card" style={{ textAlign: 'center', padding: 64 }}>
+            <i className="fa-solid fa-clipboard-list" style={{ fontSize: 40, color: 'rgba(255,255,255,0.08)', marginBottom: 20 }} />
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 24 }}>
+              No Sequence Defined
+            </h3>
+            <button onClick={addRow} className="zto-btn zto-btn-primary">
+              <i className="fa-solid fa-plus" /> Initialize Program
             </button>
           </div>
         ) : (
@@ -277,9 +264,15 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
             <SortableContext items={rows.map(r => r.id)} strategy={verticalListSortingStrategy}>
               <AnimatePresence initial={false}>
                 {rows.map(row => (
-                  <SortableRow key={row.id} row={row} columns={columns} editMode={editMode}
-                    updateCell={updateCell} removeRow={removeRow} moveColumn={moveColumn}
-                    removeColumn={removeColumn} isPageBreak={pageBreakIds.includes(row.id)} fontSize={fontSize} />
+                  <SortableRow
+                    key={row.id}
+                    row={row}
+                    editMode={editMode}
+                    updateCell={updateCell}
+                    removeRow={removeRow}
+                    toggleImportant={toggleImportant}
+                    isPageBreak={pageBreakIds.includes(row.id)}
+                  />
                 ))}
               </AnimatePresence>
             </SortableContext>
@@ -287,18 +280,8 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
         )}
       </div>
 
-      {editMode && rows.length > 0 && (
-        <div className="mt-10 flex justify-center">
-          <button 
-            onClick={addRow}
-            className="h-12 px-12 rounded-xl bg-white/5 border border-white/10 text-zinc-400 font-black text-[10px] tracking-widest uppercase hover:bg-white/10 hover:text-white transition-all flex items-center gap-3"
-          >
-            <i className="fa-solid fa-plus-circle" /> Append Sequence Row
-          </button>
-        </div>
-      )}
-
       <style jsx global>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
         @page { size: A4 landscape; margin: 5mm 7mm; }
         @media print {
           nav, button, .print\\:hidden, header, footer { display: none !important; }
@@ -311,97 +294,180 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
   );
 }
 
-// ─── Sortable Row Card ───────────────────────────────────────────────────────
-function SortableRow({ row, columns, editMode, updateCell, removeRow, moveColumn, removeColumn, isPageBreak, fontSize }: any) {
+// ── Sortable Row Card ─────────────────────────────────────────────────────────
+function SortableRow({ row, editMode, updateCell, removeRow, toggleImportant, isPageBreak }: {
+  row: ProgramRow;
+  editMode: boolean;
+  updateCell: (rowId: string, colId: string, value: string, isCustom: boolean) => void;
+  removeRow: (id: string) => void;
+  toggleImportant: (id: string) => void;
+  isPageBreak: boolean;
+}) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: row.id });
-  const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.7 : 1, zIndex: isDragging ? 50 : 'auto' } as React.CSSProperties;
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.6 : 1,
+    zIndex: isDragging ? 100 : 'auto',
+  };
+
+  const inputStyle: React.CSSProperties = {
+    background: 'transparent',
+    border: 'none',
+    borderBottom: '1px solid rgba(255,255,255,0.12)',
+    outline: 'none',
+    color: 'inherit',
+    fontFamily: 'Urbanist, sans-serif',
+    fontWeight: 'inherit',
+    fontSize: 'inherit',
+    width: '100%',
+    padding: '2px 0',
+  };
 
   return (
     <motion.div
       ref={setNodeRef} style={style}
-      initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}
-      className={`group ${isPageBreak ? 'print:break-before-page' : ''}`}
+      initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.97 }}
+      className={isPageBreak ? 'print:break-before-page' : ''}
     >
-      <div 
-        style={{ ...S.card, ...(row.is_important ? S.cardImportant : {}) }}
-        className="hover:border-[#0056B3]/60 hover:shadow-[0_8px_32px_rgba(0,86,179,0.15)] transition-all w-full relative"
+      <div
+        style={{
+          background: row.is_important ? 'rgba(239,68,68,0.05)' : 'rgba(255,255,255,0.025)',
+          border: row.is_important ? '1px solid rgba(239,68,68,0.3)' : '1px solid rgba(0,86,179,0.25)',
+          borderRadius: 20,
+          padding: '24px 28px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 24,
+          transition: 'all 0.2s ease',
+          position: 'relative',
+          overflow: 'hidden',
+          fontFamily: 'Urbanist, sans-serif',
+        }}
+        onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = row.is_important ? 'rgba(239,68,68,0.5)' : 'rgba(0,86,179,0.5)'; }}
+        onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = row.is_important ? 'rgba(239,68,68,0.3)' : 'rgba(0,86,179,0.25)'; }}
       >
-        {/* Cells Wrapper */}
-        <div className="flex-1 flex flex-col md:flex-row gap-6 items-center">
-          {/* Time (Left) */}
-          <div className="w-[120px] flex-shrink-0">
-            {editMode ? (
-              <input 
-                value={row.time} 
-                onChange={e => updateCell(row.id, 'time', e.target.value, false)}
-                className="w-full bg-transparent border-b border-white/20 focus:border-[#0056B3] focus:ring-0 font-bold text-[#DEFF9A] text-2xl placeholder:text-zinc-800 outline-none"
-                placeholder="Time"
-              />
-            ) : (
-              <div className="text-[#DEFF9A] text-2xl font-bold font-urbanist">{row.time || '—'}</div>
-            )}
-          </div>
+        {/* Left accent line for important */}
+        {row.is_important && (
+          <div style={{
+            position: 'absolute', left: 0, top: 0, bottom: 0, width: 4,
+            background: '#ef4444',
+            boxShadow: '0 0 12px rgba(239,68,68,0.5)',
+            borderRadius: '20px 0 0 20px',
+          }} />
+        )}
 
-          {/* Title / Activity (Center) */}
-          <div className="flex-1 flex flex-col gap-2 min-w-[200px]">
-            {editMode ? (
-              <input 
-                value={row.activities} 
-                onChange={e => updateCell(row.id, 'activities', e.target.value, false)}
-                className="w-full bg-transparent border-b border-white/20 focus:border-[#0056B3] focus:ring-0 font-bold text-white text-xl placeholder:text-zinc-800 outline-none"
-                placeholder="Activity Title"
-              />
-            ) : (
-              <div className="text-white font-bold text-xl font-urbanist">{row.activities}</div>
-            )}
-            
-            {/* Additional info (Movement / Song) */}
-            <div className="flex flex-wrap gap-4 text-sm text-white/50">
-              {editMode ? (
-                <>
-                  <input value={row.movement} onChange={e => updateCell(row.id, 'movement', e.target.value, false)} className="bg-transparent border-b border-white/20 outline-none" placeholder="Movement" />
-                  <input value={row.cues} onChange={e => updateCell(row.id, 'cues', e.target.value, false)} className="bg-transparent border-b border-white/20 outline-none" placeholder="Cues" />
-                </>
-              ) : (
-                <>
-                  {row.movement && <span><i className="fa-solid fa-person-walking mr-1"/> {row.movement}</span>}
-                  {row.cues && <span><i className="fa-solid fa-comment-dots mr-1"/> {row.cues}</span>}
-                </>
-              )}
+        {/* TIME Column */}
+        <div style={{ minWidth: 100, flexShrink: 0 }}>
+          {editMode ? (
+            <input
+              value={row.time}
+              onChange={e => updateCell(row.id, 'time', e.target.value, false)}
+              placeholder="08:00"
+              style={{ ...inputStyle, color: '#DEFF9A', fontSize: 20, fontWeight: 800, width: 100 }}
+            />
+          ) : (
+            <div style={{ fontSize: 20, fontWeight: 800, color: '#DEFF9A', letterSpacing: '0.02em' }}>
+              {row.time || '—'}
             </div>
-          </div>
+          )}
+        </div>
 
-          {/* Extra / Media (Right before handle) */}
-          <div className="w-[150px] flex flex-col gap-1 flex-shrink-0 text-right">
-             {editMode ? (
-                <>
-                  <input value={row.song} onChange={e => updateCell(row.id, 'song', e.target.value, false)} className="bg-transparent border-b border-white/20 outline-none text-right text-sm text-[#0056B3]" placeholder="BGM" />
-                  <input value={row.volume} onChange={e => updateCell(row.id, 'volume', e.target.value, false)} className="bg-transparent border-b border-white/20 outline-none text-right text-xs" placeholder="Vol" />
-                </>
-              ) : (
-                <>
-                  {row.song && <div className="text-[#4da3ff] font-bold text-sm truncate"><i className="fa-solid fa-music mr-1"/> {row.song}</div>}
-                  {row.volume && <div className="text-white/40 text-xs">{row.volume}</div>}
-                </>
-              )}
+        {/* CONTENT Center */}
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {/* Activity (Title) */}
+          {editMode ? (
+            <input
+              value={row.activities}
+              onChange={e => updateCell(row.id, 'activities', e.target.value, false)}
+              placeholder="Activity / Programme Title"
+              style={{ ...inputStyle, color: '#fff', fontSize: 16, fontWeight: 700 }}
+            />
+          ) : (
+            <div style={{
+              fontSize: 16, fontWeight: 700,
+              color: row.is_important ? '#f87171' : '#fff',
+            }}>
+              {row.activities || <span style={{ color: 'rgba(255,255,255,0.15)' }}>—</span>}
+            </div>
+          )}
+
+          {/* Movement / Cues row */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginTop: 4 }}>
+            {editMode ? (
+              <>
+                <input value={row.movement} onChange={e => updateCell(row.id, 'movement', e.target.value, false)} placeholder="Movement" style={{ ...inputStyle, fontSize: 12, color: 'rgba(255,255,255,0.5)', width: 140 }} />
+                <input value={row.cues} onChange={e => updateCell(row.id, 'cues', e.target.value, false)} placeholder="Staff cue / note" style={{ ...inputStyle, fontSize: 12, color: 'rgba(255,255,255,0.5)', flex: 1, minWidth: 120 }} />
+              </>
+            ) : (
+              <>
+                {row.movement && (
+                  <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <i className="fa-solid fa-person-walking" style={{ fontSize: 10 }} /> {row.movement}
+                  </span>
+                )}
+                {row.cues && (
+                  <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <i className="fa-solid fa-comment-dots" style={{ fontSize: 10 }} /> {row.cues}
+                  </span>
+                )}
+              </>
+            )}
           </div>
         </div>
 
-        {/* Drag + Delete controls (Far Right) */}
+        {/* BGM / Volume */}
+        <div style={{ minWidth: 130, flexShrink: 0, textAlign: 'right' }}>
+          {editMode ? (
+            <>
+              <input value={row.song} onChange={e => updateCell(row.id, 'song', e.target.value, false)} placeholder="BGM" style={{ ...inputStyle, fontSize: 12, color: '#4da3ff', textAlign: 'right' }} />
+              <input value={row.volume} onChange={e => updateCell(row.id, 'volume', e.target.value, false)} placeholder="Vol" style={{ ...inputStyle, fontSize: 11, color: 'rgba(255,255,255,0.35)', textAlign: 'right', marginTop: 4 }} />
+            </>
+          ) : (
+            <>
+              {row.song && (
+                <div style={{ fontSize: 12, color: '#4da3ff', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 5 }}>
+                  <i className="fa-solid fa-music" style={{ fontSize: 10 }} /> {row.song}
+                </div>
+              )}
+              {row.volume && (
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 4 }}>{row.volume}</div>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* Controls (edit mode only) */}
         {editMode && (
-          <div className="w-16 flex flex-col items-center justify-center gap-4 border-l border-white/10 pl-6 ml-6">
-            <button {...attributes} {...listeners} className="text-white/40 hover:text-[#DEFF9A] cursor-grab p-2 transition-colors">
-              <i className="fa-solid fa-grip-lines text-xl" />
+          <div style={{
+            display: 'flex', flexDirection: 'column', gap: 8,
+            borderLeft: '1px solid rgba(255,255,255,0.07)',
+            paddingLeft: 20, marginLeft: 4, flexShrink: 0,
+          }}>
+            <button
+              {...attributes} {...listeners}
+              title="Drag to reorder"
+              style={{ background: 'none', border: 'none', cursor: 'grab', color: '#DEFF9A', padding: 4, fontSize: 16 }}
+            >
+              <i className="fa-solid fa-grip-lines" />
             </button>
-            <button onClick={() => removeRow(row.id)} className="text-white/40 hover:text-red-500 p-2 transition-colors mt-2">
+            <button
+              onClick={() => toggleImportant(row.id)}
+              title="Mark important"
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: row.is_important ? '#ef4444' : 'rgba(255,255,255,0.2)', padding: 4, fontSize: 14 }}
+            >
+              <i className="fa-solid fa-flag" />
+            </button>
+            <button
+              onClick={() => removeRow(row.id)}
+              title="Delete row"
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.2)', padding: 4, fontSize: 13 }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#ef4444'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.2)'; }}
+            >
               <i className="fa-solid fa-trash-can" />
             </button>
           </div>
-        )}
-
-        {/* Status Indicator */}
-        {row.is_important && (
-          <div className="absolute left-0 top-0 bottom-0 w-2 bg-red-600 shadow-[0_0_15px_rgba(220,38,38,0.5)] rounded-l-[24px]" />
         )}
       </div>
     </motion.div>

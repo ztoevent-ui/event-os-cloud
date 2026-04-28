@@ -4,16 +4,16 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const NAV_ITEMS = [
-    { label: 'Dashboard',          path: '',                    icon: 'fa-solid fa-chart-line' },
-    { label: 'Tasks',              path: '/tasks',              icon: 'fa-solid fa-list-check' },
-    { label: 'Timeline',           path: '/timelines',          icon: 'fa-solid fa-clock' },
-    { label: 'Schedule',           path: '/schedule',           icon: 'fa-solid fa-calendar-days' },
-    { label: 'Tentative Program',  path: '/program',            icon: 'fa-solid fa-clipboard-list' },
-    { label: 'Budget',             path: '/budget',             icon: 'fa-solid fa-wallet' },
-    { label: 'Vendors',            path: '/vendors',            icon: 'fa-solid fa-truck-fast' },
-    { label: 'Venue',              path: '/venue-layout',       icon: 'fa-solid fa-map-location-dot' },
-    { label: '3D Stage',           path: '/stage-layout',       icon: 'fa-solid fa-cube' },
-    { label: 'Registration',       path: '/registration',       icon: 'fa-solid fa-users' },
+    { label: 'Dashboard',         path: '',               icon: 'fa-solid fa-chart-line' },
+    { label: 'Tasks',             path: '/tasks',         icon: 'fa-solid fa-list-check' },
+    { label: 'Timeline',          path: '/timelines',     icon: 'fa-solid fa-clock' },
+    { label: 'Schedule',          path: '/schedule',      icon: 'fa-solid fa-calendar-days' },
+    { label: 'Tentative Program', path: '/program',       icon: 'fa-solid fa-clipboard-list' },
+    { label: 'Budget',            path: '/budget',        icon: 'fa-solid fa-wallet' },
+    { label: 'Vendors',           path: '/vendors',       icon: 'fa-solid fa-truck-fast' },
+    { label: 'Venue',             path: '/venue-layout',  icon: 'fa-solid fa-map-location-dot' },
+    { label: '3D Stage',          path: '/stage-layout',  icon: 'fa-solid fa-cube' },
+    { label: 'Registration',      path: '/registration',  icon: 'fa-solid fa-users' },
 ];
 
 export default function ProjectSidebar({
@@ -35,38 +35,34 @@ export default function ProjectSidebar({
         : NAV_ITEMS;
 
     return (
-        <aside
-            style={{
-                width: 280,
-                minWidth: 280,
-                maxWidth: 280,
-                height: '100vh',
-                display: 'flex',
-                flexDirection: 'column',
-                background: '#050505',
-                borderRight: '1px solid rgba(0,86,179,0.3)',
-                boxShadow: 'inset -20px 0 30px -20px rgba(0,86,179,0.3)',
-                fontFamily: "'Urbanist', sans-serif",
-                overflow: 'hidden',
-                flexShrink: 0,
-            }}
-        >
-            {/* ── Header: Logo ── */}
+        <aside className="zto-sidebar print:hidden">
+            {/* ── Logo Header ── */}
             <div style={{
-                height: 72,
+                height: 68,
                 display: 'flex',
                 alignItems: 'center',
                 padding: '0 20px',
                 borderBottom: '1px solid rgba(255,255,255,0.06)',
                 flexShrink: 0,
+                gap: 12,
             }}>
-                <Link href="/projects" style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: 1, textDecoration: 'none' }}>
+                <Link
+                    href="/projects"
+                    style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none', flex: 1, minWidth: 0 }}
+                >
                     <img
                         src="https://zihjzbweasaqqbwilshx.supabase.co/storage/v1/object/public/logo/icon.png.JPG"
                         alt="ZTO"
-                        style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }}
+                        style={{ width: 30, height: 30, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }}
                     />
-                    <span style={{ color: '#fff', fontWeight: 700, fontSize: 16, letterSpacing: '0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <span style={{
+                        color: '#fff',
+                        fontWeight: 700,
+                        fontSize: 15,
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                    }}>
                         ZTO Event OS
                     </span>
                 </Link>
@@ -74,31 +70,32 @@ export default function ProjectSidebar({
 
             {/* ── Project Context ── */}
             <div style={{
-                padding: '24px 20px',
+                padding: '20px',
                 borderBottom: '1px solid rgba(255,255,255,0.06)',
                 flexShrink: 0,
             }}>
-                <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(0,86,179,0.8)', marginBottom: 8 }}>
-                    Project Detail
+                <div className="zto-label" style={{ marginBottom: 8 }}>
+                    Current Project
                 </div>
-                <div style={{ fontSize: 16, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: 12 }}>
+                <div style={{
+                    fontSize: 15,
+                    fontWeight: 700,
+                    color: '#fff',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    marginBottom: 10,
+                }}>
                     {projectName}
                 </div>
-                <span style={{
-                    display: 'inline-flex', alignItems: 'center',
-                    padding: '6px 12px', borderRadius: 999,
-                    border: '1px solid rgba(222,255,154,0.3)',
-                    background: 'rgba(222,255,154,0.05)',
-                    color: '#DEFF9A',
-                    fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em',
-                }}>
-                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#DEFF9A', marginRight: 6, boxShadow: '0 0 8px #DEFF9A' }} />
+                <span className="zto-badge zto-badge-lime">
+                    <span className="zto-pulse-dot lime" />
                     {projectStatus}
                 </span>
             </div>
 
-            {/* ── Nav Links ── */}
-            <nav style={{ flex: 1, overflowY: 'auto', padding: '20px 16px' }}>
+            {/* ── Nav ── */}
+            <nav style={{ flex: 1, overflowY: 'auto', padding: '16px 12px' }}>
                 {allItems.map(item => {
                     const href = `${base}${item.path}`;
                     const exactPath = href.split('#')[0];
@@ -110,62 +107,30 @@ export default function ProjectSidebar({
                         <Link
                             key={href}
                             href={href}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 14,
-                                padding: '12px 16px',
-                                borderRadius: 12,
-                                marginBottom: 4,
-                                textDecoration: 'none',
-                                transition: 'all 0.2s ease-in-out',
-                                background: isActive ? '#0056B3' : 'transparent',
-                                color: isActive ? '#fff' : 'rgba(255,255,255,0.5)',
-                                boxShadow: isActive ? '0 0 16px rgba(0,86,179,0.4)' : 'none',
-                            }}
-                            className={`nav-item ${isActive ? 'active' : ''}`}
+                            className={`zto-nav-item ${isActive ? 'active' : ''}`}
                         >
-                            <i className={`${item.icon} nav-icon`} style={{ fontSize: 15, width: 20, textAlign: 'center', flexShrink: 0, transition: 'all 0.2s' }} />
-                            <span style={{ fontSize: 14, fontWeight: 700, whiteSpace: 'nowrap' }}>
-                                {item.label}
-                            </span>
+                            <i className={`${item.icon} zto-nav-icon`} />
+                            <span>{item.label}</span>
                         </Link>
                     );
                 })}
             </nav>
 
-            {/* ── Footer: Exit ── */}
-            <div style={{ padding: '16px 16px', borderTop: '1px solid rgba(255,255,255,0.06)', flexShrink: 0 }}>
-                <Link
-                    href="/projects"
-                    style={{
-                        display: 'flex', alignItems: 'center',
-                        gap: 14,
-                        padding: '12px 16px', borderRadius: 12,
-                        textDecoration: 'none', transition: 'all 0.15s',
-                        color: 'rgba(255,255,255,0.4)',
-                    }}
-                    className="hover-nav-exit"
-                >
-                    <i className="fa-solid fa-right-from-bracket" style={{ fontSize: 15, width: 20, textAlign: 'center' }} />
-                    <span style={{ fontSize: 14, fontWeight: 700 }}>Exit to Projects</span>
+            {/* ── Footer ── */}
+            <div style={{
+                padding: '12px',
+                borderTop: '1px solid rgba(255,255,255,0.06)',
+                flexShrink: 0,
+            }}>
+                <Link href="/projects" className="zto-nav-item" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                    <i className="fa-solid fa-arrow-left zto-nav-icon" />
+                    <span>Exit to Projects</span>
+                </Link>
+                <Link href="/dashboard" className="zto-nav-item" style={{ color: 'rgba(255,255,255,0.25)', marginTop: 2 }}>
+                    <i className="fa-solid fa-house-chimney zto-nav-icon" />
+                    <span>Master Console</span>
                 </Link>
             </div>
-
-            <style jsx>{`
-                .nav-item:not(.active):hover {
-                    background: rgba(255,255,255,0.05) !important;
-                    color: #fff !important;
-                }
-                .nav-item:not(.active):hover .nav-icon {
-                    color: #4da3ff;
-                    text-shadow: 0 0 10px rgba(77, 163, 255, 0.8);
-                }
-                .hover-nav-exit:hover {
-                    background: rgba(239,68,68,0.1) !important;
-                    color: #f87171 !important;
-                }
-            `}</style>
         </aside>
     );
 }

@@ -6,270 +6,359 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 type Profile = {
-  display_name: string | null;
-  role: string | null;
+    display_name: string | null;
+    role: string | null;
 };
 
 const tools = [
-  {
-    id: 'projects',
-    href: '/projects',
-    icon: 'fa-solid fa-calendar-check',
-    label: 'Event Manager',
-    desc: 'Projects, timelines, budgets & tasks',
-    accent: '#0056B3',
-    tag: 'CORE',
-  },
-  {
-    id: 'arena',
-    href: '/apps/zto-arena',
-    icon: 'fa-solid fa-tablet-screen-button',
-    label: 'ZTO Arena Hub',
-    desc: 'Tournament orchestration & master controls',
-    accent: '#F59E0B',
-    tag: 'ARENA',
-  },
-  {
-    id: 'luckydraw',
-    href: '/apps/lucky-draw',
-    icon: 'fa-solid fa-gift',
-    label: 'Lucky Draw',
-    desc: 'Master control for spin wheel & draws',
-    accent: '#A855F7',
-    tag: 'DISPLAY',
-  },
-  {
-    id: 'arena-screen',
-    href: '/apps/zto-arena/screen',
-    icon: 'fa-solid fa-display',
-    label: 'Arena Screen',
-    desc: 'Live LAN sync scoreboard billboard',
-    accent: '#06B6D4',
-    tag: 'DISPLAY',
-  },
-  {
-    id: 'registration',
-    href: '/admin/registration',
-    icon: 'fa-solid fa-sliders',
-    label: 'Registration Studio',
-    desc: 'Form fields, branding, sponsors & T&C',
-    accent: '#F97316',
-    tag: 'ADMIN',
-  },
-  {
-    id: 'users',
-    href: '/admin/users',
-    icon: 'fa-solid fa-users-gear',
-    label: 'User Management',
-    desc: 'Add, edit & manage staff accounts',
-    accent: '#8B5CF6',
-    tag: 'ADMIN',
-  },
-  {
-    id: 'enquiries',
-    href: '/consultations',
-    icon: 'fa-solid fa-clipboard-question',
-    label: 'Enquiries',
-    desc: 'View received consultation leads',
-    accent: '#10B981',
-    tag: 'ADMIN',
-  },
+    {
+        id: 'projects',
+        href: '/projects',
+        icon: 'fa-solid fa-calendar-check',
+        label: 'Event Manager',
+        desc: 'Projects, timelines, budgets & tasks',
+        accent: '#0056B3',
+        tag: 'CORE',
+    },
+    {
+        id: 'arena',
+        href: '/apps/zto-arena',
+        icon: 'fa-solid fa-tablet-screen-button',
+        label: 'ZTO Arena Hub',
+        desc: 'Tournament orchestration & master controls',
+        accent: '#4da3ff',
+        tag: 'ARENA',
+    },
+    {
+        id: 'luckydraw',
+        href: '/apps/lucky-draw',
+        icon: 'fa-solid fa-gift',
+        label: 'Lucky Draw',
+        desc: 'Master control for spin wheel & draws',
+        accent: '#a855f7',
+        tag: 'DISPLAY',
+    },
+    {
+        id: 'arena-screen',
+        href: '/apps/zto-arena/screen',
+        icon: 'fa-solid fa-display',
+        label: 'Arena Screen',
+        desc: 'Live LAN sync scoreboard billboard',
+        accent: '#06b6d4',
+        tag: 'DISPLAY',
+    },
+    {
+        id: 'registration',
+        href: '/admin/registration',
+        icon: 'fa-solid fa-sliders',
+        label: 'Registration Studio',
+        desc: 'Form fields, branding, sponsors & T&C',
+        accent: '#0056B3',
+        tag: 'ADMIN',
+    },
+    {
+        id: 'users',
+        href: '/admin/users',
+        icon: 'fa-solid fa-users-gear',
+        label: 'User Management',
+        desc: 'Add, edit & manage staff accounts',
+        accent: '#8b5cf6',
+        tag: 'ADMIN',
+    },
+    {
+        id: 'enquiries',
+        href: '/consultations',
+        icon: 'fa-solid fa-clipboard-question',
+        label: 'Enquiries',
+        desc: 'View received consultation leads',
+        accent: '#10b981',
+        tag: 'ADMIN',
+    },
 ];
 
 const tagColors: Record<string, string> = {
-  CORE: '#0056B3',
-  ARENA: '#F59E0B',
-  DISPLAY: '#A855F7',
-  ADMIN: '#10B981',
+    CORE:    '#0056B3',
+    ARENA:   '#4da3ff',
+    DISPLAY: '#8b5cf6',
+    ADMIN:   '#10b981',
 };
 
 export default function Dashboard() {
-  const router = useRouter();
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
+    const router = useRouter();
+    const [profile, setProfile] = useState<Profile | null>(null);
+    const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const init = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.replace('/auth?returnTo=/dashboard');
-        return;
-      }
-      const { data: prof } = await supabase
-        .from('profiles')
-        .select('display_name, role')
-        .eq('id', user.id)
-        .maybeSingle();
-      setProfile(prof);
-      setLoading(false);
+    useEffect(() => {
+        const init = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) { router.replace('/auth?returnTo=/dashboard'); return; }
+            const { data: prof } = await supabase
+                .from('profiles')
+                .select('display_name, role')
+                .eq('id', user.id)
+                .maybeSingle();
+            setProfile(prof);
+            setLoading(false);
+        };
+        init();
+    }, [router]);
+
+    const handleSignOut = async () => {
+        await supabase.auth.signOut();
+        router.replace('/');
     };
-    init();
-  }, [router]);
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    router.replace('/');
-  };
+    if (loading) {
+        return (
+            <div style={{ minHeight: '100vh', background: '#050505', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+                    <div style={{
+                        width: 44, height: 44,
+                        border: '2px solid rgba(0,86,179,0.2)',
+                        borderTopColor: '#0056B3',
+                        borderRadius: '50%',
+                        animation: 'spin 0.8s linear infinite',
+                    }} />
+                    <p style={{ color: '#0056B3', fontSize: 10, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', fontFamily: 'Urbanist, sans-serif' }}>
+                        Initializing OS...
+                    </p>
+                </div>
+                <style jsx>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+            </div>
+        );
+    }
 
-  if (loading) {
+    const isAdmin = ['admin'].includes(profile?.role ?? '');
+    const visibleTools = isAdmin ? tools : tools.filter(t => !['users', 'registration'].includes(t.id));
+
     return (
-      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
-        <div className="flex flex-col items-center">
-          <div className="w-12 h-12 border-2 border-[#0056B3]/30 border-t-[#0056B3] rounded-none animate-spin mb-4" />
-          <p className="text-[#0056B3] font-black uppercase tracking-[0.2em] text-xs">Initializing OS...</p>
+        <div className="page-transition" style={{
+            minHeight: '100vh',
+            background: '#050505',
+            color: '#E5E5E5',
+            fontFamily: 'Urbanist, sans-serif',
+        }}>
+            {/* ── Top Nav Bar ── */}
+            <header style={{
+                position: 'sticky',
+                top: 0,
+                zIndex: 50,
+                background: 'rgba(5,5,5,0.92)',
+                backdropFilter: 'blur(20px)',
+                borderBottom: '1px solid rgba(255,255,255,0.06)',
+                padding: '0 48px',
+                height: 68,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                    <div style={{
+                        width: 36, height: 36,
+                        borderRadius: 10,
+                        border: '1px solid rgba(0,86,179,0.4)',
+                        overflow: 'hidden',
+                        flexShrink: 0,
+                    }}>
+                        <img
+                            src="https://zihjzbweasaqqbwilshx.supabase.co/storage/v1/object/public/logo/icon.png.JPG"
+                            alt="ZTO"
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                    </div>
+                    <div>
+                        <div style={{ fontWeight: 800, fontSize: 16, letterSpacing: '-0.01em', color: '#fff' }}>
+                            ZTO Event <span style={{ color: '#0056B3' }}>OS</span>
+                        </div>
+                        <div className="zto-label" style={{ marginTop: 1 }}>Master Console</div>
+                    </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    {/* User chip */}
+                    <div style={{
+                        display: 'flex', alignItems: 'center', gap: 10,
+                        background: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        borderRadius: 12, padding: '6px 14px',
+                    }}>
+                        <div style={{
+                            width: 28, height: 28,
+                            background: '#0056B3',
+                            borderRadius: '50%',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 11, fontWeight: 800, color: '#fff', flexShrink: 0,
+                        }}>
+                            {(profile?.display_name || 'S')[0].toUpperCase()}
+                        </div>
+                        <div>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: '#fff' }}>{profile?.display_name || 'Staff'}</div>
+                            <div style={{ fontSize: 9, color: '#0056B3', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>{profile?.role || 'Staff'}</div>
+                        </div>
+                    </div>
+
+                    <Link href="/" className="zto-btn zto-btn-ghost" style={{ textDecoration: 'none', fontSize: 11 }}>
+                        <i className="fa-solid fa-arrow-left" /> Site
+                    </Link>
+
+                    <button onClick={handleSignOut} className="zto-btn zto-btn-danger" style={{ fontSize: 11 }}>
+                        <i className="fa-solid fa-power-off" /> Exit
+                    </button>
+                </div>
+            </header>
+
+            {/* ── Main Canvas with Guardrail ── */}
+            <main style={{ maxWidth: 1400, margin: '0 auto', padding: '60px 40px 80px' }}>
+
+                {/* Hero */}
+                <div style={{ marginBottom: 56, position: 'relative' }}>
+                    <div style={{
+                        position: 'absolute', top: -40, left: -40,
+                        width: 240, height: 240,
+                        background: '#0056B3',
+                        filter: 'blur(120px)',
+                        opacity: 0.12,
+                        borderRadius: '50%',
+                        pointerEvents: 'none',
+                    }} />
+
+                    <div className="zto-badge zto-badge-blue" style={{ marginBottom: 20 }}>
+                        <span className="zto-pulse-dot blue" />
+                        System Online
+                    </div>
+
+                    <h1 style={{
+                        fontSize: 'clamp(2.5rem, 5vw, 4rem)',
+                        fontWeight: 800,
+                        color: '#fff',
+                        textTransform: 'uppercase',
+                        letterSpacing: '-0.02em',
+                        lineHeight: 1,
+                        marginBottom: 16,
+                    }}>
+                        Master <span style={{ color: '#0056B3' }}>Console</span>
+                    </h1>
+                    <p className="zto-desc">
+                        Select an operational module to proceed. All actions are logged and audited.
+                    </p>
+                </div>
+
+                {/* Section Label */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}>
+                    <i className="fa-solid fa-server" style={{ color: 'rgba(255,255,255,0.2)', fontSize: 12 }} />
+                    <span className="zto-label">Available Nodes</span>
+                    <span style={{
+                        fontSize: 9, fontWeight: 700,
+                        background: 'rgba(0,86,179,0.12)',
+                        border: '1px solid rgba(0,86,179,0.25)',
+                        color: '#6BB8FF',
+                        padding: '2px 8px',
+                        borderRadius: 999,
+                    }}>
+                        {visibleTools.length}
+                    </span>
+                </div>
+
+                {/* Tool Grid */}
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                    gap: 20,
+                }}>
+                    {visibleTools.map(tool => (
+                        <Link
+                            key={tool.id}
+                            href={tool.href}
+                            style={{ textDecoration: 'none', display: 'block' }}
+                            className="group"
+                        >
+                            <div className="zto-card" style={{
+                                padding: 32,
+                                transition: 'all 0.3s ease',
+                                cursor: 'pointer',
+                                height: '100%',
+                                display: 'flex',
+                                flexDirection: 'column',
+                            }}
+                                onMouseEnter={e => {
+                                    (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-4px)';
+                                    (e.currentTarget as HTMLDivElement).style.borderColor = `${tool.accent}80`;
+                                    (e.currentTarget as HTMLDivElement).style.boxShadow = `0 12px 40px -10px ${tool.accent}40`;
+                                }}
+                                onMouseLeave={e => {
+                                    (e.currentTarget as HTMLDivElement).style.transform = '';
+                                    (e.currentTarget as HTMLDivElement).style.borderColor = '';
+                                    (e.currentTarget as HTMLDivElement).style.boxShadow = '';
+                                }}
+                            >
+                                {/* Top row */}
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 36 }}>
+                                    <div style={{
+                                        width: 48, height: 48,
+                                        borderRadius: 14,
+                                        background: `${tool.accent}12`,
+                                        border: `1px solid ${tool.accent}30`,
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        fontSize: 18, color: tool.accent,
+                                    }}>
+                                        <i className={tool.icon} />
+                                    </div>
+                                    <span style={{
+                                        fontSize: 9, fontWeight: 700,
+                                        letterSpacing: '0.14em',
+                                        textTransform: 'uppercase',
+                                        padding: '3px 10px',
+                                        borderRadius: 999,
+                                        background: `${tagColors[tool.tag]}10`,
+                                        border: `1px solid ${tagColors[tool.tag]}30`,
+                                        color: tagColors[tool.tag],
+                                    }}>
+                                        {tool.tag}
+                                    </span>
+                                </div>
+
+                                {/* Label */}
+                                <div style={{ fontSize: 17, fontWeight: 700, color: '#fff', marginBottom: 8 }}>
+                                    {tool.label}
+                                </div>
+                                <div className="zto-desc" style={{ fontSize: 13, flex: 1 }}>
+                                    {tool.desc}
+                                </div>
+
+                                {/* Footer */}
+                                <div style={{
+                                    marginTop: 28,
+                                    paddingTop: 20,
+                                    borderTop: '1px solid rgba(255,255,255,0.05)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                }}>
+                                    <span className="zto-label">Access Node</span>
+                                    <i className="fa-solid fa-arrow-right" style={{ color: 'rgba(255,255,255,0.2)', fontSize: 12 }} />
+                                </div>
+                            </div>
+                        </Link>
+                    ))}
+                </div>
+
+                {/* Footer */}
+                <div style={{
+                    marginTop: 80,
+                    paddingTop: 24,
+                    borderTop: '1px solid rgba(255,255,255,0.05)',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                }}>
+                    <span className="zto-label">© {new Date().getFullYear()} ZTO. Internal Network.</span>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgba(255,255,255,0.1)' }} />
+                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgba(255,255,255,0.1)' }} />
+                        <span className="zto-pulse-dot blue" />
+                    </div>
+                </div>
+            </main>
         </div>
-      </div>
     );
-  }
-
-  const isAdmin = ['admin'].includes(profile?.role ?? '');
-  const visibleTools = isAdmin ? tools : tools.filter(t => !['users', 'registration'].includes(t.id));
-
-  return (
-    <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-[#0056B3] selection:text-white page-transition">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-[#050505]/90 backdrop-blur-xl border-b border-white/5 px-6 lg:px-12 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 border border-[#0056B3]/40 bg-[#0056B3]/10 flex items-center justify-center overflow-hidden rounded-none shadow-[0_0_15px_rgba(0,86,179,0.2)]">
-            <img
-              src="https://zihjzbweasaqqbwilshx.supabase.co/storage/v1/object/public/logo/icon.png.JPG"
-              alt="ZTO"
-              className="w-full h-full object-cover mix-blend-screen"
-            />
-          </div>
-          <div>
-            <div className="font-black text-lg tracking-tight uppercase">
-              ZTO Event <span className="text-[#0056B3]">OS</span>
-            </div>
-            <div className="text-[10px] text-zinc-500 font-bold tracking-[0.2em] uppercase">
-              Operating System
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <div className="hidden md:flex items-center gap-3 bg-white/5 border border-white/10 px-4 py-2 rounded-none">
-            <div className="w-6 h-6 bg-gradient-to-br from-[#0056B3] to-[#003d82] flex items-center justify-center text-xs font-bold rounded-none">
-              {(profile?.display_name || 'S')[0].toUpperCase()}
-            </div>
-            <div>
-              <div className="text-xs font-bold text-white uppercase tracking-wider">
-                {profile?.display_name || 'Staff'}
-              </div>
-              <div className="text-[9px] text-[#0056B3] font-black tracking-[0.1em] uppercase">
-                {profile?.role || 'Staff'}
-              </div>
-            </div>
-          </div>
-
-          <Link
-            href="/"
-            className="flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-2 text-xs font-bold text-zinc-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all uppercase tracking-widest rounded-none"
-          >
-            <i className="fa-solid fa-arrow-left text-[10px]" /> Site
-          </Link>
-
-          <button
-            onClick={handleSignOut}
-            className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 px-4 py-2 text-xs font-bold text-red-500 hover:bg-red-500/20 hover:border-red-500/40 transition-all uppercase tracking-widest rounded-none"
-          >
-            <i className="fa-solid fa-power-off text-[10px]" /> Exit
-          </button>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-[1400px] mx-auto px-6 lg:px-12 py-12 lg:py-20">
-        
-        {/* Welcome Section */}
-        <div className="mb-16 relative">
-          <div className="absolute top-0 left-0 w-32 h-32 bg-[#0056B3] blur-[120px] opacity-30 rounded-full pointer-events-none" />
-          <div className="inline-flex items-center gap-2 bg-[#0056B3]/10 border border-[#0056B3]/30 px-3 py-1.5 text-[10px] font-black text-[#6BB8FF] uppercase tracking-[0.2em] mb-6 rounded-none">
-            <i className="fa-solid fa-circle text-[6px] text-green-500 animate-pulse" />
-            System Online
-          </div>
-          <h1 className="text-4xl lg:text-5xl font-black uppercase tracking-tight mb-4 text-white">
-            Master <span className="text-[#0056B3]">Console</span>
-          </h1>
-          <p className="text-zinc-500 text-sm font-mono max-w-xl">
-            Select an operational module to proceed. Ensure all actions comply with ZTO Event OS protocol.
-          </p>
-        </div>
-
-        {/* Tools Section */}
-        <div className="flex items-center gap-3 mb-8">
-          <i className="fa-solid fa-server text-zinc-600 text-sm" />
-          <h2 className="text-xs font-black text-zinc-500 uppercase tracking-[0.2em]">Available Nodes</h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {visibleTools.map((tool) => (
-            <Link
-              key={tool.id}
-              href={tool.href}
-              className="group relative block zto-card hover:border-[#0056B3]/80 transition-all duration-300 hover:bg-[#050505] hover:-translate-y-1 overflow-hidden"
-            >
-              {/* Hover Glow */}
-              <div 
-                className="absolute -bottom-20 -right-20 w-40 h-40 blur-[60px] opacity-0 group-hover:opacity-20 transition-opacity duration-500"
-                style={{ backgroundColor: tool.accent }}
-              />
-
-              <div className="flex justify-between items-start mb-12">
-                <div 
-                  className="w-14 h-14 flex items-center justify-center text-xl border transition-all duration-300 rounded-none group-hover:scale-110"
-                  style={{ 
-                    backgroundColor: `${tool.accent}15`, 
-                    color: tool.accent,
-                    borderColor: `${tool.accent}30` 
-                  }}
-                >
-                  <i className={tool.icon} />
-                </div>
-                
-                <div 
-                  className="px-2 py-1 border text-[9px] font-black uppercase tracking-[0.2em] rounded-none transition-all"
-                  style={{
-                    backgroundColor: `${tagColors[tool.tag]}10`,
-                    borderColor: `${tagColors[tool.tag]}30`,
-                    color: tagColors[tool.tag]
-                  }}
-                >
-                  {tool.tag}
-                </div>
-              </div>
-
-              <h3 className="zto-card-title text-xl mb-3 group-hover:text-[#4da3ff] transition-colors tracking-wide uppercase">
-                {tool.label}
-              </h3>
-              <p className="zto-card-desc text-xs leading-relaxed group-hover:text-white transition-colors">
-                {tool.desc}
-              </p>
-
-              {/* Enter Action */}
-              <div className="mt-8 pt-6 border-t border-white/5 flex items-center justify-between">
-                <span className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.2em] group-hover:text-[#0056B3] transition-colors">
-                  Access Node
-                </span>
-                <i className="fa-solid fa-arrow-right text-zinc-600 group-hover:text-[#0056B3] group-hover:translate-x-1 transition-all text-xs" />
-              </div>
-            </Link>
-          ))}
-        </div>
-
-        {/* Footer */}
-        <div className="mt-24 pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">
-            © {new Date().getFullYear()} ZTO. Internal Network.
-          </p>
-          <div className="flex gap-4">
-            <span className="w-1.5 h-1.5 bg-zinc-700 rounded-none" />
-            <span className="w-1.5 h-1.5 bg-zinc-700 rounded-none" />
-            <span className="w-1.5 h-1.5 bg-[#0056B3] rounded-none animate-pulse" />
-          </div>
-        </div>
-      </main>
-    </div>
-  );
 }
-

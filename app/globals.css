@@ -1,75 +1,65 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Urbanist:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
-/* ─── Font ─────────────────────────────────────────────────────────────── */
-:root {
-  --font-inter: 'Urbanist', sans-serif;
-  --font-urbanist: 'Urbanist', sans-serif;
-}
+/* ═══════════════════════════════════════════════════════════════════════════
+   ZTO Event OS 2.0 — COMMAND CENTER DESIGN SYSTEM
+   Global CSS Foundation
+   ═══════════════════════════════════════════════════════════════════════════ */
 
-/* ─── Design Tokens ─────────────────────────────────────────────────────── */
+/* ─── Design Tokens ───────────────────────────────────────────────────────── */
 :root {
-  --background: #050505;
-  --foreground: #E5E5E5;
-  --card: rgba(255, 255, 255, 0.03);
-  --card-foreground: #E5E5E5;
-  --popover: #0a0a0a;
-  --popover-foreground: #E5E5E5;
-  --primary: #0056B3;
+  /* Core */
+  --zto-bg:           #050505;
+  --zto-bg-card:      #0a0a0a;
+  --zto-fg:           #E5E5E5;
+
+  /* Brand */
+  --zto-blue:         #0056B3;
+  --zto-blue-bright:  #4da3ff;
+  --zto-blue-glow:    rgba(0, 86, 179, 0.5);
+  --zto-lime:         #DEFF9A;
+  --zto-lime-glow:    rgba(222, 255, 154, 0.5);
+
+  /* Glass Card */
+  --zto-card-bg:      rgba(255, 255, 255, 0.03);
+  --zto-card-border:  rgba(0, 86, 179, 0.3);
+  --zto-card-radius:  24px;
+  --zto-card-pad:     48px;
+
+  /* Input */
+  --zto-input-bg:     rgba(255, 255, 255, 0.04);
+  --zto-input-border: rgba(255, 255, 255, 0.1);
+
+  /* Sidebar */
+  --zto-sidebar-w:    280px;
+
+  /* Transitions */
+  --zto-ease:         cubic-bezier(0.25, 0.8, 0.25, 1);
+
+  /* Tailwind compat */
+  --background:       #050505;
+  --foreground:       #E5E5E5;
+  --primary:          #0056B3;
   --primary-foreground: #ffffff;
-  --secondary: rgba(255, 255, 255, 0.06);
-  --secondary-foreground: #E5E5E5;
-  --muted: rgba(255, 255, 255, 0.04);
-  --muted-foreground: rgba(229, 229, 229, 0.45);
-  --accent: #0056B3;
-  --accent-foreground: #ffffff;
-  --destructive: #ef4444;
-  --destructive-foreground: #fafafa;
-  --border: rgba(255, 255, 255, 0.08);
-  --input: rgba(255, 255, 255, 0.06);
-  --ring: #0056B3;
-  --chart-1: #e76e50;
-  --chart-2: #2a9d90;
-  --chart-3: #274754;
-  --chart-4: #e8c468;
-  --chart-5: #f4a259;
-  --radius: 0.75rem;
+  --destructive:      #ef4444;
+  --border:           rgba(255, 255, 255, 0.08);
+  --ring:             #0056B3;
+  --radius:           0.75rem;
 }
 
 @theme {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
+  --color-background:   var(--background);
+  --color-foreground:   var(--foreground);
+  --color-primary:      var(--primary);
   --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --font-sans: var(--font-inter);
-  --font-mono: 'Geist Mono', monospace;
+  --color-destructive:  var(--destructive);
+  --color-border:       var(--border);
+  --color-ring:         var(--ring);
+  --font-sans:          'Urbanist', sans-serif;
+  --font-mono:          'Geist Mono', monospace;
 }
 
-/* ─── Base ───────────────────────────────────────────────────────────────── */
+/* ─── Reset ───────────────────────────────────────────────────────────────── */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -81,202 +71,467 @@ html {
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--zto-bg);
+  color: var(--zto-fg);
   font-family: 'Urbanist', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
 }
 
-/* ─── Landing Page Animations ────────────────────────────────────────────── */
+/* ─── Scrollbar ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: #050505; }
+::-webkit-scrollbar-thumb { background: rgba(0, 86, 179, 0.4); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0, 86, 179, 0.7); }
 
-/* Hero badge / headline fade-in-up */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(32px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+/* ─── Selection ───────────────────────────────────────────────────────────── */
+::selection { background: rgba(0, 86, 179, 0.35); color: #fff; }
 
-/* Pulsing dot in hero badge */
-@keyframes pulse-dot {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(0, 119, 204, 0.6);
-  }
-  50% {
-    opacity: 0.7;
-    transform: scale(1.15);
-    box-shadow: 0 0 0 6px rgba(0, 119, 204, 0);
-  }
-}
+/* ═══════════════════════════════════════════════════════════════════════════
+   TRIPLE-LAYER SKELETON — THE CANONICAL INTERNAL LAYOUT
+   ═══════════════════════════════════════════════════════════════════════════
+   Layer 1: .zto-shell        — full viewport flex container
+   Layer 2: .zto-sidebar      — 280px fixed-width nav
+   Layer 3: .zto-main         — flex:1, scrollable canvas
+   Layer 4: .zto-guardrail    — max-width:1400px centered content box
+   ═══════════════════════════════════════════════════════════════════════════ */
 
-/* Scroll line breathing animation */
-@keyframes scroll-line {
-  0%, 100% {
-    opacity: 0.2;
-    transform: scaleY(1);
-  }
-  50% {
-    opacity: 0.6;
-    transform: scaleY(1.15);
-  }
-}
-
-/* Hero element entrance animations with stagger */
-.hero-badge {
-  animation: fadeInUp 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.2s both;
-}
-
-.hero-headline {
-  animation: fadeInUp 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.4s both;
-}
-
-.hero-sub {
-  animation: fadeInUp 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.6s both;
-}
-
-/* ─── Legacy App Cards (preserved for internal pages) ────────────────────── */
-.app-card {
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
-.app-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
-}
-
-.app-card.disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  filter: grayscale(100%);
-}
-
-.app-card.disabled:hover {
-  transform: none;
-  box-shadow: none;
-}
-
-/* ─── Scrollbar ──────────────────────────────────────────────────────────── */
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: #050505;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(0, 86, 179, 0.4);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 86, 179, 0.7);
-}
-
-/* ─── Selection ──────────────────────────────────────────────────────────── */
-::selection {
-  background: rgba(0, 86, 179, 0.35);
-  color: #fff;
-}
-
-/* ─── Global Standard Components ─────────────────────────────────────────── */
-.btn-royal {
-  background: #0056B3;
-  color: #ffffff;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  font-weight: 700;
+.zto-shell {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--zto-bg);
   font-family: 'Urbanist', sans-serif;
-  letter-spacing: 0.05em;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  border: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  text-transform: uppercase;
-  font-size: 0.75rem;
-  cursor: pointer;
-  box-shadow: 0 4px 14px 0 rgba(0, 86, 179, 0.39);
+  color: var(--zto-fg);
 }
 
-.btn-royal:hover {
-  background: #0069d9;
-  box-shadow: 0 6px 20px rgba(0, 86, 179, 0.6);
-  transform: translateY(-2px);
+.zto-sidebar {
+  width: var(--zto-sidebar-w);
+  min-width: var(--zto-sidebar-w);
+  max-width: var(--zto-sidebar-w);
+  flex-shrink: 0;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: #050505;
+  border-right: 1px solid rgba(0, 86, 179, 0.25);
+  box-shadow: 4px 0 24px -8px rgba(0, 86, 179, 0.15);
+  z-index: 40;
 }
 
-.btn-royal:active {
-  transform: translateY(0);
+.zto-main {
+  flex: 1;
+  min-width: 0;            /* Critical: prevents flex child overflow */
+  height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: var(--zto-bg);
+  position: relative;
 }
 
-.btn-royal:disabled {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.3);
-  box-shadow: none;
-  cursor: not-allowed;
-  transform: none;
-}
-
-/* ─── ZTO Event OS 2.0 Global Standard ─────────────────────────────────── */
-
-.zto-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(0, 86, 179, 0.3);
-  border-radius: 24px;
-  padding: 40px;
-  backdrop-filter: blur(20px);
+.zto-guardrail {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 48px 40px;
+  width: 100%;
+  min-height: 100%;
   box-sizing: border-box;
 }
 
-.zto-card-title {
+/* ═══════════════════════════════════════════════════════════════════════════
+   CARD COMPONENT SYSTEM
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.zto-card {
+  background: var(--zto-card-bg);
+  border: 1px solid var(--zto-card-border);
+  border-radius: var(--zto-card-radius);
+  padding: var(--zto-card-pad);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s var(--zto-ease), box-shadow 0.3s var(--zto-ease);
+}
+
+.zto-card:hover {
+  border-color: rgba(0, 86, 179, 0.55);
+  box-shadow: 0 8px 40px -10px rgba(0, 86, 179, 0.2);
+}
+
+.zto-card-sm {
+  padding: 28px;
+  border-radius: 16px;
+}
+
+/* ─── Typography ──────────────────────────────────────────────────────────── */
+.zto-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.zto-title {
+  font-size: 1.25rem;
   font-weight: 700;
   color: #ffffff;
+  line-height: 1.2;
 }
 
-.zto-card-data {
-  color: #DEFF9A; /* Cyber Lime */
-}
-
-.zto-card-desc {
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.zto-btn-glow {
-  background: #0056B3;
-  color: #ffffff;
-  padding: 0.75rem 1.5rem;
-  border-radius: 12px;
+.zto-data {
+  color: var(--zto-lime);
   font-weight: 700;
-  font-family: 'Urbanist', sans-serif;
-  border: none;
+}
+
+.zto-desc {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   BUTTON SYSTEM
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.zto-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: 12px;
+  font-family: 'Urbanist', sans-serif;
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   cursor: pointer;
-  box-shadow: 0 0 15px rgba(0, 86, 179, 0.6);
-  transition: all 0.3s ease;
+  border: none;
+  transition: all 0.25s var(--zto-ease);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.zto-btn-glow:hover {
-  box-shadow: 0 0 25px rgba(0, 86, 179, 0.9);
+.zto-btn-primary {
+  background: var(--zto-blue);
+  color: #ffffff;
+  box-shadow: 0 0 16px rgba(0, 86, 179, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.zto-btn-primary:hover {
+  background: #0069d9;
+  box-shadow: 0 0 28px rgba(0, 86, 179, 0.8), 0 4px 16px rgba(0, 0, 0, 0.4);
   transform: translateY(-2px);
 }
 
-.page-transition {
-  animation: pageFadeIn 0.3s ease-in-out;
+.zto-btn-primary:active { transform: translateY(0); }
+
+.zto-btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
-@keyframes pageFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+.zto-btn-ghost {
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.zto-btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.zto-btn-danger {
+  background: rgba(239, 68, 68, 0.08);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.zto-btn-danger:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+/* Glow alias for backward compat */
+.zto-btn-glow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: 12px;
+  background: var(--zto-blue);
+  color: #ffffff;
+  font-family: 'Urbanist', sans-serif;
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 0 16px rgba(0, 86, 179, 0.5);
+  transition: all 0.25s var(--zto-ease);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.zto-btn-glow:hover {
+  box-shadow: 0 0 28px rgba(0, 86, 179, 0.8);
+  transform: translateY(-2px);
+}
+
+.zto-btn-glow:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ─── btn-royal backward compat ──────────────────────────────────────────── */
+.btn-royal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: 12px;
+  background: var(--zto-blue);
+  color: #ffffff;
+  font-family: 'Urbanist', sans-serif;
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 0 16px rgba(0, 86, 179, 0.5);
+  transition: all 0.25s var(--zto-ease);
+}
+
+.btn-royal:hover {
+  box-shadow: 0 0 28px rgba(0, 86, 179, 0.8);
+  transform: translateY(-2px);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   INPUT SYSTEM
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.zto-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: #ffffff;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.zto-input:focus {
+  border-color: var(--zto-blue);
+  box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.15);
+}
+
+.zto-input::placeholder { color: rgba(255, 255, 255, 0.2); }
+
+.zto-select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: #ffffff;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 0.875rem;
+  outline: none;
+  appearance: none;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.zto-select:focus { border-color: var(--zto-blue); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SIDEBAR NAV ATOMS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.zto-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 11px 14px;
+  border-radius: 12px;
+  margin-bottom: 3px;
+  text-decoration: none;
+  transition: all 0.18s ease;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.zto-nav-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.zto-nav-item:hover .zto-nav-icon {
+  color: var(--zto-blue-bright);
+  filter: drop-shadow(0 0 6px rgba(77, 163, 255, 0.7));
+}
+
+.zto-nav-item.active {
+  background: var(--zto-blue);
+  color: #ffffff;
+  box-shadow: 0 0 18px rgba(0, 86, 179, 0.45);
+}
+
+.zto-nav-icon {
+  width: 18px;
+  text-align: center;
+  flex-shrink: 0;
+  font-size: 14px;
+  transition: all 0.18s ease;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ACTION BAR — Fixed floating bar for page action buttons
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.zto-action-bar {
+  position: fixed;
+  top: 24px;
+  right: 32px;
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(5, 5, 5, 0.85);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 10px 14px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   STATUS BADGES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.zto-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.zto-badge-blue {
+  background: rgba(0, 86, 179, 0.1);
+  border: 1px solid rgba(0, 86, 179, 0.35);
+  color: #6BB8FF;
+}
+
+.zto-badge-lime {
+  background: rgba(222, 255, 154, 0.06);
+  border: 1px solid rgba(222, 255, 154, 0.3);
+  color: var(--zto-lime);
+}
+
+.zto-badge-red {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #f87171;
+}
+
+.zto-pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.zto-pulse-dot.blue {
+  background: var(--zto-blue-bright);
+  box-shadow: 0 0 8px var(--zto-blue-bright);
+  animation: ztoPulse 2s ease-in-out infinite;
+}
+
+.zto-pulse-dot.lime {
+  background: var(--zto-lime);
+  box-shadow: 0 0 8px var(--zto-lime);
+  animation: ztoPulse 2s ease-in-out infinite;
+}
+
+@keyframes ztoPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.85); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PAGE TRANSITION
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.page-transition {
+  animation: ztoFadeIn 0.28s ease-in-out;
+}
+
+@keyframes ztoFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LANDING PAGE ANIMATIONS (preserved, untouched)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(32px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 119, 204, 0.6); }
+  50%       { opacity: 0.7; transform: scale(1.15); box-shadow: 0 0 0 6px rgba(0, 119, 204, 0); }
+}
+
+@keyframes scroll-line {
+  0%, 100% { opacity: 0.2; transform: scaleY(1); }
+  50%       { opacity: 0.6; transform: scaleY(1.15); }
+}
+
+.hero-badge    { animation: fadeInUp 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.2s both; }
+.hero-headline { animation: fadeInUp 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.4s both; }
+.hero-sub      { animation: fadeInUp 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.6s both; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PRINT OVERRIDES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media print {
+  @page { size: A4 landscape; margin: 5mm 7mm; }
+  .zto-sidebar, .zto-action-bar, nav, button, [class*="print:hidden"] {
+    display: none !important;
+  }
+  .zto-main { overflow: visible !important; height: auto !important; }
+  html, body { background: white !important; color: black !important; }
 }
