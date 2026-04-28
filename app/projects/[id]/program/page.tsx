@@ -45,12 +45,15 @@ type FontSize = 'text-sm' | 'text-base' | 'text-lg' | 'text-xl';
 const S = {
   card: {
     background: 'rgba(255, 255, 255, 0.03)',
-    backdropFilter: 'blur(16px)',
-    WebkitBackdropFilter: 'blur(16px)',
-    border: '1px solid rgba(0, 86, 179, 0.2)',
-    borderRadius: 16,
-    marginBottom: 16,
-    overflow: 'hidden',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    border: '1px solid rgba(0, 86, 179, 0.3)',
+    borderRadius: 24,
+    padding: 40,
+    marginBottom: 24,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 24,
     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   } as React.CSSProperties,
   cardImportant: {
@@ -228,28 +231,28 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
       {/* ── Page Header + Action Bar ── */}
       <div className="print:hidden flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
         <div className="flex flex-col">
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-[#0056B3] mb-2">Project Sequence</p>
-          <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tight leading-none">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#0056B3] mb-2">Project Sequence</p>
+          <h1 className="text-4xl md:text-5xl font-bold text-white uppercase tracking-tight leading-none">
             {project?.name || 'Loading...'}
           </h1>
         </div>
 
         {/* Action Hub */}
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-4 fixed top-8 right-8 z-50 bg-[#050505]/80 backdrop-blur-xl p-4 rounded-[24px] border border-white/10 shadow-2xl">
           <button 
             onClick={() => setIsKiosk(true)}
-            className="h-11 px-6 rounded-xl bg-zinc-900 border border-[#0056B3]/40 text-[#4da3ff] font-black text-[10px] tracking-widest uppercase hover:bg-[#0056B3] hover:text-white hover:shadow-[0_0_20px_rgba(0,86,179,0.4)] transition-all flex items-center gap-2.5"
+            className="zto-btn-glow text-[10px] tracking-widest uppercase"
           >
-            <i className="fa-solid fa-expand" /> Kiosk Mode
+            <i className="fa-solid fa-expand" /> Kiosk
           </button>
 
           <button 
             onClick={editMode ? saveScript : toggleEditMode}
             disabled={isSaving}
-            className="h-11 px-8 rounded-xl bg-[#0056B3] text-white font-black text-[10px] tracking-widest uppercase shadow-[0_0_20px_rgba(0,86,179,0.3)] hover:shadow-[0_0_30px_rgba(0,86,179,0.5)] transition-all flex items-center gap-2.5 disabled:opacity-50"
+            className="zto-btn-glow text-[10px] tracking-widest uppercase disabled:opacity-50"
           >
             <i className={`fa-solid ${isSaving ? 'fa-spinner fa-spin' : editMode ? 'fa-save' : 'fa-pencil'}`} />
-            {isSaving ? 'Saving...' : editMode ? 'Save Sequence' : 'Modify Sequence'}
+            {isSaving ? 'Saving' : editMode ? 'Save' : 'Modify'}
           </button>
 
           <div className="flex items-center gap-2">
@@ -321,60 +324,84 @@ function SortableRow({ row, columns, editMode, updateCell, removeRow, moveColumn
     >
       <div 
         style={{ ...S.card, ...(row.is_important ? S.cardImportant : {}) }}
-        className="flex items-stretch hover:border-[#0056B3]/60 hover:shadow-[0_8px_32px_rgba(0,86,179,0.15)] transition-all"
+        className="hover:border-[#0056B3]/60 hover:shadow-[0_8px_32px_rgba(0,86,179,0.15)] transition-all w-full relative"
       >
-        {/* Drag + Delete controls */}
+        {/* Cells Wrapper */}
+        <div className="flex-1 flex flex-col md:flex-row gap-6 items-center">
+          {/* Time (Left) */}
+          <div className="w-[120px] flex-shrink-0">
+            {editMode ? (
+              <input 
+                value={row.time} 
+                onChange={e => updateCell(row.id, 'time', e.target.value, false)}
+                className="w-full bg-transparent border-b border-white/20 focus:border-[#0056B3] focus:ring-0 font-bold text-[#DEFF9A] text-2xl placeholder:text-zinc-800 outline-none"
+                placeholder="Time"
+              />
+            ) : (
+              <div className="text-[#DEFF9A] text-2xl font-bold font-urbanist">{row.time || '—'}</div>
+            )}
+          </div>
+
+          {/* Title / Activity (Center) */}
+          <div className="flex-1 flex flex-col gap-2 min-w-[200px]">
+            {editMode ? (
+              <input 
+                value={row.activities} 
+                onChange={e => updateCell(row.id, 'activities', e.target.value, false)}
+                className="w-full bg-transparent border-b border-white/20 focus:border-[#0056B3] focus:ring-0 font-bold text-white text-xl placeholder:text-zinc-800 outline-none"
+                placeholder="Activity Title"
+              />
+            ) : (
+              <div className="text-white font-bold text-xl font-urbanist">{row.activities}</div>
+            )}
+            
+            {/* Additional info (Movement / Song) */}
+            <div className="flex flex-wrap gap-4 text-sm text-white/50">
+              {editMode ? (
+                <>
+                  <input value={row.movement} onChange={e => updateCell(row.id, 'movement', e.target.value, false)} className="bg-transparent border-b border-white/20 outline-none" placeholder="Movement" />
+                  <input value={row.cues} onChange={e => updateCell(row.id, 'cues', e.target.value, false)} className="bg-transparent border-b border-white/20 outline-none" placeholder="Cues" />
+                </>
+              ) : (
+                <>
+                  {row.movement && <span><i className="fa-solid fa-person-walking mr-1"/> {row.movement}</span>}
+                  {row.cues && <span><i className="fa-solid fa-comment-dots mr-1"/> {row.cues}</span>}
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Extra / Media (Right before handle) */}
+          <div className="w-[150px] flex flex-col gap-1 flex-shrink-0 text-right">
+             {editMode ? (
+                <>
+                  <input value={row.song} onChange={e => updateCell(row.id, 'song', e.target.value, false)} className="bg-transparent border-b border-white/20 outline-none text-right text-sm text-[#0056B3]" placeholder="BGM" />
+                  <input value={row.volume} onChange={e => updateCell(row.id, 'volume', e.target.value, false)} className="bg-transparent border-b border-white/20 outline-none text-right text-xs" placeholder="Vol" />
+                </>
+              ) : (
+                <>
+                  {row.song && <div className="text-[#4da3ff] font-bold text-sm truncate"><i className="fa-solid fa-music mr-1"/> {row.song}</div>}
+                  {row.volume && <div className="text-white/40 text-xs">{row.volume}</div>}
+                </>
+              )}
+          </div>
+        </div>
+
+        {/* Drag + Delete controls (Far Right) */}
         {editMode && (
-          <div className="w-12 bg-white/[0.02] border-r border-white/5 flex flex-col items-center justify-center gap-4 py-4">
-            <button {...attributes} {...listeners} className="text-zinc-600 hover:text-[#4da3ff] cursor-grab p-1 transition-colors">
-              <i className="fa-solid fa-grip-lines" />
+          <div className="w-16 flex flex-col items-center justify-center gap-4 border-l border-white/10 pl-6 ml-6">
+            <button {...attributes} {...listeners} className="text-white/40 hover:text-[#DEFF9A] cursor-grab p-2 transition-colors">
+              <i className="fa-solid fa-grip-lines text-xl" />
             </button>
-            <button onClick={() => removeRow(row.id)} className="text-zinc-700 hover:text-red-500 p-1 transition-colors">
-              <i className="fa-solid fa-trash-can text-sm" />
+            <button onClick={() => removeRow(row.id)} className="text-white/40 hover:text-red-500 p-2 transition-colors mt-2">
+              <i className="fa-solid fa-trash-can" />
             </button>
           </div>
         )}
 
-        {/* Cells Wrapper */}
-        <div className="flex-1 flex flex-wrap md:flex-nowrap divide-x divide-white/5 overflow-hidden">
-          {columns.map((col: ProgramColumn, idx: number) => {
-            const val = col.isCustom ? (row.custom_data?.[col.id] || '') : (row as any)[col.id];
-            const isTime = col.id === 'time';
-            const isActivity = col.id === 'activities';
-            
-            return (
-              <div 
-                key={col.id} 
-                style={{ flexBasis: col.width || 'auto', flexGrow: idx === 1 ? 2 : 1 }}
-                className="min-w-[120px] p-4 flex flex-col"
-              >
-                {editMode ? (
-                  <div className="flex flex-col h-full">
-                    <span className="text-[8px] font-black uppercase tracking-widest text-zinc-600 mb-2">{col.label}</span>
-                    <textarea 
-                      value={val} 
-                      onChange={e => updateCell(row.id, col.id, e.target.value, col.isCustom || false)}
-                      className={`w-full bg-transparent border-none focus:ring-0 resize-none font-bold placeholder:text-zinc-800 ${isTime ? 'text-[#DEFF9A] text-lg' : isActivity ? 'text-white' : 'text-zinc-500 text-xs'}`}
-                      placeholder={col.label}
-                      rows={2}
-                    />
-                  </div>
-                ) : (
-                  <div className="flex flex-col h-full justify-center">
-                    {isTime && <span className="text-xs font-black uppercase text-zinc-600 tracking-widest mb-1">Time</span>}
-                    <div className={`${isTime ? 'text-[#DEFF9A] text-xl font-black' : isActivity ? 'text-white font-black text-base' : 'text-zinc-400 text-xs font-medium'} leading-relaxed`}>
-                      {val || (isTime ? '—' : '')}
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-
         {/* Status Indicator */}
         {row.is_important && (
-          <div className="w-1.5 bg-red-600 shadow-[0_0_15px_rgba(220,38,38,0.5)]" />
+          <div className="absolute left-0 top-0 bottom-0 w-2 bg-red-600 shadow-[0_0_15px_rgba(220,38,38,0.5)] rounded-l-[24px]" />
         )}
       </div>
     </motion.div>

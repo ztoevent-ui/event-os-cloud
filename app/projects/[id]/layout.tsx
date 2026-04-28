@@ -26,7 +26,7 @@ export default async function ProjectLayout({
               └──────────────────────────────────────────────────────┘
             */}
             <div
-                className="print:block"
+                className="print:block page-transition"
                 style={{
                     display: 'flex',
                     height: '100vh',
@@ -61,7 +61,7 @@ export default async function ProjectLayout({
                 >
                     {/* ENFORCED ANTIGRAVITY CONTAINER */}
                     <div style={{
-                        maxWidth: 1200,
+                        maxWidth: 1400,
                         margin: '0 auto',
                         padding: '2.5rem',
                         width: '100%',

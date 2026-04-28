@@ -3,7 +3,8 @@
 
 /* ─── Font ─────────────────────────────────────────────────────────────── */
 :root {
-  --font-inter: 'Urbanist', 'Inter', sans-serif;
+  --font-inter: 'Urbanist', sans-serif;
+  --font-urbanist: 'Urbanist', sans-serif;
 }
 
 /* ─── Design Tokens ─────────────────────────────────────────────────────── */
@@ -82,7 +83,7 @@ html {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: 'Urbanist', 'Inter', var(--font-inter), system-ui, -apple-system, sans-serif;
+  font-family: 'Urbanist', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
@@ -225,28 +226,57 @@ body {
   transform: none;
 }
 
-/* ─── Global Card Overrides (Enforced by User) ─────────────────────────── */
-/* ─── Global Card Overrides (Enforced by User) ─────────────────────────── */
-[class*="rounded-xl"],
-[class*="rounded-2xl"],
-[class*="rounded-3xl"],
-[class*="rounded-[24px]"],
-[class*="rounded-[32px]"],
-[class*="rounded-[40px]"],
-[class*="rounded-[48px]"] {
-  border-radius: 0 !important;
+/* ─── ZTO Event OS 2.0 Global Standard ─────────────────────────────────── */
+
+.zto-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(0, 86, 179, 0.3);
+  border-radius: 24px;
+  padding: 40px;
+  backdrop-filter: blur(20px);
+  box-sizing: border-box;
 }
 
-.rounded-\[32px\]\.p-8,
-.rounded-\[32px\]\.p-10,
-.rounded-\[40px\]\.p-8,
-.rounded-\[40px\]\.p-10,
-.rounded-\[40px\]\.p-12,
-.rounded-\[48px\]\.p-8,
-.rounded-\[48px\]\.p-10,
-.rounded-3xl\.p-8,
-article.rounded-3xl,
-.bg-\[\#0a0a0a\]\/60 {
-  padding: 40px !important;
-  box-sizing: border-box !important;
+.zto-card-title {
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.zto-card-data {
+  color: #DEFF9A; /* Cyber Lime */
+}
+
+.zto-card-desc {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.zto-btn-glow {
+  background: #0056B3;
+  color: #ffffff;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 700;
+  font-family: 'Urbanist', sans-serif;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  box-shadow: 0 0 15px rgba(0, 86, 179, 0.6);
+  transition: all 0.3s ease;
+}
+
+.zto-btn-glow:hover {
+  box-shadow: 0 0 25px rgba(0, 86, 179, 0.9);
+  transform: translateY(-2px);
+}
+
+.page-transition {
+  animation: pageFadeIn 0.3s ease-in-out;
+}
+
+@keyframes pageFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }

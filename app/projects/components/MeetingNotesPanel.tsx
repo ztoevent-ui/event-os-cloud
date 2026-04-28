@@ -103,20 +103,20 @@ export default function MeetingNotesPanel({ project }: { project: any }) {
                     </div>
                     <h2 className="text-[11px] font-black uppercase tracking-[0.4em] text-white font-['Urbanist']">Meeting Logs & Notes</h2>
                 </div>
-                <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 h-4">
-                    {saveStatus === 'saving' && <span className="text-[#0056B3]"><i className="fa-solid fa-circle-notch fa-spin mr-2" />Syncing Hub...</span>}
-                    {saveStatus === 'saved' && <span className="text-emerald-400/80"><i className="fa-solid fa-check mr-2" />Cloud Synced</span>}
+                <div className="text-[10px] font-bold uppercase tracking-widest text-white/50 h-4 flex items-center gap-2">
+                    {saveStatus === 'saving' && <><span className="w-2 h-2 rounded-full bg-[#0056B3] animate-pulse shadow-[0_0_8px_#0056B3]"></span><span className="text-[#0056B3]">Syncing Hub...</span></>}
+                    {saveStatus === 'saved' && <><span className="w-2 h-2 rounded-full bg-[#4da3ff] animate-pulse shadow-[0_0_8px_#4da3ff]"></span><span className="text-[#4da3ff]">Autosave Active</span></>}
                 </div>
             </div>
 
             <div 
-                className={`relative flex-1 flex flex-col bg-white/[0.03] border rounded-[40px] overflow-hidden transition-all duration-500 shadow-2xl p-8 box-border ${isDragging ? 'border-[#4da3ff] bg-[#0056B3]/10 shadow-[0_0_50px_rgba(0,86,179,0.2)]' : 'border-[#0056B3]/20'}`}
+                className={`relative flex-1 flex flex-col zto-card overflow-hidden transition-all duration-500 shadow-2xl p-[40px] box-border ${isDragging ? 'border-[#4da3ff] bg-[#0056B3]/10 shadow-[0_0_50px_rgba(0,86,179,0.2)]' : 'border-[#0056B3]/20'}`}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
             >
                 {/* Suspended Inner Window */}
-                <div className="flex-1 flex flex-col bg-black/20 border border-white/5 rounded-3xl p-6 relative overflow-hidden shadow-inner">
+                <div className="flex-1 flex flex-col bg-black/20 border border-white/5 rounded-[12px] p-6 relative overflow-hidden shadow-inner">
                     {/* Drag Overlay */}
                     {isDragging && (
                         <div className="absolute inset-0 z-50 flex items-center justify-center bg-[#050505]/80 backdrop-blur-sm pointer-events-none">
@@ -143,7 +143,7 @@ export default function MeetingNotesPanel({ project }: { project: any }) {
                             <p className="text-[9px] font-black text-zinc-600 uppercase tracking-[0.3em] mb-4">Attached Media ({assets.length})</p>
                             <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar">
                                 {assets.map((url, i) => (
-                                    <div key={i} className="relative shrink-0 group rounded-2xl overflow-hidden border border-white/10 w-40 h-28 bg-zinc-900">
+                                    <div key={i} className="relative shrink-0 group rounded-[12px] overflow-hidden border border-white/10 w-40 h-28 bg-zinc-900 shadow-[0_4px_15px_rgba(0,0,0,0.5)]">
                                         <img src={url} alt={`Asset ${i}`} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
                                         <button 
                                             onClick={() => removeAsset(url)}

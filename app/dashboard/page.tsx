@@ -126,7 +126,7 @@ export default function Dashboard() {
   const visibleTools = isAdmin ? tools : tools.filter(t => !['users', 'registration'].includes(t.id));
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-[#0056B3] selection:text-white">
+    <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-[#0056B3] selection:text-white page-transition">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-[#050505]/90 backdrop-blur-xl border-b border-white/5 px-6 lg:px-12 py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -179,7 +179,7 @@ export default function Dashboard() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 lg:px-12 py-12 lg:py-20">
+      <main className="max-w-[1400px] mx-auto px-6 lg:px-12 py-12 lg:py-20">
         
         {/* Welcome Section */}
         <div className="mb-16 relative">
@@ -207,7 +207,7 @@ export default function Dashboard() {
             <Link
               key={tool.id}
               href={tool.href}
-              className="group relative block bg-[#0a0a0a]/60 backdrop-blur-xl border border-white/5 hover:border-[#0056B3]/50 p-8 transition-all duration-300 hover:bg-[#0a0a0a] hover:-translate-y-1 rounded-none overflow-hidden"
+              className="group relative block zto-card hover:border-[#0056B3]/80 transition-all duration-300 hover:bg-[#050505] hover:-translate-y-1 overflow-hidden"
             >
               {/* Hover Glow */}
               <div 
@@ -239,10 +239,10 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              <h3 className="text-lg font-black text-white mb-3 group-hover:text-[#4da3ff] transition-colors tracking-wide uppercase">
+              <h3 className="zto-card-title text-xl mb-3 group-hover:text-[#4da3ff] transition-colors tracking-wide uppercase">
                 {tool.label}
               </h3>
-              <p className="text-zinc-500 text-xs font-mono leading-relaxed group-hover:text-zinc-400 transition-colors">
+              <p className="zto-card-desc text-xs leading-relaxed group-hover:text-white transition-colors">
                 {tool.desc}
               </p>
 

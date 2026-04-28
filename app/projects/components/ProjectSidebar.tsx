@@ -44,7 +44,8 @@ export default function ProjectSidebar({
                 display: 'flex',
                 flexDirection: 'column',
                 background: '#050505',
-                borderRight: '1px solid rgba(0,86,179,0.25)',
+                borderRight: '1px solid rgba(0,86,179,0.3)',
+                boxShadow: 'inset -20px 0 30px -20px rgba(0,86,179,0.3)',
                 fontFamily: "'Urbanist', sans-serif",
                 overflow: 'hidden',
                 flexShrink: 0,
@@ -73,30 +74,31 @@ export default function ProjectSidebar({
 
             {/* ── Project Context ── */}
             <div style={{
-                padding: '20px',
+                padding: '24px 20px',
                 borderBottom: '1px solid rgba(255,255,255,0.06)',
                 flexShrink: 0,
             }}>
-                <div style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(0,86,179,0.8)', marginBottom: 6 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(0,86,179,0.8)', marginBottom: 8 }}>
                     Project Detail
                 </div>
-                <div style={{ fontSize: 15, fontWeight: 800, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: 12 }}>
+                <div style={{ fontSize: 16, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: 12 }}>
                     {projectName}
                 </div>
                 <span style={{
                     display: 'inline-flex', alignItems: 'center',
-                    padding: '4px 12px', borderRadius: 999,
-                    border: '1px solid rgba(0,86,179,0.4)',
-                    background: 'rgba(0,86,179,0.15)',
-                    color: '#6BB8FF',
-                    fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em',
+                    padding: '6px 12px', borderRadius: 999,
+                    border: '1px solid rgba(222,255,154,0.3)',
+                    background: 'rgba(222,255,154,0.05)',
+                    color: '#DEFF9A',
+                    fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em',
                 }}>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#DEFF9A', marginRight: 6, boxShadow: '0 0 8px #DEFF9A' }} />
                     {projectStatus}
                 </span>
             </div>
 
             {/* ── Nav Links ── */}
-            <nav style={{ flex: 1, overflowY: 'auto', padding: '20px 12px' }}>
+            <nav style={{ flex: 1, overflowY: 'auto', padding: '20px 16px' }}>
                 {allItems.map(item => {
                     const href = `${base}${item.path}`;
                     const exactPath = href.split('#')[0];
@@ -116,15 +118,15 @@ export default function ProjectSidebar({
                                 borderRadius: 12,
                                 marginBottom: 4,
                                 textDecoration: 'none',
-                                transition: 'all 0.15s',
+                                transition: 'all 0.2s ease-in-out',
                                 background: isActive ? '#0056B3' : 'transparent',
-                                color: isActive ? '#fff' : 'rgba(255,255,255,0.4)',
+                                color: isActive ? '#fff' : 'rgba(255,255,255,0.5)',
                                 boxShadow: isActive ? '0 0 16px rgba(0,86,179,0.4)' : 'none',
                             }}
-                            className={!isActive ? 'hover-nav-item' : ''}
+                            className={`nav-item ${isActive ? 'active' : ''}`}
                         >
-                            <i className={`${item.icon}`} style={{ fontSize: 15, width: 20, textAlign: 'center', flexShrink: 0 }} />
-                            <span style={{ fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap' }}>
+                            <i className={`${item.icon} nav-icon`} style={{ fontSize: 15, width: 20, textAlign: 'center', flexShrink: 0, transition: 'all 0.2s' }} />
+                            <span style={{ fontSize: 14, fontWeight: 700, whiteSpace: 'nowrap' }}>
                                 {item.label}
                             </span>
                         </Link>
@@ -133,7 +135,7 @@ export default function ProjectSidebar({
             </nav>
 
             {/* ── Footer: Exit ── */}
-            <div style={{ padding: '16px 12px', borderTop: '1px solid rgba(255,255,255,0.06)', flexShrink: 0 }}>
+            <div style={{ padding: '16px 16px', borderTop: '1px solid rgba(255,255,255,0.06)', flexShrink: 0 }}>
                 <Link
                     href="/projects"
                     style={{
@@ -141,19 +143,23 @@ export default function ProjectSidebar({
                         gap: 14,
                         padding: '12px 16px', borderRadius: 12,
                         textDecoration: 'none', transition: 'all 0.15s',
-                        color: 'rgba(255,255,255,0.3)',
+                        color: 'rgba(255,255,255,0.4)',
                     }}
                     className="hover-nav-exit"
                 >
                     <i className="fa-solid fa-right-from-bracket" style={{ fontSize: 15, width: 20, textAlign: 'center' }} />
-                    <span style={{ fontSize: 14, fontWeight: 600 }}>Exit to Projects</span>
+                    <span style={{ fontSize: 14, fontWeight: 700 }}>Exit to Projects</span>
                 </Link>
             </div>
 
             <style jsx>{`
-                .hover-nav-item:hover {
+                .nav-item:not(.active):hover {
                     background: rgba(255,255,255,0.05) !important;
                     color: #fff !important;
+                }
+                .nav-item:not(.active):hover .nav-icon {
+                    color: #4da3ff;
+                    text-shadow: 0 0 10px rgba(77, 163, 255, 0.8);
                 }
                 .hover-nav-exit:hover {
                     background: rgba(239,68,68,0.1) !important;
