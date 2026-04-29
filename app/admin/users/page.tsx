@@ -4,283 +4,322 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import Link from 'next/link';
 
+/* ─────────────────────────────────────────────────────────────────
+   USER MANAGEMENT — ZTO Event OS Admin
+   Auth strategy: purely inline state machine, ZERO redirects.
+   States: 'checking' | 'no-session' | 'no-admin' | 'ready'
+───────────────────────────────────────────────────────────────── */
+
+type AccessState = 'checking' | 'no-session' | 'no-admin' | 'ready';
+
 type Profile = {
-    id: string;
-    email?: string;
-    display_name?: string;
-    full_name?: string;
-    avatar_url?: string;
-    role: string;
-    user_type?: string;
-    active_from?: string | null;
-    active_until?: string | null;
-    created_at: string;
+  id: string;
+  display_name: string | null;
+  full_name: string | null;
+  email: string | null;
+  role: string | null;
+  user_type: string | null;
+  created_at: string;
 };
 
-type AuthState = 'loading' | 'denied' | 'ok';
+const ROLES = ['staff', 'PROJECT_MANAGER', 'REFEREE', 'client', 'admin'];
 
-export default function AdminUsersPage() {
-    const [auth, setAuth] = useState<AuthState>('loading');
-    const [profiles, setProfiles] = useState<Profile[]>([]);
-    const [dataLoading, setDataLoading] = useState(false);
-    const [showModal, setShowModal] = useState(false);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const [editTarget, setEditTarget] = useState<Profile | null>(null);
-    const [form, setForm] = useState({ display_name: '', email: '', password: '', role: 'staff', user_type: 'permanent' });
-    const [saving, setSaving] = useState(false);
-    const [msg, setMsg] = useState('');
+export default function UserManagementPage() {
+  const [access, setAccess] = useState<AccessState>('checking');
+  const [currentRole, setCurrentRole] = useState<string | null>(null); // for debug
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        (async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) { setAuth('denied'); return; }
-            const { data: prof } = await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle();
-            if (!prof || prof.role?.toLowerCase() !== 'admin') { setAuth('denied'); return; }
-            setAuth('ok');
-            loadProfiles();
-        })();
-    }, []);
+  // Modal state
+  const [modal, setModal] = useState<null | 'add' | Profile>(null);
+  const [form, setForm] = useState({ display_name: '', email: '', password: '', role: 'staff' });
+  const [saving, setSaving] = useState(false);
+  const [notice, setNotice] = useState('');
 
-    const loadProfiles = async () => {
-        setDataLoading(true);
-        const { data } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
-        setProfiles(data || []);
-        setDataLoading(false);
-    };
+  /* ── Auth Check ──────────────────────────────────────────────── */
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) { setAccess('no-session'); return; }
 
-    const openAdd = () => {
-        setEditTarget(null);
-        setForm({ display_name: '', email: '', password: '', role: 'staff', user_type: 'permanent' });
-        setMsg('');
-        setShowModal(true);
-    };
+        const { data: prof } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .maybeSingle();
 
-    const openEdit = (p: Profile) => {
-        setEditTarget(p);
-        setForm({ display_name: p.display_name || p.full_name || '', email: p.email || '', password: '', role: p.role || 'staff', user_type: p.user_type || 'permanent' });
-        setMsg('');
-        setShowModal(true);
-    };
+        const role = prof?.role ?? null;
+        setCurrentRole(role); // store for debug display
 
-    const handleSave = async () => {
-        setSaving(true);
-        setMsg('');
-        try {
-            if (editTarget) {
-                const { error } = await supabase.from('profiles').update({
-                    display_name: form.display_name || null,
-                    role: form.role,
-                    user_type: form.user_type,
-                    updated_at: new Date().toISOString(),
-                }).eq('id', editTarget.id);
-                if (error) throw error;
-                setMsg('✓ Updated successfully');
-                loadProfiles();
-                setTimeout(() => setShowModal(false), 800);
-            } else {
-                if (!form.email || !form.password) { setMsg('Email and password required'); setSaving(false); return; }
-                const { data: newUser, error: signupErr } = await supabase.auth.signUp({
-                    email: form.email,
-                    password: form.password,
-                    options: { data: { full_name: form.display_name } },
-                });
-                if (signupErr) throw signupErr;
-                if (newUser.user) {
-                    await supabase.from('profiles').upsert({
-                        id: newUser.user.id,
-                        display_name: form.display_name || null,
-                        role: form.role,
-                        user_type: form.user_type,
-                    }, { onConflict: 'id' });
-                }
-                setMsg('✓ User created — confirmation email sent');
-                loadProfiles();
-                setTimeout(() => setShowModal(false), 1200);
-            }
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (e: any) {
-            setMsg('✗ ' + e.message);
+        if (role?.toLowerCase() !== 'admin') {
+          setAccess('no-admin');
+          return;
         }
-        setSaving(false);
-    };
-
-    const promoteToAdmin = async (id: string) => {
-        await supabase.from('profiles').update({ role: 'admin' }).eq('id', id);
+        setAccess('ready');
         loadProfiles();
-    };
+      } catch {
+        setAccess('no-session');
+      }
+    })();
+  }, []);
 
-    const demote = async (id: string) => {
-        await supabase.from('profiles').update({ role: 'staff' }).eq('id', id);
-        loadProfiles();
-    };
+  const loadProfiles = async () => {
+    setLoading(true);
+    const { data } = await supabase
+      .from('profiles')
+      .select('id, display_name, full_name, email, role, user_type, created_at')
+      .order('created_at', { ascending: false });
+    setProfiles(data ?? []);
+    setLoading(false);
+  };
 
-    // ── Auth States ───────────────────────────────────────────────────────────
-    if (auth === 'loading') return (
-        <div style={{ minHeight: '100vh', background: '#050505', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ width: 40, height: 40, border: '2px solid rgba(0,86,179,0.2)', borderTopColor: '#0056B3', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-            <style jsx>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+  const openAdd = () => {
+    setForm({ display_name: '', email: '', password: '', role: 'staff' });
+    setNotice('');
+    setModal('add');
+  };
+
+  const openEdit = (p: Profile) => {
+    setForm({ display_name: p.display_name ?? '', email: p.email ?? '', password: '', role: p.role ?? 'staff' });
+    setNotice('');
+    setModal(p);
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    setNotice('');
+
+    if (modal === 'add') {
+      if (!form.email || !form.password) { setNotice('Email + Password required'); setSaving(false); return; }
+      const { data: created, error: signUpErr } = await supabase.auth.signUp({
+        email: form.email,
+        password: form.password,
+        options: { data: { full_name: form.display_name } },
+      });
+      if (signUpErr) { setNotice('Error: ' + signUpErr.message); setSaving(false); return; }
+      if (created.user) {
+        await supabase.from('profiles').upsert(
+          { id: created.user.id, display_name: form.display_name || null, role: form.role },
+          { onConflict: 'id' }
+        );
+      }
+      setNotice('✓ User created — confirmation email sent');
+    } else {
+      const target = modal as Profile;
+      const { error } = await supabase.from('profiles').update({
+        display_name: form.display_name || null,
+        role: form.role,
+      }).eq('id', target.id);
+      if (error) { setNotice('Error: ' + error.message); setSaving(false); return; }
+      setNotice('✓ Saved');
+    }
+
+    setSaving(false);
+    await loadProfiles();
+    setTimeout(() => setModal(null), 900);
+  };
+
+  /* ── Render helpers ──────────────────────────────────────────── */
+  const Spinner = () => (
+    <div style={styles.center}>
+      <div style={styles.spinner} />
+      <style jsx>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    </div>
+  );
+
+  if (access === 'checking') return <Spinner />;
+
+  if (access === 'no-session') return (
+    <div style={styles.center}>
+      <div style={styles.gate}>
+        <div style={{ fontSize: 40, marginBottom: 12 }}>🔐</div>
+        <h2 style={styles.gateTitle}>Not Signed In</h2>
+        <p style={styles.gateDesc}>Please log in to access this module.</p>
+        <Link href="/auth?returnTo=/admin/users" style={styles.gateBtn}>Sign In</Link>
+      </div>
+    </div>
+  );
+
+  if (access === 'no-admin') return (
+    <div style={styles.center}>
+      <div style={styles.gate}>
+        <div style={{ fontSize: 40, marginBottom: 12 }}>🔒</div>
+        <h2 style={styles.gateTitle}>Access Denied</h2>
+        <p style={styles.gateDesc}>Admin role required. Your current role: <strong style={{ color: '#DEFF9A' }}>{currentRole ?? 'none'}</strong></p>
+        <p style={{ ...styles.gateDesc, marginTop: 6, fontSize: 11 }}>Ask an existing admin to update your role in the profiles table.</p>
+        <Link href="/dashboard" style={styles.gateBtn}>← Dashboard</Link>
+      </div>
+    </div>
+  );
+
+  /* ── Main Page ───────────────────────────────────────────────── */
+  return (
+    <div style={styles.page}>
+      {/* Header */}
+      <header style={styles.header}>
+        <div>
+          <div style={styles.label}>Admin Panel</div>
+          <h1 style={styles.h1}>User Management</h1>
         </div>
-    );
-
-    if (auth === 'denied') return (
-        <div style={{ minHeight: '100vh', background: '#050505', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: 'Urbanist, sans-serif', gap: 20 }}>
-            <div style={{ fontSize: 48, marginBottom: 8 }}>🔒</div>
-            <h1 style={{ color: '#fff', fontWeight: 800, fontSize: 24, textTransform: 'uppercase', letterSpacing: '-0.02em' }}>Access Denied</h1>
-            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>You need Admin privileges to access this module.</p>
-            <Link href="/dashboard" style={{ marginTop: 16, padding: '10px 24px', background: '#0056B3', color: '#fff', borderRadius: 12, textDecoration: 'none', fontWeight: 700, fontSize: 13 }}>
-                ← Back to Dashboard
-            </Link>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <Link href="/dashboard" style={{ ...styles.btnGhost, textDecoration: 'none' }}>← Dashboard</Link>
+          <button onClick={openAdd} style={styles.btnPrimary}>+ Add User</button>
         </div>
-    );
+      </header>
 
-    // ── Main UI ───────────────────────────────────────────────────────────────
-    return (
-        <div style={{ minHeight: '100vh', background: '#050505', color: '#E5E5E5', fontFamily: 'Urbanist, sans-serif' }}>
-            {/* Header */}
-            <header style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 40px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
-                <div>
-                    <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 6 }}>Admin Panel</div>
-                    <h1 style={{ fontSize: 28, fontWeight: 800, color: '#fff' }}>User Management</h1>
-                </div>
-                <div style={{ display: 'flex', gap: 12 }}>
-                    <Link href="/dashboard" className="zto-btn zto-btn-ghost" style={{ textDecoration: 'none', padding: '8px 18px' }}>
-                        ← Dashboard
-                    </Link>
-                    <button onClick={openAdd} className="zto-btn zto-btn-primary" style={{ padding: '8px 18px' }}>
-                        + Add User
-                    </button>
-                </div>
-            </header>
-
-            {/* Table */}
-            <main style={{ maxWidth: 1200, margin: '32px auto 80px', padding: '0 40px' }}>
-                {dataLoading ? (
-                    <div style={{ textAlign: 'center', padding: 60, color: 'rgba(255,255,255,0.3)' }}>Loading...</div>
-                ) : (
-                    <div className="zto-card" style={{ padding: 0, overflow: 'hidden' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'Urbanist, sans-serif' }}>
-                            <thead>
-                                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(0,0,0,0.2)' }}>
-                                    {['User', 'Role', 'Type', 'Created', 'Actions'].map(h => (
-                                        <th key={h} style={{ padding: '14px 20px', textAlign: h === 'Actions' ? 'right' : 'left', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.3)' }}>
-                                            {h}
-                                        </th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {profiles.length === 0 && (
-                                    <tr><td colSpan={5} style={{ padding: 40, textAlign: 'center', color: 'rgba(255,255,255,0.2)', fontSize: 14 }}>No users found.</td></tr>
-                                )}
-                                {profiles.map(p => {
-                                    const isAdmin = p.role?.toLowerCase() === 'admin';
-                                    return (
-                                        <tr key={p.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                                            <td style={{ padding: '14px 20px' }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                                    <div style={{ width: 34, height: 34, borderRadius: 10, background: '#0056B3', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, color: '#fff', flexShrink: 0 }}>
-                                                        {(p.display_name || p.full_name || p.email || '?')[0].toUpperCase()}
-                                                    </div>
-                                                    <div>
-                                                        <div style={{ fontWeight: 700, fontSize: 14, color: '#fff' }}>{p.display_name || p.full_name || '—'}</div>
-                                                        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>{p.email || p.id.slice(0, 12) + '…'}</div>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td style={{ padding: '14px 20px' }}>
-                                                <span style={{
-                                                    padding: '4px 12px', borderRadius: 999, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em',
-                                                    background: isAdmin ? 'rgba(168,85,247,0.1)' : 'rgba(255,255,255,0.04)',
-                                                    border: isAdmin ? '1px solid rgba(168,85,247,0.3)' : '1px solid rgba(255,255,255,0.08)',
-                                                    color: isAdmin ? '#c084fc' : 'rgba(255,255,255,0.4)',
-                                                }}>
-                                                    {p.role || 'staff'}
-                                                </span>
-                                            </td>
-                                            <td style={{ padding: '14px 20px', fontSize: 13, color: 'rgba(255,255,255,0.4)' }}>{p.user_type || 'permanent'}</td>
-                                            <td style={{ padding: '14px 20px', fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>
-                                                {p.created_at ? new Date(p.created_at).toLocaleDateString('en-MY') : '—'}
-                                            </td>
-                                            <td style={{ padding: '14px 20px', textAlign: 'right' }}>
-                                                <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                                                    <button onClick={() => openEdit(p)} style={{ padding: '6px 14px', borderRadius: 8, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'Urbanist' }}>
-                                                        Edit
-                                                    </button>
-                                                    {!isAdmin && (
-                                                        <button onClick={() => promoteToAdmin(p.id)} style={{ padding: '6px 14px', borderRadius: 8, background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.2)', color: '#c084fc', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'Urbanist' }}>
-                                                            → Admin
-                                                        </button>
-                                                    )}
-                                                    {isAdmin && (
-                                                        <button onClick={() => demote(p.id)} style={{ padding: '6px 14px', borderRadius: 8, background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.15)', color: '#f87171', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'Urbanist' }}>
-                                                            Demote
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
+      {/* Table */}
+      <main style={styles.main}>
+        {loading ? <Spinner /> : (
+          <div style={styles.tableWrap}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(0,0,0,0.2)' }}>
+                  {['User', 'Role', 'Type', 'Joined', 'Actions'].map(h => (
+                    <th key={h} style={{ ...styles.th, textAlign: h === 'Actions' ? 'right' : 'left' }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {profiles.length === 0 && (
+                  <tr><td colSpan={5} style={{ padding: 40, textAlign: 'center', color: 'rgba(255,255,255,0.25)', fontSize: 14 }}>No profiles found.</td></tr>
                 )}
-            </main>
+                {profiles.map(p => {
+                  const isAdmin = p.role?.toLowerCase() === 'admin';
+                  const initials = (p.display_name ?? p.full_name ?? p.email ?? '?')[0].toUpperCase();
+                  return (
+                    <tr key={p.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                      <td style={styles.td}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                          <div style={{ ...styles.avatar, background: isAdmin ? '#7c3aed' : '#0056B3' }}>{initials}</div>
+                          <div>
+                            <div style={{ fontWeight: 700, fontSize: 14, color: '#fff' }}>{p.display_name ?? p.full_name ?? '—'}</div>
+                            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>{p.email ?? `${p.id.slice(0, 12)}…`}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td style={styles.td}>
+                        <span style={{
+                          padding: '4px 12px', borderRadius: 999, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em',
+                          background: isAdmin ? 'rgba(124,58,237,0.1)' : 'rgba(255,255,255,0.04)',
+                          border: isAdmin ? '1px solid rgba(124,58,237,0.3)' : '1px solid rgba(255,255,255,0.08)',
+                          color: isAdmin ? '#c084fc' : 'rgba(255,255,255,0.45)',
+                        }}>
+                          {p.role ?? 'none'}
+                        </span>
+                      </td>
+                      <td style={{ ...styles.td, color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>{p.user_type ?? '—'}</td>
+                      <td style={{ ...styles.td, color: 'rgba(255,255,255,0.3)', fontSize: 12 }}>
+                        {p.created_at ? new Date(p.created_at).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                      </td>
+                      <td style={{ ...styles.td, textAlign: 'right' }}>
+                        <button onClick={() => openEdit(p)} style={styles.btnSm}>Edit</button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </main>
 
-            {/* Modal */}
-            {showModal && (
-                <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-                    <div onClick={() => setShowModal(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(5,5,5,0.85)', backdropFilter: 'blur(8px)' }} />
-                    <div className="zto-card page-transition" style={{ position: 'relative', width: '100%', maxWidth: 460, zIndex: 10 }}>
-                        <button onClick={() => setShowModal(false)} style={{ position: 'absolute', top: 20, right: 20, background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', fontSize: 20 }}>×</button>
-                        <h2 style={{ fontSize: 20, fontWeight: 800, color: '#fff', marginBottom: 6 }}>{editTarget ? 'Edit User' : 'Add New User'}</h2>
-                        <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', marginBottom: 24, paddingBottom: 20, borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                            {editTarget ? 'Update display name and role.' : 'Create a new staff account.'}
-                        </p>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                            <div>
-                                <label style={{ display: 'block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.35)', marginBottom: 8 }}>Display Name</label>
-                                <input value={form.display_name} onChange={e => setForm({ ...form, display_name: e.target.value })} placeholder="e.g. Ahmad Faiz" className="zto-input" />
-                            </div>
-                            {!editTarget && (
-                                <>
-                                    <div>
-                                        <label style={{ display: 'block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.35)', marginBottom: 8 }}>Email *</label>
-                                        <input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="user@email.com" className="zto-input" />
-                                    </div>
-                                    <div>
-                                        <label style={{ display: 'block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.35)', marginBottom: 8 }}>Password *</label>
-                                        <input type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} placeholder="Min. 6 characters" className="zto-input" />
-                                    </div>
-                                </>
-                            )}
-                            <div>
-                                <label style={{ display: 'block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.35)', marginBottom: 8 }}>Role</label>
-                                <select value={form.role} onChange={e => setForm({ ...form, role: e.target.value })} className="zto-select" style={{ background: '#0a0a0a' }}>
-                                    <option value="staff">Staff</option>
-                                    <option value="REFEREE">Referee</option>
-                                    <option value="PROJECT_MANAGER">Project Manager</option>
-                                    <option value="client">Client</option>
-                                    <option value="admin">Admin</option>
-                                </select>
-                            </div>
-                            {msg && (
-                                <div style={{ padding: '10px 14px', borderRadius: 10, background: msg.startsWith('✓') ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)', border: msg.startsWith('✓') ? '1px solid rgba(16,185,129,0.25)' : '1px solid rgba(239,68,68,0.25)', color: msg.startsWith('✓') ? '#6ee7b7' : '#f87171', fontSize: 13, fontWeight: 600 }}>
-                                    {msg}
-                                </div>
-                            )}
-                        </div>
-                        <div style={{ display: 'flex', gap: 12, marginTop: 24 }}>
-                            <button onClick={() => setShowModal(false)} className="zto-btn zto-btn-ghost" style={{ flex: 1 }}>Cancel</button>
-                            <button onClick={handleSave} disabled={saving} className="zto-btn zto-btn-primary" style={{ flex: 2 }}>
-                                {saving ? 'Saving...' : editTarget ? 'Save Changes' : 'Create User'}
-                            </button>
-                        </div>
-                    </div>
+      {/* Modal */}
+      {modal !== null && (
+        <div style={styles.overlay}>
+          <div onClick={() => setModal(null)} style={styles.backdrop} />
+          <div style={styles.modalCard}>
+            <button onClick={() => setModal(null)} style={styles.modalClose}>×</button>
+            <h2 style={{ fontSize: 20, fontWeight: 800, color: '#fff', marginBottom: 4 }}>
+              {modal === 'add' ? 'Add New User' : `Edit: ${(modal as Profile).display_name ?? (modal as Profile).email ?? 'User'}`}
+            </h2>
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', marginBottom: 24, paddingBottom: 20, borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+              {modal === 'add' ? 'Create a new staff account.' : 'Update name and role.'}
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <FieldRow label="Display Name">
+                <input value={form.display_name} onChange={e => setForm({ ...form, display_name: e.target.value })} placeholder="Name" style={styles.inp} />
+              </FieldRow>
+
+              {modal === 'add' && (
+                <>
+                  <FieldRow label="Email *">
+                    <input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="user@email.com" style={styles.inp} />
+                  </FieldRow>
+                  <FieldRow label="Password *">
+                    <input type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} placeholder="Min 6 characters" style={styles.inp} />
+                  </FieldRow>
+                </>
+              )}
+
+              <FieldRow label="Role">
+                <select value={form.role} onChange={e => setForm({ ...form, role: e.target.value })} style={{ ...styles.inp, background: '#0a0a0a' }}>
+                  {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+                </select>
+              </FieldRow>
+
+              {notice && (
+                <div style={{
+                  padding: '10px 14px', borderRadius: 10, fontSize: 13, fontWeight: 600,
+                  background: notice.startsWith('✓') ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
+                  border: notice.startsWith('✓') ? '1px solid rgba(16,185,129,0.25)' : '1px solid rgba(239,68,68,0.25)',
+                  color: notice.startsWith('✓') ? '#6ee7b7' : '#f87171',
+                }}>
+                  {notice}
                 </div>
-            )}
+              )}
+            </div>
 
-            <style jsx global>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+            <div style={{ display: 'flex', gap: 12, marginTop: 24 }}>
+              <button onClick={() => setModal(null)} style={{ ...styles.btnGhost, flex: 1 }}>Cancel</button>
+              <button onClick={handleSave} disabled={saving} style={{ ...styles.btnPrimary, flex: 2, opacity: saving ? 0.6 : 1 }}>
+                {saving ? 'Saving…' : modal === 'add' ? 'Create User' : 'Save Changes'}
+              </button>
+            </div>
+          </div>
         </div>
-    );
+      )}
+
+      <style jsx global>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    </div>
+  );
 }
+
+function FieldRow({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label style={{ display: 'block', fontSize: 10, fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', marginBottom: 8 }}>
+        {label}
+      </label>
+      {children}
+    </div>
+  );
+}
+
+// ── Styles ────────────────────────────────────────────────────────────────────
+const styles: Record<string, React.CSSProperties> = {
+  page:    { minHeight: '100vh', background: '#050505', color: '#E5E5E5', fontFamily: 'Urbanist, sans-serif' },
+  header:  { maxWidth: 1200, margin: '0 auto', padding: '40px 40px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16, marginBottom: 32 },
+  main:    { maxWidth: 1200, margin: '0 auto', padding: '0 40px 80px' },
+  label:   { fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: 6 },
+  h1:      { fontSize: 26, fontWeight: 800, color: '#fff' },
+  center:  { minHeight: '100vh', background: '#050505', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Urbanist, sans-serif' },
+  gate:    { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(0,86,179,0.3)', borderRadius: 24, padding: 48, maxWidth: 400, width: '100%', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 },
+  gateTitle: { fontSize: 22, fontWeight: 800, color: '#fff' },
+  gateDesc:  { fontSize: 13, color: 'rgba(255,255,255,0.4)', lineHeight: 1.6 },
+  gateBtn:   { marginTop: 20, padding: '10px 28px', background: '#0056B3', color: '#fff', borderRadius: 12, textDecoration: 'none', fontWeight: 700, fontSize: 13, display: 'inline-block', boxShadow: '0 0 16px rgba(0,86,179,0.4)' },
+  tableWrap: { background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(0,86,179,0.2)', borderRadius: 20, overflow: 'hidden' },
+  th:        { padding: '14px 20px', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.3)' },
+  td:        { padding: '14px 20px', verticalAlign: 'middle' },
+  avatar:    { width: 34, height: 34, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800, color: '#fff', flexShrink: 0 },
+  btnPrimary: { padding: '9px 20px', borderRadius: 12, background: '#0056B3', color: '#fff', border: 'none', fontFamily: 'Urbanist, sans-serif', fontWeight: 700, fontSize: 13, cursor: 'pointer', boxShadow: '0 0 16px rgba(0,86,179,0.4)' },
+  btnGhost:   { padding: '9px 20px', borderRadius: 12, background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.1)', fontFamily: 'Urbanist, sans-serif', fontWeight: 700, fontSize: 13, cursor: 'pointer' },
+  btnSm:      { padding: '6px 14px', borderRadius: 8, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)', fontFamily: 'Urbanist, sans-serif', fontWeight: 700, fontSize: 11, cursor: 'pointer' },
+  overlay:    { position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 },
+  backdrop:   { position: 'absolute', inset: 0, background: 'rgba(5,5,5,0.88)', backdropFilter: 'blur(8px)' },
+  modalCard:  { position: 'relative', background: 'rgba(10,10,10,0.98)', border: '1px solid rgba(0,86,179,0.3)', borderRadius: 24, padding: 40, width: '100%', maxWidth: 460, zIndex: 10 },
+  modalClose: { position: 'absolute', top: 18, right: 18, background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: 22, cursor: 'pointer', lineHeight: 1 },
+  inp:        { width: '100%', padding: '10px 14px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, color: '#fff', fontFamily: 'Urbanist, sans-serif', fontSize: 14, outline: 'none', boxSizing: 'border-box' },
+  spinner:    { width: 36, height: 36, border: '2px solid rgba(0,86,179,0.15)', borderTopColor: '#0056B3', borderRadius: '50%', animation: 'spin 0.8s linear infinite' },
+};
