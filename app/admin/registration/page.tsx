@@ -2,9 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
-import Swal from 'sweetalert2';
 import { ImageUploadField } from '@/app/components/ImageUploadField';
 
 type SponsorItem = { name: string; logo_url: string; tier?: string };
@@ -28,39 +26,38 @@ type RegConfig = {
     payment_currency: string;
 };
 
+type AuthState = 'loading' | 'denied' | 'ok';
+
 export default function RegistrationAdminPage() {
-    const router = useRouter();
+    const [auth, setAuth] = useState<AuthState>('loading');
     const [configs, setConfigs] = useState<RegConfig[]>([]);
     const [selected, setSelected] = useState<RegConfig | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [dataLoading, setDataLoading] = useState(false);
     const [saving, setSaving] = useState(false);
-    const [authChecked, setAuthChecked] = useState(false);
+    const [saved, setSaved] = useState(false);
 
-    // ── Admin guard ──────────────────────────────────────────────────────────
+    // ── Auth check (NO redirect — shows Access Denied inline) ─────────────────
     useEffect(() => {
-        const guard = async () => {
+        (async () => {
             const { data: { user } } = await supabase.auth.getUser();
-            if (!user) { router.replace('/auth?returnTo=/admin/registration'); return; }
+            if (!user) { setAuth('denied'); return; }
             const { data: prof } = await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle();
-            // Case-insensitive check — accepts 'admin', 'Admin', 'ADMIN'
-            if (prof?.role?.toLowerCase() !== 'admin') {
-                router.replace('/dashboard');
-                return;
-            }
-            setAuthChecked(true);
-            fetchConfigs();
-        };
-        guard();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+            if (prof?.role?.toLowerCase() !== 'admin') { setAuth('denied'); return; }
+            setAuth('ok');
+            loadConfigs();
+        })();
     }, []);
 
-    const fetchConfigs = async () => {
+    const loadConfigs = async () => {
+        setDataLoading(true);
         const { data } = await supabase.from('registration_config').select('*').order('created_at', { ascending: false });
-        setConfigs(data || []);
-        if (data && data.length > 0 && !selected) setSelected(data[0]);
-        setLoading(false);
+        const list = data || [];
+        setConfigs(list);
+        if (list.length > 0) setSelected(list[0]);
+        setDataLoading(false);
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const update = (field: string, value: any) => {
         if (!selected) return;
         setSelected({ ...selected, [field]: value });
@@ -84,30 +81,29 @@ export default function RegistrationAdminPage() {
             payment_amount: selected.payment_amount,
             payment_currency: selected.payment_currency,
         }).eq('id', selected.id);
-        
         setSaving(false);
-        if (error) {
-            Swal.fire({ title: 'Error', text: error.message, icon: 'error', background: '#18181b', color: '#fff' });
-        } else {
-            Swal.fire({ title: 'Saved!', icon: 'success', toast: true, position: 'top-end', timer: 2000, showConfirmButton: false, background: '#18181b', color: '#fff' });
+        if (!error) {
+            setSaved(true);
+            setTimeout(() => setSaved(false), 2500);
         }
     };
 
     const addOrgItem = (field: 'organizers' | 'co_organizers') => {
         if (!selected) return;
-        update(field, [...(selected[field] || []), { name: 'New Organization', logo_url: '' }]);
+        update(field, [...(selected[field] || []), { name: 'New Org', logo_url: '' }]);
     };
 
-    const removeOrgItem = (field: 'organizers' | 'co_organizers', index: number) => {
+    const removeOrgItem = (field: 'organizers' | 'co_organizers', i: number) => {
         if (!selected) return;
-        update(field, selected[field].filter((_: any, i: number) => i !== index));
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        update(field, selected[field].filter((_: any, idx: number) => idx !== i));
     };
 
-    const updateOrgItem = (field: 'organizers' | 'co_organizers', index: number, key: string, value: string) => {
+    const updateOrgItem = (field: 'organizers' | 'co_organizers', i: number, key: string, val: string) => {
         if (!selected) return;
-        const items = [...selected[field]];
-        items[index] = { ...items[index], [key]: value };
-        update(field, items);
+        const arr = [...selected[field]];
+        arr[i] = { ...arr[i], [key]: val };
+        update(field, arr);
     };
 
     const addSponsor = () => {
@@ -115,153 +111,192 @@ export default function RegistrationAdminPage() {
         update('sponsors', [...(selected.sponsors || []), { name: 'New Sponsor', logo_url: '', tier: 'bronze' }]);
     };
 
-    const removeSponsor = (index: number) => {
+    const removeSponsor = (i: number) => {
         if (!selected) return;
-        update('sponsors', selected.sponsors.filter((_: any, i: number) => i !== index));
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        update('sponsors', selected.sponsors.filter((_: any, idx: number) => idx !== i));
     };
 
-    const updateSponsor = (index: number, key: string, value: string) => {
+    const updateSponsor = (i: number, key: string, val: string) => {
         if (!selected) return;
-        const items = [...selected.sponsors];
-        items[index] = { ...items[index], [key]: value };
-        update('sponsors', items);
+        const arr = [...selected.sponsors];
+        arr[i] = { ...arr[i], [key]: val };
+        update('sponsors', arr);
     };
 
-    if (!authChecked || loading) return <div className="min-h-screen bg-[#050505] flex items-center justify-center"><div className="w-12 h-12 border-2 border-[#0056B3]/30 border-t-[#0056B3] rounded-full animate-spin" /></div>;
+    // ── Auth states ───────────────────────────────────────────────────────────
+    if (auth === 'loading') return (
+        <div style={{ minHeight: '100vh', background: '#050505', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: 40, height: 40, border: '2px solid rgba(0,86,179,0.2)', borderTopColor: '#0056B3', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+            <style jsx>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        </div>
+    );
+
+    if (auth === 'denied') return (
+        <div style={{ minHeight: '100vh', background: '#050505', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: 'Urbanist, sans-serif', gap: 20 }}>
+            <div style={{ fontSize: 48 }}>🔒</div>
+            <h1 style={{ color: '#fff', fontWeight: 800, fontSize: 24, textTransform: 'uppercase', letterSpacing: '-0.02em' }}>Access Denied</h1>
+            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>Admin privileges required.</p>
+            <Link href="/dashboard" style={{ marginTop: 16, padding: '10px 24px', background: '#0056B3', color: '#fff', borderRadius: 12, textDecoration: 'none', fontWeight: 700, fontSize: 13 }}>
+                ← Back to Dashboard
+            </Link>
+        </div>
+    );
+
+    if (dataLoading) return (
+        <div style={{ minHeight: '100vh', background: '#050505', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: 40, height: 40, border: '2px solid rgba(0,86,179,0.2)', borderTopColor: '#0056B3', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+            <style jsx>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        </div>
+    );
+
+    // ── Main UI ───────────────────────────────────────────────────────────────
+    const inp: React.CSSProperties = { width: '100%', padding: '10px 14px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, color: '#fff', fontFamily: 'Urbanist, sans-serif', fontSize: 14, outline: 'none' };
+    const lbl: React.CSSProperties = { display: 'block', fontSize: 10, fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', marginBottom: 8 };
 
     return (
-        <div className="min-h-screen bg-[#050505] text-white font-sans">
-            <header className="bg-[#050505]/90 border-b border-[#222] px-8 py-5 flex items-center justify-between sticky top-0 z-50 backdrop-blur-md">
-                <div className="flex items-center gap-6">
-                    <Link href="/dashboard" className="text-[10px] font-black text-zinc-600 uppercase tracking-widest hover:text-white transition-colors"><i className="fa-solid fa-arrow-left mr-2" />Dashboard</Link>
-                    <div className="w-px h-6 bg-white/10" />
-                    <h1 className="text-xl font-black uppercase tracking-widest">Registration Studio</h1>
+        <div style={{ minHeight: '100vh', background: '#050505', color: '#E5E5E5', fontFamily: 'Urbanist, sans-serif' }}>
+            {/* Header */}
+            <header style={{ position: 'sticky', top: 0, zIndex: 50, background: 'rgba(5,5,5,0.92)', backdropFilter: 'blur(16px)', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '0 48px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+                    <Link href="/dashboard" style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(255,255,255,0.35)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        ← Dashboard
+                    </Link>
+                    <div style={{ width: 1, height: 20, background: 'rgba(255,255,255,0.08)' }} />
+                    <h1 style={{ fontSize: 16, fontWeight: 800, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Registration Studio</h1>
                 </div>
-                <div className="flex items-center gap-4">
-                    {selected && (
-                        <Link href={`/apps/ticketing/${selected.event_slug}`} target="_blank" className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">
-                            <i className="fa-solid fa-external-link mr-2" />Preview Form
-                        </Link>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    {saved && (
+                        <span style={{ fontSize: 12, fontWeight: 700, color: '#DEFF9A', display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#DEFF9A', boxShadow: '0 0 8px #DEFF9A' }} />
+                            Saved
+                        </span>
                     )}
-                    <button onClick={save} disabled={saving} className="px-6 py-2 bg-[#0056B3] text-white rounded-xl font-black uppercase tracking-widest hover:bg-[#003d82] shadow-[0_0_15px_rgba(0,86,179,0.3)] transition-all disabled:opacity-50 text-sm">
-                        {saving ? <><i className="fa-solid fa-spinner fa-spin mr-2" />Saving...</> : <><i className="fa-solid fa-save mr-2" />Save Changes</>}
+                    <button onClick={save} disabled={saving} className="zto-btn zto-btn-primary" style={{ padding: '8px 20px' }}>
+                        {saving ? 'Saving...' : 'Save Changes'}
                     </button>
                 </div>
             </header>
 
-            {selected && (
-                <main className="max-w-5xl mx-auto px-8 py-10 space-y-10">
-                    {/* Event Selector */}
-                    <div className="flex gap-3">
-                        {configs.map(c => (
-                            <button key={c.id} onClick={() => setSelected(c)} className={`px-5 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${selected.id === c.id ? 'bg-[#0056B3] text-white shadow-[0_0_15px_rgba(0,86,179,0.3)]' : 'bg-[#0a0a0a] text-zinc-500 border border-[#222] hover:border-[#0056B3]/50'}`}>
-                                {c.event_name}
-                            </button>
-                        ))}
-                    </div>
+            {configs.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '80px 40px', color: 'rgba(255,255,255,0.3)' }}>
+                    No registration configurations found in database.
+                </div>
+            ) : selected && (
+                <main style={{ maxWidth: 960, margin: '0 auto', padding: '40px 40px 80px' }}>
 
-                    {/* Basic Info */}
-                    <Section title="Event Branding" icon="fa-paint-brush">
-                        <div className="grid grid-cols-2 gap-5">
-                            <AdminField label="Event Name" value={selected.event_name} onChange={v => update('event_name', v)} />
-                            <AdminField label="Subtitle" value={selected.event_subtitle || ''} onChange={v => update('event_subtitle', v)} />
+                    {/* Config Selector */}
+                    {configs.length > 1 && (
+                        <div style={{ display: 'flex', gap: 8, marginBottom: 32, flexWrap: 'wrap' }}>
+                            {configs.map(c => (
+                                <button key={c.id} onClick={() => setSelected(c)}
+                                    className={selected.id === c.id ? 'zto-btn zto-btn-primary' : 'zto-btn zto-btn-ghost'}
+                                    style={{ padding: '6px 16px', fontSize: 12 }}>
+                                    {c.event_name}
+                                </button>
+                            ))}
+                        </div>
+                    )}
 
-                            {/* Event Logo — with upload */}
-                            <ImageUploadField
-                                label="Event Logo"
-                                value={selected.logo_url || ''}
-                                onChange={v => update('logo_url', v)}
-                                bucket="logo"
-                                folder={selected.id || 'events'}
-                                placeholder="https://... or upload →"
-                                preview="thumbnail"
-                            />
-
-                            {/* Background Image — with upload */}
-                            <ImageUploadField
-                                label="Background / Banner Image"
-                                value={selected.background_url || ''}
-                                onChange={v => update('background_url', v)}
-                                bucket="tournament-banners"
-                                folder={selected.id || 'events'}
-                                placeholder="https://... or upload →"
-                                preview="thumbnail"
-                            />
-
+                    {/* Section: Event Branding */}
+                    <Section title="Event Branding" icon="🎨">
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                             <div>
-                                <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-2">Primary Color</label>
-                                <div className="flex items-center gap-3">
-                                    <input type="color" value={selected.primary_color || '#f59e0b'} onChange={e => update('primary_color', e.target.value)} className="w-10 h-10 rounded-lg border border-white/10 bg-transparent cursor-pointer" />
-                                    <input type="text" value={selected.primary_color || ''} onChange={e => update('primary_color', e.target.value)} className="flex-1 bg-zinc-900 border border-white/10 rounded-xl px-4 py-2 text-white text-sm font-mono focus:outline-none focus:border-amber-500" />
-                                </div>
+                                <label style={lbl}>Event Name</label>
+                                <input style={inp} value={selected.event_name} onChange={e => update('event_name', e.target.value)} placeholder="Event Name" />
+                            </div>
+                            <div>
+                                <label style={lbl}>Subtitle</label>
+                                <input style={inp} value={selected.event_subtitle || ''} onChange={e => update('event_subtitle', e.target.value)} placeholder="Subtitle" />
                             </div>
                         </div>
-
-                        {/* Banner preview if URL set */}
+                        <div style={{ marginTop: 16 }}>
+                            <ImageUploadField label="Event Logo" value={selected.logo_url || ''} onChange={v => update('logo_url', v)} bucket="logo" folder={selected.id} placeholder="URL or upload →" preview="thumbnail" />
+                        </div>
+                        <div style={{ marginTop: 16 }}>
+                            <ImageUploadField label="Background / Banner" value={selected.background_url || ''} onChange={v => update('background_url', v)} bucket="tournament-banners" folder={selected.id} placeholder="URL or upload →" preview="thumbnail" />
+                        </div>
                         {selected.background_url && (
-                            <div className="mt-4 rounded-2xl overflow-hidden h-40 border border-zinc-800">
-                                <img src={selected.background_url} alt="Background preview" className="w-full h-full object-cover" />
+                            <div style={{ marginTop: 12, borderRadius: 12, overflow: 'hidden', height: 120, border: '1px solid rgba(255,255,255,0.08)' }}>
+                                <img src={selected.background_url} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             </div>
                         )}
                     </Section>
 
-                    {/* Organizers */}
-                    <Section title="Organizers" icon="fa-building">
-                        <OrgList items={selected.organizers || []} onAdd={() => addOrgItem('organizers')} onRemove={(i) => removeOrgItem('organizers', i)} onUpdate={(i, k, v) => updateOrgItem('organizers', i, k, v)} bucket="event-assets" folderPrefix={`organizers/${selected.id}`} />
+                    {/* Section: Organizers */}
+                    <Section title="Organizers" icon="🏢">
+                        {(selected.organizers || []).map((o, i) => (
+                            <div key={i} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
+                                <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
+                                    <input style={{ ...inp, flex: 1 }} value={o.name} onChange={e => updateOrgItem('organizers', i, 'name', e.target.value)} placeholder="Organization Name" />
+                                    <button onClick={() => removeOrgItem('organizers', i)} style={{ padding: '8px 12px', borderRadius: 8, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.15)', color: '#f87171', cursor: 'pointer', fontFamily: 'Urbanist' }}>✕</button>
+                                </div>
+                                <ImageUploadField label="Logo" value={o.logo_url || ''} onChange={v => updateOrgItem('organizers', i, 'logo_url', v)} bucket="event-assets" folder={`organizers/${selected.id}`} placeholder="Logo URL or upload" preview="thumbnail" />
+                            </div>
+                        ))}
+                        <button onClick={() => addOrgItem('organizers')} className="zto-btn zto-btn-ghost" style={{ width: '100%', marginTop: 4 }}>+ Add Organizer</button>
                     </Section>
 
-                    {/* Co-Organizers */}
-                    <Section title="Co-Organizers" icon="fa-handshake">
-                        <OrgList items={selected.co_organizers || []} onAdd={() => addOrgItem('co_organizers')} onRemove={(i) => removeOrgItem('co_organizers', i)} onUpdate={(i, k, v) => updateOrgItem('co_organizers', i, k, v)} bucket="event-assets" folderPrefix={`co-organizers/${selected.id}`} />
+                    {/* Section: Co-Organizers */}
+                    <Section title="Co-Organizers" icon="🤝">
+                        {(selected.co_organizers || []).map((o, i) => (
+                            <div key={i} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
+                                <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
+                                    <input style={{ ...inp, flex: 1 }} value={o.name} onChange={e => updateOrgItem('co_organizers', i, 'name', e.target.value)} placeholder="Organization Name" />
+                                    <button onClick={() => removeOrgItem('co_organizers', i)} style={{ padding: '8px 12px', borderRadius: 8, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.15)', color: '#f87171', cursor: 'pointer', fontFamily: 'Urbanist' }}>✕</button>
+                                </div>
+                                <ImageUploadField label="Logo" value={o.logo_url || ''} onChange={v => updateOrgItem('co_organizers', i, 'logo_url', v)} bucket="event-assets" folder={`co-organizers/${selected.id}`} placeholder="Logo URL or upload" preview="thumbnail" />
+                            </div>
+                        ))}
+                        <button onClick={() => addOrgItem('co_organizers')} className="zto-btn zto-btn-ghost" style={{ width: '100%', marginTop: 4 }}>+ Add Co-Organizer</button>
                     </Section>
 
-                    {/* Sponsors */}
-                    <Section title="Sponsors" icon="fa-medal">
-                        {(selected.sponsors || []).map((s: SponsorItem, i: number) => (
-                            <div key={i} className="bg-zinc-900/50 border border-white/5 rounded-xl p-4 mb-3 space-y-3">
-                                <div className="flex items-center gap-3">
-                                    <select value={s.tier || 'bronze'} onChange={e => updateSponsor(i, 'tier', e.target.value)} className="bg-zinc-900 border border-white/10 rounded-lg px-3 py-2 text-xs font-bold text-white appearance-none cursor-pointer w-28">
+                    {/* Section: Sponsors */}
+                    <Section title="Sponsors" icon="🏅">
+                        {(selected.sponsors || []).map((s, i) => (
+                            <div key={i} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
+                                <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
+                                    <select value={s.tier || 'bronze'} onChange={e => updateSponsor(i, 'tier', e.target.value)} style={{ ...inp, width: 110, flexShrink: 0, background: '#0a0a0a' }}>
                                         <option value="gold">🥇 Gold</option>
                                         <option value="silver">🥈 Silver</option>
                                         <option value="bronze">🥉 Bronze</option>
                                     </select>
-                                    <input value={s.name} onChange={e => updateSponsor(i, 'name', e.target.value)} className="flex-1 bg-zinc-900 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500" placeholder="Sponsor Name" />
-                                    <button onClick={() => removeSponsor(i)} className="text-red-500 hover:text-red-400 p-2 shrink-0"><i className="fa-solid fa-trash" /></button>
+                                    <input style={{ ...inp, flex: 1 }} value={s.name} onChange={e => updateSponsor(i, 'name', e.target.value)} placeholder="Sponsor Name" />
+                                    <button onClick={() => removeSponsor(i)} style={{ padding: '8px 12px', borderRadius: 8, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.15)', color: '#f87171', cursor: 'pointer', fontFamily: 'Urbanist' }}>✕</button>
                                 </div>
-                                <ImageUploadField
-                                    value={s.logo_url || ''}
-                                    onChange={v => updateSponsor(i, 'logo_url', v)}
-                                    bucket="event-assets"
-                                    folder={`sponsors/${selected.id || 'events'}`}
-                                    placeholder="Sponsor logo URL or upload →"
-                                    preview="thumbnail"
-                                    label="Sponsor Logo"
-                                />
+                                <ImageUploadField label="Sponsor Logo" value={s.logo_url || ''} onChange={v => updateSponsor(i, 'logo_url', v)} bucket="event-assets" folder={`sponsors/${selected.id}`} placeholder="Logo URL or upload" preview="thumbnail" />
                             </div>
                         ))}
-                        <button onClick={addSponsor} className="mt-2 px-4 py-2 border border-dashed border-white/10 rounded-xl text-zinc-500 text-xs font-black uppercase tracking-widest hover:border-amber-500 hover:text-amber-500 transition-all w-full">+ Add Sponsor</button>
+                        <button onClick={addSponsor} className="zto-btn zto-btn-ghost" style={{ width: '100%', marginTop: 4 }}>+ Add Sponsor</button>
                     </Section>
 
-                    {/* Terms & Conditions */}
-                    <Section title="Terms & Conditions" icon="fa-file-contract">
-                        <textarea value={selected.terms_and_conditions || ''} onChange={e => update('terms_and_conditions', e.target.value)} rows={10} className="w-full bg-zinc-900 border border-white/10 rounded-2xl p-5 text-sm text-zinc-300 font-mono leading-relaxed focus:outline-none focus:border-amber-500 resize-y" placeholder="Enter your terms and conditions..." />
+                    {/* Section: Terms */}
+                    <Section title="Terms & Conditions" icon="📄">
+                        <textarea
+                            value={selected.terms_and_conditions || ''}
+                            onChange={e => update('terms_and_conditions', e.target.value)}
+                            rows={10}
+                            placeholder="Enter your terms and conditions..."
+                            style={{ ...inp, resize: 'vertical', lineHeight: 1.7 }}
+                        />
                     </Section>
 
-                    {/* Payment */}
-                    <Section title="Payment Gateway" icon="fa-credit-card">
-                        <div className="flex items-center gap-4 mb-4">
-                            <label className="flex items-center gap-3 cursor-pointer">
-                                <div onClick={() => update('payment_enabled', !selected.payment_enabled)} className={`w-7 h-7 rounded-lg border-2 flex items-center justify-center transition-all ${selected.payment_enabled ? 'bg-amber-500 border-amber-500' : 'border-zinc-700'}`}>
-                                    {selected.payment_enabled && <i className="fa-solid fa-check text-black text-sm" />}
-                                </div>
-                                <span className="text-sm font-bold text-zinc-300">Enable Online Payment</span>
-                            </label>
-                        </div>
+                    {/* Section: Payment */}
+                    <Section title="Payment Gateway" icon="💳">
+                        <label style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', marginBottom: 20 }}>
+                            <div
+                                onClick={() => update('payment_enabled', !selected.payment_enabled)}
+                                style={{ width: 44, height: 24, borderRadius: 12, background: selected.payment_enabled ? '#0056B3' : 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)', position: 'relative', cursor: 'pointer', transition: 'all 0.25s', flexShrink: 0 }}
+                            >
+                                <div style={{ position: 'absolute', top: 2, left: selected.payment_enabled ? 22 : 2, width: 18, height: 18, borderRadius: '50%', background: '#fff', transition: 'left 0.25s' }} />
+                            </div>
+                            <span style={{ fontSize: 14, fontWeight: 700, color: 'rgba(255,255,255,0.7)' }}>Enable Online Payment</span>
+                        </label>
                         {selected.payment_enabled && (
-                            <div className="grid grid-cols-3 gap-4">
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
                                 <div>
-                                    <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-2">Gateway</label>
-                                    <select value={selected.payment_gateway || ''} onChange={e => update('payment_gateway', e.target.value)} className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-3 text-white font-bold appearance-none cursor-pointer">
+                                    <label style={lbl}>Gateway</label>
+                                    <select value={selected.payment_gateway || ''} onChange={e => update('payment_gateway', e.target.value)} style={{ ...inp, background: '#0a0a0a' }}>
                                         <option value="">Select...</option>
                                         <option value="billplz">Billplz</option>
                                         <option value="toyyibpay">ToyyibPay</option>
@@ -269,68 +304,33 @@ export default function RegistrationAdminPage() {
                                         <option value="senangpay">SenangPay</option>
                                     </select>
                                 </div>
-                                <AdminField label="Amount" value={String(selected.payment_amount || '')} onChange={v => update('payment_amount', parseFloat(v) || 0)} placeholder="e.g. 150.00" />
-                                <AdminField label="Currency" value={selected.payment_currency || 'MYR'} onChange={v => update('payment_currency', v)} />
+                                <div>
+                                    <label style={lbl}>Amount</label>
+                                    <input style={inp} type="number" value={selected.payment_amount || ''} onChange={e => update('payment_amount', parseFloat(e.target.value) || 0)} placeholder="150.00" />
+                                </div>
+                                <div>
+                                    <label style={lbl}>Currency</label>
+                                    <input style={inp} value={selected.payment_currency || 'MYR'} onChange={e => update('payment_currency', e.target.value)} />
+                                </div>
                             </div>
                         )}
                     </Section>
+
                 </main>
             )}
+
+            <style jsx global>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
     );
 }
-
-// --- HELPER COMPONENTS ---
 
 function Section({ title, icon, children }: { title: string; icon: string; children: React.ReactNode }) {
     return (
-        <div className="bg-white/[0.03] border border-[#0056B3]/20 rounded-[2rem] p-10">
-            <h2 className="text-lg font-black uppercase tracking-widest mb-8 flex items-center gap-3">
-                <i className={`fa-solid ${icon} text-[#0056B3]`} />
-                {title}
+        <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(0,86,179,0.2)', borderRadius: 20, padding: 32, marginBottom: 20 }}>
+            <h2 style={{ fontSize: 14, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#fff', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 10, fontFamily: 'Urbanist' }}>
+                <span>{icon}</span> {title}
             </h2>
             {children}
-        </div>
-    );
-}
-
-function AdminField({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string }) {
-    return (
-        <div>
-            <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-2">{label}</label>
-            <input type="text" value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} className="w-full bg-[#0a0a0a] border border-[#222] rounded-xl px-4 py-3 text-white text-sm font-bold focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3]/50 transition-all placeholder:text-zinc-700" />
-        </div>
-    );
-}
-
-function OrgList({ items, onAdd, onRemove, onUpdate, bucket, folderPrefix }: {
-    items: OrgItem[];
-    onAdd: () => void;
-    onRemove: (i: number) => void;
-    onUpdate: (i: number, key: string, value: string) => void;
-    bucket?: string;
-    folderPrefix?: string;
-}) {
-    return (
-        <div>
-            {items.map((item: OrgItem, i: number) => (
-                <div key={i} className="bg-zinc-900/50 border border-white/5 rounded-xl p-4 mb-3 space-y-3">
-                    <div className="flex items-center gap-3">
-                        <input value={item.name} onChange={e => onUpdate(i, 'name', e.target.value)} className="flex-1 bg-[#0a0a0a] border border-[#222] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#0056B3]" placeholder="Organization Name" />
-                        <button onClick={() => onRemove(i)} className="text-red-500 hover:text-red-400 p-2 shrink-0"><i className="fa-solid fa-trash" /></button>
-                    </div>
-                    <ImageUploadField
-                        value={item.logo_url || ''}
-                        onChange={v => onUpdate(i, 'logo_url', v)}
-                        bucket={bucket || 'event-assets'}
-                        folder={folderPrefix || 'organizers'}
-                        placeholder="Logo URL or upload →"
-                        preview="thumbnail"
-                        label="Logo"
-                    />
-                </div>
-            ))}
-            <button onClick={onAdd} className="mt-2 px-4 py-2 border border-dashed border-[#0056B3]/30 rounded-xl text-zinc-500 text-xs font-black uppercase tracking-widest hover:border-[#0056B3] hover:text-[#0056B3] transition-all w-full">+ Add</button>
         </div>
     );
 }
