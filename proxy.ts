@@ -54,7 +54,7 @@ export default async function proxy(request: NextRequest) {
         if (!user) {
             return NextResponse.redirect(new URL('/auth', request.url));
         }
-        
+
         // Fetch User Role from Profiles
         const { data: profile } = await supabase
             .from('profiles')
@@ -63,30 +63,26 @@ export default async function proxy(request: NextRequest) {
             .single();
 
         if (!profile) {
-            // No profile = no access
             return new NextResponse('403 Forbidden - No Profile Found', { status: 403 });
         }
 
-        // Super Admin bypasses all
-        if (profile.role === 'SUPER_ADMIN') {
-            return response;
+        const role = profile.role?.toLowerCase() ?? '';
+
+        // ── /admin/* routes: require 'admin' or 'SUPER_ADMIN' ──
+        if (path.startsWith('/admin')) {
+            if (role !== 'admin' && role !== 'super_admin') {
+                // Not an admin — block with 403, do NOT redirect (prevents loops)
+                return new NextResponse(
+                    '403 Forbidden — Admin access required. Your role: ' + profile.role,
+                    { status: 403 }
+                );
+            }
+            return response; // Admin confirmed — allow through
         }
 
-        // Arena Admin specific Event ID check
+        // ── /arena/[eventId]/admin: require PROJECT_MANAGER or SUPER_ADMIN ──
         if (path.startsWith('/arena/')) {
-            const pathParts = path.split('/');
-            const eventId = pathParts[2]; // /arena/[eventId]/admin
-
-            // Check if PM has access to this event
-            const { data: access } = await supabase
-                .from('project_access')
-                .select('*')
-                .eq('user_id', user.id)
-                .is('project_id', null) // TBD: Link eventId to projectId
-                .limit(1);
-
-            // Simple Role Check for V1 Phase 1 (Per user instructions)
-            if (profile.role !== 'PROJECT_MANAGER' && profile.role !== 'SUPER_ADMIN') {
+            if (role !== 'project_manager' && role !== 'super_admin' && role !== 'admin') {
                 return new NextResponse('403 Forbidden - Insufficient Permissions', { status: 403 });
             }
         }
