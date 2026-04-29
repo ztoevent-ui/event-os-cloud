@@ -34,7 +34,14 @@ export type BracketData = {
   matches: Record<string, BracketMatch>;
 };
 
-const SCENES_LIST = ['SCORE', 'BRACKET', 'ADS', 'DISPATCH', 'JUDGE_ROOM', 'GROUPS'];
+const SCENES_LIST = [
+  { id: 'SCORE',      icon: 'fa-chart-line',       label: 'Score' },
+  { id: 'BRACKET',   icon: 'fa-sitemap',           label: 'Bracket' },
+  { id: 'ADS',       icon: 'fa-image',             label: 'Ads' },
+  { id: 'DISPATCH',  icon: 'fa-list-check',        label: 'Dispatch' },
+  { id: 'JUDGE_ROOM',icon: 'fa-gavel',             label: 'Judge Room' },
+  { id: 'GROUPS',    icon: 'fa-table-cells',       label: 'Groups' },
+];
 
 const ADS_LIBRARY = [
     {id: 'sponsor1', title: 'Main Sponsor Video Ad', url: 'https://images.unsplash.com/photo-1622279457486-62dcc4aab31b?q=80&w=3000&auto=format&fit=crop'},
@@ -102,6 +109,9 @@ function MasterConsoleContent() {
 
   const [isConnected, setIsConnected] = useState(false);
   const channelRef = useRef<any>(null);
+  const [isFading, setIsFading] = useState(false);
+  // Live DB match for Preview auto-sync
+  const [liveDbMatch, setLiveDbMatch] = useState<{ score_a: number; score_b: number; team_a_name: string; team_b_name: string; current_set: number } | null>(null);
 
   useEffect(() => {
     async function loadRealData() {
@@ -134,23 +144,40 @@ function MasterConsoleContent() {
     return () => { supabase.removeChannel(channel); };
   }, [eventId]);
 
-  const handleTransition = () => {
-       setProgramScene(previewScene);
-       
-       // Note: only SCORE, ADS, BRACKET are actually broadcasted to the public screen.
-       if (['SCORE', 'ADS', 'BRACKET'].includes(previewScene)) {
-           channelRef.current?.send({ type: 'broadcast', event: 'screen-mode', payload: { mode: previewScene } });
-       }
-       
-       if (previewScene === 'SCORE') {
-           channelRef.current?.send({ type: 'broadcast', event: 'match-update', payload: matchState });
-       } else if (previewScene === 'ADS') {
-           const ad = ADS_LIBRARY.find(a => a.id === activeAdId);
-           if (ad) channelRef.current?.send({ type: 'broadcast', event: 'ad-update', payload: { activeAd: ad } });
-       } else if (previewScene === 'BRACKET') {
-           channelRef.current?.send({ type: 'broadcast', event: 'bracket-update', payload: bracketState });
-       }
+  // Live DB sync for Preview SCORE
+  useEffect(() => {
+    const ch = supabase
+      .channel(`mc-db-${eventId}`)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'arena_matches' }, (payload) => {
+        const m = payload.new as any;
+        if (m.status === 'LIVE') {
+          setLiveDbMatch({ score_a: m.score_a, score_b: m.score_b, team_a_name: m.team_a_name, team_b_name: m.team_b_name, current_set: m.current_set });
+          setMatchState(prev => ({ ...prev, teamA: { ...prev.teamA, name: m.team_a_name, score: m.score_a }, teamB: { ...prev.teamB, name: m.team_b_name, score: m.score_b }, currentSet: m.current_set }));
+        }
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [eventId]);
+
+  const handleCut = () => {
+    setProgramScene(previewScene);
+    if (['SCORE', 'ADS', 'BRACKET'].includes(previewScene)) {
+      channelRef.current?.send({ type: 'broadcast', event: 'screen-mode', payload: { mode: previewScene } });
+    }
+    if (previewScene === 'SCORE') channelRef.current?.send({ type: 'broadcast', event: 'match-update', payload: matchState });
+    else if (previewScene === 'ADS') { const ad = ADS_LIBRARY.find(a => a.id === activeAdId); if (ad) channelRef.current?.send({ type: 'broadcast', event: 'ad-update', payload: { activeAd: ad } }); }
+    else if (previewScene === 'BRACKET') channelRef.current?.send({ type: 'broadcast', event: 'bracket-update', payload: bracketState });
   };
+
+  const handleFade = async () => {
+    setIsFading(true);
+    await new Promise(r => setTimeout(r, 400));
+    handleCut();
+    await new Promise(r => setTimeout(r, 400));
+    setIsFading(false);
+  };
+
+  const handleTransition = handleCut;
 
   const handleRegenBracket = () => {
       const count = Number(teamInputCount);
@@ -305,14 +332,14 @@ function MasterConsoleContent() {
 
                 {/* TRANSITION BUTTONS */}
                 <div className="w-32 flex flex-col items-center justify-center gap-2 p-2 bg-[#222] border-r border-black">
-                    <button onClick={handleTransition} className="w-full bg-[#3c3c3c] hover:bg-[#4a4a4a] border border-[#555] py-1.5 rounded shadow-inner text-white font-bold transition-colors">Cut</button>
-                    <button onClick={handleTransition} className="w-full bg-[#3c3c3c] hover:bg-[#4a4a4a] border border-[#555] py-1.5 rounded shadow-inner flex items-center justify-center gap-1 text-white font-bold transition-colors">
-                        Fade
+                    <button onClick={handleCut} className="w-full bg-[#3c3c3c] hover:bg-[#4a4a4a] border border-[#555] py-1.5 rounded shadow-inner text-white font-bold transition-colors">Cut</button>
+                    <button onClick={handleFade} disabled={isFading} className="w-full bg-indigo-900/60 hover:bg-indigo-800/80 border border-indigo-700/50 py-1.5 rounded flex items-center justify-center gap-1 text-indigo-300 font-bold transition-colors disabled:opacity-40">
+                        {isFading ? <><i className="fa-solid fa-spinner fa-spin text-[9px]" /> Fading…</> : <><i className="fa-solid fa-wave-square text-[9px]" /> Fade</>}
                     </button>
                     <div className="w-full h-px bg-black my-2" />
-                    <div className="text-[9px] text-[#777] uppercase font-bold w-full text-center mb-1">Quick Transition</div>
-                    <button onClick={handleTransition} className="w-full bg-blue-600 hover:bg-blue-500 border border-blue-500 py-2 rounded text-white font-black shadow-inner">
-                        TRANSITION <i className="fa-solid fa-arrow-right ml-1" />
+                    <div className="text-[9px] text-[#777] uppercase font-bold w-full text-center mb-1">Direct Take</div>
+                    <button onClick={handleCut} className="w-full bg-blue-600 hover:bg-blue-500 border border-blue-500 py-2 rounded text-white font-black shadow-inner">
+                        TAKE <i className="fa-solid fa-arrow-right ml-1" />
                     </button>
                 </div>
 
@@ -336,10 +363,11 @@ function MasterConsoleContent() {
                      </div>
                      <div className="flex-1 overflow-y-auto p-1 bg-[#1a1a1a]">
                          {SCENES_LIST.map(s => (
-                             <div key={s} onClick={() => setPreviewScene(s)} className={`px-2 py-1 text-[11px] cursor-pointer border border-transparent rounded-sm ${previewScene === s ? 'bg-blue-600/80 text-white' : 'text-[#ccc] hover:bg-[#333]'}`}>
-                                 {s}
-                             </div>
-                         ))}
+                              <div key={s.id} onClick={() => setPreviewScene(s.id)} className={`px-2 py-1.5 text-[11px] cursor-pointer border border-transparent rounded-sm flex items-center gap-2 transition-colors ${previewScene === s.id ? 'bg-blue-600/80 text-white' : 'text-[#ccc] hover:bg-[#333]'}`}>
+                                  <i className={`fa-solid ${s.icon} text-[9px] opacity-70 w-3 shrink-0`} />
+                                  {s.label}
+                               </div>
+                          ))}
                      </div>
                      <div className="bg-[#2b2b2b] h-8 flex items-center px-2 gap-3 border-t border-[#333] text-[#aaa]">
                          <i className="fa-solid fa-plus hover:text-white cursor-pointer" />
@@ -400,8 +428,8 @@ function MasterConsoleContent() {
             
             {/* STATUS BAR */}
             <div className="h-6 bg-[#222] border-t border-black flex justify-between items-center px-4 text-[10px] text-[#777] font-bold">
-                 <span>ZTO ARENA CPU: 4.8% &nbsp; 60.00 FPS</span>
-                 <span>LIVE: 00:00:00 &nbsp; REC: 00:00:00</span>
+                  <span>ZTO ARENA · <span className={isConnected ? 'text-emerald-500' : 'text-red-500'}>{isConnected ? 'CONNECTED' : 'OFFLINE'}</span>{liveDbMatch ? <span className="ml-2 text-emerald-400">· DB ●</span> : null}</span>
+                  <span className="text-[#555]">{previewScene} → {programScene}</span>
             </div>
         </div>
     </div>

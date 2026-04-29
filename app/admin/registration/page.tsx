@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import Swal from 'sweetalert2';
 import { ImageUploadField } from '@/app/components/ImageUploadField';
@@ -28,12 +29,30 @@ type RegConfig = {
 };
 
 export default function RegistrationAdminPage() {
+    const router = useRouter();
     const [configs, setConfigs] = useState<RegConfig[]>([]);
     const [selected, setSelected] = useState<RegConfig | null>(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [authChecked, setAuthChecked] = useState(false);
 
-    useEffect(() => { fetchConfigs(); }, []);
+    // ── Admin guard ──────────────────────────────────────────────────────────
+    useEffect(() => {
+        const guard = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) { router.replace('/auth?returnTo=/admin/registration'); return; }
+            const { data: prof } = await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle();
+            // Case-insensitive check — accepts 'admin', 'Admin', 'ADMIN'
+            if (prof?.role?.toLowerCase() !== 'admin') {
+                router.replace('/dashboard');
+                return;
+            }
+            setAuthChecked(true);
+            fetchConfigs();
+        };
+        guard();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const fetchConfigs = async () => {
         const { data } = await supabase.from('registration_config').select('*').order('created_at', { ascending: false });
@@ -108,7 +127,7 @@ export default function RegistrationAdminPage() {
         update('sponsors', items);
     };
 
-    if (loading) return <div className="min-h-screen bg-[#050505] flex items-center justify-center"><div className="w-12 h-12 border-2 border-[#0056B3]/30 border-t-[#0056B3] rounded-full animate-spin" /></div>;
+    if (!authChecked || loading) return <div className="min-h-screen bg-[#050505] flex items-center justify-center"><div className="w-12 h-12 border-2 border-[#0056B3]/30 border-t-[#0056B3] rounded-full animate-spin" /></div>;
 
     return (
         <div className="min-h-screen bg-[#050505] text-white font-sans">

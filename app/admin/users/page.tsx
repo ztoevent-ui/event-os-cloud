@@ -70,8 +70,11 @@ export default function AdminUsersPage() {
             if (!user) { router.push('/auth?returnTo=/admin/users'); return; }
 
             const { data: prof } = await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle();
-            if (!prof || prof.role !== 'admin') {
-                router.push('/dashboard');
+            // Case-insensitive admin check — accepts 'admin', 'Admin', 'ADMIN'
+            const isAdmin = prof?.role?.toLowerCase() === 'admin';
+            if (!isAdmin) {
+                // Not admin — go to dashboard, do NOT loop back here
+                router.replace('/dashboard');
                 return;
             }
             setCurrentUser(user);

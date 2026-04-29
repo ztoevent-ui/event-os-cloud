@@ -128,7 +128,7 @@ export default function Dashboard() {
         );
     }
 
-    const isAdmin = ['admin'].includes(profile?.role ?? '');
+    const isAdmin = profile?.role?.toLowerCase() === 'admin';
     const visibleTools = isAdmin ? tools : tools.filter(t => !['users', 'registration'].includes(t.id));
 
     return (

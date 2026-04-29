@@ -191,6 +191,13 @@ function MatchSelector({
 // SIDE SWITCH MODAL
 // ——————————————————————————————————————————————————
 function SideSwitchModal({ onConfirm }: { onConfirm: () => void }) {
+  const [cd, setCd] = React.useState(3);
+  const [ready, setReady] = React.useState(false);
+  React.useEffect(() => {
+    if (cd <= 0) { setReady(true); return; }
+    const t = setTimeout(() => setCd(c => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [cd]);
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -215,11 +222,19 @@ function SideSwitchModal({ onConfirm }: { onConfirm: () => void }) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        onClick={onConfirm}
-        className="bg-amber-500 text-black font-black text-xl uppercase tracking-widest px-16 py-6 rounded-3xl shadow-[0_0_40px_rgba(245,158,11,0.4)] hover:bg-amber-400 transition-all active:scale-95"
+        onClick={ready ? onConfirm : undefined}
+        disabled={!ready}
+        className={`font-black text-xl uppercase tracking-widest px-16 py-6 rounded-3xl transition-all active:scale-95 ${
+          ready
+            ? 'bg-amber-500 text-black shadow-[0_0_40px_rgba(245,158,11,0.4)] hover:bg-amber-400 cursor-pointer'
+            : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+        }`}
       >
-        ✓ Confirmed — Sides Switched
+        {ready ? '✓ Confirmed — Sides Switched' : `Hold on… ${cd}`}
       </motion.button>
+      {!ready && (
+        <p className="mt-4 text-[10px] text-zinc-700 font-black uppercase tracking-widest">Anti-misfire lock · {cd}s</p>
+      )}
     </motion.div>
   );
 }
@@ -295,6 +310,10 @@ function ScoringScreen({
   const [tieContext, setTieContext] = useState<{ mode: string; nextLabel?: string } | null>(null);
   const channelRef = useRef<any>(null);
   const scoringFrozen = phase !== 'SCORING';
+
+  // Score history stack for proper undo (max 10 steps)
+  type ScoreSnapshot = Pick<ArenaMatch, 'score_a' | 'score_b' | 'server' | 'left_team' | 'sets_won_a' | 'sets_won_b' | 'current_set' | 'sets_scores'>;
+  const [scoreHistory, setScoreHistory] = useState<ScoreSnapshot[]>([]);
 
   // Load Tie context for automatic queuing
   useEffect(() => {
@@ -470,6 +489,11 @@ function ScoringScreen({
       return;
     }
 
+    // Push snapshot BEFORE applying new score
+    setScoreHistory(prev => [
+      ...prev.slice(-9),
+      { score_a: match.score_a, score_b: match.score_b, server: match.server, left_team: match.left_team, sets_won_a: match.sets_won_a, sets_won_b: match.sets_won_b, current_set: match.current_set, sets_scores: match.sets_scores },
+    ]);
     setMatch(updatedMatch);
     persistScore(updatedMatch, scoringTeam === 'A' ? 'SCORE_A' : 'SCORE_B');
   }, [match, rule, scoringFrozen, persistScore]);
@@ -575,7 +599,8 @@ function ScoringScreen({
           id="btn-score-left"
           disabled={scoringFrozen}
           onClick={() => handleScore('LEFT')}
-          className="flex-1 flex flex-col items-center justify-center gap-4 bg-blue-950/30 active:bg-blue-900/50 transition-colors border-r-4 border-white/5 relative group disabled:opacity-50"
+          className="flex-1 flex flex-col items-center justify-center gap-4 bg-blue-950/30 active:bg-blue-900/50 active:scale-[0.98] transition-all border-r-4 border-white/5 relative group disabled:opacity-50"
+          style={{ WebkitTapHighlightColor: 'transparent' }}
         >
           {/* Server indicator */}
           {rule.scoring_type === 'SIDE_OUT' && isLeftServing && (
@@ -620,7 +645,8 @@ function ScoringScreen({
           id="btn-score-right"
           disabled={scoringFrozen}
           onClick={() => handleScore('RIGHT')}
-          className="flex-1 flex flex-col items-center justify-center gap-4 bg-red-950/30 active:bg-red-900/50 transition-colors border-l-4 border-white/5 relative group disabled:opacity-50"
+          className="flex-1 flex flex-col items-center justify-center gap-4 bg-red-950/30 active:bg-red-900/50 active:scale-[0.98] transition-all border-l-4 border-white/5 relative group disabled:opacity-50"
+          style={{ WebkitTapHighlightColor: 'transparent' }}
         >
           {/* Server indicator */}
           {rule.scoring_type === 'SIDE_OUT' && !isLeftServing && (
@@ -666,19 +692,19 @@ function ScoringScreen({
 
         <button
           onClick={() => {
-            // Undo: fetch and decrement — simplified visual undo
-            // For production: integrate with score event log
-            if (match.score_a > 0 || match.score_b > 0) {
-              const newMatch = { ...match };
-              if (newMatch.score_a >= newMatch.score_b && newMatch.score_a > 0) newMatch.score_a--;
-              else if (newMatch.score_b > 0) newMatch.score_b--;
-              setMatch(newMatch);
-              persistScore(newMatch, 'UNDO');
-            }
+            if (scoreHistory.length === 0) return;
+            const prev = scoreHistory[scoreHistory.length - 1];
+            const restored: ArenaMatch = { ...match, ...prev };
+            setMatch(restored);
+            setScoreHistory(h => h.slice(0, -1));
+            persistScore(restored, 'UNDO');
           }}
-          className="text-zinc-700 hover:text-amber-500 text-[10px] font-black uppercase tracking-widest transition-colors"
+          disabled={scoreHistory.length === 0}
+          className={`text-[10px] font-black uppercase tracking-widest transition-colors ${
+            scoreHistory.length > 0 ? 'text-amber-500 hover:text-amber-300' : 'text-zinc-800 cursor-not-allowed'
+          }`}
         >
-          Undo ↩
+          Undo ↩ {scoreHistory.length > 0 && <span className="text-amber-700">({scoreHistory.length})</span>}
         </button>
       </div>
     </div>

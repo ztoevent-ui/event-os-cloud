@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabaseClient';
 
-// --- Interfaces ---
 interface Tournament {
   id: string;
   name: string;
@@ -23,62 +22,78 @@ interface Project {
   type: string;
 }
 
-const modules = [
-  { title: 'Master Console',       desc: 'OBS-style studio for direct big-screen stream control.', path: '/admin',     icon: 'fa-tv',     bg: 'bg-[#0056B3]/10',    text: 'text-[#4da3ff]',    borderBase: 'border-white/5',    borderHover: 'hover:border-[#0056B3]/40' },
-  { title: 'Tournament Architect', desc: 'Configure round rules, tie templates & scoring logic.', path: '/architect', icon: 'fa-wrench', bg: 'bg-[#0056B3]/10', text: 'text-[#4da3ff]', borderBase: 'border-white/5', borderHover: 'hover:border-[#0056B3]/40' },
-  { title: 'Referee Panel',        desc: 'Simplified scoring engine for match officials.',       path: '/referee',   icon: 'fa-eye',    bg: 'bg-[#0056B3]/10',   text: 'text-[#4da3ff]',   borderBase: 'border-white/5',   borderHover: 'hover:border-[#0056B3]/40'   },
-  { title: 'Director Dashboard',   desc: 'Real-time overview of all courts & match statuses.',  path: '/director',  icon: 'fa-tower-observation', bg: 'bg-[#0056B3]/10', text: 'text-[#4da3ff]', borderBase: 'border-white/5', borderHover: 'hover:border-[#0056B3]/40' },
-];
+const SPORT_META: Record<string, { icon: string; color: string }> = {
+  PICKLEBALL:   { icon: '🏓', color: '#10b981' },
+  BADMINTON:    { icon: '🏸', color: '#f59e0b' },
+  BASKETBALL:   { icon: '🏀', color: '#f97316' },
+  FUTSAL:       { icon: '⚽', color: '#22c55e' },
+  TENNIS:       { icon: '🎾', color: '#a3e635' },
+  VOLLEYBALL:   { icon: '🏐', color: '#60a5fa' },
+  TABLE_TENNIS: { icon: '🏓', color: '#e879f9' },
+  ARCHERY:      { icon: '🎯', color: '#fb7185' },
+  OTHER:        { icon: '🏅', color: '#94a3b8' },
+};
 
-const SPORTS = [
-  { id: 'PICKLEBALL', name: 'Pickleball', icon: '🏓' },
-  { id: 'BADMINTON',  name: 'Badminton',  icon: '🏸' },
-  { id: 'BASKETBALL', name: 'Basketball', icon: '🏀' },
-  { id: 'FUTSAL',     name: 'Futsal',     icon: '⚽' },
-  { id: 'TENNIS',     name: 'Tennis',     icon: '🎾' },
-  { id: 'VOLLEYBALL', name: 'Volleyball', icon: '🏐' },
-  { id: 'TABLE_TENNIS', name: 'Table Tennis', icon: '🏓' },
-  { id: 'ARCHERY',    name: 'Archery',    icon: '🎯' },
-  { id: 'OTHER',      name: 'Other',      icon: '🏅' },
-];
+const SPORTS = Object.entries(SPORT_META).map(([id, m]) => ({ id, ...m, name: id.replace(/_/g, ' ') }));
 
 const FORMAT_OPTIONS = [
-  {
-    id: 'TIE_TEAM',
-    label: 'Team Tie',
-    sub: 'Thomas Cup / Corporate Cup style',
-    icon: 'fa-people-group',
-    color: '#0056B3',
-  },
-  {
-    id: 'INDIVIDUAL',
-    label: 'Individual Events',
-    sub: 'Singles, Doubles, or Mixed brackets',
-    icon: 'fa-person-running',
-    color: '#0056B3',
-  },
+  { id: 'TIE_TEAM',    label: 'Team Tie',         sub: 'Thomas Cup / Corporate Cup', icon: 'fa-people-group' },
+  { id: 'INDIVIDUAL',  label: 'Individual Events', sub: 'Singles, Doubles, Mixed',    icon: 'fa-person-running' },
 ];
+
+const MODULES = [
+  { title: 'Master Console',       desc: 'OBS-style studio for big-screen stream control.', path: '/admin',     icon: 'fa-tv',                color: '#0056B3' },
+  { title: 'Tournament Architect', desc: 'Configure round rules & scoring logic.',           path: '/architect', icon: 'fa-wrench',            color: '#0056B3' },
+  { title: 'Referee Panel',        desc: 'Simplified scoring engine for match officials.',    path: '/referee',   icon: 'fa-eye',               color: '#0056B3' },
+  { title: 'Director Dashboard',   desc: 'Real-time overview of all courts & statuses.',    path: '/director',  icon: 'fa-tower-observation', color: '#0056B3' },
+];
+
+function TournamentCard({ t, selected, onClick }: { t: Tournament; selected: boolean; onClick: () => void }) {
+  const meta = SPORT_META[t.sport_type] || SPORT_META.OTHER;
+  return (
+    <button
+      onClick={onClick}
+      className={`w-full text-left p-5 rounded-2xl border transition-all duration-300 relative overflow-hidden group ${
+        selected
+          ? 'bg-[#0056B3]/15 border-[#0056B3]/50 shadow-[0_0_20px_rgba(0,86,179,0.2)]'
+          : 'bg-white/[0.02] border-white/5 hover:border-white/15 hover:bg-white/[0.04]'
+      }`}
+    >
+      <div className="flex items-center gap-4">
+        <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0 ${selected ? 'bg-[#0056B3]/20' : 'bg-white/5'}`}>
+          {meta.icon}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="font-black text-white text-sm uppercase tracking-tight truncate">{t.name}</div>
+          <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-0.5">
+            {t.sport_type.replace(/_/g, ' ')} · {t.format === 'TIE_TEAM' ? 'Team Tie' : 'Individual'}
+          </div>
+        </div>
+        {selected && <div className="w-2.5 h-2.5 rounded-full bg-[#0056B3] shadow-[0_0_8px_#0056B3] shrink-0" />}
+      </div>
+    </button>
+  );
+}
 
 export default function ArenaHubRoot() {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
-  const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null);
+  const [selected, setSelected] = useState<Tournament | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [step, setStep] = useState(1);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
   const [draft, setDraft] = useState({
     name: '',
     sport: 'PICKLEBALL',
     format: 'TIE_TEAM' as 'TIE_TEAM' | 'INDIVIDUAL',
-    linked_project_id: '' as string,
+    linked_project_id: '',
   });
-  const [creating, setCreating] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
-  const [deleting, setDeleting] = useState(false);
 
-  useEffect(() => {
-    fetchAll();
-  }, []);
+  useEffect(() => { fetchAll(); }, []);
 
   const fetchAll = async () => {
     setLoading(true);
@@ -86,10 +101,7 @@ export default function ArenaHubRoot() {
       supabase.from('arena_tournaments').select('*').order('created_at', { ascending: false }),
       supabase.from('projects').select('id, name, type').order('name'),
     ]);
-    if (tours) {
-      setTournaments(tours as Tournament[]);
-      if (tours.length > 0) setSelectedTournament(tours[0] as Tournament);
-    }
+    if (tours) { setTournaments(tours as Tournament[]); if (tours.length > 0) setSelected(tours[0] as Tournament); }
     if (projs) setProjects(projs as Project[]);
     setLoading(false);
   };
@@ -99,272 +111,287 @@ export default function ArenaHubRoot() {
     if (!draft.name.trim()) return;
     setCreating(true);
     const slug = draft.name.toUpperCase().replace(/\s+/g, '_') + '_' + Math.floor(Math.random() * 9000 + 1000);
-
-    const { data, error } = await supabase
-      .from('arena_tournaments')
-      .insert([{
-        name: draft.name.trim(),
-        sport_type: draft.sport,
-        event_id_slug: slug,
-        format: draft.format,
-        linked_project_id: draft.linked_project_id || null,
-      }])
-      .select()
-      .single();
-
+    const { data, error } = await supabase.from('arena_tournaments')
+      .insert([{ name: draft.name.trim(), sport_type: draft.sport, event_id_slug: slug, format: draft.format, linked_project_id: draft.linked_project_id || null }])
+      .select().single();
     if (data) {
-      const newTournament = data as Tournament;
-      setTournaments([newTournament, ...tournaments]);
-      setSelectedTournament(newTournament);
+      const t = data as Tournament;
+      setTournaments([t, ...tournaments]);
+      setSelected(t);
       setIsCreating(false);
+      setStep(1);
       setDraft({ name: '', sport: 'PICKLEBALL', format: 'TIE_TEAM', linked_project_id: '' });
-    } else if (error) {
-      setErrorMsg('Deployment Failed: ' + error.message);
-    }
+    } else if (error) setErrorMsg('Deployment Failed: ' + error.message);
     setCreating(false);
   };
 
   const handleDelete = async () => {
-    if (!selectedTournament) return;
-    const confirm = window.confirm(`WARNING: Terminating arena "${selectedTournament.name}" will permanently erase all matches, teams, and logs. Proceed?`);
-    if (!confirm) return;
-
+    if (!selected) return;
+    const ok = window.confirm(`WARNING: Terminate "${selected.name}"? All matches and logs will be erased.`);
+    if (!ok) return;
     setDeleting(true);
-    const { error } = await supabase.from('arena_tournaments').delete().eq('id', selectedTournament.id);
-    if (error) {
-      setErrorMsg('Termination failed: ' + error.message);
-    } else {
-      const updated = tournaments.filter(t => t.id !== selectedTournament.id);
+    const { error } = await supabase.from('arena_tournaments').delete().eq('id', selected.id);
+    if (error) { setErrorMsg('Termination failed: ' + error.message); }
+    else {
+      const updated = tournaments.filter(t => t.id !== selected.id);
       setTournaments(updated);
-      setSelectedTournament(updated.length > 0 ? updated[0] : null);
+      setSelected(updated.length > 0 ? updated[0] : null);
     }
     setDeleting(false);
   };
 
-  const linkedProject = projects.find(p => p.id === selectedTournament?.linked_project_id);
+  const linkedProject = projects.find(p => p.id === selected?.linked_project_id);
+  const selectedMeta = selected ? (SPORT_META[selected.sport_type] || SPORT_META.OTHER) : null;
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white font-['Inter'] p-6 md:p-12 flex flex-col items-center justify-center relative overflow-x-hidden">
-      {/* Background - Animated Pulse */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(0,86,179,0.08),transparent_70%)] pointer-events-none animate-pulse" style={{ animationDuration: '4s' }} />
+    <div className="min-h-screen bg-[#050505] text-white font-['Inter'] overflow-x-hidden">
+      {/* Ambient bg */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_20%_20%,rgba(0,86,179,0.07),transparent_60%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_80%_80%,rgba(0,86,179,0.05),transparent_60%)]" />
+        <div className="absolute inset-0" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.015) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.015) 1px,transparent 1px)', backgroundSize: '80px 80px' }} />
+      </div>
 
-      <div className="max-w-4xl w-full z-10 animate-in fade-in duration-1000">
+      <div className="relative z-10 max-w-5xl mx-auto px-6 py-12 md:py-20">
+
         {/* Header */}
-        <header className="mb-20 text-center relative">
-          <Link href="/projects" className="absolute left-0 top-1/2 -translate-y-1/2 items-center gap-2 text-[10px] font-black uppercase text-zinc-600 hover:text-white transition-colors tracking-widest group hidden md:flex">
+        <header className="mb-16 text-center">
+          <Link href="/projects" className="inline-flex items-center gap-2 text-[10px] font-black uppercase text-zinc-700 hover:text-white transition-colors tracking-widest mb-8 group">
             <i className="fa-solid fa-arrow-left group-hover:-translate-x-1 transition-transform" />
-            Back to OS
+            Event OS
           </Link>
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-center gap-6 mb-6">
-            <div className="w-16 h-16 bg-[#0056B3] text-white rounded-[24px] flex items-center justify-center text-3xl shadow-[0_0_40px_rgba(0,86,179,0.4)]">
-              <i className="fa-solid fa-atom animate-spin-slow" />
+          <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-center gap-5 mb-5">
+            <div className="w-14 h-14 bg-[#0056B3] rounded-2xl flex items-center justify-center text-2xl shadow-[0_0_40px_rgba(0,86,179,0.5)]">
+              <i className="fa-solid fa-atom" style={{ animation: 'spin 8s linear infinite' }} />
             </div>
-            <h1 className="text-5xl font-black uppercase tracking-tight italic font-['Urbanist'] leading-none">
-              Arena <span className="text-zinc-600 font-black">Command</span>
+            <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tight font-['Urbanist'] italic leading-none">
+              Arena <span className="text-zinc-600">Command</span>
             </h1>
           </motion.div>
-          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="text-[#0056B3] tracking-[0.4em] text-[10px] font-black uppercase">
-            Production Orchestration for Competitive Sports
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }} className="text-[#0056B3] tracking-[0.4em] text-[10px] font-black uppercase">
+            Production Orchestration · Competitive Sports
           </motion.p>
         </header>
 
         {/* Error Toast */}
         <AnimatePresence>
           {errorMsg && (
-            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center gap-3 text-red-400 text-[10px] font-black uppercase tracking-widest">
+            <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center gap-3 text-red-400 text-[10px] font-black uppercase tracking-widest">
               <i className="fa-solid fa-triangle-exclamation" />
               {errorMsg}
-              <button onClick={() => setErrorMsg('')} className="ml-auto hover:text-white transition-colors">✕</button>
+              <button onClick={() => setErrorMsg('')} className="ml-auto hover:text-white">✕</button>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Tournament Selector / Creator */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-12 p-10 bg-white/[0.03] backdrop-blur-3xl border border-white/5 rounded-[48px] relative overflow-hidden shadow-2xl">
-          <div className="absolute top-0 right-0 p-10 opacity-[0.02] pointer-events-none">
-            <i className="fa-solid fa-chess-board text-[12rem]" />
-          </div>
+        {/* Main Layout: Left = Tournament List, Right = Module Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-8 items-start">
 
-          <div className="relative z-10">
-            <div className="flex items-center justify-between mb-8">
-              <label className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.4em]">Active Deployment</label>
-              <button onClick={() => setIsCreating(!isCreating)}
-                className={`text-[10px] font-black uppercase tracking-widest transition-colors px-4 py-2 rounded-full border ${isCreating ? 'text-white border-white/10 hover:bg-white/5' : 'text-[#4da3ff] border-[#0056B3]/30 hover:bg-[#0056B3]/10'}`}>
+          {/* LEFT PANEL: Tournament Selector */}
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="space-y-3">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.3em]">Active Arenas</span>
+              <button
+                onClick={() => { setIsCreating(!isCreating); setStep(1); }}
+                className={`text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-full border transition-all ${isCreating ? 'border-white/10 text-zinc-400 hover:bg-white/5' : 'border-[#0056B3]/40 text-[#4da3ff] hover:bg-[#0056B3]/10'}`}
+              >
                 {isCreating ? '✕ Cancel' : '+ New Arena'}
               </button>
             </div>
 
             <AnimatePresence mode="wait">
-              {/* ——— CREATE FORM ——— */}
               {isCreating ? (
-                <motion.div key="create" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-8">
-                  {/* Name + Sport */}
-                  <div className="flex gap-4">
-                    <input autoFocus type="text" value={draft.name}
-                      onChange={(e) => setDraft(p => ({ ...p, name: e.target.value.toUpperCase() }))}
-                      onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
-                      placeholder="TOURNAMENT CODNAME..."
-                      className="flex-1 bg-black/40 border border-white/5 rounded-2xl px-6 py-5 font-black text-xs uppercase tracking-widest focus:outline-none focus:border-[#0056B3]/40 transition-all placeholder-zinc-800" />
-                    <select value={draft.sport} onChange={(e) => setDraft(p => ({ ...p, sport: e.target.value }))}
-                      className="bg-black/40 border border-white/5 rounded-2xl px-6 py-5 font-black text-[10px] uppercase tracking-[0.2em] focus:outline-none focus:border-[#0056B3]/40 cursor-pointer text-white">
-                      {SPORTS.map(s => <option key={s.id} value={s.id}>{s.icon} {s.name.toUpperCase()}</option>)}
-                    </select>
-                  </div>
-
-                  {/* Format Toggle */}
-                  <div className="grid grid-cols-2 gap-4">
-                    {FORMAT_OPTIONS.map(opt => (
-                      <button key={opt.id} onClick={() => setDraft(p => ({ ...p, format: opt.id as 'TIE_TEAM' | 'INDIVIDUAL' }))}
-                        className={`p-8 rounded-[32px] border-2 text-left transition-all relative overflow-hidden group ${
-                          draft.format === opt.id
-                            ? 'border-[#0056B3] bg-[#0056B3]/10'
-                            : 'border-white/5 bg-black/20 hover:border-white/10'
-                        }`}>
-                        <div className={`text-2xl mb-4 ${draft.format === opt.id ? 'text-[#4da3ff]' : 'text-zinc-700'} group-hover:scale-110 transition-transform`}>
-                          <i className={`fa-solid ${opt.icon}`} />
-                        </div>
-                        <div className="font-black text-xs text-white uppercase tracking-widest mb-1">{opt.label}</div>
-                        <div className="text-[9px] font-bold text-zinc-600 uppercase tracking-tight leading-tight">{opt.sub}</div>
-                      </button>
+                <motion.div key="create-form" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="bg-white/[0.03] border border-white/8 rounded-3xl p-6 space-y-5">
+                  {/* Step indicator */}
+                  <div className="flex items-center gap-2 mb-2">
+                    {[1, 2, 3].map(s => (
+                      <React.Fragment key={s}>
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-black transition-all ${step >= s ? 'bg-[#0056B3] text-white shadow-[0_0_10px_rgba(0,86,179,0.5)]' : 'bg-white/5 text-zinc-600'}`}>{s}</div>
+                        {s < 3 && <div className={`flex-1 h-px transition-all ${step > s ? 'bg-[#0056B3]/50' : 'bg-white/5'}`} />}
+                      </React.Fragment>
                     ))}
                   </div>
 
-                  {/* Link Registration Project */}
-                  <div className="flex flex-col gap-4">
-                    <label className="text-[10px] font-black text-zinc-700 uppercase tracking-widest">
-                      Bridge Data <span className="text-zinc-800 ml-2">(PROJECT OVERRIDE)</span>
-                    </label>
-                    <select value={draft.linked_project_id} onChange={(e) => setDraft(p => ({ ...p, linked_project_id: e.target.value }))}
-                      className="w-full bg-black/40 border border-white/5 rounded-2xl px-6 py-5 font-black text-[10px] uppercase tracking-widest focus:outline-none focus:border-[#0056B3]/40 transition-all cursor-pointer text-white">
-                      <option value="">— NULL SELECTION —</option>
-                      {projects.map(p => <option key={p.id} value={p.id}>{p.name.toUpperCase()} [{p.type.toUpperCase()}]</option>)}
-                    </select>
-                  </div>
+                  {step === 1 && (
+                    <motion.div key="s1" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+                      <div>
+                        <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest mb-2 block">Tournament Name</label>
+                        <input autoFocus type="text" value={draft.name}
+                          onChange={e => setDraft(p => ({ ...p, name: e.target.value.toUpperCase() }))}
+                          onKeyDown={e => e.key === 'Enter' && draft.name.trim() && setStep(2)}
+                          placeholder="E.G. BINTULU OPEN 2026..."
+                          className="w-full bg-black/40 border border-white/5 rounded-xl px-4 py-3 font-black text-xs uppercase tracking-widest focus:outline-none focus:border-[#0056B3]/50 transition-all placeholder-zinc-800" />
+                      </div>
+                      <div>
+                        <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest mb-2 block">Sport</label>
+                        <div className="grid grid-cols-3 gap-2">
+                          {SPORTS.slice(0, 9).map(s => (
+                            <button key={s.id} onClick={() => setDraft(p => ({ ...p, sport: s.id }))}
+                              className={`p-3 rounded-xl border text-center transition-all ${draft.sport === s.id ? 'border-[#0056B3]/50 bg-[#0056B3]/10' : 'border-white/5 bg-white/[0.02] hover:border-white/10'}`}>
+                              <div className="text-lg mb-1">{s.icon}</div>
+                              <div className="text-[8px] font-black uppercase text-zinc-500">{s.name.split(' ')[0]}</div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <button onClick={() => draft.name.trim() && setStep(2)} disabled={!draft.name.trim()}
+                        className="w-full py-3 bg-[#0056B3] text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-blue-500 transition-all disabled:opacity-30">
+                        Next →
+                      </button>
+                    </motion.div>
+                  )}
 
-                  <button onClick={handleCreate} disabled={!draft.name.trim() || creating}
-                    className="w-full py-5 bg-white text-black rounded-2xl font-black text-xs uppercase tracking-[0.4em] hover:bg-zinc-200 transition-all disabled:opacity-20 shadow-[0_0_30px_rgba(255,255,255,0.1)] flex items-center justify-center gap-3">
-                    {creating ? <><i className="fa-solid fa-spinner fa-spin" /> Deploying Protocol...</> : 'Deploy Arena'}
-                  </button>
+                  {step === 2 && (
+                    <motion.div key="s2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+                      <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest mb-2 block">Format</label>
+                      {FORMAT_OPTIONS.map(opt => (
+                        <button key={opt.id} onClick={() => setDraft(p => ({ ...p, format: opt.id as any }))}
+                          className={`w-full p-5 rounded-2xl border-2 text-left transition-all ${draft.format === opt.id ? 'border-[#0056B3] bg-[#0056B3]/10' : 'border-white/5 hover:border-white/10'}`}>
+                          <i className={`fa-solid ${opt.icon} text-[#4da3ff] mb-2 block text-lg`} />
+                          <div className="font-black text-xs text-white uppercase tracking-widest">{opt.label}</div>
+                          <div className="text-[9px] text-zinc-600 uppercase mt-0.5">{opt.sub}</div>
+                        </button>
+                      ))}
+                      <div className="flex gap-2">
+                        <button onClick={() => setStep(1)} className="px-5 py-3 border border-white/5 rounded-xl text-[10px] font-black text-zinc-500 hover:text-white transition-all">← Back</button>
+                        <button onClick={() => setStep(3)} className="flex-1 py-3 bg-[#0056B3] text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-blue-500 transition-all">Next →</button>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {step === 3 && (
+                    <motion.div key="s3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+                      <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest mb-2 block">Link OS Project (Optional)</label>
+                      <select value={draft.linked_project_id} onChange={e => setDraft(p => ({ ...p, linked_project_id: e.target.value }))}
+                        className="w-full bg-black/40 border border-white/5 rounded-xl px-4 py-3 font-black text-[10px] uppercase tracking-widest focus:outline-none focus:border-[#0056B3]/50 transition-all text-white">
+                        <option value="">— No Link —</option>
+                        {projects.map(p => <option key={p.id} value={p.id}>{p.name.toUpperCase()}</option>)}
+                      </select>
+                      {/* Summary */}
+                      <div className="p-4 bg-black/30 rounded-xl border border-white/5 space-y-2">
+                        <div className="text-[9px] text-zinc-600 uppercase tracking-widest font-black mb-3">Deployment Summary</div>
+                        <div className="flex justify-between text-xs"><span className="text-zinc-500">Name</span><span className="font-black text-white">{draft.name}</span></div>
+                        <div className="flex justify-between text-xs"><span className="text-zinc-500">Sport</span><span className="font-black text-white">{draft.sport}</span></div>
+                        <div className="flex justify-between text-xs"><span className="text-zinc-500">Format</span><span className="font-black text-white">{draft.format}</span></div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button onClick={() => setStep(2)} className="px-5 py-3 border border-white/5 rounded-xl text-[10px] font-black text-zinc-500 hover:text-white transition-all">← Back</button>
+                        <button onClick={handleCreate} disabled={creating}
+                          className="flex-1 py-3 bg-white text-black rounded-xl font-black text-xs uppercase tracking-[0.3em] hover:bg-zinc-200 transition-all disabled:opacity-30 flex items-center justify-center gap-2">
+                          {creating ? <><i className="fa-solid fa-spinner fa-spin" /> Deploying...</> : '🚀 Deploy Arena'}
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
                 </motion.div>
               ) : (
-                /* ——— SELECT ——— */
-                <motion.div key="select" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}>
-                  <div className="flex gap-4 items-center">
-                    <div className="relative group flex-1">
-                      {loading ? (
-                        <div className="w-full h-[64px] bg-black/60 border border-white/5 rounded-2xl px-8 flex items-center">
-                          <div className="h-4 w-48 bg-zinc-800 rounded animate-pulse"></div>
-                        </div>
-                      ) : (
-                        <select value={selectedTournament?.id || ''}
-                          onChange={(e) => setSelectedTournament(tournaments.find(t => t.id === e.target.value) || null)}
-                          className="w-full h-[64px] bg-black/60 border border-white/5 rounded-2xl px-8 py-6 font-black text-xs uppercase tracking-[0.2em] focus:outline-none focus:border-[#0056B3]/40 transition-all appearance-none cursor-pointer text-white">
-                          {tournaments.length === 0 ? <option>NULL REGISTRY — INITIALIZE FIRST</option> :
-                          tournaments.map(t => (
-                            <option key={t.id} value={t.id}>
-                              {t.name} • {t.sport_type} • {t.format === 'TIE_TEAM' ? 'TEAM TIE' : 'INDIVIDUAL'}
-                            </option>
-                          ))}
-                        </select>
-                      )}
-                      {!loading && (
-                        <div className="absolute right-8 top-1/2 -translate-y-1/2 pointer-events-none text-[#0056B3]">
-                            <i className="fa-solid fa-chevron-down text-xs" />
-                        </div>
-                      )}
+                <motion.div key="tournament-list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-2">
+                  {loading ? (
+                    Array.from({ length: 3 }).map((_, i) => (
+                      <div key={i} className="h-20 bg-white/[0.02] border border-white/5 rounded-2xl animate-pulse" />
+                    ))
+                  ) : tournaments.length === 0 ? (
+                    <div className="py-12 text-center border border-white/5 rounded-2xl">
+                      <i className="fa-solid fa-inbox text-3xl text-zinc-700 mb-3 block" />
+                      <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">No arenas deployed</p>
+                      <p className="text-[9px] text-zinc-700 mt-1">Click "+ New Arena" to get started</p>
                     </div>
-                    {/* Delete Button */}
-                    {!loading && selectedTournament && (
-                      <button 
-                        onClick={handleDelete}
-                        disabled={deleting}
-                        className="h-[64px] px-6 bg-red-500/10 text-red-500 border border-red-500/20 rounded-2xl hover:bg-red-500 hover:text-white hover:shadow-[0_0_20px_rgba(239,68,68,0.4)] transition-all flex items-center justify-center disabled:opacity-50"
-                        title="Terminate Protocol"
-                      >
-                        <i className={`fa-solid ${deleting ? 'fa-spinner fa-spin' : 'fa-power-off'}`}></i>
-                      </button>
-                    )}
-                  </div>
+                  ) : (
+                    tournaments.map(t => (
+                      <TournamentCard key={t.id} t={t} selected={selected?.id === t.id} onClick={() => setSelected(t)} />
+                    ))
+                  )}
 
-                  {/* Selected tournament meta */}
-                  {selectedTournament && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-8 flex flex-wrap items-center gap-3">
-                      <div className="px-4 py-2 rounded-full border border-[#0056B3]/20 bg-[#0056B3]/10 text-[#4da3ff] text-[9px] font-black uppercase tracking-[0.2em]">
-                        <i className={`fa-solid ${selectedTournament.format === 'TIE_TEAM' ? 'fa-people-group' : 'fa-person-running'} mr-2`} />
-                        {selectedTournament.format === 'TIE_TEAM' ? 'Team Tie Matrix' : 'Individual Brackets'}
-                      </div>
-                      {selectedTournament.has_third_place && (
-                        <div className="px-4 py-2 rounded-full border border-white/5 bg-white/[0.03] text-zinc-500 text-[9px] font-black uppercase tracking-[0.2em]">
-                          <i className="fa-solid fa-medal mr-2" />Bronze Playoff Included
-                        </div>
-                      )}
-                      {linkedProject && (
-                        <div className="px-4 py-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 text-emerald-400 text-[9px] font-black uppercase tracking-[0.2em]">
-                          <i className="fa-solid fa-link mr-2" />OS BRIDGE: {linkedProject.name}
-                        </div>
-                      )}
-                    </motion.div>
+                  {/* Delete button */}
+                  {selected && !loading && (
+                    <motion.button initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                      onClick={handleDelete} disabled={deleting}
+                      className="w-full mt-2 py-2.5 border border-red-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest text-red-500/60 hover:text-red-400 hover:border-red-500/40 hover:bg-red-500/5 transition-all flex items-center justify-center gap-2 disabled:opacity-30">
+                      <i className={`fa-solid ${deleting ? 'fa-spinner fa-spin' : 'fa-trash'}`} />
+                      Terminate Selected
+                    </motion.button>
                   )}
                 </motion.div>
               )}
             </AnimatePresence>
-          </div>
-        </motion.div>
+          </motion.div>
 
-        {/* Module Grid */}
-        <div className="relative">
-          {/* Overlay when no tournament is selected */}
-          {!selectedTournament && !loading && !isCreating && (
-             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 z-20 flex flex-col items-center justify-center backdrop-blur-sm bg-black/40 rounded-[40px] border border-white/5">
-                <i className="fa-solid fa-lock text-3xl text-zinc-600 mb-4"></i>
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">Deploy or Select an Arena to Unlock Modules</p>
-             </motion.div>
-          )}
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {modules.map((mod, idx) => (
-              <motion.div key={mod.title} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 * idx }}>
-                <Link
-                  href={selectedTournament ? `/arena/${selectedTournament.id}${mod.path}` : '#'}
-                  className={`group block p-10 bg-white/[0.03] backdrop-blur-2xl border ${mod.borderBase} rounded-[40px] ${mod.borderHover} transition-all duration-700 relative overflow-hidden ${!selectedTournament ? 'opacity-20 pointer-events-none' : ''}`}>
-                  
-                  <div className={`absolute -right-6 -bottom-6 opacity-[0.03] text-9xl transition-all duration-1000 group-hover:scale-150 group-hover:-rotate-12 ${mod.text}`}>
-                    <i className={`fa-solid ${mod.icon}`} />
+          {/* RIGHT PANEL: Selected Tournament Info + Modules */}
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }} className="space-y-6">
+
+            {/* Tournament Header Card */}
+            <AnimatePresence mode="wait">
+              {selected && selectedMeta ? (
+                <motion.div key={selected.id} initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                  className="p-6 bg-white/[0.03] border border-white/8 rounded-3xl relative overflow-hidden">
+                  <div className="absolute -right-4 -top-4 text-8xl opacity-[0.04] select-none">{selectedMeta.icon}</div>
+                  <div className="relative z-10">
+                    <div className="text-[9px] font-black text-zinc-600 uppercase tracking-[0.4em] mb-3">Active Deployment</div>
+                    <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-3">{selected.name}</h2>
+                    <div className="flex flex-wrap gap-2">
+                      <span className="px-3 py-1 rounded-full bg-[#0056B3]/15 border border-[#0056B3]/30 text-[#4da3ff] text-[9px] font-black uppercase tracking-widest">
+                        {selectedMeta.icon} {selected.sport_type.replace(/_/g, ' ')}
+                      </span>
+                      <span className="px-3 py-1 rounded-full bg-white/5 border border-white/5 text-zinc-500 text-[9px] font-black uppercase tracking-widest">
+                        {selected.format === 'TIE_TEAM' ? '👥 Team Tie' : '🏃 Individual'}
+                      </span>
+                      {linkedProject && (
+                        <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[9px] font-black uppercase tracking-widest">
+                          <i className="fa-solid fa-link mr-1" />{linkedProject.name}
+                        </span>
+                      )}
+                    </div>
                   </div>
+                </motion.div>
+              ) : !loading && !isCreating ? (
+                <motion.div key="no-sel" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-6 border border-white/5 rounded-3xl text-center">
+                  <i className="fa-solid fa-lock text-2xl text-zinc-700 mb-3 block" />
+                  <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Select or deploy an arena to activate modules</p>
+                </motion.div>
+              ) : null}
+            </AnimatePresence>
 
-                  <div className="flex items-center gap-6 mb-8">
-                      <div className={`w-16 h-16 ${mod.bg} ${mod.text} rounded-[20px] flex items-center justify-center text-2xl group-hover:scale-110 group-hover:shadow-[0_0_30px_rgba(0,86,179,0.3)] transition-all duration-500`}>
+            {/* Module Grid */}
+            <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 transition-all ${!selected ? 'opacity-30 pointer-events-none' : ''}`}>
+              {MODULES.map((mod, idx) => (
+                <motion.div key={mod.title} initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.05 * idx }}>
+                  <Link
+                    href={selected ? `/arena/${selected.id}${mod.path}` : '#'}
+                    className="group block p-6 bg-white/[0.03] border border-white/5 rounded-2xl hover:border-[#0056B3]/40 hover:bg-[#0056B3]/5 transition-all duration-500 relative overflow-hidden">
+                    <div className="absolute -right-3 -bottom-3 opacity-[0.04] text-6xl transition-all duration-700 group-hover:scale-125 group-hover:-rotate-6 text-[#4da3ff]">
+                      <i className={`fa-solid ${mod.icon}`} />
+                    </div>
+                    <div className="relative z-10">
+                      <div className="w-10 h-10 rounded-xl bg-[#0056B3]/10 text-[#4da3ff] flex items-center justify-center mb-4 group-hover:shadow-[0_0_20px_rgba(0,86,179,0.3)] transition-all">
                         <i className={`fa-solid ${mod.icon}`} />
                       </div>
-                      <div>
-                          <h3 className="text-xl font-black text-white uppercase tracking-tight font-['Urbanist'] mb-1">{mod.title}</h3>
-                          <p className="text-[10px] font-black text-[#0056B3] uppercase tracking-[0.4em]">System Node</p>
+                      <h3 className="font-black text-white text-sm uppercase tracking-tight mb-1">{mod.title}</h3>
+                      <p className="text-[10px] text-zinc-600 font-bold leading-relaxed">{mod.desc}</p>
+                      <div className="mt-4 flex items-center gap-2 text-[10px] font-black text-zinc-700 group-hover:text-[#4da3ff] transition-colors uppercase tracking-widest">
+                        <span>Execute</span>
+                        <i className="fa-solid fa-arrow-right-long group-hover:translate-x-2 transition-transform" />
                       </div>
-                  </div>
+                    </div>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
 
-                  <p className="text-zinc-600 text-[11px] font-bold leading-relaxed uppercase tracking-widest h-12">{mod.desc}</p>
-                  
-                  <div className="mt-10 flex items-center justify-between relative z-10">
-                      <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-zinc-700 group-hover:text-white transition-colors">
-                          <span>Execute Protocol</span>
-                          <i className="fa-solid fa-arrow-right-long transition-transform group-hover:translate-x-3" />
-                      </div>
-                      <div className="w-2 h-2 rounded-full bg-zinc-800 group-hover:bg-[#0056B3] group-hover:shadow-[0_0_10px_#0056B3] transition-all" />
+            {/* Screen Shortcut */}
+            {selected && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
+                <Link href={`/arena/${selected.id}/screen`}
+                  className="flex items-center justify-between px-6 py-4 bg-white/[0.02] border border-white/5 rounded-2xl hover:border-[#0056B3]/30 hover:bg-[#0056B3]/5 transition-all group">
+                  <div className="flex items-center gap-3">
+                    <i className="fa-solid fa-display text-[#0056B3]" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500 group-hover:text-[#4da3ff] transition-colors">Arena Display Screen</span>
                   </div>
+                  <i className="fa-solid fa-arrow-right text-zinc-700 group-hover:text-[#4da3ff] group-hover:translate-x-1 transition-all text-xs" />
                 </Link>
               </motion.div>
-            ))}
-          </div>
+            )}
+          </motion.div>
         </div>
-
-        {/* Screen Shortcut */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="mt-20 text-center">
-          <Link href="/apps/zto-arena/screen"
-            className="inline-flex items-center gap-4 px-10 py-4 bg-white/[0.03] border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-[0.4em] text-zinc-600 hover:text-[#4da3ff] hover:border-[#0056B3]/30 hover:bg-[#0056B3]/10 transition-all">
-            <i className="fa-solid fa-display text-[#0056B3]" />
-            Arena Display Registry
-          </Link>
-        </motion.div>
       </div>
     </div>
   );
