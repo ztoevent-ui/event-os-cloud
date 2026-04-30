@@ -15,7 +15,6 @@ type AccessState = 'checking' | 'no-session' | 'no-admin' | 'ready';
 type Profile = {
   id: string;
   display_name: string | null;
-  full_name: string | null;
   email: string | null;
   role: string | null;
   user_type: string | null;
@@ -66,10 +65,15 @@ export default function UserManagementPage() {
 
   const loadProfiles = async () => {
     setLoading(true);
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('profiles')
-      .select('id, display_name, full_name, email, role, user_type, created_at')
+      .select('id, display_name, email, role, user_type, created_at')
       .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('Error loading profiles:', error);
+    }
+    
     setProfiles(data ?? []);
     setLoading(false);
   };

@@ -10,7 +10,7 @@ import { usePrint } from '../../components/PrintContext';
 
 type TeamMember = {
     id: string;
-    full_name: string;
+    display_name: string;
     role: 'SUPER_ADMIN' | 'PROJECT_MANAGER' | 'REFEREE';
     email?: string;
     avatar_url?: string;
@@ -46,14 +46,14 @@ export default function TeamManagementPage() {
             .from('project_access')
             .select(`
                 user_id,
-                profiles (id, full_name, role, avatar_url)
+                profiles (id, display_name, role, avatar_url)
             `)
             .eq('project_id', projectId);
 
         if (!accessError && accessData) {
             const formatted = accessData.map((a: any) => ({
                 id: a.profiles.id,
-                full_name: a.profiles.full_name || 'Unnamed Staff',
+                display_name: a.profiles.display_name || 'Unnamed Staff',
                 role: a.profiles.role,
                 avatar_url: a.profiles.avatar_url
             }));
@@ -166,10 +166,10 @@ export default function TeamManagementPage() {
                                         className={`bg-white/[0.03] border border-white/5 p-8 rounded-[32px] flex items-center gap-6 hover:border-[#0056B3]/40 transition-all group relative overflow-hidden print:bg-white print:border-zinc-200 print:text-black ${pageBreakIds.includes(member.id) ? 'print:break-before-page pt-8' : ''}`}
                                     >
                                         <div className="w-16 h-16 rounded-2xl bg-zinc-900 border border-white/10 flex items-center justify-center text-2xl font-black text-[#0056B3] overflow-hidden shadow-2xl transition-transform group-hover:scale-105 print:hidden">
-                                            {member.avatar_url ? <img src={member.avatar_url} className="w-full h-full object-cover" /> : member.full_name[0]}
+                                            {member.avatar_url ? <img src={member.avatar_url} className="w-full h-full object-cover" /> : member.display_name[0]}
                                         </div>
                                         <div className="flex-1">
-                                            <h3 className="text-xl font-black text-white uppercase tracking-tight leading-none mb-2 font-['Urbanist'] group-hover:text-[#4da3ff] transition-colors">{member.full_name}</h3>
+                                            <h3 className="text-xl font-black text-white uppercase tracking-tight leading-none mb-2 font-['Urbanist'] group-hover:text-[#4da3ff] transition-colors">{member.display_name}</h3>
                                             <div className="flex items-center gap-2">
                                                 <span className={`text-[8px] font-black px-2.5 py-1 rounded-md uppercase tracking-widest border ${
                                                     member.role === 'SUPER_ADMIN' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' : 
