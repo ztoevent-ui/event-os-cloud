@@ -62,8 +62,8 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
   const fetchProjectAndSettings = async () => {
     const { data: projData } = await supabase.from('projects').select('type, name').eq('id', projectId).single();
     setProject(projData);
-    const { data: settingsData } = await supabase.from('tournament_settings').select('program_columns').eq('project_id', projectId).single();
-    if (settingsData?.program_columns?.length > 0) setColumns(settingsData.program_columns);
+    const { data: settingsData } = await supabase.from('tournament_settings').select('program_columns').eq('project_id', projectId).maybeSingle();
+    if (settingsData && settingsData.program_columns?.length > 0) setColumns(settingsData.program_columns);
   };
 
   const fetchProgram = async () => {

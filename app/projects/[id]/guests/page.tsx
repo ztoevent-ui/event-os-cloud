@@ -1,15 +1,11 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabaseClient';
 import { useParams } from 'next/navigation';
 import Swal from 'sweetalert2';
 import { PrintReportButton } from '../../components/ProjectModals';
 import { PrintBreakTrigger } from '../../components/PrintBreakTrigger';
 import { usePrint } from '../../components/PrintContext';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://zihjzbweasaqqbwilshx.supabase.co';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppaGp6YndlYXNhcXFid2lsc2h4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU4OTQ5MTYsImV4cCI6MjA4MTQ3MDkxNn0.ilHqOs75eUA6p2n-h1rgfulwNwq_hPQyptFg-kcjbv4';
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default function GuestListPage() {
     const { id } = useParams();
@@ -53,6 +49,7 @@ export default function GuestListPage() {
             const { data, error } = await supabase
                 .from('attendees')
                 .select('*')
+                .eq('project_id', projectId)
                 .order('created_at', { ascending: false });
 
             if (error) throw error;

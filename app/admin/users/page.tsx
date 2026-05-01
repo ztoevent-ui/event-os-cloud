@@ -190,14 +190,14 @@ export default function UserManagementPage() {
                 )}
                 {profiles.map(p => {
                   const isAdmin = p.role?.toLowerCase() === 'admin';
-                  const initials = (p.display_name ?? p.full_name ?? p.email ?? '?')[0].toUpperCase();
+                  const initials = (p.display_name ?? p.email ?? '?')[0].toUpperCase();
                   return (
                     <tr key={p.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                       <td style={styles.td}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                           <div style={{ ...styles.avatar, background: isAdmin ? '#7c3aed' : '#0056B3' }}>{initials}</div>
                           <div>
-                            <div style={{ fontWeight: 700, fontSize: 14, color: '#fff' }}>{p.display_name ?? p.full_name ?? '—'}</div>
+                            <div style={{ fontWeight: 700, fontSize: 14, color: '#fff' }}>{p.display_name ?? '—'}</div>
                             <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>{p.email ?? `${p.id.slice(0, 12)}…`}</div>
                           </div>
                         </div>
