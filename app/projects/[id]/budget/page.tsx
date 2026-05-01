@@ -100,8 +100,8 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
 
                     <div className="flex items-center gap-2">
                         <PrintReportButton title="Budget Report" />
-                        <CopyBudgetButton projectId={id} />
-                        <AddBudgetButton projectId={id} isWedding={isWedding} />
+                        <CopyBudgetButton projectId={id} onSuccess={fetchData} />
+                        <AddBudgetButton projectId={id} isWedding={isWedding} onSuccess={fetchData} />
                     </div>
                 </div>
             </div>
@@ -137,7 +137,7 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
                                             <div className="mt-2 flex items-center gap-2">
                                                 <span className="text-[8px] font-black px-2 py-0.5 rounded bg-white/5 text-zinc-600 uppercase tracking-tighter">{item.status}</span>
                                                 <div className="print:hidden">
-                                                    <DeleteBudgetButton id={item.id} projectId={id} />
+                                                    <DeleteBudgetButton id={item.id} projectId={id} onSuccess={fetchData} />
                                                 </div>
                                             </div>
                                         </div>
@@ -178,7 +178,7 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
                                             <div className="mt-2 flex items-center gap-2">
                                                 <span className="text-[8px] font-black px-2 py-0.5 rounded bg-white/5 text-zinc-600 uppercase tracking-tighter">{item.status}</span>
                                                 <div className="print:hidden">
-                                                    <DeleteBudgetButton id={item.id} projectId={id} />
+                                                    <DeleteBudgetButton id={item.id} projectId={id} onSuccess={fetchData} />
                                                 </div>
                                             </div>
                                         </div>

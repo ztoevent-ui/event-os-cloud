@@ -222,20 +222,24 @@ export function DeleteTimelineButton({ id, projectId }: { id: string, projectId:
 
 // --- BUDGETS ---
 
-export function AddBudgetButton({ projectId, isWedding }: { projectId: string; isWedding?: boolean }) {
+export function AddBudgetButton({ projectId, isWedding, onSuccess }: { projectId: string; isWedding?: boolean; onSuccess?: () => void }) {
     const [isOpen, setIsOpen] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const colorClass = isWedding ? 'bg-pink-500 hover:bg-pink-400 shadow-pink-500/20' : 'bg-[#0056B3] hover:bg-[#0056B3] shadow-blue-900/20';
     const focusClass = isWedding ? 'focus:border-pink-500' : 'focus:border-[#0056B3]/30';
 
     return (
         <>
-            <button onClick={() => setIsOpen(true)} className={`px-6 py-2.5 ${colorClass} text-black font-bold rounded-full transition-all flex items-center gap-2 transform hover:scale-105 shadow-lg`}>
+            <button onClick={() => setIsOpen(true)} className={`px-6 py-2.5 ${colorClass} text-white font-bold rounded-full transition-all flex items-center gap-2 transform hover:scale-105 shadow-lg`}>
                 <i className="fa-solid fa-plus"></i> Add Item
             </button>
             <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title="New Budget Item">
                 <form action={async (formData) => {
+                    setIsSubmitting(true);
                     await createBudget(formData);
                     setIsOpen(false);
+                    setIsSubmitting(false);
+                    onSuccess?.();
                 }} className="space-y-4">
                     <input type="hidden" name="project_id" value={projectId} />
                     <div>
@@ -266,14 +270,17 @@ export function AddBudgetButton({ projectId, isWedding }: { projectId: string; i
                             </datalist>
                         </div>
                     </div>
-                    <button type="submit" className={`w-full ${colorClass} text-black font-bold py-3 rounded-xl transition-colors mt-4 shadow-lg`}>Add Transaction</button>
+                    <button type="submit" disabled={isSubmitting} className={`w-full ${colorClass} text-white font-bold py-3 rounded-xl transition-colors mt-4 shadow-lg flex items-center justify-center gap-2 disabled:opacity-50`}>
+                        {isSubmitting && <i className="fa-solid fa-circle-notch fa-spin" />}
+                        {isSubmitting ? 'Saving...' : 'Add Transaction'}
+                    </button>
                 </form>
             </Modal>
         </>
     );
 }
 
-export function CopyBudgetButton({ projectId }: { projectId: string }) {
+export function CopyBudgetButton({ projectId, onSuccess }: { projectId: string; onSuccess?: () => void }) {
     const [isOpen, setIsOpen] = useState(false);
     const [projects, setProjects] = useState<any[]>([]);
     const [search, setSearch] = useState('');
@@ -341,6 +348,7 @@ export function CopyBudgetButton({ projectId }: { projectId: string }) {
                                             setIsCopying(false);
                                             if (res.success) {
                                                 setIsOpen(false);
+                                                onSuccess?.();
                                                 alert(`Successfully copied ${res.count} items!`);
                                             } else {
                                                 alert('Failed to copy budget: ' + res.error);
@@ -362,15 +370,26 @@ export function CopyBudgetButton({ projectId }: { projectId: string }) {
     );
 }
 
-export function DeleteBudgetButton({ id, projectId }: { id: string, projectId: string }) {
+export function DeleteBudgetButton({ id, projectId, onSuccess }: { id: string, projectId: string, onSuccess?: () => void }) {
+    const [isDeleting, setIsDeleting] = useState(false);
     return (
-        <form action={deleteBudget}>
-            <input type="hidden" name="id" value={id} />
-            <input type="hidden" name="project_id" value={projectId} />
-            <button type="submit" className="text-zinc-600 hover:text-red-500 transition-colors p-2" title="Delete">
-                <i className="fa-solid fa-trash"></i>
-            </button>
-        </form>
+        <button
+            disabled={isDeleting}
+            onClick={async () => {
+                if (!confirm('Delete this transaction?')) return;
+                setIsDeleting(true);
+                const formData = new FormData();
+                formData.append('id', id);
+                formData.append('project_id', projectId);
+                await deleteBudget(formData);
+                setIsDeleting(false);
+                onSuccess?.();
+            }}
+            className="text-zinc-600 hover:text-red-500 transition-colors p-2 disabled:opacity-30"
+            title="Delete"
+        >
+            <i className={`fa-solid ${isDeleting ? 'fa-circle-notch fa-spin' : 'fa-trash'}`}></i>
+        </button>
     );
 }
 
