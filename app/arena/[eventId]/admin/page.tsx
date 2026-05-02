@@ -101,8 +101,9 @@ function MasterConsoleContent() {
   
   // 5-Screen Target State
   const [targetScreens, setTargetScreens] = useState<number[]>([1,2,3,4,5]);
-  const [programScenes, setProgramScenes] = useState<Record<number, string>>({
-      1: 'SCORE', 2: 'SCORE', 3: 'SCORE', 4: 'SCORE', 5: 'SCORE'
+  type ProgramScreenState = { scene: string; url?: string; isPlaying?: boolean };
+  const [programScenes, setProgramScenes] = useState<Record<number, ProgramScreenState>>({
+      1: { scene: 'SCORE' }, 2: { scene: 'SCORE' }, 3: { scene: 'SCORE' }, 4: { scene: 'SCORE' }, 5: { scene: 'SCORE' }
   });
 
   const [matchState, setMatchState] = useState<MatchState>({
@@ -198,7 +199,7 @@ function MasterConsoleContent() {
     }
     const newPrograms = { ...programScenes };
     targetScreens.forEach(s => {
-        newPrograms[s] = previewScene;
+        newPrograms[s] = { scene: previewScene, url: youtubeUrl, isPlaying: isPlayingMedia };
     });
     setProgramScenes(newPrograms);
 
@@ -235,7 +236,26 @@ function MasterConsoleContent() {
       }
   };
 
-  const renderSimulatedMonitor = (scene: string, isProgram: boolean = false) => {
+  const handleScreenAction = (screenNum: number, action: 'play' | 'pause' | 'clear') => {
+      const newProg = { ...programScenes };
+      if (action === 'clear') {
+          newProg[screenNum] = { scene: 'STANDBY' };
+          channelRef.current?.send({ type: 'broadcast', event: 'screen-action', payload: { action: 'clear', targets: [screenNum] } });
+      } else if (action === 'play') {
+          newProg[screenNum].isPlaying = true;
+          channelRef.current?.send({ type: 'broadcast', event: 'screen-action', payload: { action: 'play-youtube', targets: [screenNum] } });
+      } else if (action === 'pause') {
+          newProg[screenNum].isPlaying = false;
+          channelRef.current?.send({ type: 'broadcast', event: 'screen-action', payload: { action: 'pause-youtube', targets: [screenNum] } });
+      }
+      setProgramScenes(newProg);
+  };
+
+  const renderSimulatedMonitor = (sceneState: ProgramScreenState | string, isProgram: boolean = false) => {
+       const scene = typeof sceneState === 'string' ? sceneState : sceneState.scene;
+       const url = typeof sceneState === 'string' ? youtubeUrl : sceneState.url || youtubeUrl;
+       const isPlaying = typeof sceneState === 'string' ? isPlayingMedia : (sceneState.isPlaying ?? isPlayingMedia);
+       
        if (scene === 'SCORE') {
             return (
                 <div className="flex flex-col items-center justify-center w-full h-full p-2 relative">
@@ -270,11 +290,11 @@ function MasterConsoleContent() {
        if (scene === 'YOUTUBE') {
             return (
                 <div className="w-full h-full bg-black relative flex items-center justify-center">
-                    {youtubeUrl ? (
+                    {url ? (
                         // Muted in program to avoid echo
                         <ReactPlayer 
-                            url={youtubeUrl} 
-                            playing={isPlayingMedia} 
+                            url={url} 
+                            playing={isPlaying} 
                             volume={isProgram ? 0 : 1} 
                             width="100%" 
                             height="100%" 
@@ -502,10 +522,22 @@ function MasterConsoleContent() {
                     </div>
                     <div className="flex-1 grid grid-cols-3 grid-rows-2 gap-2">
                         {[1,2,3,4,5].map(screenNum => (
-                            <div key={screenNum} className={`bg-black border relative overflow-hidden rounded flex items-center justify-center ${targetScreens.includes(screenNum) ? 'border-red-500 shadow-[0_0_10px_rgba(220,38,38,0.2)]' : 'border-[#333]'}`}>
+                            <div key={screenNum} className={`bg-black border relative overflow-hidden rounded flex items-center justify-center group ${targetScreens.includes(screenNum) ? 'border-red-500 shadow-[0_0_10px_rgba(220,38,38,0.2)]' : 'border-[#333]'}`}>
                                 <div className="absolute top-1 left-1 bg-red-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded shadow z-20">S{screenNum}</div>
-                                <div className="absolute bottom-1 right-1 bg-black/60 text-white/50 text-[7px] font-black px-1 py-0.5 rounded z-20 uppercase">{programScenes[screenNum]}</div>
+                                <div className="absolute bottom-1 right-1 bg-black/60 text-white/50 text-[7px] font-black px-1 py-0.5 rounded z-20 uppercase">{programScenes[screenNum].scene}</div>
                                 {renderSimulatedMonitor(programScenes[screenNum], true)}
+                                
+                                {/* Quick Actions Overlay */}
+                                <div className="absolute inset-0 bg-black/80 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-30">
+                                    {programScenes[screenNum].scene === 'YOUTUBE' && (
+                                        <button onClick={() => handleScreenAction(screenNum, programScenes[screenNum].isPlaying ? 'pause' : 'play')} className="w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center shadow-lg transition-transform hover:scale-110">
+                                            <i className={`fa-solid ${programScenes[screenNum].isPlaying ? 'fa-pause' : 'fa-play'}`} />
+                                        </button>
+                                    )}
+                                    <button onClick={() => handleScreenAction(screenNum, 'clear')} className="w-8 h-8 rounded-full bg-red-600 hover:bg-red-500 text-white flex items-center justify-center shadow-lg transition-transform hover:scale-110" title="Clear Screen">
+                                        <i className="fa-solid fa-power-off" />
+                                    </button>
+                                </div>
                             </div>
                         ))}
                     </div>

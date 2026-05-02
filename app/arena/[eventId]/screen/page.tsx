@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useEffect, useState, Suspense, useMemo, useRef } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
+import ReactPlayer from 'react-player';
 
-type ScreenMode = 'SCORE' | 'ADS' | 'BRACKET' | 'STANDBY';
+type ScreenMode = 'SCORE' | 'ADS' | 'BRACKET' | 'YOUTUBE' | 'STANDBY';
 type AutoPilotMode = 'AUTO' | 'MANUAL';
 
 type MatchState = {
@@ -154,14 +155,19 @@ const BracketBoardView = ({ bracketState }: { bracketState: BracketState | null 
 // ==========================================
 function ArenaScreenContent() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const urlEventId = (params.eventId as string) || 'BINTULU_OPEN_2026';
+  const sid = parseInt(searchParams.get('sid') || '0');
 
   const [screenMode, setScreenMode] = useState<ScreenMode>('STANDBY');
   const [matchState, setMatchState] = useState<MatchState | null>(null);
   const [bracketState, setBracketState] = useState<BracketState | null>(null);
   const [activeAd, setActiveAd] = useState<any | null>(null);
+  const [youtubeState, setYoutubeState] = useState<{url: string, playing: boolean} | null>(null);
   const [autoPilot, setAutoPilot] = useState<AutoPilotMode>('AUTO');
   const manualOverrideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const isTargeted = (targets: number[]) => sid === 0 || targets.includes(sid);
 
   // Manual override: MC broadcast takes control for 10 minutes, then AutoPilot resumes
   const applyManualOverride = (mode: ScreenMode) => {
@@ -200,14 +206,40 @@ function ArenaScreenContent() {
     const channel = supabase.channel(`zto-arena-${urlEventId}`, { config: { broadcast: { ack: true } } });
     channel
       .on('broadcast', { event: 'match-update' }, (payload) => {
+        if (!isTargeted(payload.payload.targets)) return;
         setMatchState(payload.payload);
         applyManualOverride('SCORE');
       })
-      .on('broadcast', { event: 'bracket-update' }, (payload) => setBracketState(payload.payload))
-      .on('broadcast', { event: 'screen-mode' }, (payload) => applyManualOverride(payload.payload.mode as ScreenMode))
+      .on('broadcast', { event: 'bracket-update' }, (payload) => {
+        if (!isTargeted(payload.payload.targets)) return;
+        setBracketState(payload.payload);
+        applyManualOverride('BRACKET');
+      })
+      .on('broadcast', { event: 'screen-mode' }, (payload) => {
+        if (!isTargeted(payload.payload.targets)) return;
+        applyManualOverride(payload.payload.mode as ScreenMode);
+      })
       .on('broadcast', { event: 'ad-update' }, (payload) => {
+        if (!isTargeted(payload.payload.targets)) return;
         setActiveAd(payload.payload.activeAd);
         applyManualOverride('ADS');
+      })
+      .on('broadcast', { event: 'youtube-update' }, (payload) => {
+        if (!isTargeted(payload.payload.targets)) return;
+        setYoutubeState({ url: payload.payload.url, playing: payload.payload.playing });
+        applyManualOverride('YOUTUBE');
+      })
+      .on('broadcast', { event: 'screen-action' }, (payload) => {
+        if (!isTargeted(payload.payload.targets)) return;
+        const { action } = payload.payload;
+        if (action === 'clear') {
+            setScreenMode('STANDBY');
+            setAutoPilot('AUTO');
+        } else if (action === 'pause-youtube') {
+            setYoutubeState(prev => prev ? { ...prev, playing: false } : null);
+        } else if (action === 'play-youtube') {
+            setYoutubeState(prev => prev ? { ...prev, playing: true } : null);
+        }
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
@@ -247,6 +279,20 @@ function ArenaScreenContent() {
 
         {screenMode === 'BRACKET' && (
           <BracketBoardView key="bracket" bracketState={bracketState} />
+        )}
+
+        {screenMode === 'YOUTUBE' && youtubeState && (
+          <motion.div key="youtube-screen" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="absolute inset-0 z-10 bg-black flex items-center justify-center">
+             <ReactPlayer 
+                  url={youtubeState.url} 
+                  playing={youtubeState.playing} 
+                  volume={1} 
+                  width="100%" 
+                  height="100%" 
+                  controls={false} 
+              />
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
