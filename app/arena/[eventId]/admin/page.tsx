@@ -414,10 +414,6 @@ function MasterConsoleContent() {
                                </div>
                           ))}
                      </div>
-                     <div className="bg-[#2b2b2b] h-8 flex items-center px-2 gap-3 border-t border-[#333] text-[#aaa]">
-                         <i className="fa-solid fa-plus hover:text-white cursor-pointer" />
-                         <i className="fa-solid fa-trash hover:text-white cursor-pointer" />
-                     </div>
                  </div>
 
                  {/* SOURCES / PROPERTIES */}
@@ -427,11 +423,6 @@ function MasterConsoleContent() {
                      </div>
                      <div className="flex-1 overflow-y-auto bg-[#1e1e1e] p-3 text-[#ddd]">
                           {renderProperties()}
-                     </div>
-                     <div className="bg-[#2b2b2b] h-8 flex items-center px-2 gap-3 border-t border-[#333] text-[#aaa]">
-                         <i className="fa-solid fa-plus hover:text-white cursor-pointer" />
-                         <i className="fa-solid fa-trash hover:text-white cursor-pointer" />
-                         <i className="fa-solid fa-gear hover:text-white cursor-pointer ml-auto" />
                      </div>
                  </div>
 
