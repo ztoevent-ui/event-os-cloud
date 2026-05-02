@@ -114,9 +114,14 @@ function MatchSelector({
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-6">
+    <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-6 relative">
+      <div className="absolute top-6 left-6 z-10">
+        <Link href="/apps/zto-arena" className="flex items-center gap-2 text-xs font-black uppercase text-zinc-500 hover:text-white transition-colors tracking-widest bg-black/40 px-4 py-2 rounded-xl border border-white/10 hover:border-white/30 backdrop-blur-md">
+          <i className="fa-solid fa-arrow-left" /> Back to Arena Hub
+        </Link>
+      </div>
       <div className="w-full max-w-lg">
-        <div className="text-center mb-10">
+        <div className="text-center mb-10 mt-12">
           <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4 shadow-[0_0_30px_rgba(37,99,235,0.4)]">
             <i className="fa-solid fa-user-tie" />
           </div>

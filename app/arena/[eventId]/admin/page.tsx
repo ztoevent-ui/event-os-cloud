@@ -3,7 +3,10 @@
 import React, { useEffect, useState, useRef, Suspense } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { supabase } from '@/lib/supabaseClient';
+
+const ReactPlayer = dynamic(() => import('react-player'), { ssr: false }) as any;
 
 // --- TYPES & CONFIG ---
 
@@ -37,22 +40,23 @@ export type BracketData = {
 const SCENES_LIST = [
   { id: 'SCORE',      icon: 'fa-chart-line',       label: 'Score' },
   { id: 'BRACKET',   icon: 'fa-sitemap',           label: 'Bracket' },
-  { id: 'ADS',       icon: 'fa-image',             label: 'Ads' },
+  { id: 'ADS',       icon: 'fa-image',             label: 'Ads & Media' },
+  { id: 'YOUTUBE',   icon: 'fa-youtube',           label: 'YouTube' },
   { id: 'DISPATCH',  icon: 'fa-list-check',        label: 'Dispatch' },
   { id: 'JUDGE_ROOM',icon: 'fa-gavel',             label: 'Judge Room' },
   { id: 'GROUPS',    icon: 'fa-table-cells',       label: 'Groups' },
 ];
 
 const ADS_LIBRARY = [
-    {id: 'sponsor1', title: 'Main Sponsor Video Ad', url: 'https://images.unsplash.com/photo-1622279457486-62dcc4aab31b?q=80&w=3000&auto=format&fit=crop'},
-    {id: 'zto_promo', title: 'ZTO Event OS Reel', url: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=3000&auto=format&fit=crop'},
-    {id: 'stats_ad', title: 'Live Analytics Sponsor', url: 'https://images.unsplash.com/photo-1540317580384-e5d43616b9aa?q=80&w=3000&auto=format&fit=crop'},
+    {id: 'sponsor1', title: 'Main Sponsor Video Ad', url: 'https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4', isVideo: true},
+    {id: 'zto_promo', title: 'ZTO Event OS Reel', url: 'https://test-videos.co.uk/vids/jellyfish/mp4/h264/720/Jellyfish_720_10s_1MB.mp4', isVideo: true},
+    {id: 'stats_ad', title: 'Live Analytics Sponsor', url: 'https://images.unsplash.com/photo-1540317580384-e5d43616b9aa?q=80&w=3000&auto=format&fit=crop', isVideo: false},
 ];
 
 const BGM_TRACKS = [
-    {id: 'walkin', title: 'Walk-int Anthem (Epic)'},
-    {id: 'suspense', title: 'Match Point Suspense'},
-    {id: 'winner', title: 'Winner Celebration BGM'},
+    {id: 'epic_walkin', title: 'Walk-in Anthem (Epic)', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'},
+    {id: 'suspense', title: 'Match Point Suspense', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3'},
+    {id: 'winner', title: 'Winner Celebration BGM', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3'},
 ];
 
 // --- BRACKET GENERATOR LOGIC ---
@@ -106,10 +110,17 @@ function MasterConsoleContent() {
   const [dispatchQueue, setDispatchQueue] = useState<{ id: string, name: string, status: string, scoreA: number, scoreB: number, teamA?: string, teamB?: string }[]>([]);
   const [activeAdId, setActiveAdId] = useState<string | null>(null);
   const [activeBgm, setActiveBgm] = useState<string | null>(null);
+  
+  const [youtubeUrl, setYoutubeUrl] = useState<string>('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+  const [isPlayingMedia, setIsPlayingMedia] = useState<boolean>(false);
 
   const [isConnected, setIsConnected] = useState(false);
   const channelRef = useRef<any>(null);
   const [isFading, setIsFading] = useState(false);
+  
+  // Ref to track if we're typing in an input (for spacebar shortcut)
+  const isTypingRef = useRef(false);
+
   // Live DB match for Preview auto-sync
   const [liveDbMatch, setLiveDbMatch] = useState<{ score_a: number; score_b: number; team_a_name: string; team_b_name: string; current_set: number } | null>(null);
 
@@ -156,7 +167,22 @@ function MasterConsoleContent() {
         }
       })
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    
+    // Keyboard listener for Spacebar (Play/Pause)
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger if user is typing in an input/textarea
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.code === 'Space') {
+        e.preventDefault();
+        setIsPlayingMedia(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => { 
+        supabase.removeChannel(ch); 
+        window.removeEventListener('keydown', handleKeyDown);
+    };
   }, [eventId]);
 
   const handleCut = () => {
@@ -167,6 +193,7 @@ function MasterConsoleContent() {
     if (previewScene === 'SCORE') channelRef.current?.send({ type: 'broadcast', event: 'match-update', payload: matchState });
     else if (previewScene === 'ADS') { const ad = ADS_LIBRARY.find(a => a.id === activeAdId); if (ad) channelRef.current?.send({ type: 'broadcast', event: 'ad-update', payload: { activeAd: ad } }); }
     else if (previewScene === 'BRACKET') channelRef.current?.send({ type: 'broadcast', event: 'bracket-update', payload: bracketState });
+    else if (previewScene === 'YOUTUBE') channelRef.current?.send({ type: 'broadcast', event: 'youtube-update', payload: { url: youtubeUrl, playing: isPlayingMedia } });
   };
 
   const handleFade = async () => {
@@ -207,9 +234,27 @@ function MasterConsoleContent() {
        if (scene === 'ADS') {
             const ad = ADS_LIBRARY.find(a => a.id === activeAdId);
             return (
-                <div className="w-full h-full relative object-cover">
-                    {ad ? <img src={ad.url} className="w-full h-full object-cover opacity-80" /> : <div className="flex items-center justify-center h-full text-zinc-600 text-xs">No Ad Selected</div>}
-                    {ad && <div className="absolute bottom-2 left-2 text-white font-black text-xs drop-shadow-md">{ad.title}</div>}
+                <div className="w-full h-full relative overflow-hidden bg-black flex items-center justify-center">
+                    {!ad ? <div className="text-zinc-600 text-xs">No Media Selected</div> : 
+                     ad.isVideo ? (
+                        <video src={ad.url} className="w-full h-full object-contain" autoPlay={isPlayingMedia} loop muted={scene !== programScene} playsInline />
+                     ) : (
+                        <img src={ad.url} className="w-full h-full object-contain" />
+                     )}
+                    {ad && <div className="absolute bottom-2 left-2 text-white font-black text-[10px] drop-shadow-md bg-black/50 px-2 py-1 rounded">{ad.title}</div>}
+                </div>
+            );
+       }
+       if (scene === 'YOUTUBE') {
+            return (
+                <div className="w-full h-full bg-black relative flex items-center justify-center">
+                    {youtubeUrl ? (
+                        <ReactPlayer url={youtubeUrl} playing={isPlayingMedia && scene === programScene} width="100%" height="100%" controls={false} />
+                    ) : (
+                        <div className="text-zinc-600 text-xs font-bold uppercase tracking-widest"><i className="fa-brands fa-youtube mr-2 text-red-500"></i>No URL</div>
+                    )}
+                    {/* Overlay to prevent accidental clicks inside the monitor */}
+                    <div className="absolute inset-0 z-10 pointer-events-auto" onClick={() => setIsPlayingMedia(p => !p)} />
                 </div>
             );
        }
