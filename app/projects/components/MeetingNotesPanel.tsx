@@ -32,7 +32,7 @@ export default function MeetingNotesPanel({ project }: { project: any }) {
             } else {
                 setSaveStatus('idle');
             }
-        }, 1500);
+        }, 5000);
         return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
     }, [notes]);
 

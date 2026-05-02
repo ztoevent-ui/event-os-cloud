@@ -648,7 +648,7 @@ export default function StageLayoutPage({ params }: { params: Promise<{ id: stri
       setSaving(true);
       await saveStageLayout(projectId, newScene as unknown as Record<string, unknown>, newEquipment as unknown as Record<string, unknown>[]);
       setSaving(false);
-    }, 1500);
+    }, 4000);
   }, [projectId]);
 
   // Keyboard shortcuts

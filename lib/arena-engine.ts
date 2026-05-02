@@ -241,22 +241,26 @@ export function removeOfflineItem(id: string) {
   localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(queue));
 }
 
-export async function replayOfflineQueue(): Promise<number> {
+export async function replayOfflineQueue(supabaseClient?: any): Promise<number> {
   const queue = getOfflineQueue();
   if (queue.length === 0) return 0;
 
   let replayed = 0;
   for (const item of queue) {
     try {
-      const res = await fetch(item.url, {
-        method: item.method,
-        headers: { 'Content-Type': 'application/json' },
-        body: item.body,
-      });
-      if (res.ok) {
-        removeOfflineItem(item.id);
-        replayed++;
+      if (item.url === 'SUPABASE_UPDATE' && supabaseClient) {
+        const payload = JSON.parse(item.body);
+        const { error } = await supabaseClient.from('arena_matches').update(payload).eq('id', item.method);
+        if (error) throw error;
+      } else if (item.url !== 'SUPABASE_UPDATE') {
+        await fetch(item.url, {
+          method: item.method,
+          headers: { 'Content-Type': 'application/json' },
+          body: item.body,
+        });
       }
+      removeOfflineItem(item.id);
+      replayed++;
     } catch {
       // Silent — will retry next time
     }

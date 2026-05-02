@@ -459,7 +459,7 @@ function ScoringScreen({
   useEffect(() => {
     const handleOnline = async () => {
       setIsOnline(true);
-      const replayed = await replayOfflineQueue();
+      const replayed = await replayOfflineQueue(supabase);
       if (replayed > 0) console.log(`[Arena] Silently replayed ${replayed} offline events`);
       setOfflineCount(0);
     };
@@ -506,8 +506,7 @@ function ScoringScreen({
   }, [phase]);
 
   const persistScore = useCallback(async (updatedMatch: ArenaMatch, eventType: string, extra: Record<string, any> = {}) => {
-    const body = JSON.stringify({
-      match_id: updatedMatch.id,
+    const payload = {
       score_a: updatedMatch.score_a,
       score_b: updatedMatch.score_b,
       server: updatedMatch.server,
@@ -517,25 +516,21 @@ function ScoringScreen({
       current_set: updatedMatch.current_set,
       sets_scores: updatedMatch.sets_scores,
       status: updatedMatch.status,
+      updated_at: new Date().toISOString(),
       ...extra,
-    });
-
-    const url = `/api/arena/score`;
+    };
 
     if (!navigator.onLine) {
-      enqueueOfflineRequest({ url, method: 'POST', body });
+      enqueueOfflineRequest({ url: 'SUPABASE_UPDATE', method: updatedMatch.id, body: JSON.stringify(payload) });
       setOfflineCount((c) => c + 1);
       return;
     }
 
     try {
-      await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body,
-      });
+      const { error } = await supabase.from('arena_matches').update(payload).eq('id', updatedMatch.id);
+      if (error) throw new Error(error.message);
     } catch {
-      enqueueOfflineRequest({ url, method: 'POST', body });
+      enqueueOfflineRequest({ url: 'SUPABASE_UPDATE', method: updatedMatch.id, body: JSON.stringify(payload) });
       setOfflineCount((c) => c + 1);
     }
   }, []);
