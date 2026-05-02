@@ -296,6 +296,7 @@ function MasterConsoleContent() {
                             url={url} 
                             playing={isPlaying} 
                             volume={isProgram ? 0 : 1} 
+                            muted={isProgram}
                             width="100%" 
                             height="100%" 
                             controls={!isProgram} 

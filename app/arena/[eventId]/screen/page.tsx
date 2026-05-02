@@ -5,7 +5,9 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
-import ReactPlayer from 'react-player';
+import dynamic from 'next/dynamic';
+
+const ReactPlayer = dynamic(() => import('react-player/lazy'), { ssr: false });
 
 type ScreenMode = 'SCORE' | 'ADS' | 'BRACKET' | 'YOUTUBE' | 'STANDBY';
 type AutoPilotMode = 'AUTO' | 'MANUAL';
@@ -165,6 +167,7 @@ function ArenaScreenContent() {
   const [activeAd, setActiveAd] = useState<any | null>(null);
   const [youtubeState, setYoutubeState] = useState<{url: string, playing: boolean} | null>(null);
   const [autoPilot, setAutoPilot] = useState<AutoPilotMode>('AUTO');
+  const [hasInteracted, setHasInteracted] = useState(false);
   const manualOverrideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isTargeted = (targets: number[]) => sid === 0 || targets.includes(sid);
@@ -246,11 +249,19 @@ function ArenaScreenContent() {
   }, [urlEventId]);
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans overflow-hidden flex flex-col relative select-none cursor-none">
+    <div className="min-h-screen bg-black text-white font-sans overflow-hidden flex flex-col relative select-none cursor-none"
+         onClick={() => setHasInteracted(true)}>
       {/* Ambient background */}
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(37,99,235,0.1),transparent_50%),radial-gradient(circle_at_80%_70%,rgba(220,38,38,0.1),transparent_50%)]" />
       </div>
+
+      {!hasInteracted && (
+        <div className="absolute top-4 left-4 z-50 px-3 py-1.5 bg-red-500/20 border border-red-500/50 rounded-full text-red-400 text-[9px] font-black uppercase tracking-widest animate-pulse pointer-events-none">
+          <i className="fa-solid fa-volume-xmark mr-2" />
+          Click Anywhere to Enable Audio
+        </div>
+      )}
 
       {/* AutoPilot indicator (top-right, subtle) */}
       <div className={`absolute top-4 right-4 z-50 flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-widest transition-all ${autoPilot === 'AUTO' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' : 'bg-amber-500/10 border-amber-500/20 text-amber-500'}`}>
@@ -288,6 +299,7 @@ function ArenaScreenContent() {
                   url={youtubeState.url} 
                   playing={youtubeState.playing} 
                   volume={1} 
+                  muted={!hasInteracted}
                   width="100%" 
                   height="100%" 
                   controls={false} 
