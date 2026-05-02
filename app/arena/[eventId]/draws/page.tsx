@@ -64,6 +64,7 @@ export default function DrawsPage() {
     const [drawSize, setDrawSize] = useState<number>(32);
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
+    const channelRef = useRef<any>(null);
 
     useEffect(() => {
         async function load() {
@@ -84,6 +85,44 @@ export default function DrawsPage() {
             }
         }
         load();
+
+        // Subscribe to real-time match completions for Live Bracket Engine
+        const channel = supabase.channel('bracket-live-engine')
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'arena_matches' }, (payload) => {
+                const updatedMatch = payload.new;
+                if (updatedMatch.status === 'COMPLETED' && updatedMatch.bracket_match_id) {
+                    setBracketData((prev) => {
+                        if (!prev) return prev;
+                        const matchId = updatedMatch.bracket_match_id;
+                        if (!prev.matches[matchId]) return prev;
+                        
+                        // Create deep copy
+                        const newData = { ...prev, matches: { ...prev.matches } };
+                        const bMatch = { ...newData.matches[matchId] };
+                        
+                        bMatch.winner = updatedMatch.winner === 'A' ? 1 : 2;
+                        newData.matches[matchId] = bMatch;
+
+                        // Advance the winner to the next slot if applicable
+                        if (bMatch.nextMatchId && bMatch.nextTeamSlot) {
+                            const nextMatch = { ...newData.matches[bMatch.nextMatchId] };
+                            const winnerName = updatedMatch.winner === 'A' ? updatedMatch.team_a_name : updatedMatch.team_b_name;
+                            if (bMatch.nextTeamSlot === 1) nextMatch.team1 = winnerName;
+                            else nextMatch.team2 = winnerName;
+                            newData.matches[bMatch.nextMatchId] = nextMatch;
+                        }
+
+                        return newData;
+                    });
+                }
+            })
+            .subscribe();
+
+        channelRef.current = channel;
+
+        return () => {
+            if (channelRef.current) supabase.removeChannel(channelRef.current);
+        };
     }, [eventId]);
 
     const handleEventSelect = (id: string) => {
@@ -218,9 +257,9 @@ export default function DrawsPage() {
                                             {roundNumber === totalRounds ? 'Finals' : roundNumber === totalRounds - 1 ? 'Semi-Finals' : roundNumber === totalRounds - 2 ? 'Quarter-Finals' : `Round of ${Math.pow(2, totalRounds - roundNumber + 1)}`}
                                         </div>
                                         {matches.map((match) => (
-                                            <div key={match.id} className="w-56 bg-zinc-900 border border-white/5 rounded-xl overflow-hidden relative shadow-lg">
+                                            <motion.div layout key={match.id} className="w-56 bg-zinc-900 border border-white/5 rounded-xl overflow-hidden relative shadow-lg">
                                                 {/* Connecting Lines could go here via SVG */}
-                                                <div className={`p-3 border-b border-white/5 flex items-center justify-between ${match.winner === 1 ? 'bg-sky-500/10' : ''}`}>
+                                                <div className={`p-3 border-b border-white/5 flex items-center justify-between ${match.winner === 1 ? 'bg-[#ccff00]/10' : ''}`}>
                                                     <input 
                                                         type="text" 
                                                         value={match.team1} 
@@ -231,9 +270,9 @@ export default function DrawsPage() {
                                                         }}
                                                         className="bg-transparent border-none text-xs font-bold text-white w-full focus:outline-none"
                                                     />
-                                                    {match.winner === 1 && <i className="fa-solid fa-check text-[10px] text-sky-400" />}
+                                                    {match.winner === 1 && <motion.i initial={{ scale: 0 }} animate={{ scale: 1 }} className="fa-solid fa-check text-[10px] text-[#ccff00]" />}
                                                 </div>
-                                                <div className={`p-3 flex items-center justify-between ${match.winner === 2 ? 'bg-sky-500/10' : ''}`}>
+                                                <div className={`p-3 flex items-center justify-between ${match.winner === 2 ? 'bg-[#ccff00]/10' : ''}`}>
                                                     <input 
                                                         type="text" 
                                                         value={match.team2} 
@@ -244,12 +283,12 @@ export default function DrawsPage() {
                                                         }}
                                                         className="bg-transparent border-none text-xs font-bold text-white w-full focus:outline-none"
                                                     />
-                                                    {match.winner === 2 && <i className="fa-solid fa-check text-[10px] text-sky-400" />}
+                                                    {match.winner === 2 && <motion.i initial={{ scale: 0 }} animate={{ scale: 1 }} className="fa-solid fa-check text-[10px] text-[#ccff00]" />}
                                                 </div>
                                                 <div className="absolute -left-1 top-1/2 -translate-y-1/2 text-[8px] font-bold text-zinc-700 writing-mode-vertical rotate-180 ml-2">
                                                     {match.id}
                                                 </div>
-                                            </div>
+                                            </motion.div>
                                         ))}
                                     </div>
                                 );
