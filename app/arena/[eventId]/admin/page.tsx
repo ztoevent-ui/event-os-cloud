@@ -272,11 +272,19 @@ function MasterConsoleContent() {
                 <div className="w-full h-full bg-black relative flex items-center justify-center">
                     {youtubeUrl ? (
                         // Muted in program to avoid echo
-                        <ReactPlayer url={youtubeUrl} playing={isPlayingMedia} volume={isProgram ? 0 : 1} width="100%" height="100%" controls={false} />
+                        <ReactPlayer 
+                            url={youtubeUrl} 
+                            playing={isPlayingMedia} 
+                            volume={isProgram ? 0 : 1} 
+                            width="100%" 
+                            height="100%" 
+                            controls={!isProgram} 
+                            onPlay={() => !isProgram && setIsPlayingMedia(true)}
+                            onPause={() => !isProgram && setIsPlayingMedia(false)}
+                        />
                     ) : (
                         <div className="text-zinc-600 text-[10px] font-bold uppercase"><i className="fa-brands fa-youtube mr-1 text-red-500"></i>No URL</div>
                     )}
-                    <div className="absolute inset-0 z-10 pointer-events-auto" onClick={() => !isProgram && setIsPlayingMedia(p => !p)} />
                 </div>
             );
        }
