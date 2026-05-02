@@ -363,7 +363,6 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
             {/* Print Styles */}
             <style jsx global>{`
                 @media print {
-                    @page { size: A4 portrait; margin: 8mm 10mm; }
                     html, body, main { background: white !important; color: black !important; padding: 0 !important; margin: 0 !important; }
                     nav, header, footer, button, .print\\:hidden, [class*="print:hidden"], .zto-sidebar, .zto-action-bar { display: none !important; }
                     .zto-main { overflow: visible !important; height: auto !important; }
