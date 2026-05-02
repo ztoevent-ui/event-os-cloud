@@ -50,7 +50,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
   const [isKiosk, setIsKiosk]       = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [project, setProject]       = useState<any>(null);
-  const { pageBreakIds } = usePrint();
+  const { pageBreakIds, layoutType } = usePrint();
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -248,7 +248,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
       </div>
 
       {/* ── Program Cards (Vertical Stack) ── */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingTop: 4 }}>
+      <div className={layoutType === 'table' ? 'print:hidden' : ''} style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingTop: 4 }}>
         {rows.length === 0 ? (
           <div className="zto-card" style={{ textAlign: 'center', padding: 64 }}>
             <i className="fa-solid fa-clipboard-list" style={{ fontSize: 40, color: 'rgba(255,255,255,0.08)', marginBottom: 20 }} />
@@ -280,9 +280,40 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
         )}
       </div>
 
+      {/* ── Compact Table (Print Only) ── */}
+      {layoutType === 'table' && (
+        <div className="hidden print:block mt-6">
+          <table className="w-full text-left text-[11px] border-collapse">
+            <thead>
+              <tr className="border-b-2 border-black">
+                <th className="py-2 px-2 font-bold w-[15%]">Time</th>
+                <th className="py-2 px-2 font-bold w-[35%]">Activity</th>
+                <th className="py-2 px-2 font-bold w-[25%]">Notes / Cues</th>
+                <th className="py-2 px-2 font-bold w-[25%]">BGM / Technical</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row) => (
+                <tr key={row.id} className={`border-b border-black/20 ${pageBreakIds.includes(row.id) ? 'print:break-before-page' : ''} ${row.is_important ? 'bg-red-50' : ''}`}>
+                  <td className="py-2 px-2 font-bold align-top">{row.time}</td>
+                  <td className="py-2 px-2 align-top">
+                    <div className="font-bold text-black text-[12px]">{row.activities}</div>
+                    {row.movement && <div className="text-[10px] text-black/70 mt-1 italic">Mov: {row.movement}</div>}
+                  </td>
+                  <td className="py-2 px-2 align-top text-black/80">{row.cues}</td>
+                  <td className="py-2 px-2 align-top">
+                    {row.song && <div className="font-bold text-[#0056B3]">{row.song}</div>}
+                    {row.volume && <div className="text-[10px] text-black/70 mt-0.5">Vol: {row.volume}</div>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
       <style jsx global>{`
         @keyframes spin { to { transform: rotate(360deg); } }
-        @page { size: A4 landscape; margin: 5mm 7mm; }
         @media print {
           nav, button, .print\\:hidden, header, footer { display: none !important; }
           html, body { background: white !important; color: black !important; margin: 0 !important; padding: 0 !important; }
