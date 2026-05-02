@@ -39,7 +39,7 @@ export default function RegistrationStudio() {
     const [slugTaken, setSlugTaken] = useState(false);
     const [slugChecking, setSlugChecking] = useState(false);
     const slugTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const { pageBreakIds } = usePrint();
+    const { pageBreakIds, layoutType } = usePrint();
 
     const [settings, setSettings] = useState<any>({
         slogan: '',
@@ -276,13 +276,33 @@ export default function RegistrationStudio() {
                     <p className="text-zinc-500 text-sm mt-3 font-medium tracking-wide">Design your form, build tournament page & manage submissions</p>
                 </div>
 
-                <div className="flex items-center gap-3">
-                    <button onClick={handleSave} className="h-11 px-8 rounded-xl bg-[#0056B3] text-white font-black text-[10px] tracking-widest uppercase shadow-[0_0_20px_rgba(0,86,179,0.3)] hover:shadow-[0_0_30px_rgba(0,86,179,0.5)] transition-all flex items-center gap-2.5">
-                        <i className="fa-solid fa-save text-[10px]" /> Save Settings
-                    </button>
-                    {activeTab === 'submissions' && (
-                        <PrintReportButton title="Registration Submissions" />
-                    )}
+                {/* ── Stats + Actions Hub ── */}
+                <div className="flex flex-wrap items-center gap-4">
+                    {/* Premium Stats Pill */}
+                    <div className="h-12 px-6 flex items-center gap-6 rounded-2xl bg-[#050505] border border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+                        <div className="flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#DEFF9A] shadow-[0_0_10px_rgba(222,255,154,0.5)]" />
+                            <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Total Teams</span>
+                            <span className="text-xs font-black text-[#DEFF9A] font-mono ml-2">{submissions.length}</span>
+                        </div>
+                        <div className="w-px h-4 bg-white/10" />
+                        <div className="flex items-center gap-2">
+                            <i className="fa-solid fa-users text-[10px] text-[#0056B3]"></i>
+                            <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Total Players</span>
+                            <span className="text-xs font-black text-white font-mono ml-2">
+                                {submissions.reduce((acc, sub) => acc + (sub.players?.length || 0), 0)}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                        <button onClick={handleSave} className="h-12 px-6 rounded-2xl bg-[#0056B3] text-white font-black text-xs tracking-widest uppercase shadow-[0_0_20px_rgba(0,86,179,0.4)] hover:shadow-[0_0_30px_rgba(0,86,179,0.8)] transition-all flex items-center gap-2.5 hover:-translate-y-0.5 active:translate-y-0">
+                            <i className="fa-solid fa-save text-lg" /> Save
+                        </button>
+                        {activeTab === 'submissions' && (
+                            <PrintReportButton title="Registration Submissions" />
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -620,6 +640,8 @@ export default function RegistrationStudio() {
                             <p className="text-zinc-700 text-[10px] font-black uppercase mt-2 tracking-widest">Waiting for participants to sign up...</p>
                         </div>
                     ) : (
+                        <>
+                        <div className={layoutType === 'table' ? 'print:hidden' : ''}>
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                             {submissions.map(sub => (
                                 <div 
@@ -673,6 +695,36 @@ export default function RegistrationStudio() {
                                 </div>
                             ))}
                         </div>
+                        </div>
+
+                        {/* ── Compact Table (Print Only) ── */}
+                        {layoutType === 'table' && (
+                            <div className="hidden print:block w-full">
+                                <table className="w-full text-left text-[11px] border-collapse border border-black/20">
+                                    <thead>
+                                        <tr className="bg-black/5 border-b-2 border-black">
+                                            <th className="py-2 px-3 font-black uppercase">Organization</th>
+                                            <th className="py-2 px-3 font-black uppercase">Captain</th>
+                                            <th className="py-2 px-3 font-black uppercase">Contact</th>
+                                            <th className="py-2 px-3 font-black uppercase text-center">Players</th>
+                                            <th className="py-2 px-3 font-black uppercase">Registration Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {submissions.map((sub, idx) => (
+                                            <tr key={sub.id} className={`border-b border-black/20 ${pageBreakIds.includes(sub.id) ? 'print:break-before-page' : ''}`}>
+                                                <td className="py-2 px-3 font-bold">{sub.organization_name}</td>
+                                                <td className="py-2 px-3 font-bold">{sub.captain_name}</td>
+                                                <td className="py-2 px-3">{sub.captain_phone}</td>
+                                                <td className="py-2 px-3 text-center font-bold">{sub.players?.length || 0}</td>
+                                                <td className="py-2 px-3">{new Date(sub.created_at).toLocaleDateString()}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                        </>
                     )}
                 </div>
             )}

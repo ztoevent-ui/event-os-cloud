@@ -10,7 +10,7 @@ export default function VendorsPage({ params }: { params: Promise<{ id: string }
     const [vendors, setVendors] = useState<any[]>([]);
     const [project, setProject] = useState<any>(null);
     const [loading, setLoading] = useState(true);
-    const { pageBreakIds } = usePrint();
+    const { pageBreakIds, layoutType } = usePrint();
 
     useEffect(() => {
         fetchData();
@@ -57,14 +57,34 @@ export default function VendorsPage({ params }: { params: Promise<{ id: string }
                     </h1>
                 </div>
 
-                {/* Action Hub */}
-                <div className="flex items-center gap-3">
-                    <PrintReportButton title="Vendor List" />
-                    <AddVendorButton projectId={id} isWedding={isWedding} />
+                {/* ── Stats + Actions Hub ── */}
+                <div className="flex flex-wrap items-center gap-4">
+                    {/* Premium Stats Pill */}
+                    <div className="h-12 px-6 flex items-center gap-6 rounded-2xl bg-[#050505] border border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+                        <div className="flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#DEFF9A] shadow-[0_0_10px_rgba(222,255,154,0.5)]" />
+                            <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Total Vendors</span>
+                            <span className="text-xs font-black text-[#DEFF9A] font-mono ml-2">{vendors.length}</span>
+                        </div>
+                        <div className="w-px h-4 bg-white/10" />
+                        <div className="flex items-center gap-2">
+                            <i className="fa-solid fa-check-circle text-[10px] text-emerald-500"></i>
+                            <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Confirmed</span>
+                            <span className="text-xs font-black text-white font-mono ml-2">
+                                {vendors.filter(v => v.status === 'confirmed').length}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                        <PrintReportButton title="Vendor List" />
+                        <AddVendorButton projectId={id} isWedding={isWedding} />
+                    </div>
                 </div>
             </div>
 
             {/* ── Vendor Card Grid ── */}
+            <div className={layoutType === 'table' ? 'print:hidden' : ''}>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {vendors.length === 0 ? (
                     <div className="col-span-full py-32 border border-dashed border-white/5 rounded-[32px] bg-white/[0.02] flex flex-col items-center justify-center opacity-30">
@@ -140,10 +160,43 @@ export default function VendorsPage({ params }: { params: Promise<{ id: string }
                     ))
                 )}
             </div>
+            </div>
+
+            {/* ── Compact Table (Print Only) ── */}
+            {layoutType === 'table' && (
+                <div className="hidden print:block w-full mt-4">
+                    <table className="w-full text-left text-[11px] border-collapse border border-black/20">
+                        <thead>
+                            <tr className="bg-black/5 border-b-2 border-black">
+                                <th className="py-2 px-3 font-black uppercase w-[25%]">Vendor Name</th>
+                                <th className="py-2 px-3 font-black uppercase w-[15%]">Category</th>
+                                <th className="py-2 px-3 font-black uppercase w-[20%]">Contact Person</th>
+                                <th className="py-2 px-3 font-black uppercase w-[25%]">Contact Info</th>
+                                <th className="py-2 px-3 font-black uppercase text-center w-[15%]">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {vendors.map((vendor, idx) => (
+                                <tr key={vendor.id} className={`border-b border-black/20 ${pageBreakIds.includes(vendor.id) ? 'print:break-before-page' : ''}`}>
+                                    <td className="py-2 px-3 font-bold">{vendor.name}</td>
+                                    <td className="py-2 px-3">{vendor.category}</td>
+                                    <td className="py-2 px-3">{vendor.contact_person || '-'}</td>
+                                    <td className="py-2 px-3">
+                                        {vendor.phone && <div>{vendor.phone}</div>}
+                                        {vendor.email && <div className="text-black/70">{vendor.email}</div>}
+                                    </td>
+                                    <td className="py-2 px-3 text-center uppercase font-bold text-[9px] tracking-widest">
+                                        {vendor.status}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
 
             <style jsx global>{`
                 @media print {
-                    @page { size: A4 portrait; margin: 15mm; }
                     html, body, main { background: white !important; color: black !important; }
                     .print\\:hidden, nav, header, footer, button { display: none !important; }
                     .bg-white\\/\\[0\\.03\\] { background: transparent !important; border: 1px solid #eee !important; border-radius: 12px !important; }

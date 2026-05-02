@@ -12,7 +12,7 @@ export default function GuestListPage() {
     const [attendees, setAttendees] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [project, setProject] = useState<any>(null);
-    const { pageBreakIds } = usePrint();
+    const { pageBreakIds, layoutType } = usePrint();
     const projectId = Array.isArray(id) ? id[0] : id;
 
     useEffect(() => {
@@ -94,28 +94,48 @@ export default function GuestListPage() {
                     </h1>
                 </div>
 
-                {/* Action Hub */}
-                <div className="flex flex-wrap items-center gap-3">
-                    <PrintReportButton title="Guest List" />
-                    <a 
-                        href={`/apps/ticketing/registration?project_id=${projectId}`} 
-                        target="_blank" 
-                        className="h-11 px-8 rounded-xl bg-white text-black font-black text-[10px] tracking-widest uppercase hover:bg-zinc-200 transition-all flex items-center gap-2.5 shadow-[0_0_20px_rgba(255,255,255,0.1)]"
-                    >
-                        <i className="fa-solid fa-link text-[10px]" /> Registration Link
-                    </a>
+                {/* ── Stats + Actions Hub ── */}
+                <div className="flex flex-wrap items-center gap-4">
+                    {/* Premium Stats Pill */}
+                    <div className="h-12 px-6 flex items-center gap-6 rounded-2xl bg-[#050505] border border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+                        <div className="flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#DEFF9A] shadow-[0_0_10px_rgba(222,255,154,0.5)]" />
+                            <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Total Registered</span>
+                            <span className="text-xs font-black text-[#DEFF9A] font-mono ml-2">{attendees.length}</span>
+                        </div>
+                        <div className="w-px h-4 bg-white/10" />
+                        <div className="flex items-center gap-2">
+                            <i className="fa-solid fa-user-check text-[10px] text-emerald-500"></i>
+                            <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Checked In</span>
+                            <span className="text-xs font-black text-white font-mono ml-2">
+                                {attendees.filter(a => a.checked_in).length}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                        <PrintReportButton title="Guest List" />
+                        <a 
+                            href={`/apps/ticketing/registration?project_id=${projectId}`} 
+                            target="_blank" 
+                            className="h-12 px-6 rounded-2xl bg-[#0056B3] border border-[#0056B3]/30 text-white font-black text-xs uppercase tracking-widest shadow-[0_0_20px_rgba(0,86,179,0.4)] hover:shadow-[0_0_30px_rgba(0,86,179,0.8)] transition-all flex items-center gap-2.5 hover:-translate-y-0.5 active:translate-y-0"
+                        >
+                            <i className="fa-solid fa-link text-lg" /> Registration Link
+                        </a>
+                    </div>
                 </div>
             </div>
 
             {/* ── Guest List ── */}
             <div className="flex flex-col gap-8">
-                <div className="flex items-center gap-3 border-b border-white/5 pb-4 px-2">
+                <div className="flex items-center gap-3 border-b border-white/5 pb-4 px-2 print:hidden">
                     <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-600">Verified Attendees</h2>
                     <span className="text-[9px] font-black bg-white/5 text-zinc-600 px-3 py-1 rounded-full border border-white/5 font-mono">
                         {attendees.length}
                     </span>
                 </div>
 
+                <div className={layoutType === 'table' ? 'print:hidden' : ''}>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {loading ? (
                         <div className="col-span-full py-32 flex flex-col items-center justify-center opacity-30">
@@ -179,11 +199,45 @@ export default function GuestListPage() {
                         ))
                     )}
                 </div>
+                </div>
+
+                {/* ── Compact Table (Print Only) ── */}
+                {layoutType === 'table' && (
+                    <div className="hidden print:block w-full mt-4">
+                        <table className="w-full text-left text-[11px] border-collapse border border-black/20">
+                            <thead>
+                                <tr className="bg-black/5 border-b-2 border-black">
+                                    <th className="py-2 px-3 font-black uppercase w-[5%]">No.</th>
+                                    <th className="py-2 px-3 font-black uppercase w-[40%]">Name</th>
+                                    <th className="py-2 px-3 font-black uppercase w-[25%]">Contact</th>
+                                    <th className="py-2 px-3 font-black uppercase w-[15%]">Code</th>
+                                    <th className="py-2 px-3 font-black uppercase text-center w-[15%]">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {attendees.map((guest, idx) => (
+                                    <tr key={guest.id} className={`border-b border-black/20 ${pageBreakIds.includes(guest.id) ? 'print:break-before-page' : ''}`}>
+                                        <td className="py-2 px-3">{idx + 1}</td>
+                                        <td className="py-2 px-3 font-bold">{guest.name}</td>
+                                        <td className="py-2 px-3">{guest.phone || '-'}</td>
+                                        <td className="py-2 px-3 font-mono">{guest.ticket_code}</td>
+                                        <td className="py-2 px-3 text-center">
+                                            {guest.checked_in ? (
+                                                <span className="font-bold">Checked In</span>
+                                            ) : (
+                                                <span>Registered</span>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </div>
 
             <style jsx global>{`
                 @media print {
-                    @page { size: A4 portrait; margin: 15mm; }
                     html, body, main { background: white !important; color: black !important; }
                     .print\\:hidden, nav, header, footer, button { display: none !important; }
                     .bg-white\\/\\[0\\.03\\], .bg-white\\/\\[0\\.02\\] { background: transparent !important; border: 1px solid #eee !important; border-radius: 12px !important; }
