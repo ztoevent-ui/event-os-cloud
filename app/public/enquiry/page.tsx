@@ -32,6 +32,10 @@ export default function EnquiryPage() {
         alert('There was an error submitting the form: ' + result.error);
       } else {
         setSubmitted(true);
+        // Fire Google Ads Conversion Tracking
+        if (typeof window !== 'undefined' && (window as any).gtag) {
+          (window as any).gtag('event', 'ads_conversion_Contact_Us_1', {});
+        }
       }
     } catch (err: any) {
       alert('Network error. Please try again later.');
