@@ -2,7 +2,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
-import { createTask, updateTask, deleteTask, createTimeline, deleteTimeline, createBudget, deleteBudget, createVendor, deleteVendor, copyBudget, copyProgram } from '../actions';
+import { createTask, updateTask, deleteTask, createTimeline, deleteTimeline, createBudget, updateBudget, deleteBudget, createVendor, deleteVendor, copyBudget, copyProgram } from '../actions';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import { PrintOptionsModal } from './PrintOptionsModal';
@@ -390,6 +390,141 @@ export function DeleteBudgetButton({ id, projectId, onSuccess }: { id: string, p
         >
             <i className={`fa-solid ${isDeleting ? 'fa-circle-notch fa-spin' : 'fa-trash'}`}></i>
         </button>
+    );
+}
+
+export function EditBudgetModal({
+    item,
+    projectId,
+    isOpen,
+    onClose,
+    onSuccess,
+}: {
+    item: any;
+    projectId: string;
+    isOpen: boolean;
+    onClose: () => void;
+    onSuccess?: () => void;
+}) {
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    if (!isOpen || !item) return null;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md p-6 shadow-2xl relative animate-in zoom-in-95">
+                <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-lg font-black text-white uppercase tracking-tight">Edit Transaction</h3>
+                    <button onClick={onClose} className="text-zinc-500 hover:text-white transition-colors">
+                        <i className="fa-solid fa-xmark text-lg" />
+                    </button>
+                </div>
+
+                <form
+                    action={async (formData) => {
+                        setIsSubmitting(true);
+                        await updateBudget(formData);
+                        setIsSubmitting(false);
+                        onClose();
+                        onSuccess?.();
+                    }}
+                    className="space-y-4"
+                >
+                    <input type="hidden" name="id" value={item.id} />
+                    <input type="hidden" name="project_id" value={projectId} />
+
+                    <div>
+                        <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Item Name</label>
+                        <input
+                            name="item"
+                            defaultValue={item.item}
+                            required
+                            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-[#0056B3]/50 transition-colors"
+                            placeholder="e.g. Venue Deposit"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Amount (RM)</label>
+                        <input
+                            name="amount"
+                            type="number"
+                            step="0.01"
+                            defaultValue={item.amount}
+                            required
+                            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-[#0056B3]/50 transition-colors"
+                            placeholder="0.00"
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Type</label>
+                            <select
+                                name="type"
+                                defaultValue={item.type}
+                                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-[#0056B3]/50"
+                            >
+                                <option value="expense">Expense</option>
+                                <option value="income">Income</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Status</label>
+                            <select
+                                name="status"
+                                defaultValue={item.status}
+                                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-[#0056B3]/50"
+                            >
+                                <option value="planned">Planned</option>
+                                <option value="confirmed">Confirmed</option>
+                                <option value="paid">Paid</option>
+                                <option value="received">Received</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Category</label>
+                        <input
+                            name="category"
+                            list="edit-categories"
+                            defaultValue={item.category}
+                            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-[#0056B3]/50 transition-colors"
+                            placeholder="Select or type..."
+                        />
+                        <datalist id="edit-categories">
+                            <option value="Venue" />
+                            <option value="Decor" />
+                            <option value="Marketing" />
+                            <option value="Staff" />
+                            <option value="Sponsorship" />
+                            <option value="Equipment" />
+                            <option value="Catering" />
+                            <option value="Transport" />
+                        </datalist>
+                    </div>
+
+                    <div className="flex gap-3 pt-2">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="flex-1 py-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-400 font-bold text-sm transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={isSubmitting}
+                            className="flex-1 py-3 rounded-xl bg-[#0056B3] hover:bg-[#0069d9] text-white font-bold text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                        >
+                            {isSubmitting && <i className="fa-solid fa-circle-notch fa-spin" />}
+                            {isSubmitting ? 'Saving...' : 'Save Changes'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     );
 }
 

@@ -161,6 +161,28 @@ export async function deleteBudget(formData: FormData) {
     revalidatePath(`/projects/${project_id}`);
 }
 
+export async function updateBudget(formData: FormData) {
+    const id = formData.get('id') as string;
+    const project_id = formData.get('project_id') as string;
+    const item = formData.get('item') as string;
+    const amount = formData.get('amount') as string;
+    const type = formData.get('type') as string;
+    const category = formData.get('category') as string;
+    const status = formData.get('status') as string;
+
+    const { error } = await supabase.from('budgets').update({
+        item,
+        amount,
+        type,
+        category,
+        status,
+    }).eq('id', id);
+
+    if (error) console.error('Error updating budget:', error);
+    revalidatePath(`/projects/${project_id}/budget`);
+    revalidatePath(`/projects/${project_id}`);
+}
+
 
 // --- VENDORS ---
 export async function createVendor(formData: FormData) {

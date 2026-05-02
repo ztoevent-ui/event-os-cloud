@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect, use } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { AddBudgetButton, DeleteBudgetButton, PrintReportButton, CopyBudgetButton } from '../../components/ProjectModals';
+import { AddBudgetButton, DeleteBudgetButton, EditBudgetModal, PrintReportButton, CopyBudgetButton } from '../../components/ProjectModals';
 import { PrintBreakTrigger } from '../../components/PrintBreakTrigger';
 import { usePrint } from '../../components/PrintContext';
 
@@ -11,6 +11,7 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
     const [project, setProject] = useState<any>(null);
     const [logoUrl, setLogoUrl] = useState<string>('');
     const [loading, setLoading] = useState(true);
+    const [editingItem, setEditingItem] = useState<any>(null);
     const { pageBreakIds } = usePrint();
 
     useEffect(() => {
@@ -126,7 +127,11 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
                             </div>
                         ) : (
                             expenses.map(item => (
-                                <div key={item.id} className={`group relative bg-white/[0.03] border border-white/5 p-5 rounded-2xl hover:border-red-500/30 transition-all ${pageBreakIds.includes(item.id) ? 'print:break-before-page pt-4 border-t border-zinc-200 mt-4' : ''}`}>
+                                <div
+                                    key={item.id}
+                                    onClick={() => setEditingItem(item)}
+                                    className={`group relative bg-white/[0.03] border border-white/5 p-5 rounded-2xl hover:border-red-500/30 transition-all cursor-pointer ${pageBreakIds.includes(item.id) ? 'print:break-before-page pt-4 border-t border-zinc-200 mt-4' : ''}`}
+                                >
                                     <div className="flex justify-between items-start">
                                         <div className="flex-1">
                                             <h4 className="text-[13px] font-black text-white uppercase tracking-tight group-hover:text-red-400 transition-colors">{item.item}</h4>
@@ -136,7 +141,8 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
                                             <div className="text-sm font-black text-red-500 font-mono">- RM {Number(item.amount).toFixed(2)}</div>
                                             <div className="mt-2 flex items-center gap-2">
                                                 <span className="text-[8px] font-black px-2 py-0.5 rounded bg-white/5 text-zinc-600 uppercase tracking-tighter">{item.status}</span>
-                                                <div className="print:hidden">
+                                                <i className="fa-solid fa-pen-to-square text-[10px] text-zinc-700 group-hover:text-red-400 transition-colors print:hidden" />
+                                                <div className="print:hidden" onClick={e => e.stopPropagation()}>
                                                     <DeleteBudgetButton id={item.id} projectId={id} onSuccess={fetchData} />
                                                 </div>
                                             </div>
@@ -167,7 +173,11 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
                             </div>
                         ) : (
                             income.map(item => (
-                                <div key={item.id} className={`group relative bg-white/[0.03] border border-white/5 p-5 rounded-2xl hover:border-[#DEFF9A]/30 transition-all ${pageBreakIds.includes(item.id) ? 'print:break-before-page pt-4 border-t border-zinc-200 mt-4' : ''}`}>
+                                <div
+                                    key={item.id}
+                                    onClick={() => setEditingItem(item)}
+                                    className={`group relative bg-white/[0.03] border border-white/5 p-5 rounded-2xl hover:border-[#DEFF9A]/30 transition-all cursor-pointer ${pageBreakIds.includes(item.id) ? 'print:break-before-page pt-4 border-t border-zinc-200 mt-4' : ''}`}
+                                >
                                     <div className="flex justify-between items-start">
                                         <div className="flex-1">
                                             <h4 className="text-[13px] font-black text-white uppercase tracking-tight group-hover:text-[#DEFF9A] transition-colors">{item.item}</h4>
@@ -177,7 +187,8 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
                                             <div className="text-sm font-black text-[#DEFF9A] font-mono">+ RM {Number(item.amount).toFixed(2)}</div>
                                             <div className="mt-2 flex items-center gap-2">
                                                 <span className="text-[8px] font-black px-2 py-0.5 rounded bg-white/5 text-zinc-600 uppercase tracking-tighter">{item.status}</span>
-                                                <div className="print:hidden">
+                                                <i className="fa-solid fa-pen-to-square text-[10px] text-zinc-700 group-hover:text-[#DEFF9A] transition-colors print:hidden" />
+                                                <div className="print:hidden" onClick={e => e.stopPropagation()}>
                                                     <DeleteBudgetButton id={item.id} projectId={id} onSuccess={fetchData} />
                                                 </div>
                                             </div>
@@ -190,6 +201,15 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
                     </div>
                 </div>
             </div>
+
+            {/* Edit Modal */}
+            <EditBudgetModal
+                item={editingItem}
+                projectId={id}
+                isOpen={!!editingItem}
+                onClose={() => setEditingItem(null)}
+                onSuccess={fetchData}
+            />
 
             {/* Print Styles */}
             <style jsx global>{`
