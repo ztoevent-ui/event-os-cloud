@@ -111,28 +111,33 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
                     </h1>
                 </div>
 
-                {/* Stats + Actions */}
-                <div className="flex flex-wrap items-center gap-3">
-                    <div className="flex items-center gap-4 px-6 py-3 rounded-2xl bg-white/[0.03] border border-white/5 backdrop-blur-xl">
-                        <div className="text-right">
-                            <p className="text-[9px] font-black uppercase tracking-widest text-zinc-500 mb-0.5">Expenses</p>
-                            <p className="text-lg font-black text-red-400 font-mono">RM {totalSpends.toFixed(2)}</p>
+                {/* ── Stats + Actions Hub ── */}
+                <div className="flex flex-wrap items-center gap-4">
+                    {/* Premium Stats Pill */}
+                    <div className="h-12 px-6 flex items-center gap-6 rounded-2xl bg-[#050505] border border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+                        <div className="flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
+                            <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Expenses</span>
+                            <span className="text-xs font-black text-red-500 font-mono ml-2">RM {totalSpends.toFixed(2)}</span>
                         </div>
-                        <div className="w-px h-8 bg-white/5" />
-                        <div>
-                            <p className="text-[9px] font-black uppercase tracking-widest text-zinc-500 mb-0.5">Income</p>
-                            <p className="text-lg font-black text-[#DEFF9A] font-mono">RM {totalIncome.toFixed(2)}</p>
+                        <div className="w-px h-4 bg-white/10" />
+                        <div className="flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#DEFF9A] shadow-[0_0_10px_rgba(222,255,154,0.5)]" />
+                            <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Income</span>
+                            <span className="text-xs font-black text-[#DEFF9A] font-mono ml-2">RM {totalIncome.toFixed(2)}</span>
                         </div>
-                        <div className="w-px h-8 bg-white/5" />
-                        <div>
-                            <p className="text-[9px] font-black uppercase tracking-widest text-zinc-500 mb-0.5">Net Balance</p>
-                            <p className={`text-lg font-black font-mono ${netBalance >= 0 ? 'text-[#DEFF9A]' : 'text-red-500'}`}>
+                        <div className="w-px h-4 bg-white/10" />
+                        <div className="flex items-center gap-2">
+                            <i className="fa-solid fa-scale-balanced text-[10px] text-[#0056B3]"></i>
+                            <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Net</span>
+                            <span className={`text-xs font-black font-mono ml-2 ${netBalance >= 0 ? 'text-[#DEFF9A]' : 'text-red-500'}`}>
                                 RM {netBalance.toFixed(2)}
-                            </p>
+                            </span>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    {/* Actions */}
+                    <div className="flex items-center gap-3">
                         <PrintReportButton title="Budget Report" />
                         <CopyBudgetButton projectId={id} onSuccess={fetchData} />
                         <AddBudgetButton projectId={id} isWedding={false} onSuccess={fetchData} />

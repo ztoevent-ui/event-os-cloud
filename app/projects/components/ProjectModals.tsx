@@ -230,8 +230,8 @@ export function AddBudgetButton({ projectId, isWedding, onSuccess }: { projectId
 
     return (
         <>
-            <button onClick={() => setIsOpen(true)} className={`px-6 py-2.5 ${colorClass} text-white font-bold rounded-full transition-all flex items-center gap-2 transform hover:scale-105 shadow-lg`}>
-                <i className="fa-solid fa-plus"></i> Add Item
+            <button onClick={() => setIsOpen(true)} className={`h-12 px-6 rounded-2xl ${colorClass} text-white font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2.5 hover:-translate-y-0.5 active:translate-y-0 shadow-lg`}>
+                <i className="fa-solid fa-plus text-lg"></i> Add Transaction
             </button>
             <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title="New Budget Item">
                 <form action={async (formData) => {
@@ -312,9 +312,9 @@ export function CopyBudgetButton({ projectId, onSuccess }: { projectId: string; 
         <>
             <button 
                 onClick={() => setIsOpen(true)} 
-                className="px-6 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-full transition-all flex items-center gap-2 border border-zinc-700 shadow-lg"
+                className="h-12 px-6 rounded-2xl bg-white/[0.03] border border-white/5 hover:bg-white/10 hover:border-white/20 text-zinc-300 hover:text-white font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2.5 hover:-translate-y-0.5 active:translate-y-0 shadow-lg"
             >
-                <i className="fa-solid fa-copy"></i> Copy From
+                <i className="fa-solid fa-copy text-lg"></i> Clone
             </button>
             <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title="Copy Budget From">
                 <div className="space-y-4">
@@ -611,9 +611,9 @@ export function PrintReportButton({ title = "General Report" }: { title?: string
         <>
             <button 
                 onClick={() => setIsModalOpen(true)}
-                className="h-12 px-6 rounded-xl bg-[#0056B3] border border-[#0056B3]/30 text-white font-black text-[13px] uppercase tracking-widest shadow-[0_0_20px_rgba(0,86,179,0.4)] hover:shadow-[0_0_30px_rgba(0,86,179,0.8)] transition-all flex items-center gap-2.5 active:scale-95 z-0 relative"
+                className="h-12 px-6 rounded-2xl bg-white/[0.03] border border-white/5 hover:bg-white/10 hover:border-white/20 text-zinc-300 hover:text-white font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2.5 hover:-translate-y-0.5 active:translate-y-0 shadow-lg z-0 relative"
             >
-                <i className="fa-solid fa-file-invoice-dollar text-lg"></i> REPORT
+                <i className="fa-solid fa-file-pdf text-lg text-red-400"></i> Export
             </button>
             <PrintOptionsModal 
                 isOpen={isModalOpen} 
