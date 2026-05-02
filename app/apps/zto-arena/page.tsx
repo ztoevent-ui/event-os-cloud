@@ -379,15 +379,24 @@ export default function ArenaHubRoot() {
 
             {/* Screen Shortcut */}
             {selected && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
-                <Link href={`/arena/${selected.id}/screen`}
-                  className="flex items-center justify-between px-6 py-4 bg-white/[0.02] border border-white/5 rounded-2xl hover:border-[#0056B3]/30 hover:bg-[#0056B3]/5 transition-all group">
-                  <div className="flex items-center gap-3">
-                    <i className="fa-solid fa-display text-[#0056B3]" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500 group-hover:text-[#4da3ff] transition-colors">Arena Display Screen</span>
-                  </div>
-                  <i className="fa-solid fa-arrow-right text-zinc-700 group-hover:text-[#4da3ff] group-hover:translate-x-1 transition-all text-xs" />
-                </Link>
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
+                className="p-6 bg-white/[0.02] border border-white/5 rounded-2xl">
+                <div className="flex items-center gap-3 mb-4">
+                  <i className="fa-solid fa-display text-[#0056B3]" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Launch Display Screens</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Link href={`/arena/${selected.id}/screen`} target="_blank"
+                    className="flex-1 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-center text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-white transition-colors">
+                    ALL
+                  </Link>
+                  {[1, 2, 3, 4, 5].map(sid => (
+                    <Link key={sid} href={`/arena/${selected.id}/screen?sid=${sid}`} target="_blank"
+                      className="flex-1 py-2 bg-[#0056B3]/10 hover:bg-[#0056B3]/20 border border-[#0056B3]/30 rounded-xl text-center text-[10px] font-black uppercase tracking-widest text-[#4da3ff] hover:text-white transition-colors">
+                      S{sid}
+                    </Link>
+                  ))}
+                </div>
               </motion.div>
             )}
           </motion.div>
