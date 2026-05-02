@@ -16,7 +16,9 @@ export function PrintOptionsModal({ isOpen, onClose, title }: PrintOptionsModalP
     isPageBreakMode, 
     setIsPageBreakMode, 
     resetPageBreaks,
-    pageBreakIds
+    pageBreakIds,
+    layoutType,
+    setLayoutType
   } = usePrint();
 
   if (!isOpen) return null;
@@ -31,7 +33,7 @@ export function PrintOptionsModal({ isOpen, onClose, title }: PrintOptionsModalP
 
   return (
     <div className="fixed inset-0 z-[100] flex justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in overflow-y-auto items-start pt-10 md:pt-20">
-      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl w-full max-w-lg p-5 md:p-8 shadow-2xl relative animate-in zoom-in-95 mb-10">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl w-full max-w-xl p-6 md:p-10 shadow-2xl relative animate-in zoom-in-95 mb-10">
         <div className="flex justify-between items-center mb-6 sticky top-0 bg-zinc-900 z-10">
           <div>
             <h3 className="text-xl md:text-2xl font-black text-white uppercase italic tracking-wider">Print / Export PDF</h3>
@@ -42,23 +44,50 @@ export function PrintOptionsModal({ isOpen, onClose, title }: PrintOptionsModalP
           </button>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-8">
+          {/* Layout Selection */}
+          <div>
+            <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-4">Visual Layout</label>
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                onClick={() => setLayoutType('table')}
+                className={`p-6 rounded-2xl border-2 flex flex-col items-center gap-4 transition-all ${layoutType === 'table' ? 'bg-blue-600/20 border-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.3)]' : 'bg-transparent border-zinc-800 text-zinc-500 hover:border-zinc-700 hover:text-zinc-300'}`}
+              >
+                <i className="fa-solid fa-table-list text-3xl"></i>
+                <div className="text-center">
+                    <span className="font-bold text-sm uppercase tracking-widest block">Compact Table</span>
+                    <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest mt-1.5 block">Saves paper</span>
+                </div>
+              </button>
+              <button
+                onClick={() => setLayoutType('cards')}
+                className={`p-6 rounded-2xl border-2 flex flex-col items-center gap-4 transition-all ${layoutType === 'cards' ? 'bg-blue-600/20 border-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.3)]' : 'bg-transparent border-zinc-800 text-zinc-500 hover:border-zinc-700 hover:text-zinc-300'}`}
+              >
+                <i className="fa-solid fa-border-all text-3xl"></i>
+                <div className="text-center">
+                    <span className="font-bold text-sm uppercase tracking-widest block">Rich Cards</span>
+                    <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest mt-1.5 block">Screen UI Format</span>
+                </div>
+              </button>
+            </div>
+          </div>
+
           {/* Orientation Selection */}
           <div>
             <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-4">Page Orientation</label>
             <div className="grid grid-cols-2 gap-4">
               <button
                 onClick={() => setOrientation('portrait')}
-                className={`p-4 rounded-2xl border-2 flex flex-col items-center gap-3 transition-all ${orientation === 'portrait' ? 'bg-white/10 border-white text-white' : 'bg-transparent border-zinc-800 text-zinc-600 hover:border-zinc-700'}`}
+                className={`p-4 rounded-2xl border flex items-center justify-center gap-3 transition-all ${orientation === 'portrait' ? 'bg-white/10 border-white text-white' : 'bg-transparent border-zinc-800 text-zinc-500 hover:border-zinc-700 hover:text-zinc-300'}`}
               >
-                <i className="fa-solid fa-file text-2xl"></i>
+                <i className="fa-solid fa-file"></i>
                 <span className="font-bold text-xs uppercase tracking-widest">Portrait</span>
               </button>
               <button
                 onClick={() => setOrientation('landscape')}
-                className={`p-4 rounded-2xl border-2 flex flex-col items-center gap-3 transition-all ${orientation === 'landscape' ? 'bg-white/10 border-white text-white' : 'bg-transparent border-zinc-800 text-zinc-600 hover:border-zinc-700'}`}
+                className={`p-4 rounded-2xl border flex items-center justify-center gap-3 transition-all ${orientation === 'landscape' ? 'bg-white/10 border-white text-white' : 'bg-transparent border-zinc-800 text-zinc-500 hover:border-zinc-700 hover:text-zinc-300'}`}
               >
-                <i className="fa-solid fa-file rotate-90 text-2xl"></i>
+                <i className="fa-solid fa-file rotate-90"></i>
                 <span className="font-bold text-xs uppercase tracking-widest">Landscape</span>
               </button>
             </div>

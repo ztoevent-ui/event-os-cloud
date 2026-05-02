@@ -12,7 +12,7 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
     const [logoUrl, setLogoUrl] = useState<string>('');
     const [loading, setLoading] = useState(true);
     const [editingItem, setEditingItem] = useState<any>(null);
-    const { pageBreakIds } = usePrint();
+    const { pageBreakIds, layoutType } = usePrint();
 
     useEffect(() => {
         fetchData();
@@ -143,7 +143,7 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
             {/* ══════════════════════════════════════════════
                 SCREEN VIEW — 2 column cards
             ══════════════════════════════════════════════ */}
-            <div className="print:hidden grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+            <div className={`${layoutType === 'table' ? 'print:hidden' : 'print:grid'} grid grid-cols-1 md:grid-cols-2 gap-8 items-start`}>
 
                 {/* Expenses column */}
                 <div className="flex flex-col gap-4">
@@ -252,7 +252,7 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
                 PRINT VIEW — compact table layout
                 Expenses table FIRST (larger), then Income
             ══════════════════════════════════════════════ */}
-            <div className="hidden print:block">
+            <div className={`hidden ${layoutType === 'table' ? 'print:block' : 'print:hidden'}`}>
 
                 {/* EXPENSES TABLE */}
                 {expenses.length > 0 && (

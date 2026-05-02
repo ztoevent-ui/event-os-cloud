@@ -14,6 +14,8 @@ interface PrintContextType {
   resetPageBreaks: () => void;
   isPrinting: boolean;
   setIsPrinting: (b: boolean) => void;
+  layoutType: 'table' | 'cards';
+  setLayoutType: (l: 'table' | 'cards') => void;
 }
 
 const PrintContext = createContext<PrintContextType | undefined>(undefined);
@@ -23,6 +25,7 @@ export function PrintProvider({ children }: { children: ReactNode }) {
   const [isPageBreakMode, setIsPageBreakMode] = useState(false);
   const [pageBreakIds, setPageBreakIds] = useState<string[]>([]);
   const [isPrinting, setIsPrinting] = useState(false);
+  const [layoutType, setLayoutType] = useState<'table' | 'cards'>('table');
 
   const togglePageBreak = (id: string) => {
     setPageBreakIds(prev => 
@@ -62,7 +65,9 @@ export function PrintProvider({ children }: { children: ReactNode }) {
       togglePageBreak,
       resetPageBreaks,
       isPrinting,
-      setIsPrinting
+      setIsPrinting,
+      layoutType,
+      setLayoutType
     }}>
       {children}
     </PrintContext.Provider>
