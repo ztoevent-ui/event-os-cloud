@@ -15,11 +15,11 @@ type RoundRuleLocal = Omit<RoundRule, 'id' | 'tournament_id'> & { completion_mod
 const ALL_ROUND_TYPES: RoundType[] = ['GROUP', 'KNOCKOUT', 'SEMIFINALS', 'THIRD_PLACE', 'FINALS'];
 
 const DEFAULT_RULES: RoundRuleLocal[] = [
-  { round_type: 'GROUP',       scoring_type: 'RALLY',    max_points: 21, win_by: 1, sets_to_win: 1, max_sets: 1, freeze_at: null, completion_mode: 'FULL'  },
-  { round_type: 'KNOCKOUT',    scoring_type: 'SIDE_OUT', max_points: 15, win_by: 2, sets_to_win: 1, max_sets: 1, freeze_at: null, completion_mode: 'FULL'  },
-  { round_type: 'SEMIFINALS',  scoring_type: 'SIDE_OUT', max_points: 15, win_by: 2, sets_to_win: 1, max_sets: 1, freeze_at: null, completion_mode: 'EARLY' },
-  { round_type: 'THIRD_PLACE', scoring_type: 'SIDE_OUT', max_points: 11, win_by: 2, sets_to_win: 2, max_sets: 3, freeze_at: null, completion_mode: 'EARLY' },
-  { round_type: 'FINALS',      scoring_type: 'SIDE_OUT', max_points: 11, win_by: 2, sets_to_win: 2, max_sets: 3, freeze_at: null, completion_mode: 'EARLY' },
+  { round_type: 'GROUP',       scoring_type: 'RALLY',    max_points: 21, win_by: 2, sets_to_win: 1, max_sets: 1, freeze_at: null, completion_mode: 'FULL'  },
+  { round_type: 'KNOCKOUT',    scoring_type: 'RALLY',    max_points: 15, win_by: 2, sets_to_win: 1, max_sets: 1, freeze_at: null, completion_mode: 'FULL'  },
+  { round_type: 'SEMIFINALS',  scoring_type: 'RALLY',    max_points: 15, win_by: 2, sets_to_win: 2, max_sets: 3, freeze_at: null, completion_mode: 'EARLY' },
+  { round_type: 'THIRD_PLACE', scoring_type: 'RALLY',    max_points: 15, win_by: 2, sets_to_win: 2, max_sets: 3, freeze_at: null, completion_mode: 'EARLY' },
+  { round_type: 'FINALS',      scoring_type: 'RALLY',    max_points: 21, win_by: 2, sets_to_win: 2, max_sets: 3, freeze_at: null, completion_mode: 'EARLY' },
 ];
 
 const ROUND_META: Record<string, { label: string; icon: string; color: string; accent: string; border: string }> = {
@@ -81,18 +81,22 @@ function RuleEditor({
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        {/* Scoring Type */}
+        {/* Scoring System Presets */}
         <div className="col-span-2 md:col-span-1">
-          <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Scoring System</label>
+          <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Scoring Mode (Rally)</label>
           <div className="flex gap-2">
-            {(['RALLY', 'SIDE_OUT'] as ScoringType[]).map((t) => (
-              <button key={t} onClick={() => onChange({ ...rule, scoring_type: t })}
-                className={`flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${
-                  rule.scoring_type === t ? 'bg-white text-black border-white shadow-lg' : 'bg-transparent text-zinc-500 border-white/10 hover:border-white/30'
-                }`}>
-                {t === 'RALLY' ? '⚡ Rally' : '🏓 Side-out'}
-              </button>
-            ))}
+            <button onClick={() => onChange({ ...rule, scoring_type: 'RALLY', max_points: 21, win_by: 2 })}
+              className={`flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${
+                rule.max_points === 21 ? 'bg-white text-black border-white shadow-lg' : 'bg-transparent text-zinc-500 border-white/10 hover:border-white/30'
+              }`}>
+              Standard (21 Pts)
+            </button>
+            <button onClick={() => onChange({ ...rule, scoring_type: 'RALLY', max_points: 15, win_by: 2 })}
+              className={`flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${
+                rule.max_points === 15 ? 'bg-white text-black border-white shadow-lg' : 'bg-transparent text-zinc-500 border-white/10 hover:border-white/30'
+              }`}>
+              2027 (15 Pts)
+            </button>
           </div>
         </div>
 
@@ -386,8 +390,8 @@ export default function ArchitectPage() {
                     return (
                       <div key={r.round_type} className="bg-black/40 rounded-2xl p-4 border border-white/5">
                         <div className={`text-[10px] font-black uppercase tracking-widest mb-2 ${meta.accent}`}>{meta.label}</div>
-                        <div className="text-white font-bold text-sm">{r.scoring_type === 'RALLY' ? '⚡' : '🏓'} {r.scoring_type}</div>
-                        <div className="text-zinc-400 text-xs mt-1">{r.max_points} pts • Win by {r.win_by}</div>
+                        <div className="text-white font-bold text-sm">⚡ RALLY ({r.max_points} PTS)</div>
+                        <div className="text-zinc-400 text-xs mt-1">Win by {r.win_by}</div>
                         <div className="text-zinc-600 text-xs">{r.max_sets === 1 ? 'Single Set' : `Best of ${r.max_sets}`}</div>
                         {isTieTeam && (
                           <div className={`text-[9px] font-black uppercase tracking-wider mt-1 ${r.completion_mode === 'FULL' ? 'text-violet-400' : 'text-zinc-600'}`}>

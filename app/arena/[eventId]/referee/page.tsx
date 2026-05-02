@@ -21,7 +21,7 @@ import {
 // ——————————————————————————————————————————————————
 // TYPES
 // ——————————————————————————————————————————————————
-type Phase = 'SELECT' | 'SCORING' | 'SIDE_SWITCH' | 'MATCH_END';
+type Phase = 'SELECT' | 'SCORING' | 'SIDE_SWITCH' | 'INTERVAL' | 'MATCH_END';
 
 // ——————————————————————————————————————————————————
 // MATCH SELECTOR
@@ -240,6 +240,115 @@ function SideSwitchModal({ onConfirm }: { onConfirm: () => void }) {
 }
 
 // ——————————————————————————————————————————————————
+// INTERVAL MODAL (60s / 120s Breaks)
+// ——————————————————————————————————————————————————
+function IntervalModal({ title, duration, onSkip }: { title: string; duration: number; onSkip: () => void }) {
+  const [timeLeft, setTimeLeft] = React.useState(duration);
+  
+  React.useEffect(() => {
+    if (timeLeft <= 0) return;
+    const t = setInterval(() => setTimeLeft(c => c - 1), 1000);
+    return () => clearInterval(t);
+  }, [timeLeft]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center text-center p-8 backdrop-blur-md"
+    >
+      <div className="w-20 h-20 bg-blue-600/20 rounded-3xl border border-blue-500/30 flex items-center justify-center mx-auto mb-6">
+        <i className="fa-solid fa-stopwatch text-3xl text-blue-400 animate-pulse" />
+      </div>
+      <h1 className="text-3xl font-black uppercase tracking-widest text-white mb-2">{title}</h1>
+      <p className="text-zinc-500 font-bold uppercase tracking-widest text-xs mb-8">BWF Standard Break</p>
+      
+      <div className="text-[120px] font-black leading-none text-white tabular-nums mb-12">
+        {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
+      </div>
+
+      <button
+        onClick={onSkip}
+        className="font-black text-xs uppercase tracking-widest px-10 py-4 rounded-2xl border border-white/20 text-zinc-400 hover:text-white hover:border-white/50 transition-all active:scale-95"
+      >
+        {timeLeft <= 0 ? 'Resume Match' : 'Skip & Resume →'}
+      </button>
+    </motion.div>
+  );
+}
+
+// ——————————————————————————————————————————————————
+// PENALTY / MATCH OPTIONS MODAL
+// ——————————————————————————————————————————————————
+function PenaltyModal({ 
+  match, 
+  onClose, 
+  onIssueCard, 
+  onWalkover 
+}: { 
+  match: ArenaMatch; 
+  onClose: () => void;
+  onIssueCard: (team: 'A' | 'B', color: 'YELLOW' | 'RED' | 'BLACK') => void;
+  onWalkover: (winner: 'A' | 'B', reason: 'RETIRED' | 'WALKOVER') => void;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 50 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 50 }}
+      className="fixed inset-0 z-50 bg-black/90 flex flex-col justify-end"
+    >
+      <div className="bg-zinc-950 border-t border-white/10 rounded-t-[40px] p-8 max-w-lg mx-auto w-full">
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-xl font-black text-white uppercase tracking-widest">Match Actions</h2>
+          <button onClick={onClose} className="w-10 h-10 rounded-full bg-white/5 text-zinc-500 flex items-center justify-center">
+            <i className="fa-solid fa-times" />
+          </button>
+        </div>
+
+        {/* Penalty Cards */}
+        <div className="mb-8">
+          <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-4">Issue Penalty Card</h3>
+          <div className="grid grid-cols-2 gap-4">
+            {/* Team A Cards */}
+            <div className="bg-zinc-900 border border-white/5 rounded-2xl p-4">
+              <div className="text-xs font-bold text-white mb-3 truncate">{match.team_a_name}</div>
+              <div className="flex gap-2">
+                <button onClick={() => onIssueCard('A', 'YELLOW')} className="flex-1 py-2 bg-yellow-500/20 text-yellow-500 border border-yellow-500/50 rounded-lg text-xs font-black uppercase">YEL</button>
+                <button onClick={() => onIssueCard('A', 'RED')} className="flex-1 py-2 bg-red-500/20 text-red-500 border border-red-500/50 rounded-lg text-xs font-black uppercase">RED</button>
+              </div>
+            </div>
+            {/* Team B Cards */}
+            <div className="bg-zinc-900 border border-white/5 rounded-2xl p-4">
+              <div className="text-xs font-bold text-white mb-3 truncate">{match.team_b_name}</div>
+              <div className="flex gap-2">
+                <button onClick={() => onIssueCard('B', 'YELLOW')} className="flex-1 py-2 bg-yellow-500/20 text-yellow-500 border border-yellow-500/50 rounded-lg text-xs font-black uppercase">YEL</button>
+                <button onClick={() => onIssueCard('B', 'RED')} className="flex-1 py-2 bg-red-500/20 text-red-500 border border-red-500/50 rounded-lg text-xs font-black uppercase">RED</button>
+              </div>
+            </div>
+          </div>
+          <p className="text-[9px] text-zinc-600 mt-2 uppercase tracking-widest text-center">Note: Red Card will automatically award +1 point to opponent</p>
+        </div>
+
+        {/* Walkover / Retirement */}
+        <div>
+          <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-4">Abnormal Termination</h3>
+          <div className="space-y-3">
+            <button onClick={() => onWalkover('A', 'RETIRED')} className="w-full py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 font-bold text-xs uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">
+              {match.team_b_name} Retires (Award Win to {match.team_a_name})
+            </button>
+            <button onClick={() => onWalkover('B', 'RETIRED')} className="w-full py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 font-bold text-xs uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">
+              {match.team_a_name} Retires (Award Win to {match.team_b_name})
+            </button>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ——————————————————————————————————————————————————
 // MATCH END OVERLAY
 // ——————————————————————————————————————————————————
 function MatchEndOverlay({ 
@@ -308,6 +417,8 @@ function ScoringScreen({
   const [isOnline, setIsOnline] = useState(true);
   const [offlineCount, setOfflineCount] = useState(0);
   const [tieContext, setTieContext] = useState<{ mode: string; nextLabel?: string } | null>(null);
+  const [intervalState, setIntervalState] = useState<{ title: string; duration: number } | null>(null);
+  const [showPenaltyModal, setShowPenaltyModal] = useState(false);
   const channelRef = useRef<any>(null);
   const scoringFrozen = phase !== 'SCORING';
 
@@ -479,6 +590,10 @@ function ScoringScreen({
         persistScore(updatedMatch, 'MATCH_END', { winner: matchWinner });
         return;
       }
+
+      // If no match winner, trigger 120s Set Interval
+      setIntervalState({ title: `End of Set ${match.current_set}`, duration: 120 });
+      setPhase('INTERVAL');
     }
 
     if (shouldSwitch && !setWinner) {
@@ -494,9 +609,35 @@ function ScoringScreen({
       ...prev.slice(-9),
       { score_a: match.score_a, score_b: match.score_b, server: match.server, left_team: match.left_team, sets_won_a: match.sets_won_a, sets_won_b: match.sets_won_b, current_set: match.current_set, sets_scores: match.sets_scores },
     ]);
+    // Check 11-point mid-set interval
+    const isMidSetInterval = (newScoreA === 11 || newScoreB === 11) && match.score_a < 11 && match.score_b < 11;
+    if (isMidSetInterval && !setWinner) {
+      setIntervalState({ title: '11-Point Interval', duration: 60 });
+      setPhase('INTERVAL');
+    }
+
     setMatch(updatedMatch);
     persistScore(updatedMatch, scoringTeam === 'A' ? 'SCORE_A' : 'SCORE_B');
   }, [match, rule, scoringFrozen, persistScore]);
+
+  const handleIssueCard = useCallback((team: 'A' | 'B', color: 'YELLOW' | 'RED' | 'BLACK') => {
+    setShowPenaltyModal(false);
+    if (color === 'RED') {
+      // Red card gives 1 point to opponent
+      handleScore(match.left_team === team ? 'RIGHT' : 'LEFT'); // Tap the opponent's side
+    }
+    // Just log it
+    persistScore(match, 'PENALTY_CARD', { team, color });
+  }, [match, handleScore, persistScore]);
+
+  const handleWalkover = useCallback((winner: 'A' | 'B', reason: 'RETIRED' | 'WALKOVER') => {
+    setShowPenaltyModal(false);
+    const updatedMatch: ArenaMatch = { ...match, status: 'COMPLETED', winner };
+    setMatch(updatedMatch);
+    setWinnerName(winner === 'A' ? match.team_a_name : match.team_b_name);
+    setPhase('MATCH_END');
+    persistScore(updatedMatch, reason, { winner });
+  }, [match, persistScore]);
 
   const handleSideSwitchConfirmed = useCallback(() => {
     const { leftTeam } = swapSides(match);
@@ -542,6 +683,21 @@ function ScoringScreen({
     <div className="min-h-screen bg-zinc-950 text-white font-sans flex flex-col select-none overflow-hidden relative">
       <AnimatePresence>
         {phase === 'SIDE_SWITCH' && <SideSwitchModal onConfirm={handleSideSwitchConfirmed} />}
+        {phase === 'INTERVAL' && intervalState && (
+          <IntervalModal 
+            title={intervalState.title} 
+            duration={intervalState.duration} 
+            onSkip={() => { setPhase('SCORING'); setIntervalState(null); }} 
+          />
+        )}
+        {showPenaltyModal && (
+          <PenaltyModal 
+            match={match} 
+            onClose={() => setShowPenaltyModal(false)} 
+            onIssueCard={handleIssueCard}
+            onWalkover={handleWalkover}
+          />
+        )}
         {phase === 'MATCH_END' && (
           <MatchEndOverlay 
             winner={winnerName} 
@@ -680,6 +836,13 @@ function ScoringScreen({
         >
           ← Exit
         </Link>
+
+        <button
+          onClick={() => setShowPenaltyModal(true)}
+          className="text-zinc-600 hover:text-white text-[10px] font-black uppercase tracking-widest transition-colors"
+        >
+          <i className="fa-solid fa-ellipsis-vertical mr-2" /> Actions
+        </button>
 
         <div className="text-center">
           <div className="text-[10px] text-zinc-700 uppercase font-black tracking-widest">
