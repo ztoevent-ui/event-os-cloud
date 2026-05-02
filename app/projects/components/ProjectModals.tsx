@@ -611,11 +611,9 @@ export function PrintReportButton({ title = "General Report" }: { title?: string
         <>
             <button 
                 onClick={() => setIsModalOpen(true)}
-                style={{ height: 48, padding: '0 24px', borderRadius: 12, background: '#0056B3', border: '1px solid rgba(0,86,179,0.3)', color: '#fff', fontWeight: 900, fontSize: 13, textTransform: 'uppercase', cursor: 'pointer', zIndex: 1000, position: 'relative', boxShadow: '0 0 20px rgba(0,86,179,0.4)', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: 10 }}
-                onMouseEnter={e => (e.currentTarget as HTMLElement).style.boxShadow = '0 0 30px rgba(0,86,179,0.8)'}
-                onMouseLeave={e => (e.currentTarget as HTMLElement).style.boxShadow = '0 0 20px rgba(0,86,179,0.4)'}
+                className="h-12 px-6 rounded-xl bg-[#0056B3] border border-[#0056B3]/30 text-white font-black text-[13px] uppercase tracking-widest shadow-[0_0_20px_rgba(0,86,179,0.4)] hover:shadow-[0_0_30px_rgba(0,86,179,0.8)] transition-all flex items-center gap-2.5 active:scale-95 z-0 relative"
             >
-                <i className="fa-solid fa-file-invoice-dollar"></i> REPORT
+                <i className="fa-solid fa-file-invoice-dollar text-lg"></i> REPORT
             </button>
             <PrintOptionsModal 
                 isOpen={isModalOpen} 
