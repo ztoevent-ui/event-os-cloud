@@ -524,14 +524,24 @@ body {
 .hero-sub      { animation: fadeInUp 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.6s both; }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   PRINT OVERRIDES
+   PRINT OVERRIDES — shell layout only, page size set per-page via PrintContext
    ═══════════════════════════════════════════════════════════════════════════ */
 
 @media print {
-  @page { size: A4 landscape; margin: 5mm 7mm; }
-  .zto-sidebar, .zto-action-bar, nav, button, [class*="print:hidden"] {
+  /* Hide the app shell chrome */
+  .zto-sidebar,
+  .zto-action-bar,
+  nav,
+  button,
+  [class*="print:hidden"] {
     display: none !important;
   }
-  .zto-main { overflow: visible !important; height: auto !important; }
+
+  /* Allow the main content area to scroll out and render fully */
+  .zto-shell { display: block !important; width: auto !important; height: auto !important; overflow: visible !important; }
+  .zto-main  { overflow: visible !important; height: auto !important; width: 100% !important; }
+  .zto-guardrail { padding: 0 !important; max-width: 100% !important; }
+
+  /* Base colours */
   html, body { background: white !important; color: black !important; }
 }
