@@ -129,6 +129,12 @@ function MasterConsoleContent() {
   const channelRef = useRef<any>(null);
   const [isFading, setIsFading] = useState(false);
   
+  // Per-screen LED dimensions (W × H in metres)
+  const [screenDimensions, setScreenDimensions] = useState<Record<number, { w: number; h: number }>>(
+    { 1: { w: 4, h: 3 }, 2: { w: 4, h: 3 }, 3: { w: 4, h: 3 }, 4: { w: 4, h: 3 }, 5: { w: 4, h: 3 } }
+  );
+  const [expandedDimScreen, setExpandedDimScreen] = useState<number | null>(null);
+
   // Live DB match for Preview auto-sync
   const [liveDbMatch, setLiveDbMatch] = useState<{ score_a: number; score_b: number; team_a_name: string; team_b_name: string; current_set: number } | null>(null);
 
@@ -522,10 +528,91 @@ function MasterConsoleContent() {
                        <span className="font-bold text-red-400">Program (5 Screens Output)</span>
                     </div>
                     <div className="flex-1 grid grid-cols-3 grid-rows-2 gap-2">
-                        {[1,2,3,4,5].map(screenNum => (
+                        {[1,2,3,4,5].map(screenNum => {
+                          const dim = screenDimensions[screenNum] || { w: 4, h: 3 };
+                          const ratio = `${dim.w} / ${dim.h}`;
+                          const isExpanded = expandedDimScreen === screenNum;
+                          return (
                             <div key={screenNum} className={`bg-black border relative overflow-hidden rounded flex items-center justify-center group ${targetScreens.includes(screenNum) ? 'border-red-500 shadow-[0_0_10px_rgba(220,38,38,0.2)]' : 'border-[#333]'}`}>
                                 <div className="absolute top-1 left-1 bg-red-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded shadow z-20">S{screenNum}</div>
                                 <div className="absolute bottom-1 right-1 bg-black/60 text-white/50 text-[7px] font-black px-1 py-0.5 rounded z-20 uppercase">{programScenes[screenNum].scene}</div>
+                                
+                                {/* LED Dimension Badge - always visible */}
+                                <button
+                                    onClick={() => setExpandedDimScreen(isExpanded ? null : screenNum)}
+                                    className="absolute top-1 right-1 z-30 flex items-center gap-1 bg-[#0056B3]/80 hover:bg-[#0056B3] border border-[#4da3ff]/40 rounded px-1.5 py-0.5 transition-all"
+                                    title="Set LED Screen Dimensions"
+                                >
+                                    <i className="fa-solid fa-tv text-[7px] text-[#4da3ff]" />
+                                    <span className="text-[7px] font-black text-[#4da3ff] font-mono">{dim.w}×{dim.h}M</span>
+                                </button>
+
+                                {/* LED Dimension Editor Panel */}
+                                {isExpanded && (
+                                    <div className="absolute inset-0 z-40 bg-black/95 flex flex-col items-center justify-center p-3 gap-3" onClick={e => e.stopPropagation()}>
+                                        <div className="text-[9px] font-black text-[#4da3ff] uppercase tracking-widest">S{screenNum} — LED Dimensions</div>
+                                        
+                                        {/* Mini LED Visualizer */}
+                                        <div className="w-full flex items-center justify-center" style={{ height: 48 }}>
+                                            <div style={{
+                                                aspectRatio: ratio,
+                                                maxWidth: '100%',
+                                                maxHeight: 44,
+                                                height: '100%',
+                                                background: 'linear-gradient(135deg, #000820, #001244)',
+                                                border: '1.5px solid #0056B3',
+                                                boxShadow: '0 0 12px rgba(0,86,179,0.5), inset 0 0 16px rgba(0,86,179,0.1)',
+                                                position: 'relative',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                flexShrink: 0,
+                                            }}>
+                                                <div style={{
+                                                    position: 'absolute', inset: 0,
+                                                    backgroundImage: 'linear-gradient(rgba(0,86,179,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(0,86,179,0.3) 1px, transparent 1px)',
+                                                    backgroundSize: '25% 25%',
+                                                }} />
+                                                <span style={{ position: 'relative', color: '#4da3ff', fontSize: 8, fontWeight: 900, fontFamily: 'monospace', letterSpacing: 1, textShadow: '0 0 6px rgba(77,163,255,0.8)' }}>
+                                                    {dim.w}M × {dim.h}M
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* W / H Inputs */}
+                                        <div className="grid grid-cols-2 gap-2 w-full">
+                                            <div>
+                                                <label className="block text-[8px] font-black text-[#4da3ff] uppercase tracking-widest mb-1">Width (M)</label>
+                                                <input
+                                                    type="number" min={0.5} step={0.5}
+                                                    value={dim.w}
+                                                    onChange={e => setScreenDimensions(prev => ({ ...prev, [screenNum]: { ...prev[screenNum], w: Math.max(0.5, parseFloat(e.target.value) || 1) } }))}
+                                                    className="w-full bg-black border border-[#0056B3]/50 rounded px-2 py-1.5 text-xs font-black text-white focus:outline-none focus:border-[#4da3ff] text-center font-mono"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-[8px] font-black text-[#4da3ff] uppercase tracking-widest mb-1">Height (M)</label>
+                                                <input
+                                                    type="number" min={0.5} step={0.5}
+                                                    value={dim.h}
+                                                    onChange={e => setScreenDimensions(prev => ({ ...prev, [screenNum]: { ...prev[screenNum], h: Math.max(0.5, parseFloat(e.target.value) || 1) } }))}
+                                                    className="w-full bg-black border border-[#0056B3]/50 rounded px-2 py-1.5 text-xs font-black text-white focus:outline-none focus:border-[#4da3ff] text-center font-mono"
+                                                />
+                                            </div>
+                                        </div>
+                                        
+                                        {/* Aspect ratio info */}
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[8px] text-zinc-500 uppercase tracking-widest font-bold">Ratio</span>
+                                            <span className="text-[9px] text-[#4da3ff] font-mono font-black">{dim.w} : {dim.h}</span>
+                                        </div>
+
+                                        <button onClick={() => setExpandedDimScreen(null)} className="text-[8px] font-black text-zinc-500 hover:text-white uppercase tracking-widest transition-colors">
+                                            Done ✓
+                                        </button>
+                                    </div>
+                                )}
+
                                 {renderSimulatedMonitor(programScenes[screenNum], true)}
                                 
                                 {/* Quick Actions Overlay */}
@@ -540,7 +627,8 @@ function MasterConsoleContent() {
                                     </button>
                                 </div>
                             </div>
-                        ))}
+                          );
+                        })}
                     </div>
                 </div>
             </div>
