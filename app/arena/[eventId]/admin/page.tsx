@@ -615,7 +615,8 @@ function MasterConsoleContent() {
 
                                 {renderSimulatedMonitor(programScenes[screenNum], true)}
                                 
-                                {/* Quick Actions Overlay */}
+                                {/* Quick Actions Overlay — hidden when dimension editor is open */}
+                                {!isExpanded && (
                                 <div className="absolute inset-0 bg-black/80 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-30">
                                     {programScenes[screenNum].scene === 'YOUTUBE' && (
                                         <button onClick={() => handleScreenAction(screenNum, programScenes[screenNum].isPlaying ? 'pause' : 'play')} className="w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center shadow-lg transition-transform hover:scale-110">
@@ -626,6 +627,7 @@ function MasterConsoleContent() {
                                         <i className="fa-solid fa-power-off" />
                                     </button>
                                 </div>
+                                )}
                             </div>
                           );
                         })}
