@@ -38,12 +38,13 @@ export type BracketData = {
 };
 
 const SCENES_LIST = [
-  { id: 'SCORE',      icon: 'fa-chart-line',       label: 'Score' },
-  { id: 'BRACKET',   icon: 'fa-sitemap',           label: 'Bracket' },
-  { id: 'ADS',       icon: 'fa-image',             label: 'Ads & Media' },
-  { id: 'YOUTUBE',   icon: 'fa-youtube',           label: 'YouTube' },
-  { id: 'DISPATCH',  icon: 'fa-list-check',        label: 'Dispatch' },
-  { id: 'JUDGE_ROOM',icon: 'fa-gavel',             label: 'Judge Room' },
+  { id: 'SCORE',         icon: 'fa-chart-line',       label: 'Score' },
+  { id: 'BRACKET',      icon: 'fa-sitemap',           label: 'Bracket' },
+  { id: 'ADS',          icon: 'fa-image',             label: 'Ads & Media' },
+  { id: 'YOUTUBE',      icon: 'fa-youtube',           label: 'YouTube' },
+  { id: 'DISPATCH',     icon: 'fa-list-check',        label: 'Dispatch' },
+  { id: 'JUDGE_ROOM',   icon: 'fa-gavel',             label: 'Judge Room' },
+  { id: 'ARENA_VISUALS',icon: 'fa-person-rays',       label: 'Arena Visuals ⚡' },
 ];
 
 const ADS_LIBRARY = [
@@ -99,7 +100,11 @@ function MasterConsoleContent() {
   
   const [previewScene, setPreviewScene] = useState<string>('SCORE');
   
-  // 5-Screen Target State
+  type ScreenConfig = { id: number; w: number; h: number; label?: string };
+  const [screensConfig, setScreensConfig] = useState<ScreenConfig[]>([
+    { id: 1, w: 4, h: 3 }, { id: 2, w: 4, h: 3 }, { id: 3, w: 4, h: 3 }, { id: 4, w: 4, h: 3 }, { id: 5, w: 4, h: 3 }
+  ]);
+  
   const [targetScreens, setTargetScreens] = useState<number[]>([1,2,3,4,5]);
   type ProgramScreenState = { scene: string; url?: string; isPlaying?: boolean };
   const [programScenes, setProgramScenes] = useState<Record<number, ProgramScreenState>>({
@@ -129,11 +134,68 @@ function MasterConsoleContent() {
   const channelRef = useRef<any>(null);
   const [isFading, setIsFading] = useState(false);
   
-  // Per-screen LED dimensions (W × H in metres)
-  const [screenDimensions, setScreenDimensions] = useState<Record<number, { w: number; h: number }>>(
-    { 1: { w: 4, h: 3 }, 2: { w: 4, h: 3 }, 3: { w: 4, h: 3 }, 4: { w: 4, h: 3 }, 5: { w: 4, h: 3 } }
-  );
+  // Helper to persist screen config
+  const saveScreenConfig = async (newConfig: ScreenConfig[]) => {
+      setScreensConfig(newConfig);
+      await supabase.from('arena_tournaments').update({ screen_config: newConfig }).eq('event_id_slug', eventId);
+  };
+
+  const handleAddScreen = () => {
+      const newId = screensConfig.length > 0 ? Math.max(...screensConfig.map(s => s.id)) + 1 : 1;
+      const newConfig = [...screensConfig, { id: newId, w: 4, h: 3 }];
+      setProgramScenes(prev => ({...prev, [newId]: { scene: 'STANDBY' }}));
+      saveScreenConfig(newConfig);
+  };
+
+  const handleRemoveScreen = (id: number) => {
+      const newConfig = screensConfig.filter(s => s.id !== id);
+      saveScreenConfig(newConfig);
+      setTargetScreens(prev => prev.filter(x => x !== id));
+  };
+
+  const updateScreenDim = (id: number, w: number, h: number) => {
+      const newConfig = screensConfig.map(s => s.id === id ? { ...s, w, h } : s);
+      saveScreenConfig(newConfig);
+  };
+
   const [expandedDimScreen, setExpandedDimScreen] = useState<number | null>(null);
+
+  // ── Showdown / Arena Visuals state ──────────────────────────────────────
+  type ShowdownPreset = { id: string; name: string; leftPlayer: string; rightPlayer: string; bgVideo: string };
+  const [showdownLibraryTab, setShowdownLibraryTab] = useState<'MEDIA'|'PLAYERS'|'PRESETS'>('PRESETS');
+  const [arenaMediaLib, setArenaMediaLib] = useState<{id:string; title:string; url:string}[]>([
+    { id: 'clip1', title: 'Arena Loop 1', url: '/assets/video/hero-corporate.mp4/clip_1_202604251238.mp4' },
+    { id: 'clip2', title: 'Arena Loop 2', url: '/assets/video/hero-corporate.mp4/clip_2_202604251238.mp4' },
+  ]);
+  const [arenaPlayerLib, setArenaPlayerLib] = useState<{id:string; name:string; url:string}[]>([]);
+  const [showdownPresets, setShowdownPresets] = useState<ShowdownPreset[]>([]);
+  const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
+  const [showdownDraft, setShowdownDraft] = useState({ name:'', leftPlayer:'', rightPlayer:'', bgVideo:'' });
+  const [showdownFiring, setShowdownFiring] = useState<'LEFT'|'RIGHT'|'VS'|null>(null);
+  const [showdownDbTournamentId, setShowdownDbTournamentId] = useState<string | null>(null);
+
+  // Load real tournament ID for showdown DB writes
+  useEffect(() => {
+    supabase.from('arena_tournaments').select('id').eq('event_id_slug', eventId).single()
+      .then(({ data }) => { if (data) setShowdownDbTournamentId(data.id); });
+  }, [eventId]);
+
+  const fireShowdownCommand = async (command: 'ACTIVATE_LEFT'|'ACTIVATE_RIGHT'|'FIRE_VS'|'RESET') => {
+    const preset = showdownPresets.find(p => p.id === selectedPresetId);
+    if (!preset && command !== 'RESET') return;
+    setShowdownFiring(command === 'ACTIVATE_LEFT' ? 'LEFT' : command === 'ACTIVATE_RIGHT' ? 'RIGHT' : 'VS');
+    const tid = showdownDbTournamentId || eventId;
+    await supabase.from('arena_live_controls').upsert({
+      tournament_id: tid,
+      command,
+      player_left_url: preset?.leftPlayer || null,
+      player_right_url: preset?.rightPlayer || null,
+      background_video_url: preset?.bgVideo || null,
+      preset_name: preset?.name || null,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'tournament_id' });
+    setTimeout(() => setShowdownFiring(null), 900);
+  };
 
   // Live DB match for Preview auto-sync
   const [liveDbMatch, setLiveDbMatch] = useState<{ score_a: number; score_b: number; team_a_name: string; team_b_name: string; current_set: number } | null>(null);
@@ -141,8 +203,15 @@ function MasterConsoleContent() {
   useEffect(() => {
     async function loadRealData() {
         if (!eventId) return;
-        const { data: t } = await supabase.from('arena_tournaments').select('id, bracket_json').eq('event_id_slug', eventId).single();
+        const { data: t } = await supabase.from('arena_tournaments').select('id, bracket_json, screen_config').eq('event_id_slug', eventId).single();
         if (t) {
+            if (t.screen_config && Array.isArray(t.screen_config) && t.screen_config.length > 0) {
+                setScreensConfig(t.screen_config);
+                setTargetScreens(t.screen_config.map((s: any) => s.id));
+                const initProg: Record<number, ProgramScreenState> = {};
+                t.screen_config.forEach((s: any) => initProg[s.id] = { scene: 'SCORE' });
+                setProgramScenes(initProg);
+            }
             if (t.bracket_json && t.bracket_json.events) {
                 const firstEvt = Object.keys(t.bracket_json.events)[0];
                 if (firstEvt) setBracketState(t.bracket_json.events[firstEvt]);
@@ -323,6 +392,30 @@ function MasterConsoleContent() {
                 </div>
             );
        }
+       if (scene === 'ARENA_VISUALS') {
+            const preset = showdownPresets.find(p => p.id === selectedPresetId);
+            return (
+                <div className="w-full h-full relative overflow-hidden bg-black flex items-center justify-center">
+                    {preset?.bgVideo && (
+                        <video src={preset.bgVideo} className="absolute inset-0 w-full h-full object-cover opacity-50" autoPlay loop muted playsInline />
+                    )}
+                    <div className="absolute inset-0 flex">
+                        <div className={`flex-1 transition-transform duration-500 ${showdownFiring === 'LEFT' ? 'scale-110' : 'scale-100'} flex items-end justify-center`}>
+                           {preset?.leftPlayer && <img src={preset.leftPlayer} className="max-h-full object-contain" />}
+                        </div>
+                        <div className={`flex-1 transition-transform duration-500 ${showdownFiring === 'RIGHT' ? 'scale-110' : 'scale-100'} flex items-end justify-center`}>
+                           {preset?.rightPlayer && <img src={preset.rightPlayer} className="max-h-full object-contain" />}
+                        </div>
+                    </div>
+                    {showdownFiring === 'VS' && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <h1 className="text-6xl font-black italic text-amber-500 drop-shadow-[0_0_20px_rgba(245,158,11,0.8)]">VS</h1>
+                        </div>
+                    )}
+                    {!preset && <div className="text-zinc-600 text-[10px] z-10">Select a Showdown Preset</div>}
+                </div>
+            );
+       }
        return (
             <div className="flex flex-col items-center justify-center w-full h-full opacity-50">
                 <i className="fa-solid fa-ban mb-1 text-lg"></i>
@@ -454,6 +547,124 @@ function MasterConsoleContent() {
               </div>
           );
       }
+      if (previewScene === 'ARENA_VISUALS') {
+          return (
+              <div className="space-y-4">
+                  {/* Tabs */}
+                  <div className="flex bg-[#111] p-1 rounded border border-[#333]">
+                      {(['PRESETS', 'PLAYERS', 'MEDIA'] as const).map(tab => (
+                          <button key={tab} onClick={() => setShowdownLibraryTab(tab)} className={`flex-1 text-[10px] font-black uppercase tracking-widest py-1.5 rounded transition-all ${showdownLibraryTab === tab ? 'bg-[#0056B3] text-white shadow-[0_0_10px_rgba(0,86,179,0.5)]' : 'text-zinc-500 hover:text-zinc-300'}`}>
+                              {tab}
+                          </button>
+                      ))}
+                  </div>
+
+                  {showdownLibraryTab === 'PRESETS' && (
+                      <div className="space-y-3">
+                          <div className="bg-[#111] border border-[#333] p-2 rounded flex flex-col gap-2">
+                              <input type="text" placeholder="Preset Name (e.g. Semi-Final A)" className="bg-black border border-[#333] rounded px-2 py-1 text-xs text-white" value={showdownDraft.name} onChange={e => setShowdownDraft({...showdownDraft, name: e.target.value})} />
+                              <div className="grid grid-cols-2 gap-2">
+                                  <select className="bg-black border border-[#333] rounded px-1 py-1 text-[10px] text-white" value={showdownDraft.leftPlayer} onChange={e => setShowdownDraft({...showdownDraft, leftPlayer: e.target.value})}>
+                                      <option value="">-- Left Player --</option>
+                                      {arenaPlayerLib.map(p => <option key={p.id} value={p.url}>{p.name}</option>)}
+                                  </select>
+                                  <select className="bg-black border border-[#333] rounded px-1 py-1 text-[10px] text-white" value={showdownDraft.rightPlayer} onChange={e => setShowdownDraft({...showdownDraft, rightPlayer: e.target.value})}>
+                                      <option value="">-- Right Player --</option>
+                                      {arenaPlayerLib.map(p => <option key={p.id} value={p.url}>{p.name}</option>)}
+                                  </select>
+                              </div>
+                              <select className="bg-black border border-[#333] rounded px-1 py-1 text-[10px] text-white" value={showdownDraft.bgVideo} onChange={e => setShowdownDraft({...showdownDraft, bgVideo: e.target.value})}>
+                                  <option value="">-- BG Loop --</option>
+                                  {arenaMediaLib.map(m => <option key={m.id} value={m.url}>{m.title}</option>)}
+                              </select>
+                              <button onClick={() => {
+                                  if (!showdownDraft.name) return;
+                                  setShowdownPresets([...showdownPresets, { id: crypto.randomUUID(), ...showdownDraft }]);
+                                  setShowdownDraft({ name:'', leftPlayer:'', rightPlayer:'', bgVideo:'' });
+                              }} className="bg-[#0056B3] hover:bg-blue-600 text-white font-bold text-[10px] py-1.5 rounded uppercase tracking-widest mt-1">
+                                  Save Preset
+                              </button>
+                          </div>
+                          <div className="space-y-2 max-h-40 overflow-y-auto">
+                              {showdownPresets.map(p => (
+                                  <div key={p.id} onClick={() => setSelectedPresetId(p.id)} className={`p-2 rounded border cursor-pointer transition-colors ${selectedPresetId === p.id ? 'bg-[#0056B3]/20 border-[#0056B3] shadow-[0_0_10px_rgba(0,86,179,0.2)]' : 'bg-[#111] border-[#333] hover:border-[#555]'}`}>
+                                      <div className={`text-xs font-black uppercase tracking-widest ${selectedPresetId === p.id ? 'text-white' : 'text-zinc-400'}`}>{p.name}</div>
+                                      <div className="text-[9px] text-zinc-500 mt-1 flex justify-between">
+                                          <span>L: {arenaPlayerLib.find(x => x.url === p.leftPlayer)?.name || 'None'}</span>
+                                          <span>R: {arenaPlayerLib.find(x => x.url === p.rightPlayer)?.name || 'None'}</span>
+                                      </div>
+                                  </div>
+                              ))}
+                              {showdownPresets.length === 0 && <div className="text-zinc-600 text-[10px] text-center italic py-4">No presets saved</div>}
+                          </div>
+
+                          {/* Action Controller */}
+                          {selectedPresetId && (
+                              <div className="mt-4 border-t border-[#333] pt-4 grid grid-cols-2 gap-2">
+                                  <button onClick={() => fireShowdownCommand('ACTIVATE_LEFT')} className="bg-[#0056B3] hover:bg-blue-500 text-white font-black text-[10px] py-3 rounded-lg shadow-[0_0_15px_rgba(0,86,179,0.4)] transition-all active:scale-95 uppercase tracking-widest flex flex-col items-center">
+                                      <i className="fa-solid fa-bolt mb-1 text-[14px]" /> L-Player
+                                  </button>
+                                  <button onClick={() => fireShowdownCommand('ACTIVATE_RIGHT')} className="bg-[#0056B3] hover:bg-blue-500 text-white font-black text-[10px] py-3 rounded-lg shadow-[0_0_15px_rgba(0,86,179,0.4)] transition-all active:scale-95 uppercase tracking-widest flex flex-col items-center">
+                                      <i className="fa-solid fa-bolt mb-1 text-[14px]" /> R-Player
+                                  </button>
+                                  <button onClick={() => fireShowdownCommand('FIRE_VS')} className="col-span-2 bg-amber-600 hover:bg-amber-500 text-white font-black text-xs py-3 rounded-lg shadow-[0_0_20px_rgba(217,119,6,0.5)] transition-all active:scale-95 uppercase tracking-[0.2em] flex flex-col items-center">
+                                      <i className="fa-solid fa-fire mb-1 text-[16px]" /> Fire VS Logo
+                                  </button>
+                                  <button onClick={() => fireShowdownCommand('RESET')} className="col-span-2 bg-red-900/50 hover:bg-red-800 text-red-400 font-bold text-[9px] py-2 rounded-lg transition-all active:scale-95 uppercase tracking-widest mt-2">
+                                      Clear Scene
+                                  </button>
+                              </div>
+                          )}
+                      </div>
+                  )}
+
+                  {showdownLibraryTab === 'PLAYERS' && (
+                      <div className="space-y-3">
+                          <button onClick={() => {
+                              const name = prompt("Player Name:");
+                              if (!name) return;
+                              const url = prompt("Image URL (transparent PNG):");
+                              if (url) setArenaPlayerLib([...arenaPlayerLib, { id: crypto.randomUUID(), name, url }]);
+                          }} className="w-full bg-[#222] hover:bg-[#333] border border-[#444] text-white text-[10px] py-2 rounded font-bold uppercase tracking-widest flex items-center justify-center gap-2">
+                              <i className="fa-solid fa-upload" /> Add Player PNG
+                          </button>
+                          <div className="grid grid-cols-2 gap-2">
+                              {arenaPlayerLib.map(p => (
+                                  <div key={p.id} className="relative aspect-square bg-[#111] border border-[#333] rounded-[12px] overflow-hidden group">
+                                      <img src={p.url} className="w-full h-full object-contain object-bottom p-2" />
+                                      <div className="absolute inset-x-0 bottom-0 bg-black/80 text-white text-[9px] font-black uppercase text-center py-1 truncate px-1">{p.name}</div>
+                                      <button onClick={() => setArenaPlayerLib(arenaPlayerLib.filter(x => x.id !== p.id))} className="absolute top-1 right-1 w-5 h-5 bg-red-600 rounded-full text-white text-[10px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                          <i className="fa-solid fa-xmark" />
+                                      </button>
+                                  </div>
+                              ))}
+                          </div>
+                      </div>
+                  )}
+
+                  {showdownLibraryTab === 'MEDIA' && (
+                      <div className="space-y-3">
+                          <button onClick={() => {
+                              const title = prompt("Video Title:");
+                              if (!title) return;
+                              const url = prompt("Video URL (.mp4 loop):");
+                              if (url) setArenaMediaLib([...arenaMediaLib, { id: crypto.randomUUID(), title, url }]);
+                          }} className="w-full bg-[#222] hover:bg-[#333] border border-[#444] text-white text-[10px] py-2 rounded font-bold uppercase tracking-widest flex items-center justify-center gap-2">
+                              <i className="fa-solid fa-plus" /> Add Video Loop
+                          </button>
+                          <div className="space-y-2">
+                              {arenaMediaLib.map(m => (
+                                  <div key={m.id} className="bg-[#111] border border-[#333] p-2 rounded flex justify-between items-center group">
+                                      <div className="truncate text-xs text-zinc-300 font-bold max-w-[200px]">{m.title}</div>
+                                      <button onClick={() => setArenaMediaLib(arenaMediaLib.filter(x => x.id !== m.id))} className="text-red-500 opacity-0 group-hover:opacity-100"><i className="fa-solid fa-trash" /></button>
+                                  </div>
+                              ))}
+                          </div>
+                      </div>
+                  )}
+              </div>
+          );
+      }
       return <div className="text-zinc-600 text-xs italic">Select a broadcast source above to edit properties.</div>;
   };
 
@@ -495,17 +706,17 @@ function MasterConsoleContent() {
                 <div className="w-32 flex flex-col items-center justify-center p-2 bg-[#1a1a1a] border-r border-black shrink-0">
                     <div className="text-[10px] text-[#aaa] font-bold uppercase tracking-widest mb-2">Targets</div>
                     <div className="flex flex-wrap gap-1 mb-4 justify-center">
-                        {[1,2,3,4,5].map(s => (
-                            <label key={s} className={`cursor-pointer text-[10px] font-black px-2 py-1 rounded border transition-colors ${targetScreens.includes(s) ? 'bg-red-600 text-white border-red-500 shadow-[0_0_10px_rgba(220,38,38,0.3)]' : 'bg-[#222] text-[#555] border-[#333] hover:border-[#555]'}`}>
-                                <input type="checkbox" className="hidden" checked={targetScreens.includes(s)} onChange={(e) => {
-                                    if (e.target.checked) setTargetScreens([...targetScreens, s]);
-                                    else setTargetScreens(targetScreens.filter(x => x !== s));
+                        {screensConfig.map(sc => (
+                            <label key={sc.id} className={`cursor-pointer text-[10px] font-black px-2 py-1 rounded border transition-colors ${targetScreens.includes(sc.id) ? 'bg-red-600 text-white border-red-500 shadow-[0_0_10px_rgba(220,38,38,0.3)]' : 'bg-[#222] text-[#555] border-[#333] hover:border-[#555]'}`}>
+                                <input type="checkbox" className="hidden" checked={targetScreens.includes(sc.id)} onChange={(e) => {
+                                    if (e.target.checked) setTargetScreens([...targetScreens, sc.id]);
+                                    else setTargetScreens(targetScreens.filter(x => x !== sc.id));
                                 }}/>
-                                S{s}
+                                S{sc.id}
                             </label>
                         ))}
-                        <button onClick={() => setTargetScreens(targetScreens.length === 5 ? [] : [1,2,3,4,5])} className="w-full mt-1 text-[9px] py-1 rounded bg-[#333] hover:bg-[#444] text-white border border-[#444]">
-                            {targetScreens.length === 5 ? 'DESELECT ALL' : 'SELECT ALL'}
+                        <button onClick={() => setTargetScreens(targetScreens.length === screensConfig.length ? [] : screensConfig.map(s => s.id))} className="w-full mt-1 text-[9px] py-1 rounded bg-[#333] hover:bg-[#444] text-white border border-[#444]">
+                            {targetScreens.length === screensConfig.length ? 'DESELECT ALL' : 'SELECT ALL'}
                         </button>
                     </div>
 
@@ -522,21 +733,25 @@ function MasterConsoleContent() {
                     </button>
                 </div>
 
-                {/* PROGRAM (5 SCREENS) */}
+                {/* PROGRAM (DYNAMIC SCREENS) */}
                 <div className="flex-[1.5] flex flex-col p-2 relative min-w-0 bg-[#0a0a0a]">
                     <div className="flex justify-between items-center bg-[#2b2b2b] px-2 py-1 mb-2 shadow-sm border border-[#333] rounded-sm">
-                       <span className="font-bold text-red-400">Program (5 Screens Output)</span>
+                       <span className="font-bold text-red-400">Program ({screensConfig.length} Outputs)</span>
+                       <button onClick={handleAddScreen} className="bg-[#444] hover:bg-[#555] text-white px-2 py-0.5 rounded text-[9px] font-bold shadow-sm">
+                           <i className="fa-solid fa-plus" /> Matrix
+                       </button>
                     </div>
-                    <div className="flex-1 grid grid-cols-3 grid-rows-2 gap-2">
-                        {[1,2,3,4,5].map(screenNum => {
-                          const dim = screenDimensions[screenNum] || { w: 4, h: 3 };
-                          const ratio = `${dim.w} / ${dim.h}`;
+                    <div className="flex-1 grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gridAutoRows: '1fr' }}>
+                        {screensConfig.map(sc => {
+                          const screenNum = sc.id;
+                          const ratio = `${sc.w} / ${sc.h}`;
                           const isExpanded = expandedDimScreen === screenNum;
+                          const prog = programScenes[screenNum] || { scene: 'STANDBY' };
                           return (
                             <div key={screenNum} className={`bg-black border relative rounded flex items-center justify-center group ${targetScreens.includes(screenNum) ? 'border-red-500 shadow-[0_0_10px_rgba(220,38,38,0.2)]' : 'border-[#333]'}`} style={{ overflow: 'hidden', isolation: 'isolate' }}>
                                 
-                                {/* Monitor content — rendered first so it's below all overlays */}
-                                {renderSimulatedMonitor(programScenes[screenNum], true)}
+                                {/* Monitor content */}
+                                {renderSimulatedMonitor(prog, true)}
 
                                 {/* S-label */}
                                 <div className="absolute top-1 left-1 bg-red-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded shadow" style={{ zIndex: 20 }}>S{screenNum}</div>
@@ -564,7 +779,7 @@ function MasterConsoleContent() {
                                     style={{ position: 'absolute', top: 4, right: 4, zIndex: 50, display: 'flex', alignItems: 'center', gap: 3, background: 'rgba(0,86,179,0.85)', border: '1px solid rgba(77,163,255,0.5)', borderRadius: 4, padding: '2px 6px', cursor: 'pointer' }}
                                 >
                                     <i className="fa-solid fa-tv" style={{ fontSize: 7, color: '#4da3ff' }} />
-                                    <span style={{ fontSize: 7, fontWeight: 900, color: '#4da3ff', fontFamily: 'monospace' }}>{dim.w}×{dim.h}M</span>
+                                    <span style={{ fontSize: 7, fontWeight: 900, color: '#4da3ff', fontFamily: 'monospace' }}>{sc.w}×{sc.h}M</span>
                                 </button>
 
                                 {/* LED Dimension Editor Panel */}
@@ -583,7 +798,7 @@ function MasterConsoleContent() {
                                             }}>
                                                 <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(0,86,179,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(0,86,179,0.3) 1px, transparent 1px)', backgroundSize: '25% 25%' }} />
                                                 <span style={{ position: 'relative', color: '#4da3ff', fontSize: 8, fontWeight: 900, fontFamily: 'monospace', textShadow: '0 0 6px rgba(77,163,255,0.8)' }}>
-                                                    {dim.w}×{dim.h}M
+                                                    {sc.w}×{sc.h}M
                                                 </span>
                                             </div>
                                         </div>
@@ -594,9 +809,9 @@ function MasterConsoleContent() {
                                                 <div style={{ fontSize: 8, fontWeight: 900, color: '#4da3ff', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>W (M)</div>
                                                 <input
                                                     type="number" min={0.5} step={0.5}
-                                                    value={dim.w}
+                                                    value={sc.w}
                                                     onClick={e => e.stopPropagation()}
-                                                    onChange={e => setScreenDimensions(prev => ({ ...prev, [screenNum]: { ...prev[screenNum], w: Math.max(0.5, parseFloat(e.target.value) || 1) } }))}
+                                                    onChange={e => updateScreenDim(screenNum, Math.max(0.5, parseFloat(e.target.value) || 1), sc.h)}
                                                     style={{ width: '100%', background: '#000', border: '1px solid rgba(0,86,179,0.6)', borderRadius: 4, padding: '6px 4px', fontSize: 12, fontWeight: 900, color: '#fff', textAlign: 'center', fontFamily: 'monospace', outline: 'none', boxSizing: 'border-box' }}
                                                 />
                                             </div>
@@ -604,22 +819,31 @@ function MasterConsoleContent() {
                                                 <div style={{ fontSize: 8, fontWeight: 900, color: '#4da3ff', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>H (M)</div>
                                                 <input
                                                     type="number" min={0.5} step={0.5}
-                                                    value={dim.h}
+                                                    value={sc.h}
                                                     onClick={e => e.stopPropagation()}
-                                                    onChange={e => setScreenDimensions(prev => ({ ...prev, [screenNum]: { ...prev[screenNum], h: Math.max(0.5, parseFloat(e.target.value) || 1) } }))}
+                                                    onChange={e => updateScreenDim(screenNum, sc.w, Math.max(0.5, parseFloat(e.target.value) || 1))}
                                                     style={{ width: '100%', background: '#000', border: '1px solid rgba(0,86,179,0.6)', borderRadius: 4, padding: '6px 4px', fontSize: 12, fontWeight: 900, color: '#fff', textAlign: 'center', fontFamily: 'monospace', outline: 'none', boxSizing: 'border-box' }}
                                                 />
                                             </div>
                                         </div>
                                         
-                                        <div style={{ fontSize: 9, color: '#4da3ff', fontFamily: 'monospace', fontWeight: 900 }}>{dim.w} : {dim.h}</div>
+                                        <div style={{ fontSize: 9, color: '#4da3ff', fontFamily: 'monospace', fontWeight: 900 }}>{sc.w} : {sc.h}</div>
 
-                                        <button
-                                            onClick={() => setExpandedDimScreen(null)}
-                                            style={{ fontSize: 9, fontWeight: 900, color: '#666', textTransform: 'uppercase', letterSpacing: 2, background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px' }}
-                                        >
-                                            Done ✓
-                                        </button>
+                                        <div className="flex gap-2 w-full mt-1">
+                                            <button
+                                                onClick={() => setExpandedDimScreen(null)}
+                                                className="flex-1 bg-blue-600 hover:bg-blue-500 text-white rounded font-black text-[9px] py-1.5 transition-colors uppercase tracking-widest"
+                                            >
+                                                Done ✓
+                                            </button>
+                                            <button
+                                                onClick={() => handleRemoveScreen(screenNum)}
+                                                className="w-8 bg-red-900/50 hover:bg-red-800 text-red-400 rounded font-black flex items-center justify-center transition-colors"
+                                                title="Remove Screen"
+                                            >
+                                                <i className="fa-solid fa-trash text-[9px]" />
+                                            </button>
+                                        </div>
                                     </div>
                                 )}
                             </div>
