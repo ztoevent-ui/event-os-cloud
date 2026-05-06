@@ -166,6 +166,7 @@ function MasterConsoleContent() {
   const [arenaMediaLib, setArenaMediaLib] = useState<{id:string; title:string; url:string}[]>([
     { id: 'clip1', title: 'Arena Loop 1', url: '/assets/video/hero-corporate.mp4/clip_1_202604251238.mp4' },
     { id: 'clip2', title: 'Arena Loop 2', url: '/assets/video/hero-corporate.mp4/clip_2_202604251238.mp4' },
+    { id: 'showdown_loop', title: 'Showdown Default Loop', url: '/assets/video/showdown-loop.mp4' },
   ]);
   const [arenaPlayerLib, setArenaPlayerLib] = useState<{id:string; name:string; url:string}[]>([]);
   const [showdownPresets, setShowdownPresets] = useState<ShowdownPreset[]>([]);
