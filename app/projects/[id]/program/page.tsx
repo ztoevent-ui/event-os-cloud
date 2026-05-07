@@ -18,6 +18,8 @@ interface ProgramRow {
   cues: string;
   song: string;
   volume: string;
+  pic: string;
+  course: string;
   is_important?: boolean;
   sort_order: number;
   custom_data: Record<string, string>;
@@ -97,7 +99,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
   const addRow = () => {
     const newRow: ProgramRow = {
       id: `temp_${Date.now()}`, project_id: projectId,
-      time: '', activities: '', movement: '', cues: '', song: '', volume: '',
+      time: '', activities: '', movement: '', cues: '', song: '', volume: '', pic: '', course: '',
       is_important: false, sort_order: rows.length, custom_data: {},
     };
     setRows([...rows, newRow]);
@@ -186,6 +188,10 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 20, fontWeight: 700, color: row.is_important ? '#ef4444' : '#fff', marginBottom: 6 }}>
                 {row.activities}
+              </div>
+              <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '4px' }}>
+                {row.pic && <div style={{ fontSize: 13, color: '#4da3ff', fontWeight: 600 }}><i className="fa-solid fa-user-tie" style={{ marginRight: 6 }} />{row.pic}</div>}
+                {row.course && <div style={{ fontSize: 13, color: '#f59e0b', fontWeight: 600 }}><i className="fa-solid fa-utensils" style={{ marginRight: 6 }} />{row.course}</div>}
               </div>
               {row.movement && <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginBottom: 3 }}>{row.movement}</div>}
               {row.cues && <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>{row.cues}</div>}
@@ -286,10 +292,10 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
           <table className="w-full text-left text-[11px] border-collapse">
             <thead>
               <tr className="border-b-2 border-black">
-                <th className="py-2 px-2 font-bold w-[15%]">Time</th>
-                <th className="py-2 px-2 font-bold w-[35%]">Activity</th>
-                <th className="py-2 px-2 font-bold w-[25%]">Notes / Cues</th>
-                <th className="py-2 px-2 font-bold w-[25%]">BGM / Technical</th>
+                <th className="py-2 px-2 font-bold w-[12%]">Time</th>
+                <th className="py-2 px-2 font-bold w-[33%]">Activity / Course</th>
+                <th className="py-2 px-2 font-bold w-[35%]">PIC / Cues / Mov</th>
+                <th className="py-2 px-2 font-bold w-[20%]">Technical</th>
               </tr>
             </thead>
             <tbody>
@@ -298,9 +304,13 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
                   <td className="py-2 px-2 font-bold align-top">{row.time}</td>
                   <td className="py-2 px-2 align-top">
                     <div className="font-bold text-black text-[12px]">{row.activities}</div>
-                    {row.movement && <div className="text-[10px] text-black/70 mt-1 italic">Mov: {row.movement}</div>}
+                    {row.course && <div className="text-[10.5px] text-[#b45309] font-bold mt-1">Course: {row.course}</div>}
                   </td>
-                  <td className="py-2 px-2 align-top text-black/80">{row.cues}</td>
+                  <td className="py-2 px-2 align-top text-black/80">
+                    {row.pic && <div className="text-[10.5px] font-bold text-[#0056B3] mb-1">PIC: {row.pic}</div>}
+                    <div>{row.cues}</div>
+                    {row.movement && <div className="text-[10px] text-black/60 mt-1 italic">Mov: {row.movement}</div>}
+                  </td>
                   <td className="py-2 px-2 align-top">
                     {row.song && <div className="font-bold text-[#0056B3]">{row.song}</div>}
                     {row.volume && <div className="text-[10px] text-black/70 mt-0.5">Vol: {row.volume}</div>}
@@ -423,15 +433,27 @@ function SortableRow({ row, editMode, updateCell, removeRow, toggleImportant, is
             </div>
           )}
 
-          {/* Movement / Cues row */}
+          {/* Extra / Movement / Cues row */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginTop: 4 }}>
             {editMode ? (
               <>
+                <input value={row.pic} onChange={e => updateCell(row.id, 'pic', e.target.value, false)} placeholder="PIC" style={{ ...inputStyle, fontSize: 12, color: '#4da3ff', width: 100 }} />
+                <input value={row.course} onChange={e => updateCell(row.id, 'course', e.target.value, false)} placeholder="Course Seq" style={{ ...inputStyle, fontSize: 12, color: '#f59e0b', width: 100 }} />
                 <input value={row.movement} onChange={e => updateCell(row.id, 'movement', e.target.value, false)} placeholder="Movement" style={{ ...inputStyle, fontSize: 12, color: 'rgba(255,255,255,0.5)', width: 140 }} />
                 <input value={row.cues} onChange={e => updateCell(row.id, 'cues', e.target.value, false)} placeholder="Staff cue / note" style={{ ...inputStyle, fontSize: 12, color: 'rgba(255,255,255,0.5)', flex: 1, minWidth: 120 }} />
               </>
             ) : (
               <>
+                {row.pic && (
+                  <span style={{ fontSize: 12, color: '#4da3ff', display: 'flex', alignItems: 'center', gap: 5, fontWeight: 600 }}>
+                    <i className="fa-solid fa-user-tie" style={{ fontSize: 10 }} /> {row.pic}
+                  </span>
+                )}
+                {row.course && (
+                  <span style={{ fontSize: 12, color: '#f59e0b', display: 'flex', alignItems: 'center', gap: 5, fontWeight: 600 }}>
+                    <i className="fa-solid fa-utensils" style={{ fontSize: 10 }} /> {row.course}
+                  </span>
+                )}
                 {row.movement && (
                   <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', display: 'flex', alignItems: 'center', gap: 5 }}>
                     <i className="fa-solid fa-person-walking" style={{ fontSize: 10 }} /> {row.movement}
