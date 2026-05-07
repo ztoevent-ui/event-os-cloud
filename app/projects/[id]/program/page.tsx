@@ -289,31 +289,35 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
       {/* ── Compact Table (Print Only) ── */}
       {layoutType === 'table' && (
         <div className="hidden print:block mt-6">
-          <table className="w-full text-left text-[11px] border-collapse">
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11.5px', fontFamily: 'Arial, sans-serif' }}>
             <thead>
-              <tr className="border-b-2 border-black">
-                <th className="py-2 px-2 font-bold w-[12%]">Time</th>
-                <th className="py-2 px-2 font-bold w-[33%]">Activity / Course</th>
-                <th className="py-2 px-2 font-bold w-[35%]">PIC / Cues / Mov</th>
-                <th className="py-2 px-2 font-bold w-[20%]">Technical</th>
+              <tr style={{ borderBottom: '2px solid #000' }}>
+                <th style={{ padding: '6px 10px', textAlign: 'left', fontWeight: 800, width: '14%', whiteSpace: 'nowrap' }}>Time</th>
+                <th style={{ padding: '6px 10px', textAlign: 'left', fontWeight: 800, width: '30%' }}>Activity / Course</th>
+                <th style={{ padding: '6px 10px', textAlign: 'left', fontWeight: 800, width: '32%' }}>PIC / Cues / Notes</th>
+                <th style={{ padding: '6px 10px', textAlign: 'left', fontWeight: 800, width: '24%' }}>BGM / Technical</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((row) => (
-                <tr key={row.id} className={`border-b border-black/20 ${pageBreakIds.includes(row.id) ? 'print:break-before-page' : ''} ${row.is_important ? 'bg-red-50' : ''}`}>
-                  <td className="py-2 px-2 font-bold align-top">{row.time}</td>
-                  <td className="py-2 px-2 align-top">
-                    <div className="font-bold text-black text-[12px]">{row.activities}</div>
-                    {row.course && <div className="text-[10.5px] text-[#b45309] font-bold mt-1">Course: {row.course}</div>}
+                <tr key={row.id} style={{
+                  borderBottom: '1px solid #ccc',
+                  backgroundColor: row.is_important ? '#fff5f5' : 'transparent',
+                  pageBreakInside: 'avoid',
+                }}>
+                  <td style={{ padding: '6px 10px', fontWeight: 700, whiteSpace: 'nowrap', verticalAlign: 'top' }}>{row.time}</td>
+                  <td style={{ padding: '6px 10px', verticalAlign: 'top' }}>
+                    <div style={{ fontWeight: 700, fontSize: '12px' }}>{row.activities}</div>
+                    {row.course && <div style={{ fontSize: '10.5px', color: '#92400e', fontWeight: 600, marginTop: 2 }}>🍴 {row.course}</div>}
                   </td>
-                  <td className="py-2 px-2 align-top text-black/80">
-                    {row.pic && <div className="text-[10.5px] font-bold text-[#0056B3] mb-1">PIC: {row.pic}</div>}
-                    <div>{row.cues}</div>
-                    {row.movement && <div className="text-[10px] text-black/60 mt-1 italic">Mov: {row.movement}</div>}
+                  <td style={{ padding: '6px 10px', verticalAlign: 'top' }}>
+                    {row.pic && <div style={{ fontSize: '10.5px', fontWeight: 700, marginBottom: 2 }}>👤 PIC: {row.pic}</div>}
+                    {row.cues && <div style={{ fontSize: '11px' }}>{row.cues}</div>}
+                    {row.movement && <div style={{ fontSize: '10px', fontStyle: 'italic', marginTop: 2, opacity: 0.7 }}>Mov: {row.movement}</div>}
                   </td>
-                  <td className="py-2 px-2 align-top">
-                    {row.song && <div className="font-bold text-[#0056B3]">{row.song}</div>}
-                    {row.volume && <div className="text-[10px] text-black/70 mt-0.5">Vol: {row.volume}</div>}
+                  <td style={{ padding: '6px 10px', verticalAlign: 'top' }}>
+                    {row.song && <div style={{ fontWeight: 700 }}>{row.song}</div>}
+                    {row.volume && <div style={{ fontSize: '10px', marginTop: 2, opacity: 0.7 }}>Vol: {row.volume}</div>}
                   </td>
                 </tr>
               ))}
@@ -325,10 +329,50 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
       <style jsx global>{`
         @keyframes spin { to { transform: rotate(360deg); } }
         @media print {
-          nav, button, .print\\:hidden, header, footer { display: none !important; }
-          html, body { background: white !important; color: black !important; margin: 0 !important; padding: 0 !important; }
+          @page {
+            size: A4 landscape;
+            margin: 12mm 14mm;
+          }
+
+          /* Hide ALL chrome: sidebar, topbar, nav, action buttons */
+          nav, aside, header, footer,
+          button, [role="button"],
+          .print\\:hidden,
+          [class*="sidebar"], [class*="topbar"],
+          [class*="nav-"], [class*="action-bar"],
+          .zto-action-bar { display: none !important; }
+
+          /* Reset page layout so table fills the full A4 width */
+          html, body {
+            background: white !important;
+            color: black !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            font-size: 11px !important;
+          }
+
+          /* Remove the main content wrapper padding/gap */
+          .page-transition {
+            gap: 0 !important;
+            padding: 0 !important;
+          }
+
+          /* Show hidden print block */
           .print\\:block { display: block !important; }
-          * { background: transparent !important; color: black !important; box-shadow: none !important; }
+
+          /* Strip all decorative styling */
+          * {
+            background: transparent !important;
+            color: black !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+          }
+
+          /* Compact table styling */
+          table { width: 100% !important; border-collapse: collapse !important; }
+          th { font-size: 10px !important; padding: 6px 8px !important; border-bottom: 2px solid #000 !important; }
+          td { font-size: 11px !important; padding: 5px 8px !important; vertical-align: top !important; border-bottom: 1px solid #ccc !important; }
+          tr { page-break-inside: avoid !important; }
         }
       `}</style>
     </div>
