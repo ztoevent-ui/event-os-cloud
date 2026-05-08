@@ -13,6 +13,7 @@ export default function ProjectsPage() {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [creating, setCreating] = useState(false);
+    const [showPast, setShowPast] = useState(false);
     const router = useRouter();
 
     const [formData, setFormData] = useState({
@@ -77,6 +78,17 @@ export default function ProjectsPage() {
         return '#10b981';
     };
 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const filteredProjects = projects.filter(project => {
+        if (showPast) return true;
+        const refDateStr = project.end_date || project.start_date;
+        if (!refDateStr) return true; // Keep projects without dates
+        const refDate = new Date(refDateStr);
+        return refDate >= today;
+    });
+
     return (
         <div className="page-transition" style={{
             minHeight: '100vh',
@@ -107,6 +119,10 @@ export default function ProjectsPage() {
                     <p className="zto-desc" style={{ marginTop: 6 }}>Oversee and coordinate active deployments.</p>
                 </div>
                 <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'rgba(255,255,255,0.6)', cursor: 'pointer', marginRight: 8 }}>
+                        <input type="checkbox" checked={showPast} onChange={e => setShowPast(e.target.checked)} style={{ accentColor: '#0056B3' }} /> 
+                        Include Past
+                    </label>
                     <Link href="/dashboard" className="zto-btn zto-btn-ghost" style={{ textDecoration: 'none' }}>
                         <i className="fa-solid fa-arrow-left" /> Dashboard
                     </Link>
@@ -155,13 +171,19 @@ export default function ProjectsPage() {
                         </button>
                     </div>
 
+                ) : filteredProjects.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '60px 20px', color: 'rgba(255,255,255,0.4)' }}>
+                        <i className="fa-solid fa-folder-open" style={{ fontSize: 32, marginBottom: 16, opacity: 0.5 }} />
+                        <p>No active deployments found.</p>
+                        <button onClick={() => setShowPast(true)} className="zto-btn zto-btn-ghost" style={{ marginTop: 12 }}>Show Past Events</button>
+                    </div>
                 ) : (
                     <div style={{
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-                        gap: 20,
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+                        gap: 16,
                     }}>
-                        {projects.map(project => {
+                        {filteredProjects.map(project => {
                             const ic = typeIcon(project.type);
                             const col = typeColor(project.type);
                             const isActive = project.status !== 'completed';
@@ -169,7 +191,7 @@ export default function ProjectsPage() {
                                 <Link key={project.id} href={`/projects/${project.id}`} style={{ textDecoration: 'none', display: 'block' }}>
                                     <div
                                         className="zto-card"
-                                        style={{ cursor: 'pointer', height: '100%', display: 'flex', flexDirection: 'column', transition: 'all 0.3s ease' }}
+                                        style={{ cursor: 'pointer', height: '100%', display: 'flex', flexDirection: 'column', transition: 'all 0.3s ease', padding: 20 }}
                                         onMouseEnter={e => {
                                             (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-4px)';
                                             (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(0,86,179,0.6)';
@@ -182,13 +204,13 @@ export default function ProjectsPage() {
                                         }}
                                     >
                                         {/* Top */}
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
                                             <div style={{
-                                                width: 44, height: 44, borderRadius: 12,
+                                                width: 36, height: 36, borderRadius: 10,
                                                 background: `${col}12`,
                                                 border: `1px solid ${col}30`,
                                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                fontSize: 18, color: col,
+                                                fontSize: 15, color: col,
                                             }}>
                                                 <i className={ic} />
                                             </div>
@@ -199,7 +221,7 @@ export default function ProjectsPage() {
                                         </div>
 
                                         {/* Title */}
-                                        <h3 style={{ fontSize: 18, fontWeight: 700, color: '#fff', marginBottom: 12, lineHeight: 1.3 }}>
+                                        <h3 style={{ fontSize: 16, fontWeight: 700, color: '#fff', marginBottom: 10, lineHeight: 1.3 }}>
                                             {project.name}
                                         </h3>
 
@@ -219,8 +241,8 @@ export default function ProjectsPage() {
 
                                         {/* Bottom bar */}
                                         <div style={{
-                                            marginTop: 20,
-                                            paddingTop: 16,
+                                            marginTop: 16,
+                                            paddingTop: 12,
                                             borderTop: '1px solid rgba(255,255,255,0.05)',
                                             display: 'flex',
                                             justifyContent: 'space-between',

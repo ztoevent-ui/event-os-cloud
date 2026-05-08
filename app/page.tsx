@@ -258,6 +258,7 @@ function RevealSection({
 function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -353,6 +354,24 @@ function Nav() {
           >
             Start a Project
           </a>
+          <Link
+            href="/auth"
+            onClick={() => setMenuOpen(false)}
+            style={{
+              marginTop: 0,
+              color: 'rgba(229,229,229,0.5)',
+              fontFamily: 'Inter, sans-serif',
+              fontWeight: 500,
+              fontSize: 14,
+              textDecoration: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+            }}
+          >
+            <i className="fa-solid fa-terminal" />
+            Staff Login
+          </Link>
         </div>
       )}
 
@@ -415,6 +434,84 @@ function Nav() {
           >
             Start a Project
           </a>
+
+          {/* Staff Dropdown */}
+          <div 
+            style={{ position: 'relative' }}
+            onMouseEnter={() => setDropdownOpen(true)}
+            onMouseLeave={() => setDropdownOpen(false)}
+          >
+            <button
+              style={{
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                color: '#fff',
+                width: 36,
+                height: 36,
+                borderRadius: 8,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+              }}
+            >
+              <i className="fa-solid fa-user" style={{ fontSize: 14 }} />
+            </button>
+            
+            {dropdownOpen && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '100%',
+                  right: 0,
+                  marginTop: 8,
+                  background: '#050505',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: 12,
+                  padding: 8,
+                  width: 160,
+                  boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
+                  animation: 'fadeIn 0.2s ease',
+                  zIndex: 200,
+                }}
+              >
+                <Link
+                  href="/auth"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    padding: '10px 12px',
+                    color: 'rgba(229,229,229,0.85)',
+                    textDecoration: 'none',
+                    fontFamily: 'Inter, sans-serif',
+                    fontWeight: 500,
+                    fontSize: 13,
+                    borderRadius: 6,
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'rgba(0,86,179,0.15)';
+                    e.currentTarget.style.color = '#6BB8FF';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'transparent';
+                    e.currentTarget.style.color = 'rgba(229,229,229,0.85)';
+                  }}
+                >
+                  <i className="fa-solid fa-terminal" style={{ fontSize: 12 }} />
+                  Staff Login
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Mobile hamburger */}
@@ -1857,38 +1954,7 @@ function Footer() {
           © {new Date().getFullYear()} ZTO. All rights reserved.
         </div>
 
-        {/* Staff Login — discreet link */}
-        <Link
-          href="/auth"
-          id="footer-staff-console"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 6,
-            color: 'rgba(229,229,229,0.2)',
-            fontFamily: 'Inter, sans-serif',
-            fontWeight: 500,
-            fontSize: 11,
-            letterSpacing: '1.5px',
-            textTransform: 'uppercase',
-            textDecoration: 'none',
-            transition: 'color 0.2s',
-          }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLElement).style.color =
-              'rgba(107,184,255,0.7)';
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLElement).style.color =
-              'rgba(229,229,229,0.2)';
-          }}
-        >
-          <i
-            className="fa-solid fa-terminal"
-            style={{ fontSize: 10 }}
-          />
-          Staff Login
-        </Link>
+        {/* Staff Login — moved to nav */}
       </div>
     </footer>
   );
