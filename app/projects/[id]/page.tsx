@@ -28,6 +28,9 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
     const [project, setProject] = useState<any>(null);
     const [stats, setStats] = useState({ pending: 0, critical: 0, done: 0, expenses: 0, enquiries: 0 });
     const [loading, setLoading] = useState(true);
+    const [editOpen, setEditOpen] = useState(false);
+    const [editData, setEditData] = useState<any>(null);
+    const [saving, setSaving] = useState(false);
 
     useEffect(() => { fetchData(); }, [id]);
 
@@ -52,6 +55,35 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
         const exp = budgetItems?.filter((b: any) => b.type === 'expense').reduce((s: number, b: any) => s + Number(b.amount), 0) ?? 0;
         setStats({ pending: pending ?? 0, critical: critical ?? 0, done: done ?? 0, expenses: exp, enquiries: enquiries ?? 0 });
         setLoading(false);
+    };
+
+    const openEdit = () => {
+        setEditData({
+            name: project?.name || '',
+            type: project?.type || 'corporate',
+            venue: project?.venue || '',
+            start_date: project?.start_date || '',
+            end_date: project?.end_date || '',
+            status: project?.status || 'planning',
+        });
+        setEditOpen(true);
+    };
+
+    const saveEdit = async () => {
+        if (!editData.name.trim()) return;
+        setSaving(true);
+        const { error } = await supabase.from('projects').update({
+            name: editData.name.trim(),
+            type: editData.type,
+            venue: editData.venue || null,
+            start_date: editData.start_date || null,
+            end_date: editData.end_date || null,
+            status: editData.status,
+        }).eq('id', id);
+        setSaving(false);
+        if (error) { alert('Save failed: ' + error.message); return; }
+        setProject({ ...project, ...editData });
+        setEditOpen(false);
     };
 
     if (loading) return (
@@ -198,8 +230,11 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
                     </div>
                 )}
 
-                {/* Print button */}
-                <div style={{ position: 'absolute', top: 48, right: 48 }}>
+                {/* Actions */}
+                <div style={{ position: 'absolute', top: 48, right: 48, display: 'flex', gap: 10 }}>
+                    <button onClick={openEdit} className="zto-btn zto-btn-ghost" style={{ fontSize: 12, padding: '6px 14px' }}>
+                        <i className="fa-regular fa-pen-to-square" /> Edit
+                    </button>
                     <PrintReportButton title="Project Summary" />
                 </div>
             </div>
@@ -302,6 +337,67 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
                     ))}
                 </div>
             </div>
+
+            {/* ── Edit Modal ── */}
+            {editOpen && editData && (
+                <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+                    <div onClick={() => setEditOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(5,5,5,0.85)', backdropFilter: 'blur(8px)' }} />
+                    <div className="zto-card page-transition" style={{ position: 'relative', width: '100%', maxWidth: 520, zIndex: 10 }}>
+                        <button onClick={() => setEditOpen(false)} className="zto-btn zto-btn-ghost" style={{ position: 'absolute', top: 16, right: 16, padding: '6px 10px' }}>
+                            <i className="fa-solid fa-xmark" />
+                        </button>
+                        <h2 style={{ fontSize: 18, fontWeight: 700, color: '#fff', marginBottom: 4 }}>Edit Project</h2>
+                        <p className="zto-desc" style={{ marginBottom: 24, paddingBottom: 20, borderBottom: '1px solid rgba(255,255,255,0.07)' }}>Update basic project information.</p>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                            <div>
+                                <label className="zto-label" style={{ display: 'block', marginBottom: 6 }}>Project Name *</label>
+                                <input className="zto-input" value={editData.name} onChange={e => setEditData({ ...editData, name: e.target.value })} />
+                            </div>
+                            <div>
+                                <label className="zto-label" style={{ display: 'block', marginBottom: 6 }}>Type</label>
+                                <select className="zto-select" value={editData.type} onChange={e => setEditData({ ...editData, type: e.target.value })}>
+                                    <option value="corporate" style={{ background: '#0a0a0a' }}>Corporate</option>
+                                    <option value="wedding" style={{ background: '#0a0a0a' }}>Wedding</option>
+                                    <option value="wedding_fair" style={{ background: '#0a0a0a' }}>Wedding Fair</option>
+                                    <option value="sports" style={{ background: '#0a0a0a' }}>Sports / Tournament</option>
+                                    <option value="dinner" style={{ background: '#0a0a0a' }}>Gala Banquet</option>
+                                    <option value="other" style={{ background: '#0a0a0a' }}>Other</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="zto-label" style={{ display: 'block', marginBottom: 6 }}>Status</label>
+                                <select className="zto-select" value={editData.status} onChange={e => setEditData({ ...editData, status: e.target.value })}>
+                                    <option value="planning" style={{ background: '#0a0a0a' }}>Planning</option>
+                                    <option value="active" style={{ background: '#0a0a0a' }}>Active</option>
+                                    <option value="completed" style={{ background: '#0a0a0a' }}>Completed</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="zto-label" style={{ display: 'block', marginBottom: 6 }}>Venue</label>
+                                <input className="zto-input" value={editData.venue} onChange={e => setEditData({ ...editData, venue: e.target.value })} placeholder="e.g. Parkcity Evenue" />
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                                <div>
+                                    <label className="zto-label" style={{ display: 'block', marginBottom: 6 }}>Start Date</label>
+                                    <input type="date" className="zto-input" value={editData.start_date} onChange={e => setEditData({ ...editData, start_date: e.target.value })} style={{ colorScheme: 'dark' }} />
+                                </div>
+                                <div>
+                                    <label className="zto-label" style={{ display: 'block', marginBottom: 6 }}>End Date</label>
+                                    <input type="date" className="zto-input" value={editData.end_date} onChange={e => setEditData({ ...editData, end_date: e.target.value })} style={{ colorScheme: 'dark' }} />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: 10, marginTop: 24 }}>
+                            <button onClick={() => setEditOpen(false)} className="zto-btn zto-btn-ghost" style={{ flex: 1 }}>Cancel</button>
+                            <button onClick={saveEdit} disabled={saving} className="zto-btn zto-btn-primary" style={{ flex: 2 }}>
+                                {saving ? <><i className="fa-solid fa-circle-notch fa-spin" /> Saving...</> : <><i className="fa-solid fa-floppy-disk" /> Save Changes</>}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <style jsx global>{`
                 @media print {
