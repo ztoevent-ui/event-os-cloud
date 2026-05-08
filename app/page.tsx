@@ -258,7 +258,7 @@ function RevealSection({
 function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -435,83 +435,37 @@ function Nav() {
             Start a Project
           </a>
 
-          {/* Staff Dropdown */}
-          <div 
-            style={{ position: 'relative' }}
-            onMouseEnter={() => setDropdownOpen(true)}
-            onMouseLeave={() => setDropdownOpen(false)}
+          {/* Staff Login — direct link */}
+          <Link
+            href="/auth"
+            style={{
+              background: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              color: 'rgba(229,229,229,0.8)',
+              width: 36,
+              height: 36,
+              borderRadius: 8,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s',
+              textDecoration: 'none',
+              flexShrink: 0,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(0,86,179,0.2)';
+              e.currentTarget.style.borderColor = 'rgba(0,86,179,0.5)';
+              e.currentTarget.style.color = '#6BB8FF';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
+              e.currentTarget.style.color = 'rgba(229,229,229,0.8)';
+            }}
+            title="Staff Login"
           >
-            <button
-              style={{
-                background: 'rgba(255,255,255,0.05)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                color: '#fff',
-                width: 36,
-                height: 36,
-                borderRadius: 8,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'all 0.2s',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
-              }}
-            >
-              <i className="fa-solid fa-user" style={{ fontSize: 14 }} />
-            </button>
-            
-            {dropdownOpen && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '100%',
-                  right: 0,
-                  marginTop: 8,
-                  background: '#050505',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  borderRadius: 12,
-                  padding: 8,
-                  width: 160,
-                  boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
-                  animation: 'fadeIn 0.2s ease',
-                  zIndex: 200,
-                }}
-              >
-                <Link
-                  href="/auth"
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 10,
-                    padding: '10px 12px',
-                    color: 'rgba(229,229,229,0.85)',
-                    textDecoration: 'none',
-                    fontFamily: 'Inter, sans-serif',
-                    fontWeight: 500,
-                    fontSize: 13,
-                    borderRadius: 6,
-                    transition: 'all 0.2s',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'rgba(0,86,179,0.15)';
-                    e.currentTarget.style.color = '#6BB8FF';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.color = 'rgba(229,229,229,0.85)';
-                  }}
-                >
-                  <i className="fa-solid fa-terminal" style={{ fontSize: 12 }} />
-                  Staff Login
-                </Link>
-              </div>
-            )}
-          </div>
+            <i className="fa-solid fa-terminal" style={{ fontSize: 13 }} />
+          </Link>
         </div>
 
         {/* Mobile hamburger */}
