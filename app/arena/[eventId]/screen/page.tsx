@@ -174,7 +174,7 @@ function ArenaScreenContent() {
   const manualOverrideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    supabase.from('arena_tournaments').select('name, screen_config').eq('event_id_slug', urlEventId).single()
+    supabase.from('arena_tournaments').select('name, screen_config').eq('id', urlEventId).single()
       .then(({ data }) => { 
           if (data?.name) setEventName(data.name); 
           if (data?.screen_config && Array.isArray(data.screen_config)) {
@@ -218,7 +218,7 @@ function ArenaScreenContent() {
 
     const configCh = supabase
       .channel(`screen-config-${urlEventId}`)
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'arena_tournaments', filter: `event_id_slug=eq.${urlEventId}` }, (payload) => {
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'arena_tournaments', filter: `id=eq.${urlEventId}` }, (payload) => {
         const t = payload.new as any;
         if (t.screen_config && Array.isArray(t.screen_config)) {
             const myConf = t.screen_config.find((s:any) => s.id === sid);

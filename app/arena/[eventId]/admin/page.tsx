@@ -136,7 +136,7 @@ function MasterConsoleContent() {
   // Helper to persist screen config
   const saveScreenConfig = async (newConfig: ScreenConfig[]) => {
       setScreensConfig(newConfig);
-      await supabase.from('arena_tournaments').update({ screen_config: newConfig }).eq('event_id_slug', eventId);
+      await supabase.from('arena_tournaments').update({ screen_config: newConfig }).eq('id', eventId);
   };
 
   const handleAddScreen = () => {
@@ -173,10 +173,10 @@ function MasterConsoleContent() {
   const [showdownFiring, setShowdownFiring] = useState<'LEFT'|'RIGHT'|'VS'|null>(null);
   const [showdownDbTournamentId, setShowdownDbTournamentId] = useState<string | null>(null);
 
-  // Load real tournament ID for showdown DB writes
+  // Load // Fetch tournament ID for linking
   useEffect(() => {
-    supabase.from('arena_tournaments').select('id').eq('event_id_slug', eventId).single()
-      .then(({ data }) => { if (data) setShowdownDbTournamentId(data.id); });
+    supabase.from('arena_tournaments').select('id').eq('id', eventId).single()
+      .then(({ data }) => { if (data?.id) setShowdownDbTournamentId(data.id); });
   }, [eventId]);
 
   const fireShowdownCommand = async (command: 'ACTIVATE_LEFT'|'ACTIVATE_RIGHT'|'FIRE_VS'|'RESET') => {
@@ -202,7 +202,7 @@ function MasterConsoleContent() {
   useEffect(() => {
     async function loadRealData() {
         if (!eventId) return;
-        const { data: t } = await supabase.from('arena_tournaments').select('id, name, bracket_json, screen_config').eq('event_id_slug', eventId).single();
+        const { data: t } = await supabase.from('arena_tournaments').select('id, name, bracket_json, screen_config').eq('id', eventId).single();
         if (t) {
             if (t.name) setEventName(t.name);
             if (t.screen_config && Array.isArray(t.screen_config)) {

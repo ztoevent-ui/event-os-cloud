@@ -23,7 +23,7 @@ export default function ShowdownLivePage() {
 
   // 1. Resolve slug to UUID
   useEffect(() => {
-    supabase.from('arena_tournaments').select('id').eq('event_id_slug', eventId).single()
+    supabase.from('arena_tournaments').select('id').eq('id', eventId).single()
       .then(({ data }) => {
         if (data) setDbTournamentId(data.id);
       });
