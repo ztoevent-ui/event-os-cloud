@@ -332,7 +332,11 @@ function ArenaScreenContent() {
         {screenMode === 'ADS' && activeAd && (
           <motion.div key="ad-screen" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="absolute inset-0 z-10 flex flex-col bg-black">
-            <img src={activeAd.url} className="w-full h-full object-cover" alt="Ad" />
+            {activeAd.isVideo ? (
+              <video src={activeAd.url} className="w-full h-full object-cover" autoPlay loop muted={!hasInteracted} playsInline />
+            ) : (
+              <img src={activeAd.url} className="w-full h-full object-cover" alt="Ad" />
+            )}
             <div className="absolute bottom-20 left-20">
               <h1 className="text-8xl font-black uppercase text-white drop-shadow-2xl">{activeAd.title}</h1>
             </div>
