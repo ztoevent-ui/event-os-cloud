@@ -41,9 +41,7 @@ const SCENES_LIST = [
   { id: 'SCORE',         icon: 'fa-chart-line',       label: 'Score' },
   { id: 'BRACKET',      icon: 'fa-sitemap',           label: 'Bracket' },
   { id: 'ADS',          icon: 'fa-image',             label: 'Ads & Media' },
-  { id: 'YOUTUBE',      icon: 'fa-youtube',           label: 'YouTube' },
-  { id: 'DISPATCH',     icon: 'fa-list-check',        label: 'Dispatch' },
-  { id: 'JUDGE_ROOM',   icon: 'fa-gavel',             label: 'Judge Room' },
+  { id: 'YOUTUBE',      icon: 'fa-youtube',           label: 'YouTube / Video' },
   { id: 'ARENA_VISUALS',icon: 'fa-person-rays',       label: 'Arena Visuals ⚡' },
 ];
 
@@ -97,18 +95,19 @@ function generateFlexibleBracket(count: number): BracketData {
 function MasterConsoleContent() {
   const params = useParams();
   const eventId = (params.eventId as string) || 'BINTULU_OPEN_2026';
+  const [eventName, setEventName] = useState<string>(eventId);
   
   const [previewScene, setPreviewScene] = useState<string>('SCORE');
   
   type ScreenConfig = { id: number; w: number; h: number; label?: string };
   const [screensConfig, setScreensConfig] = useState<ScreenConfig[]>([
-    { id: 1, w: 4, h: 3 }, { id: 2, w: 4, h: 3 }, { id: 3, w: 4, h: 3 }, { id: 4, w: 4, h: 3 }, { id: 5, w: 4, h: 3 }
+    { id: 1, w: 4, h: 3 }, { id: 2, w: 4, h: 3 }
   ]);
   
-  const [targetScreens, setTargetScreens] = useState<number[]>([1,2,3,4,5]);
+  const [targetScreens, setTargetScreens] = useState<number[]>([1,2]);
   type ProgramScreenState = { scene: string; url?: string; isPlaying?: boolean };
   const [programScenes, setProgramScenes] = useState<Record<number, ProgramScreenState>>({
-      1: { scene: 'SCORE' }, 2: { scene: 'SCORE' }, 3: { scene: 'SCORE' }, 4: { scene: 'SCORE' }, 5: { scene: 'SCORE' }
+      1: { scene: 'SCORE' }, 2: { scene: 'SCORE' }
   });
 
   const [matchState, setMatchState] = useState<MatchState>({
@@ -154,8 +153,7 @@ function MasterConsoleContent() {
   };
 
   const updateScreenDim = (id: number, w: number, h: number) => {
-      const newConfig = screensConfig.map(s => s.id === id ? { ...s, w, h } : s);
-      saveScreenConfig(newConfig);
+      setScreensConfig(prev => prev.map(s => s.id === id ? { ...s, w, h } : s));
   };
 
   const [expandedDimScreen, setExpandedDimScreen] = useState<number | null>(null);
@@ -204,9 +202,10 @@ function MasterConsoleContent() {
   useEffect(() => {
     async function loadRealData() {
         if (!eventId) return;
-        const { data: t } = await supabase.from('arena_tournaments').select('id, bracket_json, screen_config').eq('event_id_slug', eventId).single();
+        const { data: t } = await supabase.from('arena_tournaments').select('id, name, bracket_json, screen_config').eq('event_id_slug', eventId).single();
         if (t) {
-            if (t.screen_config && Array.isArray(t.screen_config) && t.screen_config.length > 0) {
+            if (t.name) setEventName(t.name);
+            if (t.screen_config && Array.isArray(t.screen_config)) {
                 setScreensConfig(t.screen_config);
                 setTargetScreens(t.screen_config.map((s: any) => s.id));
                 const initProg: Record<number, ProgramScreenState> = {};
@@ -525,8 +524,12 @@ function MasterConsoleContent() {
                               className="w-full bg-black/50 border border-white/10 rounded px-2 py-1.5 text-white text-xs focus:outline-none focus:border-red-500 transition-colors" 
                               value={youtubeUrl} 
                               onChange={(e) => setYoutubeUrl(e.target.value)} 
-                              placeholder="https://youtube.com/watch?v=..."
+                              placeholder="https://youtube.com/watch?v=... OR /assets/video/local.mp4"
                           />
+                          <div className="text-[9px] text-zinc-400 mt-2 p-2 bg-[#111] border border-[#333] rounded">
+                              <i className="fa-solid fa-circle-info text-blue-400 mr-1" /> To play a local video, place it in the public folder (e.g. <code className="bg-black px-1 text-red-300">/assets/video/myvideo.mp4</code>) and enter the path above.<br/>
+                              <i className="fa-solid fa-triangle-exclamation text-amber-500 mr-1 mt-1" /> <b>Important:</b> You must click <b className="text-white">PLAY VIDEO</b> below before Cutting, or the video will appear paused on the screen.
+                          </div>
                       </div>
                       <div className="p-3 bg-zinc-900 border border-white/5 rounded-xl flex items-center justify-center">
                           <button onClick={() => setIsPlayingMedia(p => !p)} className={`w-full py-2 rounded font-black text-xs uppercase tracking-widest transition-all ${isPlayingMedia ? 'bg-red-500 text-white shadow-[0_0_15px_rgba(239,68,68,0.4)]' : 'bg-[#333] text-white hover:bg-[#444]'}`}>
@@ -678,6 +681,8 @@ function MasterConsoleContent() {
                      <i className="fa-solid fa-home"></i> ZTO Event OS
                  </Link>
                  <div className="w-px h-3 bg-[#333]"></div>
+                 <div className="font-bold text-blue-400 uppercase tracking-widest">{eventName}</div>
+                 <div className="w-px h-3 bg-[#333]"></div>
                  <div className="font-bold">MULTI-SCREEN MASTER CONSOLE</div>
             </div>
             <div className="flex items-center gap-3">
@@ -731,6 +736,13 @@ function MasterConsoleContent() {
                     <button onClick={handleCut} className="w-full bg-red-600 hover:bg-red-500 border border-red-500 py-3 rounded-lg text-white font-black shadow-inner tracking-widest flex flex-col items-center justify-center">
                         TAKE
                         <i className="fa-solid fa-angles-right mt-1" />
+                    </button>
+                    
+                    <button onClick={() => {
+                        if (targetScreens.length === 0) return alert("Select screens to locate");
+                        channelRef.current?.send({ type: 'broadcast', event: 'screen-action', payload: { action: 'locate', targets: targetScreens } });
+                    }} className="w-full mt-4 text-[10px] font-bold py-2 rounded bg-blue-600/30 hover:bg-blue-600 text-blue-300 hover:text-white border border-blue-500/50 transition-colors uppercase tracking-widest flex items-center justify-center gap-1">
+                        <i className="fa-solid fa-location-crosshairs" /> Locate
                     </button>
                 </div>
 
@@ -832,13 +844,13 @@ function MasterConsoleContent() {
 
                                         <div className="flex gap-2 w-full mt-1">
                                             <button
-                                                onClick={() => setExpandedDimScreen(null)}
+                                                onClick={() => { setExpandedDimScreen(null); saveScreenConfig(screensConfig); }}
                                                 className="flex-1 bg-blue-600 hover:bg-blue-500 text-white rounded font-black text-[9px] py-1.5 transition-colors uppercase tracking-widest"
                                             >
                                                 Done ✓
                                             </button>
                                             <button
-                                                onClick={() => handleRemoveScreen(screenNum)}
+                                                onClick={(e) => { e.stopPropagation(); handleRemoveScreen(screenNum); setExpandedDimScreen(null); }}
                                                 className="w-8 bg-red-900/50 hover:bg-red-800 text-red-400 rounded font-black flex items-center justify-center transition-colors"
                                                 title="Remove Screen"
                                             >

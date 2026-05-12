@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabaseClient';
 import { PrintReportButton, CopyProgramButton } from '../../components/ProjectModals';
 import { usePrint } from '../../components/PrintContext';
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
@@ -55,7 +55,11 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
   const { pageBreakIds, layoutType } = usePrint();
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    // Mouse / stylus: require a small move to distinguish from clicks
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    // Touch (iPad/tablet): press-and-hold 200ms activates drag, preventing
+    // accidental activation while scrolling
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
@@ -541,12 +545,29 @@ function SortableRow({ row, editMode, updateCell, removeRow, toggleImportant, is
             borderLeft: '1px solid rgba(255,255,255,0.07)',
             paddingLeft: 20, marginLeft: 4, flexShrink: 0,
           }}>
+            {/* Drag handle — large touch target for iPad/tablet use */}
             <button
               {...attributes} {...listeners}
-              title="Drag to reorder"
-              style={{ background: 'none', border: 'none', cursor: 'grab', color: '#DEFF9A', padding: 4, fontSize: 16 }}
+              title="Hold & drag to reorder"
+              style={{
+                background: 'rgba(222,255,154,0.08)',
+                border: '1px solid rgba(222,255,154,0.2)',
+                borderRadius: 10,
+                cursor: 'grab',
+                color: '#DEFF9A',
+                /* 48×48 minimum touch target (WCAG / Apple HIG) */
+                minWidth: 48,
+                minHeight: 48,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 20,
+                touchAction: 'none', // critical — lets dnd-kit capture the touch
+                WebkitUserSelect: 'none',
+                userSelect: 'none',
+              }}
             >
-              <i className="fa-solid fa-grip-lines" />
+              <i className="fa-solid fa-grip-vertical" />
             </button>
             <button
               onClick={() => toggleImportant(row.id)}

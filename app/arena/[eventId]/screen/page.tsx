@@ -168,7 +168,21 @@ function ArenaScreenContent() {
   const [youtubeState, setYoutubeState] = useState<{url: string, playing: boolean} | null>(null);
   const [autoPilot, setAutoPilot] = useState<AutoPilotMode>('AUTO');
   const [hasInteracted, setHasInteracted] = useState(false);
+  const [showLocate, setShowLocate] = useState(false);
+  const [eventName, setEventName] = useState<string>(urlEventId);
+  const [screenDim, setScreenDim] = useState<{w: number, h: number} | null>(null);
   const manualOverrideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    supabase.from('arena_tournaments').select('name, screen_config').eq('event_id_slug', urlEventId).single()
+      .then(({ data }) => { 
+          if (data?.name) setEventName(data.name); 
+          if (data?.screen_config && Array.isArray(data.screen_config)) {
+              const myConf = data.screen_config.find((s:any) => s.id === sid);
+              if (myConf) setScreenDim({ w: myConf.w, h: myConf.h });
+          }
+      });
+  }, [urlEventId, sid]);
 
   const isTargeted = (targets: number[]) => sid === 0 || targets.includes(sid);
 
@@ -201,8 +215,23 @@ function ArenaScreenContent() {
         }
       })
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
-  }, [urlEventId, autoPilot]);
+
+    const configCh = supabase
+      .channel(`screen-config-${urlEventId}`)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'arena_tournaments', filter: `event_id_slug=eq.${urlEventId}` }, (payload) => {
+        const t = payload.new as any;
+        if (t.screen_config && Array.isArray(t.screen_config)) {
+            const myConf = t.screen_config.find((s:any) => s.id === sid);
+            if (myConf) setScreenDim({ w: myConf.w, h: myConf.h });
+        }
+      })
+      .subscribe();
+
+    return () => { 
+        supabase.removeChannel(ch); 
+        supabase.removeChannel(configCh);
+    };
+  }, [urlEventId, autoPilot, sid]);
 
   // MC Broadcast channel (manual override)
   useEffect(() => {
@@ -242,6 +271,9 @@ function ArenaScreenContent() {
             setYoutubeState(prev => prev ? { ...prev, playing: false } : null);
         } else if (action === 'play-youtube') {
             setYoutubeState(prev => prev ? { ...prev, playing: true } : null);
+        } else if (action === 'locate') {
+            setShowLocate(true);
+            setTimeout(() => setShowLocate(false), 5000);
         }
       })
       .subscribe();
@@ -249,25 +281,44 @@ function ArenaScreenContent() {
   }, [urlEventId]);
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans overflow-hidden flex flex-col relative select-none cursor-none"
+    <div className="min-h-screen bg-black text-white font-sans overflow-hidden flex flex-col relative select-none cursor-none items-center justify-center"
          onClick={() => setHasInteracted(true)}>
-      {/* Ambient background */}
-      <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(37,99,235,0.1),transparent_50%),radial-gradient(circle_at_80%_70%,rgba(220,38,38,0.1),transparent_50%)]" />
-      </div>
-
-      {!hasInteracted && (
-        <div className="absolute top-4 left-4 z-50 px-3 py-1.5 bg-red-500/20 border border-red-500/50 rounded-full text-red-400 text-[9px] font-black uppercase tracking-widest animate-pulse pointer-events-none">
-          <i className="fa-solid fa-volume-xmark mr-2" />
-          Click Anywhere to Enable Audio
+         
+      <div 
+         className="relative w-full h-full flex flex-col overflow-hidden bg-black shadow-[0_0_50px_rgba(0,0,0,1)]"
+         style={screenDim ? { aspectRatio: `${screenDim.w} / ${screenDim.h}`, maxHeight: '100vh', maxWidth: '100vw' } : {}}
+      >
+        {/* Ambient background */}
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(37,99,235,0.1),transparent_50%),radial-gradient(circle_at_80%_70%,rgba(220,38,38,0.1),transparent_50%)]" />
         </div>
-      )}
+
+      <div className="absolute top-4 left-4 z-50 flex items-center gap-2">
+        {!hasInteracted && (
+          <div className="px-3 py-1.5 bg-red-500/20 border border-red-500/50 rounded-full text-red-400 text-[9px] font-black uppercase tracking-widest animate-pulse pointer-events-none shadow-[0_0_10px_rgba(239,68,68,0.3)]">
+            <i className="fa-solid fa-volume-xmark mr-2" />
+            Click Anywhere to Enable Audio
+          </div>
+        )}
+      </div>
 
       {/* AutoPilot indicator (top-right, subtle) */}
       <div className={`absolute top-4 right-4 z-50 flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-widest transition-all ${autoPilot === 'AUTO' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' : 'bg-amber-500/10 border-amber-500/20 text-amber-500'}`}>
         <div className={`w-1.5 h-1.5 rounded-full ${autoPilot === 'AUTO' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
         {autoPilot === 'AUTO' ? 'AutoPilot' : 'Manual'}
       </div>
+
+      <AnimatePresence>
+        {showLocate && (
+          <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
+            className="absolute inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-none">
+            <div className="bg-[#0056B3] text-white px-12 py-8 rounded-3xl font-black uppercase tracking-widest text-6xl shadow-[0_0_50px_rgba(0,86,179,0.8)] border border-blue-400 text-center">
+              <div className="text-2xl text-blue-300 mb-2">{eventName}</div>
+              <div>{sid === 0 ? 'MASTER SCREEN (0)' : `SCREEN ${sid}`}</div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence mode="wait">
         {screenMode === 'STANDBY' && <StandbyView key="standby" />}
@@ -302,11 +353,13 @@ function ArenaScreenContent() {
                   muted={!hasInteracted}
                   width="100%" 
                   height="100%" 
-                  controls={false} 
+                  controls={true} 
+                  config={{ youtube: { playerVars: { autoplay: 1 } } }}
               />
           </motion.div>
         )}
       </AnimatePresence>
+      </div>
     </div>
   );
 }
