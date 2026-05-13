@@ -42,10 +42,11 @@ const FORMAT_OPTIONS = [
 ];
 
 const MODULES = [
-  { title: 'Master Console',       desc: 'OBS-style studio for big-screen stream control.', path: '/admin',     icon: 'fa-tv',                color: '#0056B3' },
-  { title: 'Tournament Architect', desc: 'Configure round rules & scoring logic.',           path: '/architect', icon: 'fa-wrench',            color: '#0056B3' },
-  { title: 'Referee Panel',        desc: 'Simplified scoring engine for match officials.',    path: '/referee',   icon: 'fa-eye',               color: '#0056B3' },
-  { title: 'Director Dashboard',   desc: 'Real-time overview of all courts & statuses.',    path: '/director',  icon: 'fa-tower-observation', color: '#0056B3' },
+  { title: 'Master Console',       desc: 'OBS-style studio for big-screen stream control.', path: '/admin',           icon: 'fa-tv',                color: '#0056B3' },
+  { title: 'Tournament Architect', desc: 'Configure round rules & scoring logic.',           path: '/architect',       icon: 'fa-wrench',            color: '#0056B3' },
+  { title: 'Referee Panel',        desc: 'Simplified scoring engine for match officials.',    path: '/referee',         icon: 'fa-eye',               color: '#0056B3' },
+  { title: 'Director Dashboard',   desc: 'Real-time overview of all courts & statuses.',    path: '/director',        icon: 'fa-tower-observation', color: '#0056B3' },
+  { title: 'PDF 赛程导入',           desc: '上传赛程 PDF，一键解析氏族对阵，自动生成全场赛事。',     path: '/schedule-import', icon: 'fa-file-pdf',          color: '#a3e635' },
 ];
 
 function TournamentCard({ t, selected, onClick }: { t: Tournament; selected: boolean; onClick: () => void }) {
@@ -353,28 +354,31 @@ export default function ArenaHubRoot() {
 
             {/* Module Grid */}
             <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 transition-all ${!selected ? 'opacity-30 pointer-events-none' : ''}`}>
-              {MODULES.map((mod, idx) => (
-                <motion.div key={mod.title} initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.05 * idx }}>
-                  <Link
-                    href={selected ? `/arena/${selected.id}${mod.path}` : '#'}
-                    className="group block p-6 bg-white/[0.03] border border-white/5 rounded-2xl hover:border-[#0056B3]/40 hover:bg-[#0056B3]/5 transition-all duration-500 relative overflow-hidden">
-                    <div className="absolute -right-3 -bottom-3 opacity-[0.04] text-6xl transition-all duration-700 group-hover:scale-125 group-hover:-rotate-6 text-[#4da3ff]">
-                      <i className={`fa-solid ${mod.icon}`} />
-                    </div>
-                    <div className="relative z-10">
-                      <div className="w-10 h-10 rounded-xl bg-[#0056B3]/10 text-[#4da3ff] flex items-center justify-center mb-4 group-hover:shadow-[0_0_20px_rgba(0,86,179,0.3)] transition-all">
+              {MODULES.map((mod, idx) => {
+                const isLime = mod.color === '#a3e635';
+                return (
+                  <motion.div key={mod.title} initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.05 * idx }}>
+                    <Link
+                      href={selected ? `/arena/${selected.id}${mod.path}` : '#'}
+                      className={`group block p-6 bg-white/[0.03] border border-white/5 rounded-2xl transition-all duration-500 relative overflow-hidden ${isLime ? 'hover:border-[#a3e635]/40 hover:bg-[#a3e635]/5' : 'hover:border-[#0056B3]/40 hover:bg-[#0056B3]/5'}`}>
+                      <div className={`absolute -right-3 -bottom-3 opacity-[0.04] text-6xl transition-all duration-700 group-hover:scale-125 group-hover:-rotate-6 ${isLime ? 'text-[#a3e635]' : 'text-[#4da3ff]'}`}>
                         <i className={`fa-solid ${mod.icon}`} />
                       </div>
-                      <h3 className="font-black text-white text-sm uppercase tracking-tight mb-1">{mod.title}</h3>
-                      <p className="text-[10px] text-zinc-600 font-bold leading-relaxed">{mod.desc}</p>
-                      <div className="mt-4 flex items-center gap-2 text-[10px] font-black text-zinc-700 group-hover:text-[#4da3ff] transition-colors uppercase tracking-widest">
-                        <span>Execute</span>
-                        <i className="fa-solid fa-arrow-right-long group-hover:translate-x-2 transition-transform" />
+                      <div className="relative z-10">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 transition-all ${isLime ? 'bg-[#a3e635]/10 text-[#a3e635] group-hover:shadow-[0_0_20px_rgba(163,230,53,0.3)]' : 'bg-[#0056B3]/10 text-[#4da3ff] group-hover:shadow-[0_0_20px_rgba(0,86,179,0.3)]'}`}>
+                          <i className={`fa-solid ${mod.icon}`} />
+                        </div>
+                        <h3 className="font-black text-white text-sm uppercase tracking-tight mb-1">{mod.title}</h3>
+                        <p className="text-[10px] text-zinc-600 font-bold leading-relaxed">{mod.desc}</p>
+                        <div className={`mt-4 flex items-center gap-2 text-[10px] font-black text-zinc-700 uppercase tracking-widest transition-colors ${isLime ? 'group-hover:text-[#a3e635]' : 'group-hover:text-[#4da3ff]'}`}>
+                          <span>Execute</span>
+                          <i className="fa-solid fa-arrow-right-long group-hover:translate-x-2 transition-transform" />
+                        </div>
                       </div>
-                    </div>
-                  </Link>
-                </motion.div>
-              ))}
+                    </Link>
+                  </motion.div>
+                );
+              })}
             </div>
 
             {/* Screen Shortcut */}
