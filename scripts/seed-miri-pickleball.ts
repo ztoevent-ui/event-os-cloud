@@ -16,7 +16,7 @@ const TARGET_TOURNAMENT_ID: string | null = null;
 
 // ── Tournament ────────────────────────────────────────────────────────────────
 const TOURNAMENT = {
-  name: '2026第一届民都鲁省姓氏匹克球锦标赛 (黄守光杯)',
+  name: 'Bintulu Interclan pickleball championship 2026',
   status: 'GROUP_STAGE',
   format: 'TIE_TEAM',
   current_round: 'GROUP',
@@ -376,7 +376,7 @@ async function seedLiveControls(tid: string) {
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 async function main() {
-  console.log('\n🏸 2026第一届民都鲁省姓氏匹克球锦标赛 (黄守光杯)');
+  console.log('\n🏸 Bintulu Interclan pickleball championship 2026');
   console.log('='.repeat(56));
   console.log('⚠️  IMPORTANT: Replace placeholder player names in CLANS array!');
   console.log('='.repeat(56));
