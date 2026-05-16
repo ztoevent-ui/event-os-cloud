@@ -143,7 +143,7 @@ export default function FlightBoardPage() {
           <AnimatePresence>
             {displayMatches.map((match, i) => {
               // Create a unique key for the duplicated items by adding an index
-              const key = \`\${match.id}-\${i}\`;
+              const key = `${match.id}-${i}`;
               const isCompleted = match.status.toUpperCase() === 'COMPLETED';
               const isLive = match.status.toUpperCase() === 'LIVE';
               const isCalling = match.status.toUpperCase() === 'CALLING';
@@ -153,7 +153,7 @@ export default function FlightBoardPage() {
                   key={key}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className={\`flex w-full px-[2vw] py-[2vh] border-b border-gray-800/50 items-center text-[1.6vw] \${i % 2 === 0 ? 'bg-[#050A1E]' : 'bg-[#080d24]'}\`}
+                  className={`flex w-full px-[2vw] py-[2vh] border-b border-gray-800/50 items-center text-[1.6vw] ${i % 2 === 0 ? 'bg-[#050A1E]' : 'bg-[#080d24]'}`}
                 >
                   <div className="w-[10%] font-bold text-gray-400">
                     Group {match.group_id}
@@ -183,7 +183,7 @@ export default function FlightBoardPage() {
                     {match.clan_b.short_name}
                   </div>
 
-                  <div className={\`w-[25%] pl-[2vw] font-bold tracking-widest \${getStatusColor(match.status)}\`}>
+                  <div className={`w-[25%] pl-[2vw] font-bold tracking-widest ${getStatusColor(match.status)}`}>
                     {isCalling && <i className="fa-solid fa-bullhorn mr-2"></i>}
                     {isLive && <span className="mr-2 inline-block w-2 h-2 rounded-full bg-green-400 animate-ping"></span>}
                     {getStatusLabel(match.status)}
