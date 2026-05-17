@@ -625,6 +625,32 @@ function ScoringScreen({
     persistScore(updatedMatch, scoringTeam === 'A' ? 'SCORE_A' : 'SCORE_B');
   }, [match, rule, scoringFrozen, persistScore]);
 
+  const handleUndo = useCallback(() => {
+    if (scoreHistory.length === 0) {
+      alert('没有可以撤回的分数了！(No history to undo)');
+      return;
+    }
+    const lastSnapshot = scoreHistory[scoreHistory.length - 1];
+    const newHistory = scoreHistory.slice(0, -1);
+    
+    const updatedMatch: ArenaMatch = {
+      ...match,
+      score_a: lastSnapshot.score_a,
+      score_b: lastSnapshot.score_b,
+      server: lastSnapshot.server,
+      left_team: lastSnapshot.left_team,
+      sets_won_a: lastSnapshot.sets_won_a,
+      sets_won_b: lastSnapshot.sets_won_b,
+      current_set: lastSnapshot.current_set,
+      sets_scores: lastSnapshot.sets_scores,
+      status: 'LIVE' // in case we undo from a set win/interval
+    };
+    
+    setScoreHistory(newHistory);
+    setMatch(updatedMatch);
+    persistScore(updatedMatch, 'UNDO_SCORE');
+  }, [match, scoreHistory, persistScore]);
+
   const handleIssueCard = useCallback((team: 'A' | 'B', color: 'YELLOW' | 'RED' | 'BLACK') => {
     setShowPenaltyModal(false);
     if (color === 'RED') {
@@ -857,7 +883,15 @@ function ScoringScreen({
           ← Exit
         </Link>
 
-        <div className="flex gap-6">
+        <div className="flex gap-4">
+          <button
+            onClick={handleUndo}
+            disabled={scoreHistory.length === 0}
+            className={`px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-colors ${scoreHistory.length > 0 ? 'bg-red-950 text-red-500 hover:bg-red-900 hover:text-white' : 'text-zinc-700 opacity-50 cursor-not-allowed'}`}
+          >
+            <i className="fa-solid fa-rotate-left mr-2" /> 减分 (Undo)
+          </button>
+
           <button
             onClick={handleSwapServer}
             className="text-zinc-600 hover:text-white text-[10px] font-black uppercase tracking-widest transition-colors"
