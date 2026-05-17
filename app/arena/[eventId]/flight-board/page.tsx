@@ -165,7 +165,7 @@ export default function FlightBoardPage() {
                     </span>
                   </div>
 
-                  <div className="w-[20%] text-right pr-[2vw] font-bold truncate" style={{ color: match.clan_a.secondaryColor }}>
+                  <div className="w-[20%] text-right pr-[2vw] font-bold truncate" style={{ color: match.clan_a.secondary_color }}>
                     {match.clan_a.short_name}
                   </div>
 
@@ -179,7 +179,7 @@ export default function FlightBoardPage() {
                     )}
                   </div>
 
-                  <div className="w-[20%] pl-[2vw] font-bold truncate" style={{ color: match.clan_b.secondaryColor }}>
+                  <div className="w-[20%] pl-[2vw] font-bold truncate" style={{ color: match.clan_b.secondary_color }}>
                     {match.clan_b.short_name}
                   </div>
 

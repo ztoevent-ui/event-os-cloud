@@ -415,26 +415,27 @@ export default function MatchOverlay({ match, onStageChange }: MatchOverlayProps
       .single();
 
     if (data && !error) {
+      const d = data as any;
       setActiveMatch({
-        matchId: data.id,
-        category: data.category_code,
-        stage: data.round_type as any,
-        scoreA: data.score_a || 0,
-        scoreB: data.score_b || 0,
+        matchId: d.id,
+        category: d.category_code,
+        stage: d.round_type as any,
+        scoreA: d.score_a || 0,
+        scoreB: d.score_b || 0,
         team1: {
-          name: data.clan_a?.name || data.team_a_name || 'TBD',
-          shortName: data.clan_a?.short_name || data.team_a_name || 'TBA',
-          primaryColor: data.clan_a?.primary_color || '#333333',
-          secondaryColor: data.clan_a?.secondary_color || '#aaaaaa',
-          logoUrl: data.clan_a?.logo_url,
+          name: d.clan_a?.name || d.team_a_name || 'TBD',
+          shortName: d.clan_a?.short_name || d.team_a_name || 'TBA',
+          primaryColor: d.clan_a?.primary_color || '#333333',
+          secondaryColor: d.clan_a?.secondary_color || '#aaaaaa',
+          logoUrl: d.clan_a?.logo_url,
           players: [], // Add real players later if available in schema
         },
         team2: {
-          name: data.clan_b?.name || data.team_b_name || 'TBD',
-          shortName: data.clan_b?.short_name || data.team_b_name || 'TBA',
-          primaryColor: data.clan_b?.primary_color || '#333333',
-          secondaryColor: data.clan_b?.secondary_color || '#aaaaaa',
-          logoUrl: data.clan_b?.logo_url,
+          name: d.clan_b?.name || d.team_b_name || 'TBD',
+          shortName: d.clan_b?.short_name || d.team_b_name || 'TBA',
+          primaryColor: d.clan_b?.primary_color || '#333333',
+          secondaryColor: d.clan_b?.secondary_color || '#aaaaaa',
+          logoUrl: d.clan_b?.logo_url,
           players: [],
         }
       });
