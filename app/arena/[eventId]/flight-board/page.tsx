@@ -166,8 +166,8 @@ export default function FlightBoardPage() {
                     </span>
                   </div>
 
-                  <div className="w-[20%] text-right pr-[2vw] font-bold truncate" style={{ color: match.clan_a.secondary_color }}>
-                    {match.clan_a.short_name}
+                  <div className="w-[20%] text-right pr-[2vw] font-bold truncate" style={{ color: match.clan_a?.secondary_color || '#aaaaaa' }}>
+                    {match.clan_a?.short_name || match.team_a_name || 'TBD'}
                   </div>
 
                   <div className="w-[10%] text-center font-['Barlow_Condensed'] font-black text-[2vw] tracking-wider">
@@ -180,8 +180,8 @@ export default function FlightBoardPage() {
                     )}
                   </div>
 
-                  <div className="w-[20%] pl-[2vw] font-bold truncate" style={{ color: match.clan_b.secondary_color }}>
-                    {match.clan_b.short_name}
+                  <div className="w-[20%] pl-[2vw] font-bold truncate" style={{ color: match.clan_b?.secondary_color || '#aaaaaa' }}>
+                    {match.clan_b?.short_name || match.team_b_name || 'TBD'}
                   </div>
 
                   <div className={`w-[25%] pl-[2vw] font-bold tracking-widest ${getStatusColor(match.status)}`}>
