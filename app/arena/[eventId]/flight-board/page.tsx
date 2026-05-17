@@ -54,6 +54,7 @@ export default function FlightBoardPage() {
         clan_b:arena_clans!clan_b_id(short_name, primary_color, secondary_color)
       `)
       .eq('tournament_id', eventId)
+      .neq('round_type', 'GROUP')
       .order('created_at', { ascending: true });
 
     if (error) {
