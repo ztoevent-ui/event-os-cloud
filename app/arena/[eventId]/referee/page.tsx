@@ -98,10 +98,10 @@ function MatchSelector({
       .eq('round_type', match.round_type)
       .single();
 
-    // Reload match with updated fields
+    // Reload match with updated fields and relationships
     const { data: updatedMatch } = await supabase
       .from('arena_matches')
-      .select('*')
+      .select('*, clan_a:arena_clans!clan_a_id(short_name), clan_b:arena_clans!clan_b_id(short_name)')
       .eq('id', match.id)
       .single();
 
@@ -707,8 +707,14 @@ function ScoringScreen({
   }, [match, persistScore]);
 
   // Determine left/right teams
-  const leftTeam = match.left_team === 'A' ? match.team_a_name : match.team_b_name;
-  const rightTeam = match.left_team === 'A' ? match.team_b_name : match.team_a_name;
+  const leftTeamName = match.left_team === 'A' 
+    ? (match as any).clan_a?.short_name || match.team_a_name 
+    : (match as any).clan_b?.short_name || match.team_b_name;
+    
+  const rightTeamName = match.left_team === 'A' 
+    ? (match as any).clan_b?.short_name || match.team_b_name 
+    : (match as any).clan_a?.short_name || match.team_a_name;
+
   const leftScore = match.left_team === 'A' ? match.score_a : match.score_b;
   const rightScore = match.left_team === 'A' ? match.score_b : match.score_a;
   const leftSetsWon = match.left_team === 'A' ? match.sets_won_a : match.sets_won_b;
@@ -816,8 +822,8 @@ function ScoringScreen({
           )}
 
           <div className="text-center pointer-events-none">
-            <div className="text-blue-300 font-black text-base uppercase tracking-widest mb-2 max-w-[160px] line-clamp-2">
-              {match.category_code} / 左侧
+            <div className="text-blue-300 font-black text-[1.5rem] uppercase tracking-widest mb-2 max-w-[160px] line-clamp-2">
+              {match.category_code} / {leftTeamName}
             </div>
             <div className="text-[clamp(80px,20vw,160px)] font-black leading-none tabular-nums text-white">
               {leftScore}
@@ -863,8 +869,8 @@ function ScoringScreen({
           )}
 
           <div className="text-center pointer-events-none">
-            <div className="text-red-300 font-black text-base uppercase tracking-widest mb-2 max-w-[160px] line-clamp-2">
-              {match.category_code} / 右侧
+            <div className="text-red-300 font-black text-[1.5rem] uppercase tracking-widest mb-2 max-w-[160px] line-clamp-2">
+              {match.category_code} / {rightTeamName}
             </div>
             <div className="text-[clamp(80px,20vw,160px)] font-black leading-none tabular-nums text-white">
               {rightScore}
