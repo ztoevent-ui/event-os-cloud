@@ -7,7 +7,7 @@ const supabase = createClient(
 );
 
 async function main() {
-  const { data, error } = await supabase.from('arena_matches').update({ status: 'CALLING' }).eq('id', '00000000-0000-0000-0000-000000000000');
-  console.log("Update check:", error);
+  const { data, error } = await supabase.from('arena_tournaments').select('id, name').order('created_at', { ascending: false }).limit(5);
+  console.log(data);
 }
 main();

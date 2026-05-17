@@ -7,7 +7,21 @@ const supabase = createClient(
 );
 
 async function main() {
-  const { data, error } = await supabase.from('arena_matches').update({ status: 'CALLING' }).eq('id', '00000000-0000-0000-0000-000000000000');
-  console.log("Update check:", error);
+  const updates = [
+    { old: 'Wong', newShort: '黄氏' },
+    { old: 'Koh', newShort: '许氏' },
+    { old: 'Chan', newShort: '陈氏' },
+    { old: 'Goh', newShort: '吴氏' },
+  ];
+
+  for (const u of updates) {
+    const { data, error } = await supabase
+      .from('arena_clans')
+      .update({ short_name: u.newShort })
+      .eq('short_name', u.old);
+    
+    if (error) console.error("Error updating", u.old, error);
+    else console.log("Updated", u.old, "to", u.newShort);
+  }
 }
 main();

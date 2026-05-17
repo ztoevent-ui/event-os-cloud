@@ -7,7 +7,11 @@ const supabase = createClient(
 );
 
 async function main() {
-  const { data, error } = await supabase.from('arena_matches').update({ status: 'CALLING' }).eq('id', '00000000-0000-0000-0000-000000000000');
-  console.log("Update check:", error);
+  const { data, error } = await supabase.from('arena_round_rules').select('*').limit(1);
+  if (error) {
+    console.error("Error arena_round_rules:", error.message);
+  } else {
+    console.log("arena_round_rules exists!");
+  }
 }
 main();

@@ -54,7 +54,7 @@ export default function FlightBoardPage() {
         clan_b:arena_clans!clan_b_id(short_name, primary_color, secondary_color)
       `)
       .eq('tournament_id', eventId)
-      .neq('round_type', 'GROUP')
+      .eq('round_type', 'FINALS')
       .order('created_at', { ascending: true });
 
     if (error) {
@@ -115,10 +115,10 @@ export default function FlightBoardPage() {
       {/* Header */}
       <div className="h-[12vh] bg-gradient-to-b from-[#0A102A] to-[#050A1E] border-b border-[#CCFF00]/30 flex flex-col items-center justify-center shrink-0 shadow-lg z-10 relative">
         <h1 className="text-[2.5vw] font-black tracking-widest text-[#CCFF00] font-['Barlow_Condensed'] uppercase drop-shadow-[0_0_10px_rgba(204,255,0,0.5)]">
-          民都鲁省姓氏匹克球锦标赛 2026
+          Bintulu Interclan Pickleball Championship 2026
         </h1>
         <h2 className="text-[1.2vw] text-blue-300 tracking-[0.3em] font-light">
-          OFFICIAL MATCH LIST
+          OFFICIAL MATCH FLIGHT BOARD
         </h2>
         
         {/* Current Time Clock */}
@@ -206,15 +206,12 @@ export default function FlightBoardPage() {
 }
 
 function Clock() {
-  const [time, setTime] = useState<Date | null>(null);
+  const [time, setTime] = useState(new Date());
   
   useEffect(() => {
-    setTime(new Date());
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
-
-  if (!time) return null;
 
   return (
     <div className="absolute right-[2vw] top-1/2 -translate-y-1/2 font-['Barlow_Condensed'] text-[2.5vw] text-[#CCFF00] font-bold tracking-wider">

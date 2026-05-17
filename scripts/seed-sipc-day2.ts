@@ -33,14 +33,29 @@ const SEMIFINALS = [
 ];
 
 async function getTournamentId(): Promise<string> {
-  const { data, error } = await supabase
+  // First try the exact name
+  let { data, error } = await supabase
     .from('arena_tournaments')
     .select('id')
     .eq('name', 'Bintulu Interclan pickleball championship 2026')
     .single();
     
   if (error || !data) {
-    throw new Error('Could not find tournament "Bintulu Interclan pickleball championship 2026". Did you run the Day 1 seed script?');
+    console.warn('⚠️ Could not find exact tournament name. Falling back to the most recent pickleball tournament...');
+    // Fall back to most recent pickleball or SIPC tournament
+    const { data: fallbackData, error: fallbackError } = await supabase
+      .from('arena_tournaments')
+      .select('id, name')
+      .ilike('name', '%pickleball%')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+      
+    if (fallbackError || !fallbackData) {
+      throw new Error('Could not find ANY pickleball tournament! Did you run the Day 1 seed script?');
+    }
+    console.log(`[SEED] Using fallback tournament: "${fallbackData.name}"`);
+    return fallbackData.id;
   }
   return data.id;
 }
