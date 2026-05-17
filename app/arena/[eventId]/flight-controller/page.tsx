@@ -249,6 +249,15 @@ export default function FlightControllerPage() {
                       >
                         {btn.text}
                       </button>
+                      {match.status === 'CALLING' && (
+                        <button
+                          onClick={() => updateMatchStatus(match.id, 'PENDING')}
+                          className="px-3 py-2 bg-red-100 text-red-600 hover:bg-red-200 rounded shadow-sm text-sm font-bold transition-transform active:scale-95"
+                          title="Cancel Calling"
+                        >
+                          <i className="fa-solid fa-rotate-left"></i> 撤回
+                        </button>
+                      )}
                       <button 
                         onClick={() => pushToScreen(match.id)}
                         className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded shadow-sm text-sm font-bold transition-transform active:scale-95"
