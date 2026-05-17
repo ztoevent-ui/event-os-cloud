@@ -273,7 +273,7 @@ function ScoreBoard({ match, visible }: { match: CurrentLiveMatch; visible: bool
             {/* Centre info */}
             <div className="flex flex-col items-center justify-center px-[3vw] gap-[0.5vh]">
               <span style={{ fontSize: '1.8vw', color: '#CCFF00', fontFamily: '"Barlow Condensed", sans-serif', letterSpacing: '0.15em', fontWeight: 700 }}>
-                {match.stage.toUpperCase()}
+                {match.stage?.toUpperCase() || ''}
               </span>
               {(match.overallScoreA !== undefined && match.overallScoreB !== undefined) && (
                 <div style={{ fontSize: '1.4vw', color: '#FFF', fontWeight: 800, marginTop: '0.2vh', marginBottom: '0.2vh', background: '#e11d48', padding: '0.2vh 1vw', borderRadius: '4px', letterSpacing: '0.05em' }}>
@@ -597,7 +597,7 @@ export default function MatchOverlayPage() {
                 </span>
               </div>
               <span style={{ fontSize: '1.8vw', color: '#ffffff99', letterSpacing: '0.1em', fontFamily: '"Barlow Condensed", sans-serif' }}>
-                {liveMatch.stage.toUpperCase()}
+                {liveMatch.stage?.toUpperCase() || ''}
               </span>
             </motion.div>
           )}
