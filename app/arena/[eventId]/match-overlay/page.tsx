@@ -539,9 +539,6 @@ export default function MatchOverlay({ match, onStageChange }: MatchOverlayProps
               <p style={{ fontSize: '1.8vw', fontWeight: 700, letterSpacing: '0.2em', color: '#CCFF00', fontFamily: '"Barlow Condensed", sans-serif' }}>
                 民都鲁省姓氏匹克球锦标赛 2026
               </p>
-              <p style={{ fontSize: '1vw', color: '#ffffff88', letterSpacing: '0.15em' }}>
-                MIRI SURNAME PICKLEBALL CHAMPIONSHIP
-              </p>
               <div className="h-[2px] w-[20vw]" style={{ background: 'linear-gradient(90deg, transparent, #0056B3, transparent)' }} />
             </motion.div>
           )}
