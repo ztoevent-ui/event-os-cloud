@@ -424,6 +424,15 @@ export default function MatchOverlay({ match, onStageChange }: MatchOverlayProps
     return () => { supabase.removeChannel(channel); };
   }, [eventId]);
 
+  // Polling fallback for live score
+  useEffect(() => {
+    if (!activeMatch?.matchId) return;
+    const interval = setInterval(() => {
+      fetchLiveMatch(activeMatch.matchId);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [activeMatch?.matchId]);
+
   const advance = useCallback(() => {
     setStageIdx((prev) => {
       const next = (prev + 1) % STAGE_ORDER.length;

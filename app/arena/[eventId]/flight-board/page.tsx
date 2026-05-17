@@ -81,7 +81,15 @@ export default function FlightBoardPage() {
       )
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+
+    const interval = setInterval(() => {
+      fetchMatches();
+    }, 5000);
+
+    return () => { 
+      supabase.removeChannel(channel); 
+      clearInterval(interval);
+    };
   }, [eventId]);
 
   // Infinite scroll effect

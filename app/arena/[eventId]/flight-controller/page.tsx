@@ -43,6 +43,8 @@ export default function FlightControllerPage() {
 
   useEffect(() => {
     fetchMatches();
+    const interval = setInterval(fetchMatches, 3000);
+    return () => clearInterval(interval);
   }, [eventId]);
 
   const updateMatchStatus = async (matchId: string, newStatus: string, scores?: { scoreA: number, scoreB: number }) => {
