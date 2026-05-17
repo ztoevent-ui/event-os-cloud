@@ -33,8 +33,9 @@ interface CurrentLiveMatch {
   matchId: string;
   category: string;
   stage: 'Semi-Final' | 'Final';
-  scoreA: number;
   scoreB: number;
+  overallScoreA?: number;
+  overallScoreB?: number;
   team1: ClanSide;
   team2: ClanSide;
 }
@@ -274,6 +275,11 @@ function ScoreBoard({ match, visible }: { match: CurrentLiveMatch; visible: bool
               <span style={{ fontSize: '1.8vw', color: '#CCFF00', fontFamily: '"Barlow Condensed", sans-serif', letterSpacing: '0.15em', fontWeight: 700 }}>
                 {match.stage.toUpperCase()}
               </span>
+              {(match.overallScoreA !== undefined && match.overallScoreB !== undefined) && (
+                <div style={{ fontSize: '1.4vw', color: '#FFF', fontWeight: 800, marginTop: '0.2vh', marginBottom: '0.2vh', background: '#e11d48', padding: '0.2vh 1vw', borderRadius: '4px', letterSpacing: '0.05em' }}>
+                  团体总分: {match.overallScoreA} - {match.overallScoreB}
+                </div>
+              )}
               <div
                 className="px-[1.5vw] py-[0.4vh] rounded"
                 style={{ background: '#0056B3', fontSize: '2.5vw', fontWeight: 800, color: '#fff', fontFamily: '"Barlow Condensed", sans-serif', letterSpacing: '0.1em' }}
@@ -349,7 +355,7 @@ export default function MatchOverlay({ match, onStageChange }: MatchOverlayProps
     const { data, error } = await supabase
       .from('arena_matches')
       .select(`
-        id, category_code, round_type, score_a, score_b, team_a_name, team_b_name,
+        id, category_code, round_type, score_a, score_b, team_a_name, team_b_name, clan_a_id, clan_b_id,
         clan_a:arena_clans!clan_a_id(name, short_name, primary_color, secondary_color, logo_url),
         clan_b:arena_clans!clan_b_id(name, short_name, primary_color, secondary_color, logo_url)
       `)
@@ -358,12 +364,41 @@ export default function MatchOverlay({ match, onStageChange }: MatchOverlayProps
 
     if (data && !error) {
       const d = data as any;
+      
+      // Calculate overall team score
+      let overallA = 0;
+      let overallB = 0;
+      
+      if (d.clan_a_id && d.clan_b_id) {
+        const { data: allMatches } = await supabase
+          .from('arena_matches')
+          .select('winner, clan_a_id, clan_b_id')
+          .eq('tournament_id', eventId || '')
+          .eq('round_type', d.round_type)
+          .eq('status', 'COMPLETED');
+          
+        if (allMatches) {
+          allMatches.forEach(m => {
+            // Check if this match has the same two clans
+            if (m.clan_a_id === d.clan_a_id && m.clan_b_id === d.clan_b_id) {
+              if (m.winner === 'A') overallA++;
+              if (m.winner === 'B') overallB++;
+            } else if (m.clan_a_id === d.clan_b_id && m.clan_b_id === d.clan_a_id) {
+              if (m.winner === 'A') overallB++;
+              if (m.winner === 'B') overallA++;
+            }
+          });
+        }
+      }
+
       setActiveMatch({
         matchId: d.id,
         category: d.category_code,
         stage: d.round_type as any,
         scoreA: d.score_a || 0,
         scoreB: d.score_b || 0,
+        overallScoreA: overallA,
+        overallScoreB: overallB,
         team1: {
           name: d.clan_a?.name || d.team_a_name || 'TBD',
           shortName: d.clan_a?.short_name || d.team_a_name || 'TBA',
