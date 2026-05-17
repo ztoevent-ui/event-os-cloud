@@ -706,6 +706,26 @@ function ScoringScreen({
     }
   }, [match, persistScore]);
 
+  const handleResetToPending = useCallback(async () => {
+    if (!confirm("⚠️ 确定要重置并退出这场比赛吗？比分将清零并退回待开始状态！(Are you sure you want to reset this match?)")) return;
+    try {
+      await supabase.from('arena_matches').update({
+        status: 'PENDING',
+        score_a: 0,
+        score_b: 0,
+        sets_won_a: 0,
+        sets_won_b: 0,
+        current_set: 1,
+        sets_scores: [],
+        referee_name: null,
+        referee_session: null
+      }).eq('id', match.id);
+      window.location.href = `/arena/${eventId}/referee`;
+    } catch (e) {
+      console.error(e);
+    }
+  }, [match.id, eventId]);
+
   // Determine left/right teams
   const leftTeamName = match.left_team === 'A' 
     ? (match as any).clan_a?.short_name || match.team_a_name 
@@ -882,12 +902,20 @@ function ScoringScreen({
 
       {/* BOTTOM CONTROLS */}
       <div className="bg-black border-t border-white/5 px-4 py-3 flex items-center justify-between gap-4">
-        <Link
-          href={`/arena/${eventId}/referee`}
-          className="text-zinc-700 hover:text-white text-[10px] font-black uppercase tracking-widest transition-colors"
-        >
-          ← Exit
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link
+            href={`/arena/${eventId}/referee`}
+            className="text-zinc-700 hover:text-white text-[10px] font-black uppercase tracking-widest transition-colors"
+          >
+            ← Exit
+          </Link>
+          <button
+            onClick={handleResetToPending}
+            className="text-red-900 hover:text-red-500 text-[10px] font-black uppercase tracking-widest transition-colors"
+          >
+            <i className="fa-solid fa-power-off mr-1" /> 重置 (Reset)
+          </button>
+        </div>
 
         <div className="flex gap-4">
           <button
