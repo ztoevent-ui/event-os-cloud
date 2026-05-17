@@ -407,7 +407,7 @@ export default function MatchOverlay({ match, onStageChange }: MatchOverlayProps
     const { data, error } = await supabase
       .from('arena_matches')
       .select(`
-        id, category_code, round_type, score_a, score_b,
+        id, category_code, round_type, score_a, score_b, team_a_name, team_b_name,
         clan_a:arena_clans!clan_a_id(name, short_name, primary_color, secondary_color, logo_url),
         clan_b:arena_clans!clan_b_id(name, short_name, primary_color, secondary_color, logo_url)
       `)
@@ -422,19 +422,19 @@ export default function MatchOverlay({ match, onStageChange }: MatchOverlayProps
         scoreA: data.score_a || 0,
         scoreB: data.score_b || 0,
         team1: {
-          name: data.clan_a.name,
-          shortName: data.clan_a.short_name,
-          primaryColor: data.clan_a.primary_color,
-          secondaryColor: data.clan_a.secondary_color,
-          logoUrl: data.clan_a.logo_url,
+          name: data.clan_a?.name || data.team_a_name || 'TBD',
+          shortName: data.clan_a?.short_name || data.team_a_name || 'TBA',
+          primaryColor: data.clan_a?.primary_color || '#333333',
+          secondaryColor: data.clan_a?.secondary_color || '#aaaaaa',
+          logoUrl: data.clan_a?.logo_url,
           players: [], // Add real players later if available in schema
         },
         team2: {
-          name: data.clan_b.name,
-          shortName: data.clan_b.short_name,
-          primaryColor: data.clan_b.primary_color,
-          secondaryColor: data.clan_b.secondary_color,
-          logoUrl: data.clan_b.logo_url,
+          name: data.clan_b?.name || data.team_b_name || 'TBD',
+          shortName: data.clan_b?.short_name || data.team_b_name || 'TBA',
+          primaryColor: data.clan_b?.primary_color || '#333333',
+          secondaryColor: data.clan_b?.secondary_color || '#aaaaaa',
+          logoUrl: data.clan_b?.logo_url,
           players: [],
         }
       });

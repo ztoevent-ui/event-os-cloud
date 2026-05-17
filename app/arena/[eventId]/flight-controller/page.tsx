@@ -13,8 +13,10 @@ interface FlightMatch {
   category_code: string;
   score_a: number;
   score_b: number;
-  clan_a: { short_name: string; primary_color: string; secondary_color: string };
-  clan_b: { short_name: string; primary_color: string; secondary_color: string };
+  team_a_name: string;
+  team_b_name: string;
+  clan_a: { short_name: string; primary_color: string; secondary_color: string } | null;
+  clan_b: { short_name: string; primary_color: string; secondary_color: string } | null;
   created_at: string;
 }
 
@@ -27,7 +29,7 @@ export default function FlightControllerPage() {
     const { data, error } = await supabase
       .from('arena_matches')
       .select(`
-        id, status, group_id, category_code, score_a, score_b, created_at,
+        id, status, group_id, category_code, score_a, score_b, team_a_name, team_b_name, created_at,
         clan_a:arena_clans!clan_a_id(short_name, primary_color, secondary_color),
         clan_b:arena_clans!clan_b_id(short_name, primary_color, secondary_color)
       `)
@@ -99,11 +101,11 @@ export default function FlightControllerPage() {
         html: `
           <div class="flex flex-col gap-4 text-left">
             <div>
-              <label class="block font-bold mb-1">${match.clan_a.short_name} Score:</label>
+              <label class="block font-bold mb-1">${match.clan_a?.short_name || match.team_a_name} Score:</label>
               <input id="swal-input1" type="number" class="w-full border rounded p-2" value="0">
             </div>
             <div>
-              <label class="block font-bold mb-1">${match.clan_b.short_name} Score:</label>
+              <label class="block font-bold mb-1">${match.clan_b?.short_name || match.team_b_name} Score:</label>
               <input id="swal-input2" type="number" class="w-full border rounded p-2" value="0">
             </div>
           </div>
@@ -145,11 +147,11 @@ export default function FlightControllerPage() {
           html: `
             <div class="flex flex-col gap-4 text-left">
               <div>
-                <label class="block font-bold mb-1">${match.clan_a.short_name} Score:</label>
+                <label class="block font-bold mb-1">${match.clan_a?.short_name || match.team_a_name} Score:</label>
                 <input id="swal-input1" type="number" class="w-full border rounded p-2" value="${match.score_a}">
               </div>
               <div>
-                <label class="block font-bold mb-1">${match.clan_b.short_name} Score:</label>
+                <label class="block font-bold mb-1">${match.clan_b?.short_name || match.team_b_name} Score:</label>
                 <input id="swal-input2" type="number" class="w-full border rounded p-2" value="${match.score_b}">
               </div>
             </div>
@@ -216,16 +218,16 @@ export default function FlightControllerPage() {
                     <td className="p-4">Group {match.group_id}</td>
                     <td className="p-4 font-bold text-blue-800">{match.category_code}</td>
                     
-                    <td className="p-4 text-right font-bold" style={{ color: match.clan_a.primary_color }}>
-                      {match.clan_a.short_name}
+                    <td className="p-4 text-right font-bold" style={{ color: match.clan_a?.primary_color || '#333' }}>
+                      {match.clan_a?.short_name || match.team_a_name || 'TBD'}
                     </td>
                     
                     <td className="p-4 text-center font-bold text-lg">
                       {match.status === 'COMPLETED' ? `${match.score_a} - ${match.score_b}` : '-'}
                     </td>
                     
-                    <td className="p-4 font-bold" style={{ color: match.clan_b.primary_color }}>
-                      {match.clan_b.short_name}
+                    <td className="p-4 font-bold" style={{ color: match.clan_b?.primary_color || '#333' }}>
+                      {match.clan_b?.short_name || match.team_b_name || 'TBD'}
                     </td>
                     
                     <td className="p-4">
