@@ -5,6 +5,14 @@ import { motion, AnimatePresence, useAnimationControls } from 'framer-motion';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 
+const CATEGORY_MAP: Record<string, string> = {
+  'MD1': "Men's Doubles 1",
+  'WD': "Women's Doubles",
+  'XD': "Mixed Doubles",
+  'V': "Veteran's Doubles",
+  'MD2': "Men's Doubles 2"
+};
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 export type MatchOverlayStage =
   | 'EMPTY_VS'
@@ -239,41 +247,6 @@ function ClanPanel({
                 {clan.shortName}
               </p>
             </motion.div>
-
-            {/* Full clan name */}
-            <motion.p
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.45, duration: 0.4 }}
-              style={{
-                fontSize: '1.6vw', color: '#ffffffcc',
-                fontFamily: '"Noto Serif SC", serif',
-                letterSpacing: '0.05em',
-              }}
-            >
-              {clan.name}
-            </motion.p>
-
-            {/* Players list */}
-            <div className="flex flex-col gap-[0.5vh]">
-              {clan.players.map((player, i) => (
-                <motion.div
-                  key={player}
-                  initial={{ opacity: 0, x: isLeft ? -40 : 40 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.55 + i * 0.12, duration: 0.4 }}
-                  className={`flex items-center gap-[0.8vw] ${isLeft ? '' : 'flex-row-reverse'}`}
-                >
-                  <div className="w-[0.5vw] h-[0.5vw] rounded-full" style={{ background: clan.primaryColor }} />
-                  <span style={{
-                    fontSize: '1.4vw', color: '#ffffffdd',
-                    fontFamily: '"Barlow", sans-serif', fontWeight: 500,
-                  }}>
-                    {player}
-                  </span>
-                </motion.div>
-              ))}
-            </div>
           </div>
         </motion.div>
       )}
@@ -309,9 +282,6 @@ function ScoreBoard({ match, visible }: { match: CurrentLiveMatch; visible: bool
                 <span style={{ fontSize: '1.4vw', color: match.team1.secondaryColor, fontFamily: '"Barlow Condensed", sans-serif', letterSpacing: '0.1em', fontWeight: 700 }}>
                   {match.team1.shortName}
                 </span>
-                <span style={{ fontSize: '0.95vw', color: '#aaa', fontFamily: '"Noto Serif SC", serif' }}>
-                  {match.team1.name}
-                </span>
               </div>
               <motion.span
                 key={match.scoreA}
@@ -333,7 +303,7 @@ function ScoreBoard({ match, visible }: { match: CurrentLiveMatch; visible: bool
                 className="px-[1.5vw] py-[0.4vh] rounded"
                 style={{ background: '#0056B3', fontSize: '1.6vw', fontWeight: 800, color: '#fff', fontFamily: '"Barlow Condensed", sans-serif', letterSpacing: '0.1em' }}
               >
-                {match.category}
+                {CATEGORY_MAP[match.category] || match.category}
               </div>
               <span style={{ fontSize: '0.9vw', color: '#ffffff88', fontFamily: 'sans-serif' }}>
                 民都鲁省姓氏匹克球锦标赛 2026
@@ -345,9 +315,6 @@ function ScoreBoard({ match, visible }: { match: CurrentLiveMatch; visible: bool
               <div className="flex flex-col items-end">
                 <span style={{ fontSize: '1.4vw', color: match.team2.secondaryColor, fontFamily: '"Barlow Condensed", sans-serif', letterSpacing: '0.1em', fontWeight: 700 }}>
                   {match.team2.shortName}
-                </span>
-                <span style={{ fontSize: '0.95vw', color: '#aaa', fontFamily: '"Noto Serif SC", serif' }}>
-                  {match.team2.name}
                 </span>
               </div>
               <motion.span
@@ -611,7 +578,7 @@ export default function MatchOverlay({ match, onStageChange }: MatchOverlayProps
             >
               <div className="px-[2vw] py-[0.8vh] rounded" style={{ background: '#0056B3', border: '2px solid #4D9FFF' }}>
                 <span style={{ fontSize: '2.2vw', fontWeight: 900, color: '#fff', fontFamily: '"Barlow Condensed", sans-serif', letterSpacing: '0.1em' }}>
-                  {liveMatch.category}
+                  {CATEGORY_MAP[liveMatch.category] || liveMatch.category}
                 </span>
               </div>
               <span style={{ fontSize: '1.1vw', color: '#ffffff99', letterSpacing: '0.1em', fontFamily: '"Barlow Condensed", sans-serif' }}>
