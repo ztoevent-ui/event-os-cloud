@@ -50,7 +50,11 @@ function MatchSelector({
 
       const { data } = await supabase
         .from('arena_matches')
-        .select('*')
+        .select(`
+          *,
+          clan_a:arena_clans!clan_a_id(short_name),
+          clan_b:arena_clans!clan_b_id(short_name)
+        `)
         .eq('tournament_id', t.id)
         .in('status', ['PENDING', 'LIVE'])
         .neq('round_type', 'GROUP')
@@ -163,16 +167,16 @@ function MatchSelector({
               >
                 <div className="flex items-center justify-between mb-2">
                   <span className={`text-[10px] font-black uppercase tracking-widest border rounded-lg px-2 py-1 ${roundColors[match.round_type] || 'text-zinc-400 border-white/10'}`}>
-                    {match.round_type} {match.court_number ? `• Court ${match.court_number}` : ''}
+                    {match.round_type} {match.category_code ? `• ${match.category_code}` : ''} {match.court_number ? `• Court ${match.court_number}` : ''}
                   </span>
                   <span className={`text-[10px] font-black uppercase tracking-widest ${match.status === 'LIVE' ? 'text-red-500' : 'text-zinc-600'}`}>
                     {match.status === 'LIVE' ? '🔴 LIVE' : 'PENDING'}
                   </span>
                 </div>
                 <div className="flex items-center gap-4">
-                  <span className="font-black text-white text-base flex-1 truncate">{match.team_a_name}</span>
+                  <span className="font-black text-white text-base flex-1 truncate">{(match as any).clan_a?.short_name || match.team_a_name || 'TBD'}</span>
                   <span className="text-zinc-600 font-black text-xs">VS</span>
-                  <span className="font-black text-white text-base flex-1 truncate text-right">{match.team_b_name}</span>
+                  <span className="font-black text-white text-base flex-1 truncate text-right">{(match as any).clan_b?.short_name || match.team_b_name || 'TBD'}</span>
                 </div>
                 <div className="mt-3 text-[10px] font-black text-blue-500 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
                   Tap to claim this match →
