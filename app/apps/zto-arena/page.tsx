@@ -42,6 +42,7 @@ const FORMAT_OPTIONS = [
 ];
 
 const MODULES = [
+  { title: 'Flight Controller',    desc: 'Airport-style match calling & real-time screen projection.', path: '/flight-controller', icon: 'fa-plane-departure', color: '#a3e635' },
   { title: 'Master Console',       desc: 'OBS-style studio for big-screen stream control.', path: '/admin',           icon: 'fa-tv',                color: '#0056B3' },
   { title: 'Tournament Architect', desc: 'Configure round rules & scoring logic.',           path: '/architect',       icon: 'fa-wrench',            color: '#0056B3' },
   { title: 'Referee Panel',        desc: 'Simplified scoring engine for match officials.',    path: '/referee',         icon: 'fa-eye',               color: '#0056B3' },
