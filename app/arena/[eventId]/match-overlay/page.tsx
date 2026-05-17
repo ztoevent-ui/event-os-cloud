@@ -205,31 +205,6 @@ function ClanPanel({
           {/* Content */}
           <div className={`relative z-10 flex flex-col ${isLeft ? 'items-start pl-[8%]' : 'items-end pr-[8%]'} gap-[1.5vh]`}>
 
-            {/* Clan logo placeholder / initial badge */}
-            <motion.div
-              initial={{ scale: 0, rotate: isLeft ? -30 : 30 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ delay: 0.2, type: 'spring', damping: 14, stiffness: 120 }}
-              className="flex items-center justify-center rounded-full shadow-2xl"
-              style={{
-                width: '12vw', height: '12vw',
-                background: `radial-gradient(circle at 35% 35%, ${clan.secondaryColor}, ${clan.primaryColor})`,
-                boxShadow: `0 0 60px ${clan.primaryColor}99, 0 0 120px ${clan.primaryColor}44`,
-                border: `4px solid ${clan.secondaryColor}`,
-              }}
-            >
-              {clan.logoUrl ? (
-                <img src={clan.logoUrl} alt={clan.shortName} className="w-[80%] h-[80%] object-contain" />
-              ) : (
-                <span style={{
-                  fontSize: '3.5vw', fontWeight: 900, color: '#fff',
-                  fontFamily: '"Noto Serif SC", serif',
-                  textShadow: '0 2px 12px rgba(0,0,0,0.6)',
-                }}>
-                  {clan.name.charAt(0)}
-                </span>
-              )}
-            </motion.div>
 
             {/* Short name */}
             <motion.div
@@ -238,7 +213,7 @@ function ClanPanel({
               transition={{ delay: 0.35, duration: 0.5 }}
             >
               <p style={{
-                fontSize: '5.5vw', fontWeight: 900, letterSpacing: '0.08em',
+                fontSize: '12vw', fontWeight: 900, letterSpacing: '0.08em',
                 color: clan.secondaryColor,
                 fontFamily: '"Barlow Condensed", Impact, sans-serif',
                 lineHeight: 1,
@@ -273,13 +248,13 @@ function ScoreBoard({ match, visible }: { match: CurrentLiveMatch; visible: bool
             style={{
               background: 'linear-gradient(180deg, rgba(5,10,30,0.98) 0%, rgba(5,10,30,0.85) 100%)',
               borderBottom: '3px solid #CCFF00',
-              minHeight: '14vh',
+              minHeight: '22vh',
             }}
           >
             {/* Team A score block */}
             <div className="flex-1 flex items-center justify-center gap-[2vw] pl-[3vw]">
               <div className="flex flex-col items-start">
-                <span style={{ fontSize: '1.4vw', color: match.team1.secondaryColor, fontFamily: '"Barlow Condensed", sans-serif', letterSpacing: '0.1em', fontWeight: 700 }}>
+                <span style={{ fontSize: '3.5vw', color: match.team1.secondaryColor, fontFamily: '"Barlow Condensed", sans-serif', letterSpacing: '0.1em', fontWeight: 700 }}>
                   {match.team1.shortName}
                 </span>
               </div>
@@ -288,7 +263,7 @@ function ScoreBoard({ match, visible }: { match: CurrentLiveMatch; visible: bool
                 initial={{ scale: 1.6, color: '#CCFF00' }}
                 animate={{ scale: 1, color: '#ffffff' }}
                 transition={{ duration: 0.35, type: 'spring' }}
-                style={{ fontSize: '7vw', fontWeight: 900, lineHeight: 1, fontFamily: '"Barlow Condensed", Impact, sans-serif' }}
+                style={{ fontSize: '14vw', fontWeight: 900, lineHeight: 1, fontFamily: '"Barlow Condensed", Impact, sans-serif' }}
               >
                 {match.scoreA}
               </motion.span>
@@ -296,12 +271,12 @@ function ScoreBoard({ match, visible }: { match: CurrentLiveMatch; visible: bool
 
             {/* Centre info */}
             <div className="flex flex-col items-center justify-center px-[3vw] gap-[0.5vh]">
-              <span style={{ fontSize: '1.1vw', color: '#CCFF00', fontFamily: '"Barlow Condensed", sans-serif', letterSpacing: '0.15em', fontWeight: 700 }}>
+              <span style={{ fontSize: '1.8vw', color: '#CCFF00', fontFamily: '"Barlow Condensed", sans-serif', letterSpacing: '0.15em', fontWeight: 700 }}>
                 {match.stage.toUpperCase()}
               </span>
               <div
                 className="px-[1.5vw] py-[0.4vh] rounded"
-                style={{ background: '#0056B3', fontSize: '1.6vw', fontWeight: 800, color: '#fff', fontFamily: '"Barlow Condensed", sans-serif', letterSpacing: '0.1em' }}
+                style={{ background: '#0056B3', fontSize: '2.5vw', fontWeight: 800, color: '#fff', fontFamily: '"Barlow Condensed", sans-serif', letterSpacing: '0.1em' }}
               >
                 {CATEGORY_MAP[match.category] || match.category}
               </div>
@@ -313,7 +288,7 @@ function ScoreBoard({ match, visible }: { match: CurrentLiveMatch; visible: bool
             {/* Team B score block */}
             <div className="flex-1 flex items-center justify-center gap-[2vw] flex-row-reverse pr-[3vw]">
               <div className="flex flex-col items-end">
-                <span style={{ fontSize: '1.4vw', color: match.team2.secondaryColor, fontFamily: '"Barlow Condensed", sans-serif', letterSpacing: '0.1em', fontWeight: 700 }}>
+                <span style={{ fontSize: '3.5vw', color: match.team2.secondaryColor, fontFamily: '"Barlow Condensed", sans-serif', letterSpacing: '0.1em', fontWeight: 700 }}>
                   {match.team2.shortName}
                 </span>
               </div>
@@ -322,7 +297,7 @@ function ScoreBoard({ match, visible }: { match: CurrentLiveMatch; visible: bool
                 initial={{ scale: 1.6, color: '#CCFF00' }}
                 animate={{ scale: 1, color: '#ffffff' }}
                 transition={{ duration: 0.35, type: 'spring' }}
-                style={{ fontSize: '7vw', fontWeight: 900, lineHeight: 1, fontFamily: '"Barlow Condensed", Impact, sans-serif' }}
+                style={{ fontSize: '14vw', fontWeight: 900, lineHeight: 1, fontFamily: '"Barlow Condensed", Impact, sans-serif' }}
               >
                 {match.scoreB}
               </motion.span>
@@ -574,11 +549,11 @@ export default function MatchOverlay({ match, onStageChange }: MatchOverlayProps
               transition={{ type: 'spring', damping: 16 }}
             >
               <div className="px-[2vw] py-[0.8vh] rounded" style={{ background: '#0056B3', border: '2px solid #4D9FFF' }}>
-                <span style={{ fontSize: '2.2vw', fontWeight: 900, color: '#fff', fontFamily: '"Barlow Condensed", sans-serif', letterSpacing: '0.1em' }}>
+                <span style={{ fontSize: '3.5vw', fontWeight: 900, color: '#fff', fontFamily: '"Barlow Condensed", sans-serif', letterSpacing: '0.1em' }}>
                   {CATEGORY_MAP[liveMatch.category] || liveMatch.category}
                 </span>
               </div>
-              <span style={{ fontSize: '1.1vw', color: '#ffffff99', letterSpacing: '0.1em', fontFamily: '"Barlow Condensed", sans-serif' }}>
+              <span style={{ fontSize: '1.8vw', color: '#ffffff99', letterSpacing: '0.1em', fontFamily: '"Barlow Condensed", sans-serif' }}>
                 {liveMatch.stage.toUpperCase()}
               </span>
             </motion.div>
