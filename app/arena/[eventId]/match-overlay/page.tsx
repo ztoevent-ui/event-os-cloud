@@ -342,12 +342,12 @@ function StageHint({ stage }: { stage: MatchOverlayStage }) {
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
-export default function MatchOverlay({ match, onStageChange }: MatchOverlayProps) {
+export default function MatchOverlayPage() {
   const params = useParams();
   const eventId = params?.eventId as string | undefined;
 
   const [activeMatch, setActiveMatch] = useState<CurrentLiveMatch | null>(null);
-  const liveMatch = match ?? activeMatch ?? DEMO_MATCH;
+  const liveMatch = activeMatch ?? DEMO_MATCH;
   const [stageIdx, setStageIdx] = useState(0);
   const stage = STAGE_ORDER[stageIdx];
 
@@ -471,10 +471,9 @@ export default function MatchOverlay({ match, onStageChange }: MatchOverlayProps
   const advance = useCallback(() => {
     setStageIdx((prev) => {
       const next = (prev + 1) % STAGE_ORDER.length;
-      onStageChange?.(STAGE_ORDER[next]);
       return next;
     });
-  }, [onStageChange]);
+  }, []);
 
   // Keyboard listener (Space → advance)
   useEffect(() => {
