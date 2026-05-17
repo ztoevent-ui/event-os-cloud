@@ -32,7 +32,7 @@ function getStatusColor(status: string) {
 function getStatusLabel(status: string) {
   switch (status.toUpperCase()) {
     case 'PENDING': return 'WAITING';
-    case 'CALLING': return 'PLEASE PROCEED TO COURT';
+    case 'CALLING': return 'PLEASE PROCEED TO COURT 3';
     case 'LIVE': return 'IN PROGRESS';
     case 'COMPLETED': return 'FINAL';
     default: return status.toUpperCase();

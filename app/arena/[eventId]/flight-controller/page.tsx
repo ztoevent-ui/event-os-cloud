@@ -171,7 +171,7 @@ export default function FlightControllerPage() {
 
   const getButtonConfig = (status: string) => {
     switch (status) {
-      case 'PENDING': return { text: 'Call to Court', class: 'bg-yellow-500 hover:bg-yellow-600 text-white' };
+      case 'PENDING': return { text: 'Call to Court 3', class: 'bg-yellow-500 hover:bg-yellow-600 text-white' };
       case 'CALLING': return { text: 'Start Match', class: 'bg-green-500 hover:bg-green-600 text-white' };
       case 'LIVE': return { text: 'Finish & Score', class: 'bg-blue-600 hover:bg-blue-700 text-white animate-pulse' };
       case 'COMPLETED': return { text: 'Done (Click to Edit)', class: 'bg-gray-300 hover:bg-gray-400 text-gray-800' };
