@@ -669,6 +669,17 @@ function ScoringScreen({
     window.location.href = `/arena/${eventId}/referee`;
   }, [match.id, match.winner, eventId]);
 
+  const handleSwapServer = useCallback(() => {
+    if (match.score_a === 0 && match.score_b === 0) {
+      const newServer = match.server === 'A' ? 'B' : 'A';
+      const updatedMatch = { ...match, server: newServer };
+      setMatch(updatedMatch);
+      persistScore(updatedMatch, 'SWAP_SERVER');
+    } else {
+      alert("发球方只能在 0-0 时更改！(Can only swap server at 0-0)");
+    }
+  }, [match, persistScore]);
+
   // Determine left/right teams
   const leftTeam = match.left_team === 'A' ? match.team_a_name : match.team_b_name;
   const rightTeam = match.left_team === 'A' ? match.team_b_name : match.team_a_name;
@@ -779,7 +790,9 @@ function ScoringScreen({
           )}
 
           <div className="text-center pointer-events-none">
-            <div className="text-blue-300 font-black text-base uppercase tracking-widest mb-2 max-w-[160px] line-clamp-2">{leftTeam}</div>
+            <div className="text-blue-300 font-black text-base uppercase tracking-widest mb-2 max-w-[160px] line-clamp-2">
+              {match.category_code} / 左侧
+            </div>
             <div className="text-[clamp(80px,20vw,160px)] font-black leading-none tabular-nums text-white">
               {leftScore}
             </div>
@@ -824,7 +837,9 @@ function ScoringScreen({
           )}
 
           <div className="text-center pointer-events-none">
-            <div className="text-red-300 font-black text-base uppercase tracking-widest mb-2 max-w-[160px] line-clamp-2">{rightTeam}</div>
+            <div className="text-red-300 font-black text-base uppercase tracking-widest mb-2 max-w-[160px] line-clamp-2">
+              {match.category_code} / 右侧
+            </div>
             <div className="text-[clamp(80px,20vw,160px)] font-black leading-none tabular-nums text-white">
               {rightScore}
             </div>
@@ -842,12 +857,21 @@ function ScoringScreen({
           ← Exit
         </Link>
 
-        <button
-          onClick={() => setShowPenaltyModal(true)}
-          className="text-zinc-600 hover:text-white text-[10px] font-black uppercase tracking-widest transition-colors"
-        >
-          <i className="fa-solid fa-ellipsis-vertical mr-2" /> Actions
-        </button>
+        <div className="flex gap-6">
+          <button
+            onClick={handleSwapServer}
+            className="text-zinc-600 hover:text-white text-[10px] font-black uppercase tracking-widest transition-colors"
+          >
+            <i className="fa-solid fa-exchange-alt mr-2" /> 换发球 (Swap)
+          </button>
+
+          <button
+            onClick={() => setShowPenaltyModal(true)}
+            className="text-zinc-600 hover:text-white text-[10px] font-black uppercase tracking-widest transition-colors"
+          >
+            <i className="fa-solid fa-ellipsis-vertical mr-2" /> Actions
+          </button>
+        </div>
 
         <div className="text-center">
           <div className="text-[10px] text-zinc-700 uppercase font-black tracking-widest">
