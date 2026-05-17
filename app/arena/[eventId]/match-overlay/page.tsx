@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { motion, AnimatePresence, useAnimationControls } from 'framer-motion';
+import { useParams } from 'next/navigation';
+import { supabase } from '@/lib/supabaseClient';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export type MatchOverlayStage =
@@ -20,9 +22,11 @@ interface ClanSide {
 }
 
 interface CurrentLiveMatch {
-  matchId: number;
+  matchId: string;
   category: string;
   stage: 'Semi-Final' | 'Final';
+  scoreA: number;
+  scoreB: number;
   team1: ClanSide;
   team2: ClanSide;
 }
@@ -39,9 +43,11 @@ const STAGE_ORDER: MatchOverlayStage[] = [
 
 // ─── Demo data (used when no match prop is passed) ────────────────────────────
 const DEMO_MATCH: CurrentLiveMatch = {
-  matchId: 1,
+  matchId: 'demo-uuid-1234',
   category: 'MD1',
   stage: 'Semi-Final',
+  scoreA: 0,
+  scoreB: 0,
   team1: {
     name: '陈氏公会',
     shortName: 'CHAN',
@@ -277,9 +283,6 @@ function ClanPanel({
 
 /** Score board overlay */
 function ScoreBoard({ match, visible }: { match: CurrentLiveMatch; visible: boolean }) {
-  const [scoreA, setScoreA] = useState(0);
-  const [scoreB, setScoreB] = useState(0);
-
   return (
     <AnimatePresence>
       {visible && (
@@ -311,13 +314,13 @@ function ScoreBoard({ match, visible }: { match: CurrentLiveMatch; visible: bool
                 </span>
               </div>
               <motion.span
-                key={scoreA}
+                key={match.scoreA}
                 initial={{ scale: 1.6, color: '#CCFF00' }}
                 animate={{ scale: 1, color: '#ffffff' }}
                 transition={{ duration: 0.35, type: 'spring' }}
                 style={{ fontSize: '7vw', fontWeight: 900, lineHeight: 1, fontFamily: '"Barlow Condensed", Impact, sans-serif' }}
               >
-                {scoreA}
+                {match.scoreA}
               </motion.span>
             </div>
 
@@ -348,21 +351,16 @@ function ScoreBoard({ match, visible }: { match: CurrentLiveMatch; visible: bool
                 </span>
               </div>
               <motion.span
-                key={scoreB}
+                key={match.scoreB}
                 initial={{ scale: 1.6, color: '#CCFF00' }}
                 animate={{ scale: 1, color: '#ffffff' }}
                 transition={{ duration: 0.35, type: 'spring' }}
                 style={{ fontSize: '7vw', fontWeight: 900, lineHeight: 1, fontFamily: '"Barlow Condensed", Impact, sans-serif' }}
               >
-                {scoreB}
+                {match.scoreB}
               </motion.span>
             </div>
           </div>
-
-          {/* Debug hint for demo */}
-          <p className="mt-[1vh] text-[#ffffff44] text-[1vw]" style={{ fontFamily: 'monospace' }}>
-            [LIVE SCORE BOARD — awaiting referee input]
-          </p>
         </motion.div>
       )}
     </AnimatePresence>
@@ -397,9 +395,91 @@ function StageHint({ stage }: { stage: MatchOverlayStage }) {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function MatchOverlay({ match, onStageChange }: MatchOverlayProps) {
-  const liveMatch = match ?? DEMO_MATCH;
+  const params = useParams();
+  const eventId = params?.eventId as string | undefined;
+
+  const [activeMatch, setActiveMatch] = useState<CurrentLiveMatch | null>(null);
+  const liveMatch = match ?? activeMatch ?? DEMO_MATCH;
   const [stageIdx, setStageIdx] = useState(0);
   const stage = STAGE_ORDER[stageIdx];
+
+  const fetchLiveMatch = async (matchId: string) => {
+    const { data, error } = await supabase
+      .from('arena_matches')
+      .select(`
+        id, category_code, round_type, score_a, score_b,
+        clan_a:arena_clans!clan_a_id(name, short_name, primary_color, secondary_color, logo_url),
+        clan_b:arena_clans!clan_b_id(name, short_name, primary_color, secondary_color, logo_url)
+      `)
+      .eq('id', matchId)
+      .single();
+
+    if (data && !error) {
+      setActiveMatch({
+        matchId: data.id,
+        category: data.category_code,
+        stage: data.round_type as any,
+        scoreA: data.score_a || 0,
+        scoreB: data.score_b || 0,
+        team1: {
+          name: data.clan_a.name,
+          shortName: data.clan_a.short_name,
+          primaryColor: data.clan_a.primary_color,
+          secondaryColor: data.clan_a.secondary_color,
+          logoUrl: data.clan_a.logo_url,
+          players: [], // Add real players later if available in schema
+        },
+        team2: {
+          name: data.clan_b.name,
+          shortName: data.clan_b.short_name,
+          primaryColor: data.clan_b.primary_color,
+          secondaryColor: data.clan_b.secondary_color,
+          logoUrl: data.clan_b.logo_url,
+          players: [],
+        }
+      });
+      // Optionally reset stage when a new match is shown:
+      // setStageIdx(0); 
+    }
+  };
+
+  useEffect(() => {
+    if (!eventId) return;
+
+    const fetchCurrentControl = async () => {
+      const { data } = await supabase
+        .from('arena_live_controls')
+        .select('command, preset_name')
+        .eq('tournament_id', eventId)
+        .single();
+      if (data && data.command === 'SHOW_MATCH' && data.preset_name) {
+        fetchLiveMatch(data.preset_name);
+      }
+    };
+    fetchCurrentControl();
+
+    const channel = supabase
+      .channel('match_overlay_controls')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'arena_live_controls', filter: `tournament_id=eq.${eventId}` }, (payload) => {
+        const d = payload.new as any;
+        if (d && d.command === 'SHOW_MATCH' && d.preset_name) {
+          fetchLiveMatch(d.preset_name);
+        }
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'arena_matches', filter: `tournament_id=eq.${eventId}` }, (payload) => {
+        // If the updated match is the currently active one, re-fetch it to get the latest score
+        const updatedMatch = payload.new as any;
+        setActiveMatch(prev => {
+          if (prev && prev.matchId === updatedMatch.id) {
+            fetchLiveMatch(updatedMatch.id);
+          }
+          return prev;
+        });
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [eventId]);
 
   const advance = useCallback(() => {
     setStageIdx((prev) => {

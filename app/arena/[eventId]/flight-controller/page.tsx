@@ -64,6 +64,29 @@ export default function FlightControllerPage() {
     }
   };
 
+  const pushToScreen = async (matchId: string) => {
+    const { error } = await supabase
+      .from('arena_live_controls')
+      .upsert({
+        tournament_id: eventId,
+        command: 'SHOW_MATCH',
+        preset_name: matchId
+      }, { onConflict: 'tournament_id' });
+      
+    if (error) {
+      Swal.fire('Error', error.message, 'error');
+    } else {
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'success',
+        title: 'Pushed to Live Screen!',
+        showConfirmButton: false,
+        timer: 2000
+      });
+    }
+  };
+
   const handleStatusChange = async (match: FlightMatch) => {
     if (match.status === 'PENDING') {
       await updateMatchStatus(match.id, 'CALLING');
@@ -166,6 +189,9 @@ export default function FlightControllerPage() {
             <a href={`/arena/${eventId}/flight-board`} target="_blank" className="px-4 py-2 bg-black text-[#CCFF00] rounded font-bold shadow hover:bg-gray-800 transition">
               Open Flight Board <i className="fa-solid fa-external-link-alt ml-2"></i>
             </a>
+            <a href={`/arena/${eventId}/match-overlay`} target="_blank" className="px-4 py-2 bg-blue-900 text-white rounded font-bold shadow hover:bg-blue-800 transition">
+              Open Overlay <i className="fa-solid fa-desktop ml-2"></i>
+            </a>
           </div>
         </div>
 
@@ -213,12 +239,19 @@ export default function FlightControllerPage() {
                       </span>
                     </td>
                     
-                    <td className="p-4 text-right">
+                    <td className="p-4 text-right flex justify-end gap-2">
                       <button 
                         onClick={() => handleStatusChange(match)}
                         className={`px-4 py-2 rounded shadow-sm text-sm font-bold transition-transform active:scale-95 ${btn.class}`}
                       >
                         {btn.text}
+                      </button>
+                      <button 
+                        onClick={() => pushToScreen(match.id)}
+                        className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded shadow-sm text-sm font-bold transition-transform active:scale-95"
+                        title="Push to Overlay Screen"
+                      >
+                        <i className="fa-solid fa-tv"></i> 投屏
                       </button>
                     </td>
                   </tr>
