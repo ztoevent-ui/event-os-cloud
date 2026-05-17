@@ -57,7 +57,7 @@ function MatchSelector({
         `)
         .eq('tournament_id', t.id)
         .in('status', ['PENDING', 'LIVE'])
-        .in('round_type', ['FINALS', 'THIRD_PLACE'])
+        .eq('round_type', 'FINALS')
         .order('bracket_match_id', { ascending: true }) // group by tie instance
         .order('created_at', { ascending: true })   // follow the creation order
         .order('court_number', { ascending: true });

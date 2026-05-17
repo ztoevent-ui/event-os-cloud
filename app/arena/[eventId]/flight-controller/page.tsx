@@ -34,7 +34,7 @@ export default function FlightControllerPage() {
         clan_b:arena_clans!clan_b_id(short_name, primary_color, secondary_color)
       `)
       .eq('tournament_id', eventId)
-      .in('round_type', ['FINALS', 'THIRD_PLACE'])
+      .eq('round_type', 'FINALS')
       .order('created_at', { ascending: true });
 
     if (error) console.error(error);
