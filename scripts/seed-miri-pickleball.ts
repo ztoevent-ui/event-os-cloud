@@ -24,6 +24,8 @@ const TOURNAMENT = {
   status: 'GROUP_STAGE',
   format: 'TIE_TEAM',
   current_round: 'GROUP',
+  sport_type: 'PICKLEBALL',
+  event_id_slug: 'bintulu-pickleball-2026',
 };
 
 // ── Match categories — Tie order: MD1 → WD → XD → V → MD2 ───────────────────
