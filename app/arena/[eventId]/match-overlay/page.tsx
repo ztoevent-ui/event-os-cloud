@@ -486,14 +486,13 @@ export default function MatchOverlayPage() {
         e.preventDefault();
         setStageIdx((prev) => {
           const next = (prev - 1 + STAGE_ORDER.length) % STAGE_ORDER.length;
-          onStageChange?.(STAGE_ORDER[next]);
           return next;
         });
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [advance, onStageChange]);
+  }, [advance]);
 
   const showLeft  = stage === 'LEFT_PLAYER'  || stage === 'RIGHT_PLAYER' || stage === 'SCORE_BOARD';
   const showRight = stage === 'RIGHT_PLAYER' || stage === 'SCORE_BOARD';
