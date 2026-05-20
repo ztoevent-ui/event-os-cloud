@@ -39,6 +39,7 @@ function MatchSelector({
   const [tName, setTName] = useState('');
 
   useEffect(() => {
+    async function load() {
       // Get tournament id and name from slug
       const { data: t } = await supabase
         .from('arena_tournaments')
