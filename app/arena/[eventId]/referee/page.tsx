@@ -816,156 +816,226 @@ function ScoringScreen({
         </div>
       )}
 
-      {/* MAIN SCORING AREA — Responsive stacking */}
-      <div className="flex-1 flex flex-col md:flex-row">
-        {/* LEFT SIDE */}
+      {/* MAIN SCORING AREA — Bold mobile-first split */}
+      <div className="flex-1 flex flex-col md:flex-row min-h-0">
+
+        {/* ── TOP / LEFT TEAM ── */}
         <button
           id="btn-score-left"
           disabled={scoringFrozen}
           onClick={() => handleScore('LEFT')}
-          className="flex-1 flex flex-col items-center justify-center gap-2 md:gap-4 bg-blue-950/30 active:bg-blue-900/50 active:scale-[0.98] transition-all border-b-4 md:border-b-0 md:border-r-4 border-white/5 relative group disabled:opacity-50"
-          style={{ WebkitTapHighlightColor: 'transparent' }}
+          className="flex-1 relative flex flex-col items-center justify-center overflow-hidden disabled:opacity-40"
+          style={{
+            WebkitTapHighlightColor: 'transparent',
+            background: 'linear-gradient(160deg, #0a1628 0%, #0d1f3c 100%)',
+            borderBottom: '2px solid rgba(255,255,255,0.04)',
+          }}
         >
-          {/* Server indicator */}
+          {/* Ambient glow on tap */}
+          <div className="absolute inset-0 bg-blue-500/0 group-active:bg-blue-500/10 transition-colors pointer-events-none" />
+
+          {/* SERVING badge — bold pill top-center */}
           {rule.scoring_type === 'SIDE_OUT' && isLeftServing && (
-            <div className="absolute top-4 left-4 bg-white text-black px-3 py-1 rounded-lg font-black text-[10px] uppercase tracking-widest shadow-lg">
-              <i className="fa-solid fa-circle-dot mr-1" /> Serving
+            <div className="absolute top-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-4 py-1.5 rounded-full font-black text-[11px] uppercase tracking-widest shadow-lg"
+              style={{ background: 'linear-gradient(90deg,#fff 0%,#ddd 100%)', color: '#000', boxShadow: '0 0 20px rgba(255,255,255,0.4)' }}>
+              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              Serving
             </div>
           )}
-          {/* Sets won dots */}
+
+          {/* Sets won pips */}
           {rule.max_sets > 1 && (
-            <div className="absolute top-4 right-4 flex gap-1.5">
+            <div className="absolute top-3 right-4 flex gap-2">
               {Array.from({ length: rule.sets_to_win }).map((_, i) => (
-                <div key={i} className={`w-3 h-3 rounded-full border-2 ${i < leftSetsWon ? 'bg-blue-400 border-blue-400' : 'border-zinc-700'}`} />
+                <div key={i} className={`w-2.5 h-2.5 rounded-full border-2 transition-all ${i < leftSetsWon ? 'bg-blue-400 border-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.8)]' : 'border-zinc-700'}`} />
               ))}
             </div>
           )}
 
-          <div className="text-center pointer-events-none">
-            <div className="text-blue-300 font-black text-[1.5rem] uppercase tracking-widest mb-2 max-w-[160px] line-clamp-2">
-              {match.category_code} / {leftTeamName}
-            </div>
-            <div className="text-[clamp(60px,15vh,160px)] md:text-[clamp(80px,20vw,160px)] font-black leading-none tabular-nums text-white">
-              {leftScore}
-            </div>
-            <div className="text-blue-500/50 text-sm font-bold uppercase tracking-widest mt-1 md:mt-2 opacity-0 group-active:opacity-100 transition-opacity">+1</div>
+          {/* Team label */}
+          <div className="text-blue-300/80 font-black text-sm md:text-base uppercase tracking-[0.2em] mb-1 pointer-events-none">
+            {leftTeamName}
+          </div>
+          <div className="text-[10px] text-blue-500/50 font-black uppercase tracking-[0.3em] mb-3 pointer-events-none">
+            {match.category_code}
+          </div>
+
+          {/* Giant score */}
+          <div
+            className="font-black leading-none tabular-nums pointer-events-none select-none"
+            style={{ fontSize: 'clamp(72px, 18vh, 160px)', color: '#fff', textShadow: '0 0 60px rgba(96,165,250,0.3)' }}
+          >
+            {leftScore}
+          </div>
+
+          {/* Tap flash */}
+          <div className="text-blue-400 text-xs font-black uppercase tracking-[0.3em] mt-3 opacity-0 active:opacity-100 transition-opacity pointer-events-none">
+            +1 POINT
           </div>
         </button>
 
-        {/* CENTRE STRIP */}
-        <div className="h-10 md:h-auto w-full md:w-20 flex flex-row md:flex-col items-center justify-between px-6 md:px-0 py-0 md:py-4 bg-zinc-950 border-y md:border-y-0 md:border-x border-white/5 z-10 shrink-0">
-          <div className="text-zinc-800 font-black text-[10px] uppercase tracking-widest md:writing-mode-vertical md:rotate-180">
-            {rule.max_points} pts
-          </div>
-          <div className="text-center flex flex-row md:flex-col items-center gap-2 md:gap-0">
-            <div className="text-zinc-700 font-black text-sm md:text-lg">VS</div>
-            <div className="text-[10px] text-zinc-800 font-black md:mt-1">{rule.win_by > 1 ? `Win by ${rule.win_by}` : ''}</div>
-          </div>
-          <div className="text-zinc-800 font-black text-[10px] uppercase tracking-widest">
-            {rule.scoring_type === 'RALLY' ? '⚡' : '🏓'}
-          </div>
+        {/* ── DIVIDER STRIP ── */}
+        <div className="flex flex-row md:flex-col items-center justify-between shrink-0
+                        h-9 md:h-auto w-full md:w-16
+                        px-5 md:px-0 py-0 md:py-5
+                        bg-black border-y md:border-y-0 md:border-x border-white/5 z-10">
+          <span className="text-zinc-700 font-black text-[10px] uppercase tracking-widest">{rule.max_points}pt</span>
+          <span className="text-zinc-600 font-black text-xs md:text-sm">VS</span>
+          <span className="text-zinc-700 font-black text-[10px] uppercase tracking-widest">{rule.scoring_type === 'SIDE_OUT' ? '🏓' : '⚡'}</span>
         </div>
 
-        {/* RIGHT SIDE */}
+        {/* ── BOTTOM / RIGHT TEAM ── */}
         <button
           id="btn-score-right"
           disabled={scoringFrozen}
           onClick={() => handleScore('RIGHT')}
-          className="flex-1 flex flex-col items-center justify-center gap-2 md:gap-4 bg-red-950/30 active:bg-red-900/50 active:scale-[0.98] transition-all border-t-4 md:border-t-0 md:border-l-4 border-white/5 relative group disabled:opacity-50"
-          style={{ WebkitTapHighlightColor: 'transparent' }}
+          className="flex-1 relative flex flex-col items-center justify-center overflow-hidden disabled:opacity-40"
+          style={{
+            WebkitTapHighlightColor: 'transparent',
+            background: 'linear-gradient(160deg, #1a0808 0%, #2d0f0f 100%)',
+          }}
         >
-          {/* Server indicator */}
+          <div className="absolute inset-0 bg-red-500/0 active:bg-red-500/10 transition-colors pointer-events-none" />
+
           {rule.scoring_type === 'SIDE_OUT' && !isLeftServing && (
-            <div className="absolute top-4 right-4 bg-white text-black px-3 py-1 rounded-lg font-black text-[10px] uppercase tracking-widest shadow-lg">
-              <i className="fa-solid fa-circle-dot mr-1" /> Serving
+            <div className="absolute top-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-4 py-1.5 rounded-full font-black text-[11px] uppercase tracking-widest"
+              style={{ background: 'linear-gradient(90deg,#fff 0%,#ddd 100%)', color: '#000', boxShadow: '0 0 20px rgba(255,255,255,0.4)' }}>
+              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              Serving
             </div>
           )}
+
           {rule.max_sets > 1 && (
-            <div className="absolute top-4 left-4 flex gap-1.5">
+            <div className="absolute top-3 left-4 flex gap-2">
               {Array.from({ length: rule.sets_to_win }).map((_, i) => (
-                <div key={i} className={`w-3 h-3 rounded-full border-2 ${i < rightSetsWon ? 'bg-red-400 border-red-400' : 'border-zinc-700'}`} />
+                <div key={i} className={`w-2.5 h-2.5 rounded-full border-2 transition-all ${i < rightSetsWon ? 'bg-red-400 border-red-400 shadow-[0_0_8px_rgba(248,113,113,0.8)]' : 'border-zinc-700'}`} />
               ))}
             </div>
           )}
 
-          <div className="text-center pointer-events-none">
-            <div className="text-red-300 font-black text-[1.5rem] uppercase tracking-widest mb-2 max-w-[160px] line-clamp-2">
-              {match.category_code} / {rightTeamName}
-            </div>
-            <div className="text-[clamp(60px,15vh,160px)] md:text-[clamp(80px,20vw,160px)] font-black leading-none tabular-nums text-white">
-              {rightScore}
-            </div>
-            <div className="text-red-500/50 text-sm font-bold uppercase tracking-widest mt-1 md:mt-2 opacity-0 group-active:opacity-100 transition-opacity">+1</div>
+          <div className="text-red-300/80 font-black text-sm md:text-base uppercase tracking-[0.2em] mb-1 pointer-events-none">
+            {rightTeamName}
+          </div>
+          <div className="text-[10px] text-red-500/50 font-black uppercase tracking-[0.3em] mb-3 pointer-events-none">
+            {match.category_code}
+          </div>
+
+          <div
+            className="font-black leading-none tabular-nums pointer-events-none select-none"
+            style={{ fontSize: 'clamp(72px, 18vh, 160px)', color: '#fff', textShadow: '0 0 60px rgba(248,113,113,0.3)' }}
+          >
+            {rightScore}
+          </div>
+
+          <div className="text-red-400 text-xs font-black uppercase tracking-[0.3em] mt-3 opacity-0 active:opacity-100 transition-opacity pointer-events-none">
+            +1 POINT
           </div>
         </button>
       </div>
 
-      {/* BOTTOM CONTROLS — redesigned for mobile */}
-      <div className="bg-zinc-950 border-t border-white/5 shrink-0" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+      {/* ═══════════════════════════════════════════
+          BOTTOM CONTROL DOCK — Bold Mobile Design
+          ═══════════════════════════════════════════ */}
+      <div className="shrink-0 bg-black" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
 
-        {/* Primary action row — large tap targets */}
-        <div className="grid grid-cols-3 gap-px bg-white/5">
-          {/* UNDO */}
-          <button
-            onClick={handleUndo}
-            disabled={scoreHistory.length === 0}
-            className={`flex flex-col items-center justify-center gap-1 py-4 transition-all active:scale-95 ${
-              scoreHistory.length > 0
-                ? 'bg-red-950/80 text-red-400 active:bg-red-900'
-                : 'bg-zinc-900/80 text-zinc-700 opacity-40 cursor-not-allowed'
-            }`}
-          >
-            <i className="fa-solid fa-rotate-left text-lg" />
-            <span className="text-[10px] font-black uppercase tracking-widest">
-              减分 Undo
-              {scoreHistory.length > 0 && <span className="ml-1 opacity-60">({scoreHistory.length})</span>}
+        {/* ── UNDO — Full-width primary CTA ── */}
+        <button
+          onClick={handleUndo}
+          disabled={scoreHistory.length === 0}
+          className="w-full flex items-center justify-center gap-3 transition-all active:scale-[0.97] disabled:opacity-25 disabled:cursor-not-allowed"
+          style={{
+            padding: '18px 24px',
+            background: scoreHistory.length > 0
+              ? 'linear-gradient(90deg, #7f1d1d 0%, #991b1b 50%, #7f1d1d 100%)'
+              : '#111',
+            borderBottom: '1px solid rgba(255,255,255,0.04)',
+            boxShadow: scoreHistory.length > 0 ? 'inset 0 1px 0 rgba(255,100,100,0.15)' : 'none',
+          }}
+        >
+          <i className="fa-solid fa-rotate-left" style={{ fontSize: 20, color: scoreHistory.length > 0 ? '#fca5a5' : '#444' }} />
+          <div className="flex flex-col items-start">
+            <span style={{ fontSize: 14, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: scoreHistory.length > 0 ? '#fca5a5' : '#444' }}>
+              减分 / Undo Last Point
             </span>
-          </button>
+            {scoreHistory.length > 0 && (
+              <span style={{ fontSize: 10, color: 'rgba(252,165,165,0.5)', fontWeight: 700, letterSpacing: '0.1em' }}>
+                {scoreHistory.length} action{scoreHistory.length > 1 ? 's' : ''} in history
+              </span>
+            )}
+          </div>
+          {scoreHistory.length > 0 && (
+            <span className="ml-auto" style={{ fontSize: 11, fontWeight: 900, color: 'rgba(252,165,165,0.5)', letterSpacing: '0.05em' }}>
+              ↺
+            </span>
+          )}
+        </button>
+
+        {/* ── Secondary actions row ── */}
+        <div className="grid grid-cols-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
 
           {/* SWAP SERVER */}
           <button
             onClick={handleSwapServer}
-            className="flex flex-col items-center justify-center gap-1 py-4 bg-zinc-900/80 text-zinc-400 hover:text-white active:bg-zinc-800 active:scale-95 transition-all"
+            className="flex flex-col items-center justify-center gap-2 py-5 transition-all active:scale-95 active:bg-white/5"
+            style={{ borderRight: '1px solid rgba(255,255,255,0.04)' }}
           >
-            <i className="fa-solid fa-right-left text-lg" />
-            <span className="text-[10px] font-black uppercase tracking-widest">换发球</span>
+            <div className="w-11 h-11 rounded-2xl flex items-center justify-center"
+              style={{ background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)' }}>
+              <i className="fa-solid fa-right-left" style={{ fontSize: 18, color: '#a5b4fc' }} />
+            </div>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#a5b4fc' }}>换发球</div>
+              <div style={{ fontSize: 9, color: 'rgba(165,180,252,0.4)', fontWeight: 700, letterSpacing: '0.05em', textAlign: 'center' }}>Swap Server</div>
+            </div>
           </button>
 
-          {/* MORE ACTIONS */}
+          {/* PENALTY / ACTIONS */}
           <button
             onClick={() => setShowPenaltyModal(true)}
-            className="flex flex-col items-center justify-center gap-1 py-4 bg-zinc-900/80 text-zinc-400 hover:text-white active:bg-zinc-800 active:scale-95 transition-all"
+            className="flex flex-col items-center justify-center gap-2 py-5 transition-all active:scale-95 active:bg-white/5"
           >
-            <i className="fa-solid fa-circle-exclamation text-lg" />
-            <span className="text-[10px] font-black uppercase tracking-widest">罚牌 / 弃权</span>
+            <div className="w-11 h-11 rounded-2xl flex items-center justify-center"
+              style={{ background: 'rgba(234,179,8,0.12)', border: '1px solid rgba(234,179,8,0.3)' }}>
+              <i className="fa-solid fa-shield-halved" style={{ fontSize: 18, color: '#fde047' }} />
+            </div>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#fde047' }}>罚牌 / 弃权</div>
+              <div style={{ fontSize: 9, color: 'rgba(253,224,71,0.4)', fontWeight: 700, letterSpacing: '0.05em', textAlign: 'center' }}>Cards & Walkover</div>
+            </div>
           </button>
         </div>
 
-        {/* Status + secondary nav bar */}
-        <div className="flex items-center justify-between px-4 py-2 bg-black/60">
+        {/* ── Footer: exit + live score + reset ── */}
+        <div className="flex items-center justify-between px-5 py-3">
           <Link
             href={`/arena/${eventId}/referee`}
-            className="flex items-center gap-1.5 text-zinc-600 hover:text-white text-[10px] font-black uppercase tracking-widest transition-colors py-1"
+            className="flex items-center gap-2 transition-colors"
+            style={{ color: '#52525b', fontSize: 11, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase', textDecoration: 'none' }}
           >
-            <i className="fa-solid fa-arrow-left text-xs" /> Exit
+            <i className="fa-solid fa-chevron-left" style={{ fontSize: 10 }} />
+            Exit
           </Link>
 
           <div className="text-center">
-            <div className="text-[10px] text-zinc-700 uppercase font-black tracking-widest leading-tight">
-              {match.team_a_name} <span className="text-white">{match.score_a}</span>
-              <span className="text-zinc-600 mx-1">—</span>
-              <span className="text-white">{match.score_b}</span> {match.team_b_name}
+            <div style={{ fontSize: 12, fontWeight: 900, color: '#fff', letterSpacing: '0.05em' }}>
+              <span style={{ color: '#60a5fa' }}>{match.score_a}</span>
+              <span style={{ color: '#3f3f46', margin: '0 6px' }}>:</span>
+              <span style={{ color: '#f87171' }}>{match.score_b}</span>
             </div>
             {match.referee_name && (
-              <div className="text-[9px] text-zinc-800 font-bold mt-0.5">Ref: {match.referee_name}</div>
+              <div style={{ fontSize: 9, color: '#3f3f46', fontWeight: 700, marginTop: 2 }}>REF · {match.referee_name}</div>
             )}
           </div>
 
           <button
             onClick={handleResetToPending}
-            className="flex items-center gap-1.5 text-red-900 hover:text-red-500 text-[10px] font-black uppercase tracking-widest transition-colors py-1"
+            className="flex items-center gap-2 transition-colors"
+            style={{ color: '#3f3f46', fontSize: 11, fontWeight: 900, letterSpacing: '0.15em', textTransform: 'uppercase' }}
+            onMouseEnter={e => (e.currentTarget.style.color = '#ef4444')}
+            onMouseLeave={e => (e.currentTarget.style.color = '#3f3f46')}
           >
-            <i className="fa-solid fa-power-off text-xs" /> Reset
+            <i className="fa-solid fa-power-off" style={{ fontSize: 10 }} />
+            Reset
           </button>
         </div>
       </div>
