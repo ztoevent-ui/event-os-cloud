@@ -748,7 +748,7 @@ function ScoringScreen({
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white font-sans flex flex-col select-none overflow-hidden relative">
+    <div className="min-h-[100dvh] bg-zinc-950 text-white font-sans flex flex-col items-center select-none overflow-x-hidden relative">
       <AnimatePresence>
         {phase === 'SIDE_SWITCH' && <SideSwitchModal onConfirm={handleSideSwitchConfirmed} />}
         {phase === 'INTERVAL' && intervalState && (
@@ -776,117 +776,124 @@ function ScoringScreen({
         )}
       </AnimatePresence>
 
-      {/* ── TOP NAV (Reset & Exit) ── */}
-      <div className="px-4 pt-8 pb-3 flex justify-between items-center z-10">
-        <button
-          onClick={handleResetToPending}
-          className="bg-zinc-900/80 hover:bg-zinc-800 text-red-500 font-black px-5 py-3 rounded-xl text-[10px] uppercase tracking-widest transition-all"
-        >
-          <i className="fa-solid fa-power-off mr-2" /> Reset
-        </button>
-        <Link
-          href={`/arena/${eventId}/referee`}
-          className="bg-zinc-900/80 hover:bg-zinc-800 text-zinc-400 font-black px-5 py-3 rounded-xl text-[10px] uppercase tracking-widest transition-all"
-        >
-          <i className="fa-solid fa-arrow-left mr-2" /> Exit to Arena
-        </Link>
-      </div>
-
-      {/* ── MIDDLE BLOCKS (Tournament, Stage, Court) ── */}
-      <div className="px-4 flex flex-col gap-2 mb-4 z-10">
-        <div className="bg-black border border-white/5 text-zinc-300 text-center py-3 text-xs md:text-sm font-black uppercase tracking-widest rounded-xl shadow-sm">
-          {match.category_code} - {match.round_type}
-        </div>
-        <div className="bg-black border border-white/5 text-zinc-300 text-center py-3 text-xs md:text-sm font-black uppercase tracking-widest rounded-xl shadow-sm">
-          Set {match.current_set} of {rule.max_sets}
-        </div>
-        <div className="bg-black border border-white/5 text-zinc-300 text-center py-3 text-xs md:text-sm font-black uppercase tracking-widest rounded-xl shadow-sm">
-          {match.court_number ? `Court ${match.court_number}` : 'Select Court'}
-        </div>
-      </div>
-
-      {/* ── SCORING AREA (A & B) ── */}
-      <div className="flex-1 flex gap-3 px-4 pb-4 min-h-0 z-10">
-        <button
-          id="btn-score-left"
-          disabled={scoringFrozen}
-          onClick={() => handleScore('LEFT')}
-          className="flex-1 rounded-2xl flex flex-col items-center justify-center relative active:scale-[0.98] transition-transform disabled:opacity-40"
-          style={{ background: 'linear-gradient(160deg, #0a1628 0%, #0d1f3c 100%)', border: '1px solid rgba(255,255,255,0.05)' }}
-        >
-          {rule.scoring_type === 'SIDE_OUT' && isLeftServing && (
-            <div className="absolute top-4 bg-white/10 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-md">
-               <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block mr-1" /> Serving
-            </div>
-          )}
-          <div className="text-blue-300/80 text-sm md:text-lg font-black uppercase tracking-[0.2em] mb-1">{leftTeamName}</div>
-          <div className="text-white text-[clamp(60px,12vh,120px)] leading-none font-black tabular-nums">{leftScore}</div>
-        </button>
-
-        <button
-          id="btn-score-right"
-          disabled={scoringFrozen}
-          onClick={() => handleScore('RIGHT')}
-          className="flex-1 rounded-2xl flex flex-col items-center justify-center relative active:scale-[0.98] transition-transform disabled:opacity-40"
-          style={{ background: 'linear-gradient(160deg, #1a0808 0%, #2d0f0f 100%)', border: '1px solid rgba(255,255,255,0.05)' }}
-        >
-          {rule.scoring_type === 'SIDE_OUT' && !isLeftServing && (
-            <div className="absolute top-4 bg-white/10 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-md">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block mr-1" /> Serving
-            </div>
-          )}
-          <div className="text-red-300/80 text-sm md:text-lg font-black uppercase tracking-[0.2em] mb-1">{rightTeamName}</div>
-          <div className="text-white text-[clamp(60px,12vh,120px)] leading-none font-black tabular-nums">{rightScore}</div>
-        </button>
-      </div>
-
-      {/* ── BOTTOM GRID (3x2 Buttons) ── */}
-      <div className="px-4 pb-6 grid grid-cols-3 gap-3 shrink-0 z-10" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
-        <button 
-          onClick={handleUndo} 
-          disabled={scoreHistory.length === 0}
-          className={`aspect-[4/3] rounded-2xl flex flex-col items-center justify-center font-black uppercase tracking-widest text-[9px] md:text-[10px] transition-transform active:scale-95 ${
-            scoreHistory.length > 0 ? 'bg-red-950/80 text-red-400' : 'bg-zinc-900 text-zinc-600 disabled:opacity-50'
-          }`}
-        >
-          <i className="fa-solid fa-rotate-left mb-2 text-lg" />
-          Redo/Minus
-        </button>
-        <button 
-          onClick={handleSwapServer} 
-          className="bg-zinc-900/80 hover:bg-zinc-800 text-indigo-400 aspect-[4/3] rounded-2xl flex flex-col items-center justify-center font-black uppercase tracking-widest text-[9px] md:text-[10px] transition-transform active:scale-95 shadow-sm"
-        >
-          <i className="fa-solid fa-right-left mb-2 text-lg" />
-          Swap Server
-        </button>
-        <button 
-          onClick={() => setShowPenaltyModal(true)} 
-          className="bg-zinc-900/80 hover:bg-zinc-800 text-amber-400 aspect-[4/3] rounded-2xl flex flex-col items-center justify-center font-black uppercase tracking-widest text-[9px] md:text-[10px] transition-transform active:scale-95 shadow-sm"
-        >
-          <i className="fa-solid fa-clone mb-2 text-lg" />
-          Card
-        </button>
+      <div className="w-full max-w-md mx-auto flex flex-col h-[100dvh]" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         
-        <button 
-          onClick={() => setShowPenaltyModal(true)} 
-          className="bg-zinc-900/80 hover:bg-zinc-800 text-amber-500 aspect-[4/3] rounded-2xl flex flex-col items-center justify-center font-black uppercase tracking-widest text-[9px] md:text-[10px] transition-transform active:scale-95 shadow-sm"
-        >
-          <i className="fa-solid fa-person-walking-arrow-right mb-2 text-lg" />
-          Walkover
-        </button>
-        <div 
-          className="bg-zinc-900/40 border border-white/5 text-zinc-400 aspect-[4/3] rounded-2xl flex flex-col items-center justify-center font-black uppercase tracking-widest text-[9px] md:text-[10px] shadow-sm"
-        >
-          <span className="opacity-60 mb-1">Set No</span>
-          <span className="text-xl md:text-2xl text-white">{match.current_set}</span>
+        {/* ── TOP NAV (Reset & Exit) ── */}
+        <div className="px-6 pt-8 pb-2 flex justify-between items-center shrink-0 z-10">
+          <button
+            onClick={handleResetToPending}
+            className="bg-zinc-900/80 hover:bg-zinc-800 text-red-500 font-black px-5 py-3 rounded-xl text-[10px] uppercase tracking-widest transition-all shadow-sm"
+          >
+            <i className="fa-solid fa-power-off mr-2" /> Reset
+          </button>
+          <Link
+            href={`/arena/${eventId}/referee`}
+            className="bg-zinc-900/80 hover:bg-zinc-800 text-zinc-400 font-black px-5 py-3 rounded-xl text-[10px] uppercase tracking-widest transition-all shadow-sm"
+          >
+            <i className="fa-solid fa-arrow-left mr-2" /> Exit to Arena
+          </Link>
         </div>
-        <button 
-          onClick={handleResetToPending} 
-          className="bg-zinc-900/80 hover:bg-red-950/80 text-red-500 aspect-[4/3] rounded-2xl flex flex-col items-center justify-center font-black uppercase tracking-widest text-[9px] md:text-[10px] transition-transform active:scale-95 shadow-sm"
-        >
-          <i className="fa-solid fa-power-off mb-2 text-lg" />
-          Reset
-        </button>
+
+        {/* ── CENTERED SCORING CONTENT ── */}
+        <div className="flex-1 flex flex-col justify-center px-6 gap-6 z-10 min-h-0 my-2">
+          
+          {/* MIDDLE BLOCKS */}
+          <div className="flex flex-col gap-2.5">
+            <div className="bg-black border border-white/5 text-zinc-300 text-center py-3.5 text-xs md:text-sm font-black uppercase tracking-widest rounded-xl shadow-sm">
+              {match.category_code} - {match.round_type}
+            </div>
+            <div className="bg-black border border-white/5 text-zinc-300 text-center py-3.5 text-xs md:text-sm font-black uppercase tracking-widest rounded-xl shadow-sm">
+              Set {match.current_set} of {rule.max_sets}
+            </div>
+            <div className="bg-black border border-white/5 text-zinc-300 text-center py-3.5 text-xs md:text-sm font-black uppercase tracking-widest rounded-xl shadow-sm">
+              {match.court_number ? `Court ${match.court_number}` : 'Select Court'}
+            </div>
+          </div>
+
+          {/* SCORING AREA (A & B) */}
+          <div className="grid grid-cols-2 gap-4">
+            <button
+              id="btn-score-left"
+              disabled={scoringFrozen}
+              onClick={() => handleScore('LEFT')}
+              className="aspect-[4/5] rounded-3xl flex flex-col items-center justify-center relative active:scale-[0.98] transition-transform disabled:opacity-40 shadow-lg"
+              style={{ background: 'linear-gradient(160deg, #0a1628 0%, #0d1f3c 100%)', border: '1px solid rgba(255,255,255,0.08)' }}
+            >
+              {rule.scoring_type === 'SIDE_OUT' && isLeftServing && (
+                <div className="absolute top-5 bg-white/10 text-white px-3.5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-md flex items-center gap-1.5">
+                   <span className="w-1.5 h-1.5 rounded-full bg-green-500" /> Serving
+                </div>
+              )}
+              <div className="text-blue-300/80 text-sm md:text-base font-black uppercase tracking-[0.2em] mb-2">{leftTeamName}</div>
+              <div className="text-white text-[clamp(60px,10vh,100px)] leading-none font-black tabular-nums">{leftScore}</div>
+            </button>
+
+            <button
+              id="btn-score-right"
+              disabled={scoringFrozen}
+              onClick={() => handleScore('RIGHT')}
+              className="aspect-[4/5] rounded-3xl flex flex-col items-center justify-center relative active:scale-[0.98] transition-transform disabled:opacity-40 shadow-lg"
+              style={{ background: 'linear-gradient(160deg, #1a0808 0%, #2d0f0f 100%)', border: '1px solid rgba(255,255,255,0.08)' }}
+            >
+              {rule.scoring_type === 'SIDE_OUT' && !isLeftServing && (
+                <div className="absolute top-5 bg-white/10 text-white px-3.5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-md flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500" /> Serving
+                </div>
+              )}
+              <div className="text-red-300/80 text-sm md:text-base font-black uppercase tracking-[0.2em] mb-2">{rightTeamName}</div>
+              <div className="text-white text-[clamp(60px,10vh,100px)] leading-none font-black tabular-nums">{rightScore}</div>
+            </button>
+          </div>
+        </div>
+
+        {/* ── BOTTOM GRID (3x2 Buttons) ── */}
+        <div className="px-6 pb-8 grid grid-cols-3 gap-3 shrink-0 z-10">
+          <button 
+            onClick={handleUndo} 
+            disabled={scoreHistory.length === 0}
+            className={`aspect-[4/3] rounded-2xl flex flex-col items-center justify-center font-black uppercase tracking-widest text-[9px] md:text-[10px] transition-transform active:scale-95 shadow-sm ${
+              scoreHistory.length > 0 ? 'bg-red-950/80 text-red-400' : 'bg-zinc-900 text-zinc-600 disabled:opacity-50'
+            }`}
+          >
+            <i className="fa-solid fa-rotate-left mb-2 text-lg" />
+            Redo/Minus
+          </button>
+          <button 
+            onClick={handleSwapServer} 
+            className="bg-zinc-900/80 hover:bg-zinc-800 text-indigo-400 aspect-[4/3] rounded-2xl flex flex-col items-center justify-center font-black uppercase tracking-widest text-[9px] md:text-[10px] transition-transform active:scale-95 shadow-sm"
+          >
+            <i className="fa-solid fa-right-left mb-2 text-lg" />
+            Swap Server
+          </button>
+          <button 
+            onClick={() => setShowPenaltyModal(true)} 
+            className="bg-zinc-900/80 hover:bg-zinc-800 text-amber-400 aspect-[4/3] rounded-2xl flex flex-col items-center justify-center font-black uppercase tracking-widest text-[9px] md:text-[10px] transition-transform active:scale-95 shadow-sm"
+          >
+            <i className="fa-solid fa-clone mb-2 text-lg" />
+            Card
+          </button>
+          
+          <button 
+            onClick={() => setShowPenaltyModal(true)} 
+            className="bg-zinc-900/80 hover:bg-zinc-800 text-amber-500 aspect-[4/3] rounded-2xl flex flex-col items-center justify-center font-black uppercase tracking-widest text-[9px] md:text-[10px] transition-transform active:scale-95 shadow-sm"
+          >
+            <i className="fa-solid fa-person-walking-arrow-right mb-2 text-lg" />
+            Walkover
+          </button>
+          <div 
+            className="bg-zinc-900/40 border border-white/5 text-zinc-400 aspect-[4/3] rounded-2xl flex flex-col items-center justify-center font-black uppercase tracking-widest text-[9px] md:text-[10px] shadow-sm"
+          >
+            <span className="opacity-60 mb-1">Set No</span>
+            <span className="text-xl md:text-2xl text-white">{match.current_set}</span>
+          </div>
+          <button 
+            onClick={handleResetToPending} 
+            className="bg-zinc-900/80 hover:bg-red-950/80 text-red-500 aspect-[4/3] rounded-2xl flex flex-col items-center justify-center font-black uppercase tracking-widest text-[9px] md:text-[10px] transition-transform active:scale-95 shadow-sm"
+          >
+            <i className="fa-solid fa-power-off mb-2 text-lg" />
+            Reset
+          </button>
+        </div>
       </div>
     </div>
   );
