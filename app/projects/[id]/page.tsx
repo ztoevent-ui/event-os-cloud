@@ -155,21 +155,31 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
                     borderRadius: '50%', pointerEvents: 'none',
                 }} />
 
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 24, position: 'relative' }}>
-                    <span className="zto-badge zto-badge-lime">
-                        <span className="zto-pulse-dot lime" />
-                        {project?.status || 'PLANNING'}
-                    </span>
-                    {project?.type === 'wedding' && (
-                        <span className="zto-badge" style={{ background: 'rgba(236,72,153,0.08)', border: '1px solid rgba(236,72,153,0.25)', color: '#ec4899' }}>
-                            <i className="fa-solid fa-rings-wedding" style={{ fontSize: 8 }} /> Wedding
+                {/* Top row: badges + actions inline */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 20, position: 'relative', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+                        <span className="zto-badge zto-badge-lime">
+                            <span className="zto-pulse-dot lime" />
+                            {project?.status || 'PLANNING'}
                         </span>
-                    )}
-                    {(project?.type === 'sports' || project?.type === 'tournament') && (
-                        <span className="zto-badge zto-badge-blue">
-                            <i className="fa-solid fa-trophy" style={{ fontSize: 8 }} /> Tournament
-                        </span>
-                    )}
+                        {project?.type === 'wedding' && (
+                            <span className="zto-badge" style={{ background: 'rgba(236,72,153,0.08)', border: '1px solid rgba(236,72,153,0.25)', color: '#ec4899' }}>
+                                <i className="fa-solid fa-rings-wedding" style={{ fontSize: 8 }} /> Wedding
+                            </span>
+                        )}
+                        {(project?.type === 'sports' || project?.type === 'tournament') && (
+                            <span className="zto-badge zto-badge-blue">
+                                <i className="fa-solid fa-trophy" style={{ fontSize: 8 }} /> Tournament
+                            </span>
+                        )}
+                    </div>
+                    {/* Actions — now inline, wrap-safe on mobile */}
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
+                        <button onClick={openEdit} className="zto-btn zto-btn-ghost" style={{ fontSize: 12, padding: '6px 14px' }}>
+                            <i className="fa-regular fa-pen-to-square" /> Edit
+                        </button>
+                        <PrintReportButton title="Project Summary" />
+                    </div>
                 </div>
 
                 <h1 style={{
@@ -230,13 +240,6 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
                     </div>
                 )}
 
-                {/* Actions */}
-                <div style={{ position: 'absolute', top: 48, right: 48, display: 'flex', gap: 10 }}>
-                    <button onClick={openEdit} className="zto-btn zto-btn-ghost" style={{ fontSize: 12, padding: '6px 14px' }}>
-                        <i className="fa-regular fa-pen-to-square" /> Edit
-                    </button>
-                    <PrintReportButton title="Project Summary" />
-                </div>
             </div>
 
             {/* ── KPI Row ── */}

@@ -900,45 +900,61 @@ function ScoringScreen({
         </button>
       </div>
 
-      {/* BOTTOM CONTROLS */}
-      <div className="bg-black border-t border-white/5 px-3 pt-2 flex flex-col gap-2" style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom))' }}>
-        {/* Top row: primary actions */}
-        <div className="flex items-center justify-between gap-2">
+      {/* BOTTOM CONTROLS — redesigned for mobile */}
+      <div className="bg-zinc-950 border-t border-white/5 shrink-0" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+
+        {/* Primary action row — large tap targets */}
+        <div className="grid grid-cols-3 gap-px bg-white/5">
+          {/* UNDO */}
           <button
             onClick={handleUndo}
             disabled={scoreHistory.length === 0}
-            className={`flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 ${scoreHistory.length > 0 ? 'bg-red-950 text-red-400 hover:bg-red-900 hover:text-white active:scale-95' : 'bg-zinc-900 text-zinc-700 opacity-40 cursor-not-allowed'}`}
+            className={`flex flex-col items-center justify-center gap-1 py-4 transition-all active:scale-95 ${
+              scoreHistory.length > 0
+                ? 'bg-red-950/80 text-red-400 active:bg-red-900'
+                : 'bg-zinc-900/80 text-zinc-700 opacity-40 cursor-not-allowed'
+            }`}
           >
-            <i className="fa-solid fa-rotate-left" /> 减分 Undo {scoreHistory.length > 0 && <span className="opacity-60">({scoreHistory.length})</span>}
+            <i className="fa-solid fa-rotate-left text-lg" />
+            <span className="text-[10px] font-black uppercase tracking-widest">
+              减分 Undo
+              {scoreHistory.length > 0 && <span className="ml-1 opacity-60">({scoreHistory.length})</span>}
+            </span>
           </button>
 
+          {/* SWAP SERVER */}
           <button
             onClick={handleSwapServer}
-            className="flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest text-zinc-500 hover:text-white bg-zinc-900 hover:bg-zinc-800 transition-colors flex items-center justify-center gap-1.5 active:scale-95"
+            className="flex flex-col items-center justify-center gap-1 py-4 bg-zinc-900/80 text-zinc-400 hover:text-white active:bg-zinc-800 active:scale-95 transition-all"
           >
-            <i className="fa-solid fa-exchange-alt" /> 换发
+            <i className="fa-solid fa-right-left text-lg" />
+            <span className="text-[10px] font-black uppercase tracking-widest">换发球</span>
           </button>
 
+          {/* MORE ACTIONS */}
           <button
             onClick={() => setShowPenaltyModal(true)}
-            className="flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest text-zinc-500 hover:text-white bg-zinc-900 hover:bg-zinc-800 transition-colors flex items-center justify-center gap-1.5 active:scale-95"
+            className="flex flex-col items-center justify-center gap-1 py-4 bg-zinc-900/80 text-zinc-400 hover:text-white active:bg-zinc-800 active:scale-95 transition-all"
           >
-            <i className="fa-solid fa-ellipsis-vertical" /> Actions
+            <i className="fa-solid fa-circle-exclamation text-lg" />
+            <span className="text-[10px] font-black uppercase tracking-widest">罚牌 / 弃权</span>
           </button>
         </div>
 
-        {/* Bottom row: navigation + score display */}
-        <div className="flex items-center justify-between gap-2">
+        {/* Status + secondary nav bar */}
+        <div className="flex items-center justify-between px-4 py-2 bg-black/60">
           <Link
             href={`/arena/${eventId}/referee`}
-            className="text-zinc-700 hover:text-white text-[10px] font-black uppercase tracking-widest transition-colors px-2 py-1"
+            className="flex items-center gap-1.5 text-zinc-600 hover:text-white text-[10px] font-black uppercase tracking-widest transition-colors py-1"
           >
-            ← Exit
+            <i className="fa-solid fa-arrow-left text-xs" /> Exit
           </Link>
 
-          <div className="text-center flex-1">
-            <div className="text-[10px] text-zinc-600 uppercase font-black tracking-widest">
-              {match.team_a_name} {match.score_a} — {match.score_b} {match.team_b_name}
+          <div className="text-center">
+            <div className="text-[10px] text-zinc-700 uppercase font-black tracking-widest leading-tight">
+              {match.team_a_name} <span className="text-white">{match.score_a}</span>
+              <span className="text-zinc-600 mx-1">—</span>
+              <span className="text-white">{match.score_b}</span> {match.team_b_name}
             </div>
             {match.referee_name && (
               <div className="text-[9px] text-zinc-800 font-bold mt-0.5">Ref: {match.referee_name}</div>
@@ -947,9 +963,9 @@ function ScoringScreen({
 
           <button
             onClick={handleResetToPending}
-            className="text-red-900 hover:text-red-500 text-[10px] font-black uppercase tracking-widest transition-colors px-2 py-1"
+            className="flex items-center gap-1.5 text-red-900 hover:text-red-500 text-[10px] font-black uppercase tracking-widest transition-colors py-1"
           >
-            <i className="fa-solid fa-power-off mr-1" /> Reset
+            <i className="fa-solid fa-power-off text-xs" /> Reset
           </button>
         </div>
       </div>
