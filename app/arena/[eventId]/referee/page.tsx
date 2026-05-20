@@ -31,22 +31,23 @@ function MatchSelector({
   onSelectMatch,
 }: {
   eventId: string;
-  onSelectMatch: (match: ArenaMatch, rule: RoundRule) => void;
+  onSelectMatch: (match: ArenaMatch, rule: RoundRule, tName: string) => void;
 }) {
   const [matches, setMatches] = useState<ArenaMatch[]>([]);
   const [loading, setLoading] = useState(true);
   const [refereeName, setRefereeName] = useState('');
+  const [tName, setTName] = useState('');
 
   useEffect(() => {
-    async function load() {
-      // Get tournament id from slug
+      // Get tournament id and name from slug
       const { data: t } = await supabase
         .from('arena_tournaments')
-        .select('id')
+        .select('id, name')
         .or(`id.eq.${eventId},event_id_slug.eq.${eventId}`)
         .single();
 
       if (!t) { setLoading(false); return; }
+      setTName(t.name);
 
       const { data } = await supabase
         .from('arena_matches')
@@ -411,14 +412,18 @@ function MatchEndOverlay({
 // ——————————————————————————————————————————————————
 // SCORING SCREEN
 // ——————————————————————————————————————————————————
-function ScoringScreen({
-  initialMatch,
-  rule,
+function ScoringScreen({ 
+  initialMatch, 
+  rule, 
   eventId,
-}: {
-  initialMatch: ArenaMatch;
-  rule: RoundRule;
+  tournamentName,
+  onSwitchMatch
+}: { 
+  initialMatch: ArenaMatch; 
+  rule: RoundRule; 
   eventId: string;
+  tournamentName: string;
+  onSwitchMatch: () => void;
 }) {
   const [match, setMatch] = useState<ArenaMatch>(initialMatch);
   const [phase, setPhase] = useState<Phase>('SCORING');
@@ -797,18 +802,24 @@ function ScoringScreen({
         {/* ── CENTERED SCORING CONTENT ── */}
         <div className="flex-1 flex flex-col justify-center px-6 gap-6 z-10 min-h-0 my-2">
           
-          {/* MIDDLE BLOCKS */}
-          <div className="flex flex-col gap-2.5">
-            <div className="bg-black border border-white/5 text-zinc-300 text-center py-3.5 text-xs md:text-sm font-black uppercase tracking-widest rounded-xl shadow-sm">
-              {match.category_code} - {match.round_type}
-            </div>
-            <div className="bg-black border border-white/5 text-zinc-300 text-center py-3.5 text-xs md:text-sm font-black uppercase tracking-widest rounded-xl shadow-sm">
-              Set {match.current_set} of {rule.max_sets}
-            </div>
-            <div className="bg-black border border-white/5 text-zinc-300 text-center py-3.5 text-xs md:text-sm font-black uppercase tracking-widest rounded-xl shadow-sm">
-              {match.court_number ? `Court ${match.court_number}` : 'Select Court'}
-            </div>
+        {/* ── MIDDLE BLOCKS ── */}
+        <div className="flex flex-col gap-2.5">
+          {/* Row 1: Tournament Name */}
+          <div className="bg-black border border-white/5 text-zinc-300 text-center py-3 text-xs md:text-sm font-black uppercase tracking-widest rounded-xl shadow-sm line-clamp-1 px-4">
+            {tournamentName || 'Tournament Name'}
           </div>
+          {/* Row 2: Category and Stage */}
+          <div className="bg-black border border-white/5 text-zinc-300 text-center py-3 text-xs md:text-sm font-black uppercase tracking-widest rounded-xl shadow-sm">
+            {initialMatch.category_code} - {initialMatch.round_type.replace('_', ' ')}
+          </div>
+          {/* Row 3: Switch Match Button */}
+          <button 
+            onClick={onSwitchMatch}
+            className="bg-indigo-950/40 border border-indigo-500/30 text-indigo-300 text-center py-3 text-xs md:text-sm font-black uppercase tracking-widest rounded-xl shadow-sm hover:bg-indigo-900/40 active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
+          >
+            <i className="fa-solid fa-list-ul" /> Select Next Match
+          </button>
+        </div>
 
           {/* SCORING AREA (A & B) */}
           <div className="grid grid-cols-2 gap-4">
@@ -911,6 +922,7 @@ function RefereeContent() {
   const [phase, setPhase] = useState<'SELECT' | 'SCORING'>(matchIdParam ? 'SCORING' : 'SELECT');
   const [activeMatch, setActiveMatch] = useState<ArenaMatch | null>(null);
   const [activeRule, setActiveRule] = useState<RoundRule | null>(null);
+  const [tournamentName, setTournamentName] = useState<string>('');
 
   // If matchId param given, load directly (for bookmark-style access)
   useEffect(() => {
@@ -919,8 +931,9 @@ function RefereeContent() {
         const { data: match } = await supabase.from('arena_matches').select('*').eq('id', matchIdParam).single();
         if (!match) return;
 
-        const { data: t } = await supabase.from('arena_tournaments').select('id').or(`id.eq.${eventId},event_id_slug.eq.${eventId}`).single();
+        const { data: t } = await supabase.from('arena_tournaments').select('id, name').or(`id.eq.${eventId},event_id_slug.eq.${eventId}`).single();
         if (!t) return;
+        setTournamentName(t.name);
 
         const { data: rule } = await supabase.from('arena_round_rules').select('*').eq('tournament_id', t.id).eq('round_type', match.round_type).single();
         if (match && rule) {
@@ -937,16 +950,25 @@ function RefereeContent() {
     return (
       <MatchSelector
         eventId={eventId}
-        onSelectMatch={(match, rule) => {
+        onSelectMatch={(match, rule, tName) => {
           setActiveMatch(match);
           setActiveRule(rule);
+          setTournamentName(tName);
           setPhase('SCORING');
         }}
       />
     );
   }
 
-  return <ScoringScreen initialMatch={activeMatch} rule={activeRule} eventId={eventId} />;
+  return (
+    <ScoringScreen 
+      initialMatch={activeMatch} 
+      rule={activeRule} 
+      eventId={eventId} 
+      tournamentName={tournamentName}
+      onSwitchMatch={() => setPhase('SELECT')}
+    />
+  );
 }
 
 export default function RefereeConsolePage() {
