@@ -816,14 +816,14 @@ function ScoringScreen({
         </div>
       )}
 
-      {/* MAIN SCORING AREA — Two Half-Screen tap targets */}
-      <div className="flex-1 flex">
+      {/* MAIN SCORING AREA — Responsive stacking */}
+      <div className="flex-1 flex flex-col md:flex-row">
         {/* LEFT SIDE */}
         <button
           id="btn-score-left"
           disabled={scoringFrozen}
           onClick={() => handleScore('LEFT')}
-          className="flex-1 flex flex-col items-center justify-center gap-4 bg-blue-950/30 active:bg-blue-900/50 active:scale-[0.98] transition-all border-r-4 border-white/5 relative group disabled:opacity-50"
+          className="flex-1 flex flex-col items-center justify-center gap-2 md:gap-4 bg-blue-950/30 active:bg-blue-900/50 active:scale-[0.98] transition-all border-b-4 md:border-b-0 md:border-r-4 border-white/5 relative group disabled:opacity-50"
           style={{ WebkitTapHighlightColor: 'transparent' }}
         >
           {/* Server indicator */}
@@ -845,21 +845,21 @@ function ScoringScreen({
             <div className="text-blue-300 font-black text-[1.5rem] uppercase tracking-widest mb-2 max-w-[160px] line-clamp-2">
               {match.category_code} / {leftTeamName}
             </div>
-            <div className="text-[clamp(80px,20vw,160px)] font-black leading-none tabular-nums text-white">
+            <div className="text-[clamp(60px,15vh,160px)] md:text-[clamp(80px,20vw,160px)] font-black leading-none tabular-nums text-white">
               {leftScore}
             </div>
-            <div className="text-blue-500/50 text-sm font-bold uppercase tracking-widest mt-2 opacity-0 group-active:opacity-100 transition-opacity">+1</div>
+            <div className="text-blue-500/50 text-sm font-bold uppercase tracking-widest mt-1 md:mt-2 opacity-0 group-active:opacity-100 transition-opacity">+1</div>
           </div>
         </button>
 
         {/* CENTRE STRIP */}
-        <div className="w-20 flex flex-col items-center justify-between py-4 bg-zinc-950 border-x border-white/5 z-10">
-          <div className="text-zinc-800 font-black text-[10px] uppercase tracking-widest writing-mode-vertical rotate-180">
+        <div className="h-10 md:h-auto w-full md:w-20 flex flex-row md:flex-col items-center justify-between px-6 md:px-0 py-0 md:py-4 bg-zinc-950 border-y md:border-y-0 md:border-x border-white/5 z-10 shrink-0">
+          <div className="text-zinc-800 font-black text-[10px] uppercase tracking-widest md:writing-mode-vertical md:rotate-180">
             {rule.max_points} pts
           </div>
-          <div className="text-center">
-            <div className="text-zinc-700 font-black text-lg">VS</div>
-            <div className="text-[10px] text-zinc-800 font-black mt-1">{rule.win_by > 1 ? `Win by ${rule.win_by}` : ''}</div>
+          <div className="text-center flex flex-row md:flex-col items-center gap-2 md:gap-0">
+            <div className="text-zinc-700 font-black text-sm md:text-lg">VS</div>
+            <div className="text-[10px] text-zinc-800 font-black md:mt-1">{rule.win_by > 1 ? `Win by ${rule.win_by}` : ''}</div>
           </div>
           <div className="text-zinc-800 font-black text-[10px] uppercase tracking-widest">
             {rule.scoring_type === 'RALLY' ? '⚡' : '🏓'}
@@ -871,7 +871,7 @@ function ScoringScreen({
           id="btn-score-right"
           disabled={scoringFrozen}
           onClick={() => handleScore('RIGHT')}
-          className="flex-1 flex flex-col items-center justify-center gap-4 bg-red-950/30 active:bg-red-900/50 active:scale-[0.98] transition-all border-l-4 border-white/5 relative group disabled:opacity-50"
+          className="flex-1 flex flex-col items-center justify-center gap-2 md:gap-4 bg-red-950/30 active:bg-red-900/50 active:scale-[0.98] transition-all border-t-4 md:border-t-0 md:border-l-4 border-white/5 relative group disabled:opacity-50"
           style={{ WebkitTapHighlightColor: 'transparent' }}
         >
           {/* Server indicator */}
@@ -892,80 +892,66 @@ function ScoringScreen({
             <div className="text-red-300 font-black text-[1.5rem] uppercase tracking-widest mb-2 max-w-[160px] line-clamp-2">
               {match.category_code} / {rightTeamName}
             </div>
-            <div className="text-[clamp(80px,20vw,160px)] font-black leading-none tabular-nums text-white">
+            <div className="text-[clamp(60px,15vh,160px)] md:text-[clamp(80px,20vw,160px)] font-black leading-none tabular-nums text-white">
               {rightScore}
             </div>
-            <div className="text-red-500/50 text-sm font-bold uppercase tracking-widest mt-2 opacity-0 group-active:opacity-100 transition-opacity">+1</div>
+            <div className="text-red-500/50 text-sm font-bold uppercase tracking-widest mt-1 md:mt-2 opacity-0 group-active:opacity-100 transition-opacity">+1</div>
           </div>
         </button>
       </div>
 
       {/* BOTTOM CONTROLS */}
-      <div className="bg-black border-t border-white/5 px-4 py-3 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <Link
-            href={`/arena/${eventId}/referee`}
-            className="text-zinc-700 hover:text-white text-[10px] font-black uppercase tracking-widest transition-colors"
-          >
-            ← Exit
-          </Link>
-          <button
-            onClick={handleResetToPending}
-            className="text-red-900 hover:text-red-500 text-[10px] font-black uppercase tracking-widest transition-colors"
-          >
-            <i className="fa-solid fa-power-off mr-1" /> 重置 (Reset)
-          </button>
-        </div>
-
-        <div className="flex gap-4">
+      <div className="bg-black border-t border-white/5 px-3 pt-2 flex flex-col gap-2" style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom))' }}>
+        {/* Top row: primary actions */}
+        <div className="flex items-center justify-between gap-2">
           <button
             onClick={handleUndo}
             disabled={scoreHistory.length === 0}
-            className={`px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-colors ${scoreHistory.length > 0 ? 'bg-red-950 text-red-500 hover:bg-red-900 hover:text-white' : 'text-zinc-700 opacity-50 cursor-not-allowed'}`}
+            className={`flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 ${scoreHistory.length > 0 ? 'bg-red-950 text-red-400 hover:bg-red-900 hover:text-white active:scale-95' : 'bg-zinc-900 text-zinc-700 opacity-40 cursor-not-allowed'}`}
           >
-            <i className="fa-solid fa-rotate-left mr-2" /> 减分 (Undo)
+            <i className="fa-solid fa-rotate-left" /> 减分 Undo {scoreHistory.length > 0 && <span className="opacity-60">({scoreHistory.length})</span>}
           </button>
 
           <button
             onClick={handleSwapServer}
-            className="text-zinc-600 hover:text-white text-[10px] font-black uppercase tracking-widest transition-colors"
+            className="flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest text-zinc-500 hover:text-white bg-zinc-900 hover:bg-zinc-800 transition-colors flex items-center justify-center gap-1.5 active:scale-95"
           >
-            <i className="fa-solid fa-exchange-alt mr-2" /> 换发球 (Swap)
+            <i className="fa-solid fa-exchange-alt" /> 换发
           </button>
 
           <button
             onClick={() => setShowPenaltyModal(true)}
-            className="text-zinc-600 hover:text-white text-[10px] font-black uppercase tracking-widest transition-colors"
+            className="flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest text-zinc-500 hover:text-white bg-zinc-900 hover:bg-zinc-800 transition-colors flex items-center justify-center gap-1.5 active:scale-95"
           >
-            <i className="fa-solid fa-ellipsis-vertical mr-2" /> Actions
+            <i className="fa-solid fa-ellipsis-vertical" /> Actions
           </button>
         </div>
 
-        <div className="text-center">
-          <div className="text-[10px] text-zinc-700 uppercase font-black tracking-widest">
-            {match.team_a_name} {match.score_a} — {match.score_b} {match.team_b_name}
-          </div>
-          {match.referee_name && (
-            <div className="text-[9px] text-zinc-800 font-bold mt-0.5">Ref: {match.referee_name}</div>
-          )}
-        </div>
+        {/* Bottom row: navigation + score display */}
+        <div className="flex items-center justify-between gap-2">
+          <Link
+            href={`/arena/${eventId}/referee`}
+            className="text-zinc-700 hover:text-white text-[10px] font-black uppercase tracking-widest transition-colors px-2 py-1"
+          >
+            ← Exit
+          </Link>
 
-        <button
-          onClick={() => {
-            if (scoreHistory.length === 0) return;
-            const prev = scoreHistory[scoreHistory.length - 1];
-            const restored: ArenaMatch = { ...match, ...prev };
-            setMatch(restored);
-            setScoreHistory(h => h.slice(0, -1));
-            persistScore(restored, 'UNDO');
-          }}
-          disabled={scoreHistory.length === 0}
-          className={`text-[10px] font-black uppercase tracking-widest transition-colors ${
-            scoreHistory.length > 0 ? 'text-amber-500 hover:text-amber-300' : 'text-zinc-800 cursor-not-allowed'
-          }`}
-        >
-          Undo ↩ {scoreHistory.length > 0 && <span className="text-amber-700">({scoreHistory.length})</span>}
-        </button>
+          <div className="text-center flex-1">
+            <div className="text-[10px] text-zinc-600 uppercase font-black tracking-widest">
+              {match.team_a_name} {match.score_a} — {match.score_b} {match.team_b_name}
+            </div>
+            {match.referee_name && (
+              <div className="text-[9px] text-zinc-800 font-bold mt-0.5">Ref: {match.referee_name}</div>
+            )}
+          </div>
+
+          <button
+            onClick={handleResetToPending}
+            className="text-red-900 hover:text-red-500 text-[10px] font-black uppercase tracking-widest transition-colors px-2 py-1"
+          >
+            <i className="fa-solid fa-power-off mr-1" /> Reset
+          </button>
+        </div>
       </div>
     </div>
   );

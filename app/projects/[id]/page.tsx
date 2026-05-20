@@ -242,7 +242,7 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
             {/* ── KPI Row ── */}
             <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(min(160px, 100%), 1fr))',
                 gap: 16,
             }}>
                 {kpis.map(card => {
@@ -287,7 +287,7 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
 
                 <div style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(min(140px, 100%), 1fr))',
                     gap: 14,
                 }}>
                     {MODULES.map(mod => (

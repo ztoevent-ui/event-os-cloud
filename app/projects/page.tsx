@@ -100,26 +100,26 @@ export default function ProjectsPage() {
             <header style={{
                 maxWidth: 1400,
                 margin: '0 auto',
-                padding: '40px 40px 0',
+                padding: 'clamp(16px, 4vw, 40px)',
+                paddingBottom: 32,
                 display: 'flex',
                 flexDirection: 'row',
                 justifyContent: 'space-between',
-                alignItems: 'center',
+                alignItems: 'flex-start',
                 flexWrap: 'wrap',
-                gap: 20,
-                marginBottom: 40,
-                paddingBottom: 32,
+                gap: 16,
+                marginBottom: 32,
                 borderBottom: '1px solid rgba(255,255,255,0.06)',
             }}>
                 <div>
                     <div className="zto-label" style={{ marginBottom: 8 }}>Internal Network</div>
-                    <h1 style={{ fontSize: 28, fontWeight: 800, color: '#fff', letterSpacing: '-0.01em' }}>
+                    <h1 style={{ fontSize: 'clamp(20px, 5vw, 28px)', fontWeight: 800, color: '#fff', letterSpacing: '-0.01em' }}>
                         Event Manager
                     </h1>
                     <p className="zto-desc" style={{ marginTop: 6 }}>Oversee and coordinate active deployments.</p>
                 </div>
-                <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'rgba(255,255,255,0.6)', cursor: 'pointer', marginRight: 8 }}>
+                <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'rgba(255,255,255,0.6)', cursor: 'pointer' }}>
                         <input type="checkbox" checked={showPast} onChange={e => setShowPast(e.target.checked)} style={{ accentColor: '#0056B3' }} /> 
                         Include Past
                     </label>
@@ -133,7 +133,7 @@ export default function ProjectsPage() {
             </header>
 
             {/* ── Content ── */}
-            <div style={{ maxWidth: 1400, margin: '0 auto', padding: '0 40px 80px' }}>
+            <div style={{ maxWidth: 1400, margin: '0 auto', padding: 'clamp(0px, 4vw, 40px)', paddingTop: 0, paddingBottom: 80 }}>
                 {loading ? (
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 300, gap: 16, opacity: 0.5 }}>
                         <div style={{
@@ -180,7 +180,7 @@ export default function ProjectsPage() {
                 ) : (
                     <div style={{
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 1fr))',
                         gap: 16,
                     }}>
                         {filteredProjects.map(project => {

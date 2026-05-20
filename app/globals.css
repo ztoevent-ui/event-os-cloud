@@ -141,6 +141,78 @@ body {
   box-sizing: border-box;
 }
 
+/* ─── Mobile Shell Responsive ────────────────────────────────────────────── */
+/* Mobile hamburger toggle state managed via [data-sidebar-open] on .zto-shell */
+
+@media (max-width: 768px) {
+  .zto-shell {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
+  /* Sidebar becomes an overlay drawer on mobile */
+  .zto-sidebar {
+    position: fixed;
+    top: 0;
+    left: -100%;
+    width: min(280px, 85vw);
+    min-width: unset;
+    max-width: 85vw;
+    height: 100vh;
+    z-index: 200;
+    transition: left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 8px 0 40px rgba(0,0,0,0.6);
+  }
+
+  .zto-shell[data-sidebar-open="true"] .zto-sidebar {
+    left: 0;
+  }
+
+  /* Backdrop overlay when sidebar is open */
+  .zto-sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 199;
+    backdrop-filter: blur(2px);
+  }
+
+  .zto-shell[data-sidebar-open="true"] .zto-sidebar-backdrop {
+    display: block;
+  }
+
+  .zto-main {
+    height: auto;
+    min-height: 100vh;
+    overflow-x: hidden;
+    overflow-y: visible;
+    padding-top: 56px; /* room for the mobile top bar */
+  }
+
+  .zto-guardrail {
+    padding: 24px 16px 48px;
+  }
+
+  /* Mobile top bar — shown only on mobile */
+  .zto-mobile-topbar {
+    display: flex !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .zto-mobile-topbar {
+    display: none !important;
+  }
+
+  .zto-sidebar-backdrop {
+    display: none !important;
+  }
+}
+
+
 /* ═══════════════════════════════════════════════════════════════════════════
    CARD COMPONENT SYSTEM
    ═══════════════════════════════════════════════════════════════════════════ */

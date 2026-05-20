@@ -101,6 +101,7 @@ export default function RootLayout({
         />
         <meta name="geo.region" content="MY-13" />
         <meta name="geo.placename" content="Bintulu, Sarawak, Malaysia" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </head>
       <body className={`${inter.variable} antialiased`}>
         {/* Google tag (gtag.js) */}

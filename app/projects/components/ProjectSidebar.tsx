@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useState, useEffect } from 'react';
 
 const NAV_ITEMS = [
     { label: 'Dashboard',         path: '',               icon: 'fa-solid fa-chart-line' },
@@ -29,13 +30,30 @@ export default function ProjectSidebar({
 }) {
     const pathname = usePathname();
     const base = `/projects/${projectId}`;
+    const [mobileOpen, setMobileOpen] = useState(false);
 
     const allItems = isTournament
         ? [...NAV_ITEMS, { label: 'Tournament Page', path: '/registration#tournament', icon: 'fa-solid fa-globe' }]
         : NAV_ITEMS;
 
-    return (
-        <aside className="zto-sidebar print:hidden">
+    // Sync data attribute on shell for CSS-driven drawer
+    useEffect(() => {
+        const shell = document.querySelector('.zto-shell');
+        if (shell) {
+            shell.setAttribute('data-sidebar-open', mobileOpen ? 'true' : 'false');
+        }
+        // Lock body scroll when open
+        document.body.style.overflow = mobileOpen ? 'hidden' : '';
+        return () => { document.body.style.overflow = ''; };
+    }, [mobileOpen]);
+
+    // Close on route change
+    useEffect(() => {
+        setMobileOpen(false);
+    }, [pathname]);
+
+    const navContent = (
+        <>
             {/* ── Logo Header ── */}
             <div style={{
                 height: 68,
@@ -66,6 +84,23 @@ export default function ProjectSidebar({
                         ZTO Event OS
                     </span>
                 </Link>
+                {/* Close button inside drawer on mobile */}
+                <button
+                    className="zto-mobile-topbar"
+                    onClick={() => setMobileOpen(false)}
+                    style={{
+                        background: 'rgba(255,255,255,0.06)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: 8,
+                        color: 'rgba(255,255,255,0.5)',
+                        width: 32, height: 32,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        cursor: 'pointer', flexShrink: 0, fontSize: 14,
+                    }}
+                    aria-label="Close menu"
+                >
+                    <i className="fa-solid fa-xmark" />
+                </button>
             </div>
 
             {/* ── Project Context ── */}
@@ -131,6 +166,65 @@ export default function ProjectSidebar({
                     <span>Master Console</span>
                 </Link>
             </div>
-        </aside>
+        </>
+    );
+
+    return (
+        <>
+            {/* ── Mobile Top Bar (only visible on mobile) ── */}
+            <div
+                className="zto-mobile-topbar"
+                style={{
+                    position: 'fixed',
+                    top: 0, left: 0, right: 0,
+                    height: 56,
+                    background: '#050505',
+                    borderBottom: '1px solid rgba(0,86,179,0.25)',
+                    zIndex: 100,
+                    alignItems: 'center',
+                    padding: '0 16px',
+                    gap: 12,
+                    display: 'none', // overridden by CSS on mobile
+                }}
+            >
+                <button
+                    onClick={() => setMobileOpen(true)}
+                    style={{
+                        background: 'rgba(0,86,179,0.1)',
+                        border: '1px solid rgba(0,86,179,0.3)',
+                        borderRadius: 10,
+                        color: '#4da3ff',
+                        width: 40, height: 40,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        cursor: 'pointer', flexShrink: 0, fontSize: 16,
+                    }}
+                    aria-label="Open menu"
+                >
+                    <i className="fa-solid fa-bars" />
+                </button>
+                <span style={{
+                    fontSize: 15, fontWeight: 700, color: '#fff',
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    flex: 1,
+                }}>
+                    {projectName}
+                </span>
+                <span className="zto-badge zto-badge-lime" style={{ flexShrink: 0 }}>
+                    <span className="zto-pulse-dot lime" style={{ width: 5, height: 5 }} />
+                    {projectStatus}
+                </span>
+            </div>
+
+            {/* ── Backdrop (only on mobile when open) ── */}
+            <div
+                className="zto-sidebar-backdrop"
+                onClick={() => setMobileOpen(false)}
+            />
+
+            {/* ── Sidebar ── */}
+            <aside className="zto-sidebar print:hidden">
+                {navContent}
+            </aside>
+        </>
     );
 }
