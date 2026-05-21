@@ -782,26 +782,29 @@ function ScoringScreen({
         )}
       </AnimatePresence>
 
-      <div className="w-full max-w-md mx-auto flex flex-col h-[100dvh]" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+      <div className="w-full max-w-7xl mx-auto flex flex-col h-[100dvh]" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         
         {/* ── TOP NAV (Reset & Exit) ── */}
-        <div className="px-6 pt-8 pb-2 flex justify-between items-center shrink-0 z-10">
+        <div className="px-6 pt-8 md:pt-6 pb-2 flex justify-between items-center shrink-0 z-10 md:mb-2">
           <button
             onClick={handleResetToPending}
-            className="bg-zinc-900/80 hover:bg-zinc-800 text-red-500 font-black px-5 py-3 rounded-xl text-[10px] uppercase tracking-widest transition-all shadow-sm"
+            className="bg-zinc-900/80 hover:bg-zinc-800 text-red-500 font-black px-5 py-3 rounded-xl text-[10px] md:text-xs uppercase tracking-widest transition-all shadow-sm"
           >
             <i className="fa-solid fa-power-off mr-2" /> Reset
           </button>
           <Link
             href={`/arena/${eventId}/referee`}
-            className="bg-zinc-900/80 hover:bg-zinc-800 text-zinc-400 font-black px-5 py-3 rounded-xl text-[10px] uppercase tracking-widest transition-all shadow-sm"
+            className="bg-zinc-900/80 hover:bg-zinc-800 text-zinc-400 font-black px-5 py-3 rounded-xl text-[10px] md:text-xs uppercase tracking-widest transition-all shadow-sm"
           >
             <i className="fa-solid fa-arrow-left mr-2" /> Exit to Arena
           </Link>
         </div>
 
-        {/* ── CENTERED SCORING CONTENT ── */}
-        <div className="flex-1 flex flex-col justify-center px-6 gap-6 z-10 min-h-0 my-2">
+        {/* ── RESPONSIVE MAIN AREA ── */}
+        <div className="flex-1 flex flex-col md:flex-row min-h-0 md:px-6 md:gap-12 lg:gap-20 md:pb-6">
+          
+          {/* ── LEFT: SCORING CONTENT ── */}
+          <div className="flex-1 flex flex-col justify-center px-6 md:px-0 gap-6 z-10 min-h-0 my-2 md:my-0">
           
         {/* ── MIDDLE BLOCKS ── */}
         <div className="flex flex-col gap-2.5">
@@ -856,11 +859,12 @@ function ScoringScreen({
               <div className="text-white text-[clamp(60px,10vh,100px)] leading-none font-black tabular-nums">{rightScore}</div>
             </button>
           </div>
-        </div>
+          </div>
 
-        {/* ── BOTTOM GRID (3x2 Buttons) ── */}
-        <div className="px-6 pb-8 grid grid-cols-3 gap-3 shrink-0 z-10">
-          <button 
+          {/* ── RIGHT: BOTTOM GRID CONTROLS ── */}
+          <div className="px-6 md:px-0 pb-8 md:pb-0 shrink-0 z-10 flex flex-col justify-end md:justify-center md:w-[320px] lg:w-[400px]">
+            <div className="grid grid-cols-3 md:grid-cols-2 gap-3 md:gap-4 lg:gap-5">
+              <button 
             onClick={handleUndo} 
             disabled={scoreHistory.length === 0}
             className={`aspect-[4/3] rounded-2xl flex flex-col items-center justify-center font-black uppercase tracking-widest text-[9px] md:text-[10px] transition-transform active:scale-95 shadow-sm ${
@@ -904,7 +908,9 @@ function ScoringScreen({
           >
             <i className="fa-solid fa-power-off mb-2 text-lg" />
             Reset
-          </button>
+            </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
