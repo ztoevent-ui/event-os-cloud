@@ -108,7 +108,7 @@ function MatchSelector({
       .single();
 
     if (updatedMatch && rule) {
-      onSelectMatch(updatedMatch as ArenaMatch, rule as RoundRule);
+      onSelectMatch(updatedMatch as ArenaMatch, rule as RoundRule, tName);
     }
   };
 
