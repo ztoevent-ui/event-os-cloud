@@ -295,11 +295,13 @@ function IntervalModal({ title, duration, onSkip }: { title: string; duration: n
 // ——————————————————————————————————————————————————
 function PenaltyModal({ 
   match, 
+  type,
   onClose, 
   onIssueCard, 
   onWalkover 
 }: { 
   match: ArenaMatch; 
+  type: 'CARD' | 'WALKOVER';
   onClose: () => void;
   onIssueCard: (team: 'A' | 'B', color: 'YELLOW' | 'RED' | 'BLACK') => void;
   onWalkover: (winner: 'A' | 'B', reason: 'RETIRED' | 'WALKOVER') => void;
@@ -313,15 +315,16 @@ function PenaltyModal({
     >
       <div className="bg-zinc-950 border-t border-white/10 rounded-t-[40px] p-8 max-w-lg mx-auto w-full">
         <div className="flex items-center justify-between mb-8">
-          <h2 className="text-xl font-black text-white uppercase tracking-widest">Match Actions</h2>
+          <h2 className="text-xl font-black text-white uppercase tracking-widest">{type === 'CARD' ? 'Issue Penalty Card' : 'Abnormal Termination'}</h2>
           <button onClick={onClose} className="w-10 h-10 rounded-full bg-white/5 text-zinc-500 flex items-center justify-center">
             <i className="fa-solid fa-times" />
           </button>
         </div>
 
+        {type === 'CARD' && (
         {/* Penalty Cards */}
         <div className="mb-8">
-          <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-4">Issue Penalty Card</h3>
+          <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-4">Select Team & Card</h3>
           <div className="grid grid-cols-2 gap-4">
             {/* Team A Cards */}
             <div className="bg-zinc-900 border border-white/5 rounded-2xl p-4">
@@ -342,10 +345,12 @@ function PenaltyModal({
           </div>
           <p className="text-[9px] text-zinc-600 mt-2 uppercase tracking-widest text-center">Note: Red Card will automatically award +1 point to opponent</p>
         </div>
+        )}
 
+        {type === 'WALKOVER' && (
         {/* Walkover / Retirement */}
         <div>
-          <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-4">Abnormal Termination</h3>
+          <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-4">Select Action</h3>
           <div className="space-y-3">
             <button onClick={() => onWalkover('A', 'RETIRED')} className="w-full py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 font-bold text-xs uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">
               {match.team_b_name} Retires (Award Win to {match.team_a_name})
@@ -355,6 +360,7 @@ function PenaltyModal({
             </button>
           </div>
         </div>
+        )}
       </div>
     </motion.div>
   );
@@ -432,9 +438,9 @@ function ScoringScreen({
   const [countdown, setCountdown] = useState(3);
   const [isOnline, setIsOnline] = useState(true);
   const [offlineCount, setOfflineCount] = useState(0);
+  const [showPenaltyModal, setShowPenaltyModal] = useState<'CARD' | 'WALKOVER' | null>(null);
   const [tieContext, setTieContext] = useState<{ mode: string; nextLabel?: string } | null>(null);
   const [intervalState, setIntervalState] = useState<{ title: string; duration: number } | null>(null);
-  const [showPenaltyModal, setShowPenaltyModal] = useState(false);
   const channelRef = useRef<any>(null);
   const scoringFrozen = phase !== 'SCORING';
 
@@ -767,7 +773,8 @@ function ScoringScreen({
         {showPenaltyModal && (
           <PenaltyModal 
             match={match} 
-            onClose={() => setShowPenaltyModal(false)} 
+            type={showPenaltyModal}
+            onClose={() => setShowPenaltyModal(null)} 
             onIssueCard={handleIssueCard}
             onWalkover={handleWalkover}
           />
@@ -882,7 +889,7 @@ function ScoringScreen({
             Swap Server
           </button>
           <button 
-            onClick={() => setShowPenaltyModal(true)} 
+            onClick={() => setShowPenaltyModal('CARD')} 
             className="bg-zinc-900/80 hover:bg-zinc-800 text-amber-400 aspect-[4/3] rounded-2xl flex flex-col items-center justify-center font-black uppercase tracking-widest text-[9px] md:text-[10px] transition-transform active:scale-95 shadow-sm"
           >
             <i className="fa-solid fa-clone mb-2 text-lg" />
@@ -890,7 +897,7 @@ function ScoringScreen({
           </button>
           
           <button 
-            onClick={() => setShowPenaltyModal(true)} 
+            onClick={() => setShowPenaltyModal('WALKOVER')} 
             className="bg-zinc-900/80 hover:bg-zinc-800 text-amber-500 aspect-[4/3] rounded-2xl flex flex-col items-center justify-center font-black uppercase tracking-widest text-[9px] md:text-[10px] transition-transform active:scale-95 shadow-sm"
           >
             <i className="fa-solid fa-person-walking-arrow-right mb-2 text-lg" />
