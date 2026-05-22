@@ -3,47 +3,7 @@
 import React, { useEffect, useState, useRef, Suspense } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
 import { supabase } from '@/lib/supabaseClient';
-
-const ReactPlayer = dynamic(() => import('react-player'), { ssr: false }) as any;
-
-// --- TYPES & CONFIG ---
-
-type MatchState = {
-  eventId: string;
-  sportType: string;
-  teamA: { name: string; score: number };
-  teamB: { name: string; score: number };
-  currentSet: number;
-  isPaused: boolean;
-  announcement: string;
-  timer?: number;
-};
-
-export type BracketMatch = {
-  id: string;
-  round: number;
-  team1: string;
-  team2: string;
-  winner: 1 | 2 | null;
-  nextMatchId?: string;
-  nextTeamSlot?: 1 | 2;
-};
-
-export type BracketData = {
-  id: string;
-  teamCount: number;
-  matches: Record<string, BracketMatch>;
-};
-
-const SCENES_LIST = [
-  { id: 'SCORE',         icon: 'fa-chart-line',       label: 'Score' },
-  { id: 'BRACKET',      icon: 'fa-sitemap',           label: 'Bracket' },
-  { id: 'ADS',          icon: 'fa-image',             label: 'Ads & Media' },
-  { id: 'YOUTUBE',      icon: 'fa-youtube',           label: 'YouTube / Video' },
-  { id: 'ARENA_VISUALS',icon: 'fa-person-rays',       label: 'Arena Visuals ⚡' },
-];
 
 const ADS_LIBRARY = [
     {id: 'sponsor1', title: 'Main Sponsor Video Ad', url: 'https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4', isVideo: true},
@@ -51,906 +11,303 @@ const ADS_LIBRARY = [
     {id: 'stats_ad', title: 'Live Analytics Sponsor', url: 'https://images.unsplash.com/photo-1540317580384-e5d43616b9aa?q=80&w=3000&auto=format&fit=crop', isVideo: false},
 ];
 
-const INITIAL_BGM_TRACKS = [
-    {id: 'epic_walkin', title: 'Walk-in Anthem', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3', volume: 0.5},
-    {id: 'suspense', title: 'Match Point', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3', volume: 0.5},
-    {id: 'winner', title: 'Celebration', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3', volume: 0.5},
+const YOUTUBE_LIBRARY = [
+    { id: 'yt1', title: 'ZTO Holding Screen', url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' }
 ];
 
-// --- BRACKET GENERATOR LOGIC ---
+type ScreenConfig = { id: number; w: number; h: number; label?: string };
+
+export type BracketMatch = { id: string; round: number; team1: string; team2: string; winner: 1 | 2 | null; };
+export type BracketData = { id: string; teamCount: number; matches: Record<string, BracketMatch>; };
 
 function generateFlexibleBracket(count: number): BracketData {
     const matches: Record<string, BracketMatch> = {};
     const rounds = Math.ceil(Math.log2(count));
-    
     for (let r = rounds; r >= 1; r--) {
         const matchesInRound = Math.pow(2, rounds - r);
         for (let i = 1; i <= matchesInRound; i++) {
             const matchId = `R${r}-M${i}`;
-            const nextMatchId = r < rounds ? `R${r + 1}-M${Math.ceil(i / 2)}` : undefined;
-            const nextTeamSlot = r < rounds ? (i % 2 !== 0 ? 1 : 2) : undefined;
-            
-            matches[matchId] = { id: matchId, round: r, team1: 'TBD', team2: 'TBD', winner: null, nextMatchId, nextTeamSlot };
+            matches[matchId] = { id: matchId, round: r, team1: 'TBD', team2: 'TBD', winner: null };
         }
     }
-
     const round1Count = Math.pow(2, rounds - 1);
     for (let i = 1; i <= round1Count; i++) {
         const m = matches[`R1-M${i}`];
-        const t1Idx = (i * 2) - 1;
-        const t2Idx = i * 2;
-        
-        m.team1 = t1Idx <= count ? `Team ${t1Idx}` : 'BYE';
-        m.team2 = t2Idx <= count ? `Team ${t2Idx}` : 'BYE';
-        
-        if (m.team2 === 'BYE' && m.team1 !== 'BYE') m.winner = 1;
-        if (m.team1 === 'BYE' && m.team2 !== 'BYE') m.winner = 2;
+        m.team1 = (i * 2) - 1 <= count ? `Team ${(i * 2) - 1}` : 'BYE';
+        m.team2 = i * 2 <= count ? `Team ${i * 2}` : 'BYE';
     }
-
     return { id: 'universal-bracket', teamCount: count, matches };
 }
-
-// --- MAIN COMPONENTS ---
 
 function MasterConsoleContent() {
   const params = useParams();
   const eventId = (params.eventId as string) || 'BINTULU_OPEN_2026';
   const [eventName, setEventName] = useState<string>(eventId);
   
-  const [previewScene, setPreviewScene] = useState<string>('SCORE');
-  
-  type ScreenConfig = { id: number; w: number; h: number; label?: string };
-  const [screensConfig, setScreensConfig] = useState<ScreenConfig[]>([
-    { id: 1, w: 4, h: 3 }, { id: 2, w: 4, h: 3 }
-  ]);
-  
+  const [screensConfig, setScreensConfig] = useState<ScreenConfig[]>([{ id: 1, w: 4, h: 3 }, { id: 2, w: 4, h: 3 }]);
   const [targetScreens, setTargetScreens] = useState<number[]>([1,2]);
-  type ProgramScreenState = { scene: string; url?: string; isPlaying?: boolean };
-  const [programScenes, setProgramScenes] = useState<Record<number, ProgramScreenState>>({
-      1: { scene: 'SCORE' }, 2: { scene: 'SCORE' }
-  });
-
-  const [matchState, setMatchState] = useState<MatchState>({
-    eventId, sportType: 'PICKLEBALL', teamA: { name: 'Player A', score: 0 }, teamB: { name: 'Player B', score: 0 }, currentSet: 1, isPaused: false, announcement: '',
-  });
-
-  const [teamInputCount, setTeamInputCount] = useState(8);
-  const [bracketState, setBracketState] = useState<BracketData>(() => generateFlexibleBracket(8));
-  const [dispatchQueue, setDispatchQueue] = useState<{ id: string, name: string, status: string, scoreA: number, scoreB: number, teamA?: string, teamB?: string }[]>([]);
-  const [activeAdId, setActiveAdId] = useState<string | null>(null);
   
-  // Audio Mixer State
-  const [bgmTracks, setBgmTracks] = useState(INITIAL_BGM_TRACKS);
-  const [activeBgm, setActiveBgm] = useState<string | null>(null);
-  
-  const [youtubeLibrary, setYoutubeLibrary] = useState<{id: string, title: string, url: string}[]>([
-      { id: 'yt1', title: 'ZTO Holding Screen', url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' }
-  ]);
-  const [youtubeUrl, setYoutubeUrl] = useState<string>('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
-  const [isPlayingMedia, setIsPlayingMedia] = useState<boolean>(false);
-
+  const [liveMatches, setLiveMatches] = useState<any[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const channelRef = useRef<any>(null);
-  const [isFading, setIsFading] = useState(false);
-  
-  // Helper to persist screen config
-  const saveScreenConfig = async (newConfig: ScreenConfig[]) => {
-      setScreensConfig(newConfig);
-      await supabase.from('arena_tournaments').update({ screen_config: newConfig }).eq('id', eventId);
-  };
 
-  const handleAddScreen = () => {
-      const newId = screensConfig.length > 0 ? Math.max(...screensConfig.map(s => s.id)) + 1 : 1;
-      const newConfig = [...screensConfig, { id: newId, w: 4, h: 3 }];
-      setProgramScenes(prev => ({...prev, [newId]: { scene: 'STANDBY' }}));
-      saveScreenConfig(newConfig);
-  };
-
-  const handleRemoveScreen = (id: number) => {
-      const newConfig = screensConfig.filter(s => s.id !== id);
-      saveScreenConfig(newConfig);
-      setTargetScreens(prev => prev.filter(x => x !== id));
-  };
-
-  const updateScreenDim = (id: number, w: number, h: number) => {
-      setScreensConfig(prev => prev.map(s => s.id === id ? { ...s, w, h } : s));
-  };
-
-  const [expandedDimScreen, setExpandedDimScreen] = useState<number | null>(null);
-
-  // ── Showdown / Arena Visuals state ──────────────────────────────────────
-  type ShowdownPreset = { id: string; name: string; leftPlayer: string; rightPlayer: string; bgVideo: string };
-  const [showdownLibraryTab, setShowdownLibraryTab] = useState<'MEDIA'|'PLAYERS'|'PRESETS'>('PRESETS');
-  const [arenaMediaLib, setArenaMediaLib] = useState<{id:string; title:string; url:string}[]>([
-    { id: 'clip1', title: 'Arena Loop 1', url: '/assets/video/hero-corporate.mp4/clip_1_202604251238.mp4' },
-    { id: 'clip2', title: 'Arena Loop 2', url: '/assets/video/hero-corporate.mp4/clip_2_202604251238.mp4' },
-    { id: 'showdown_loop', title: 'Showdown Default Loop', url: '/assets/video/showdown-loop.mp4' },
-  ]);
-  const [arenaPlayerLib, setArenaPlayerLib] = useState<{id:string; name:string; url:string}[]>([]);
-  const [showdownPresets, setShowdownPresets] = useState<ShowdownPreset[]>([]);
-  const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
-  const [showdownDraft, setShowdownDraft] = useState({ name:'', leftPlayer:'', rightPlayer:'', bgVideo:'' });
-  const [showdownFiring, setShowdownFiring] = useState<'LEFT'|'RIGHT'|'VS'|null>(null);
-  const [showdownDbTournamentId, setShowdownDbTournamentId] = useState<string | null>(null);
-
-  // Load // Fetch tournament ID for linking
+  // Load Event Info
   useEffect(() => {
-    supabase.from('arena_tournaments').select('id').eq('id', eventId).single()
-      .then(({ data }) => { if (data?.id) setShowdownDbTournamentId(data.id); });
+      supabase.from('arena_tournaments').select('name, screen_config').eq('id', eventId).single().then(({data}) => {
+          if (data?.name) setEventName(data.name);
+          if (data?.screen_config) {
+             setScreensConfig(data.screen_config);
+             setTargetScreens(data.screen_config.map((s:any) => s.id));
+          }
+      });
   }, [eventId]);
 
-  const fireShowdownCommand = async (command: 'ACTIVATE_LEFT'|'ACTIVATE_RIGHT'|'FIRE_VS'|'RESET') => {
-    const preset = showdownPresets.find(p => p.id === selectedPresetId);
-    if (!preset && command !== 'RESET') return;
-    setShowdownFiring(command === 'ACTIVATE_LEFT' ? 'LEFT' : command === 'ACTIVATE_RIGHT' ? 'RIGHT' : 'VS');
-    const tid = showdownDbTournamentId || eventId;
-    await supabase.from('arena_live_controls').upsert({
-      tournament_id: tid,
-      command,
-      player_left_url: preset?.leftPlayer || null,
-      player_right_url: preset?.rightPlayer || null,
-      background_video_url: preset?.bgVideo || null,
-      preset_name: preset?.name || null,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: 'tournament_id' });
-    setTimeout(() => setShowdownFiring(null), 900);
-  };
-
-  // Live DB match for Preview auto-sync
-  const [liveDbMatch, setLiveDbMatch] = useState<{ score_a: number; score_b: number; team_a_name: string; team_b_name: string; current_set: number } | null>(null);
-
+  // Load Live Matches
   useEffect(() => {
-    async function loadRealData() {
-        if (!eventId) return;
-        const { data: t } = await supabase.from('arena_tournaments').select('id, name, bracket_json, screen_config').eq('id', eventId).single();
-        if (t) {
-            if (t.name) setEventName(t.name);
-            if (t.screen_config && Array.isArray(t.screen_config)) {
-                setScreensConfig(t.screen_config);
-                setTargetScreens(t.screen_config.map((s: any) => s.id));
-                const initProg: Record<number, ProgramScreenState> = {};
-                t.screen_config.forEach((s: any) => initProg[s.id] = { scene: 'SCORE' });
-                setProgramScenes(initProg);
-            }
-            if (t.bracket_json && t.bracket_json.events) {
-                const firstEvt = Object.keys(t.bracket_json.events)[0];
-                if (firstEvt) setBracketState(t.bracket_json.events[firstEvt]);
-            }
-            const { data: matches } = await supabase.from('arena_matches').select('*').eq('tournament_id', t.id).order('court_number');
-            if (matches) {
-                const live = matches.filter((m: any) => m.status === 'LIVE' || m.status === 'PENDING').map((m: any) => ({
-                    id: m.id, name: `Court ${m.court_number || '?'}`, status: m.status, scoreA: m.score_a, scoreB: m.score_b, teamA: m.team_a_name, teamB: m.team_b_name,
-                }));
-                setDispatchQueue(live);
-            }
-        }
-    }
-    loadRealData();
+      const fetchMatches = async () => {
+         const { data } = await supabase.from('arena_matches').select('*, clan_a:arena_clans!clan_a_id(short_name), clan_b:arena_clans!clan_b_id(short_name)').eq('status', 'LIVE');
+         if (data) setLiveMatches(data);
+      };
+      fetchMatches();
+
+      const ch = supabase.channel(`live-matches-${eventId}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'arena_matches' }, () => {
+            fetchMatches();
+        }).subscribe();
+      
+      return () => { supabase.removeChannel(ch); }
   }, [eventId]);
 
+  // Setup Broadcast Channel
   useEffect(() => {
-    const channel = supabase.channel(`zto-arena-${eventId}`, { config: { broadcast: { ack: true } } });
-    channel
-      .on('broadcast', { event: 'screen-mode' }, (payload) => {
-          // If we receive a broadcast from another director (rare but possible)
-      })
-      .subscribe((status) => setIsConnected(status === 'SUBSCRIBED'));
-    channelRef.current = channel;
-    return () => { supabase.removeChannel(channel); };
+      const ch = supabase.channel(`zto-arena-${eventId}`, { config: { broadcast: { ack: true } } });
+      ch.subscribe((status) => {
+          if (status === 'SUBSCRIBED') setIsConnected(true);
+      });
+      channelRef.current = ch;
+      return () => { supabase.removeChannel(ch); setIsConnected(false); }
   }, [eventId]);
 
-  // Live DB sync for Preview SCORE
-  useEffect(() => {
-    const ch = supabase
-      .channel(`mc-db-${eventId}`)
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'arena_matches' }, (payload) => {
-        const m = payload.new as any;
-        if (m.status === 'LIVE') {
-          setLiveDbMatch({ score_a: m.score_a, score_b: m.score_b, team_a_name: m.team_a_name, team_b_name: m.team_b_name, current_set: m.current_set });
-        }
-      })
-      .subscribe();
-    
-    // Keyboard listener for Spacebar (Play/Pause)
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      if (e.code === 'Space') {
-        e.preventDefault();
-        setIsPlayingMedia(prev => !prev);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-
-    return () => { 
-        supabase.removeChannel(ch); 
-        window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [eventId]);
-
-  const handleCut = () => {
-    if (targetScreens.length === 0) {
-        alert("Please select at least one Target Screen.");
-        return;
-    }
-    const newPrograms = { ...programScenes };
-    targetScreens.forEach(s => {
-        newPrograms[s] = { scene: previewScene, url: youtubeUrl, isPlaying: isPlayingMedia };
-    });
-    setProgramScenes(newPrograms);
-
-    // Send broadcast
-    if (['SCORE', 'ADS', 'BRACKET', 'YOUTUBE'].includes(previewScene)) {
-        channelRef.current?.send({ type: 'broadcast', event: 'screen-mode', payload: { mode: previewScene, targets: targetScreens } });
-    }
-    if (previewScene === 'SCORE') channelRef.current?.send({ type: 'broadcast', event: 'match-update', payload: { ...matchState, targets: targetScreens } });
-    else if (previewScene === 'ADS') { const ad = ADS_LIBRARY.find(a => a.id === activeAdId); if (ad) channelRef.current?.send({ type: 'broadcast', event: 'ad-update', payload: { activeAd: ad, targets: targetScreens } }); }
-    else if (previewScene === 'BRACKET') channelRef.current?.send({ type: 'broadcast', event: 'bracket-update', payload: { ...bracketState, targets: targetScreens } });
-    else if (previewScene === 'YOUTUBE') channelRef.current?.send({ type: 'broadcast', event: 'youtube-update', payload: { url: youtubeUrl, playing: isPlayingMedia, targets: targetScreens } });
+  const pushScore = (match: any) => {
+      if (targetScreens.length === 0) return alert("Please select at least one target screen!");
+      const matchState = {
+          eventId, sportType: match.category_code || 'SPORT',
+          teamA: { name: match.clan_a?.short_name || match.team_a_name || 'Team A', score: match.score_a || 0 },
+          teamB: { name: match.clan_b?.short_name || match.team_b_name || 'Team B', score: match.score_b || 0 },
+          currentSet: match.current_set || 1, isPaused: false, announcement: ''
+      };
+      channelRef.current?.send({ type: 'broadcast', event: 'match-update', payload: { ...matchState, targets: targetScreens } });
   };
 
-  const handleFade = async () => {
-    setIsFading(true);
-    await new Promise(r => setTimeout(r, 400));
-    handleCut();
-    await new Promise(r => setTimeout(r, 400));
-    setIsFading(false);
+  const pushAd = (ad: any) => {
+      if (targetScreens.length === 0) return alert("Select target screens!");
+      channelRef.current?.send({ type: 'broadcast', event: 'ad-update', payload: { activeAd: ad, targets: targetScreens } });
   };
 
-  const handleRegenBracket = () => {
-      const count = Number(teamInputCount);
-      if (isNaN(count) || count < 2) return;
-      const newBracket = generateFlexibleBracket(count);
-      setBracketState(newBracket);
+  const pushYouTube = (video: any) => {
+      if (targetScreens.length === 0) return alert("Select target screens!");
+      channelRef.current?.send({ type: 'broadcast', event: 'youtube-update', payload: { url: video.url, playing: true, targets: targetScreens } });
   };
 
-  const addNewBgmTrack = () => {
-      const url = prompt("Enter Audio/Video URL for BGM:");
-      if (url) {
-          const title = prompt("Enter Track Title:") || "Custom Track";
-          setBgmTracks([...bgmTracks, { id: crypto.randomUUID(), title, url, volume: 0.5 }]);
-      }
+  const pushBracket = () => {
+      if (targetScreens.length === 0) return alert("Select target screens!");
+      const bracket = generateFlexibleBracket(8);
+      channelRef.current?.send({ type: 'broadcast', event: 'bracket-update', payload: { ...bracket, targets: targetScreens } });
   };
 
-  const handleScreenAction = (screenNum: number, action: 'play' | 'pause' | 'clear') => {
-      const newProg = { ...programScenes };
-      if (action === 'clear') {
-          newProg[screenNum] = { scene: 'STANDBY' };
-          channelRef.current?.send({ type: 'broadcast', event: 'screen-action', payload: { action: 'clear', targets: [screenNum] } });
-      } else if (action === 'play') {
-          newProg[screenNum].isPlaying = true;
-          channelRef.current?.send({ type: 'broadcast', event: 'screen-action', payload: { action: 'play-youtube', targets: [screenNum] } });
-      } else if (action === 'pause') {
-          newProg[screenNum].isPlaying = false;
-          channelRef.current?.send({ type: 'broadcast', event: 'screen-action', payload: { action: 'pause-youtube', targets: [screenNum] } });
-      }
-      setProgramScenes(newProg);
+  const resetScreens = () => {
+      if (targetScreens.length === 0) return alert("Select target screens!");
+      channelRef.current?.send({ type: 'broadcast', event: 'screen-action', payload: { action: 'clear', targets: targetScreens } });
   };
 
-  const renderSimulatedMonitor = (sceneState: ProgramScreenState | string, isProgram: boolean = false) => {
-       const scene = typeof sceneState === 'string' ? sceneState : sceneState.scene;
-       const url = typeof sceneState === 'string' ? youtubeUrl : sceneState.url || youtubeUrl;
-       const isPlaying = typeof sceneState === 'string' ? isPlayingMedia : (sceneState.isPlaying ?? isPlayingMedia);
-       
-       if (scene === 'SCORE') {
-            return (
-                <div className="flex flex-col items-center justify-center w-full h-full p-2 relative">
-                    <div className="absolute top-1 bg-amber-500/20 text-amber-500 px-2 py-0.5 rounded-full text-[8px] font-black uppercase">SET {matchState.currentSet}</div>
-                    <div className="flex w-full mt-2 h-full">
-                         <div className="flex-1 border-r border-white/10 flex flex-col items-center justify-center">
-                              <span className="text-blue-400 text-[8px] font-black uppercase truncate max-w-full px-1">{matchState.teamA.name}</span>
-                              <span className="text-2xl font-black mt-1">{matchState.teamA.score}</span>
-                         </div>
-                         <div className="flex-1 flex flex-col items-center justify-center">
-                              <span className="text-red-400 text-[8px] font-black uppercase truncate max-w-full px-1">{matchState.teamB.name}</span>
-                              <span className="text-2xl font-black mt-1">{matchState.teamB.score}</span>
-                         </div>
-                    </div>
-                </div>
-            );
-       }
-       if (scene === 'ADS') {
-            const ad = ADS_LIBRARY.find(a => a.id === activeAdId);
-            return (
-                <div className="w-full h-full relative overflow-hidden bg-black flex items-center justify-center">
-                    {!ad ? <div className="text-zinc-600 text-[10px]">No Media</div> : 
-                     ad.isVideo ? (
-                        <video src={ad.url} className="w-full h-full object-contain" autoPlay={isPlayingMedia} loop muted playsInline />
-                     ) : (
-                        <img src={ad.url} className="w-full h-full object-contain" />
-                     )}
-                    {ad && <div className="absolute bottom-1 left-1 text-white font-black text-[8px] drop-shadow-md bg-black/50 px-1 py-0.5 rounded">{ad.title}</div>}
-                </div>
-            );
-       }
-       if (scene === 'YOUTUBE') {
-            return (
-                <div className="w-full h-full bg-black relative flex items-center justify-center">
-                    {url ? (
-                        // Muted in program to avoid echo
-                        <ReactPlayer 
-                            url={url} 
-                            playing={isPlaying} 
-                            volume={isProgram ? 0 : 1} 
-                            muted={isProgram}
-                            width="100%" 
-                            height="100%" 
-                            controls={!isProgram} 
-                            onPlay={() => !isProgram && setIsPlayingMedia(true)}
-                            onPause={() => !isProgram && setIsPlayingMedia(false)}
-                        />
-                    ) : (
-                        <div className="text-zinc-600 text-[10px] font-bold uppercase"><i className="fa-brands fa-youtube mr-1 text-red-500"></i>No URL</div>
-                    )}
-                </div>
-            );
-       }
-       if (scene === 'BRACKET') {
-            return (
-                <div className="flex flex-col items-center justify-center w-full h-full">
-                    <i className="fa-solid fa-sitemap text-xl text-blue-500/40 mb-1" />
-                    <span className="font-black text-[8px] text-blue-400 tracking-widest">{bracketState.teamCount} TEAMS</span>
-                </div>
-            );
-       }
-       if (scene === 'ARENA_VISUALS') {
-            const preset = showdownPresets.find(p => p.id === selectedPresetId);
-            return (
-                <div className="w-full h-full relative overflow-hidden bg-black flex items-center justify-center">
-                    {preset?.bgVideo && (
-                        <video src={preset.bgVideo} className="absolute inset-0 w-full h-full object-cover opacity-50" autoPlay loop muted playsInline />
-                    )}
-                    <div className="absolute inset-0 flex">
-                        <div className={`flex-1 transition-transform duration-500 ${showdownFiring === 'LEFT' ? 'scale-110' : 'scale-100'} flex items-end justify-center`}>
-                           {preset?.leftPlayer && <img src={preset.leftPlayer} className="max-h-full object-contain" />}
-                        </div>
-                        <div className={`flex-1 transition-transform duration-500 ${showdownFiring === 'RIGHT' ? 'scale-110' : 'scale-100'} flex items-end justify-center`}>
-                           {preset?.rightPlayer && <img src={preset.rightPlayer} className="max-h-full object-contain" />}
-                        </div>
-                    </div>
-                    {showdownFiring === 'VS' && (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <h1 className="text-6xl font-black italic text-amber-500 drop-shadow-[0_0_20px_rgba(245,158,11,0.8)]">VS</h1>
-                        </div>
-                    )}
-                    {!preset && <div className="text-zinc-600 text-[10px] z-10">Select a Showdown Preset</div>}
-                </div>
-            );
-       }
-       return (
-            <div className="flex flex-col items-center justify-center w-full h-full opacity-50">
-                <i className="fa-solid fa-ban mb-1 text-lg"></i>
-                <span className="text-[8px] font-bold">OFF AIR</span>
-            </div>
-       );
-  };
-
-  const renderProperties = () => {
-      if (previewScene === 'SCORE') {
-          return (
-             <div className="flex flex-col gap-4">
-                 <div>
-                     <label className="text-[10px] text-zinc-500 font-bold mb-1 block uppercase tracking-widest">Select Live Court</label>
-                     <select 
-                        className="w-full bg-[#111] border border-blue-500/30 text-blue-400 rounded px-2 py-2 text-xs mb-2 font-bold focus:outline-none focus:border-blue-500"
-                        onChange={(e) => {
-                            if (!e.target.value) return;
-                            const m = dispatchQueue.find(x => x.id === e.target.value);
-                            if (m) {
-                                setMatchState(prev => ({
-                                    ...prev,
-                                    teamA: { name: m.teamA || 'Team A', score: m.scoreA },
-                                    teamB: { name: m.teamB || 'Team B', score: m.scoreB },
-                                }));
-                            }
-                        }}
-                     >
-                         <option value="">-- Manual Override / None --</option>
-                         {dispatchQueue.map(m => (
-                             <option key={m.id} value={m.id}>{m.name}: {m.teamA} vs {m.teamB}</option>
-                         ))}
-                     </select>
-                 </div>
-                 <div className="flex gap-4">
-                     <div className="flex-1">
-                         <label className="text-[10px] text-zinc-500 font-bold mb-1 block">TEAM A</label>
-                         <input className="w-full bg-[#111] border border-[#333] rounded px-2 py-1 text-white text-xs mb-2" value={matchState.teamA.name} onChange={(e) => setMatchState({...matchState, teamA: {...matchState.teamA, name: e.target.value}})} />
-                         <div className="flex items-center gap-2">
-                             <button onClick={() => setMatchState({...matchState, teamA: {...matchState.teamA, score: Math.max(0, matchState.teamA.score - 1)}})} className="bg-[#3c3c3c] hover:bg-[#4a4a4a] px-3 py-1 rounded text-xs">-</button>
-                             <span className="flex-1 text-center font-black">{matchState.teamA.score}</span>
-                             <button onClick={() => setMatchState({...matchState, teamA: {...matchState.teamA, score: matchState.teamA.score + 1}})} className="bg-[#3c3c3c] hover:bg-[#4a4a4a] px-3 py-1 rounded text-xs">+</button>
-                         </div>
-                     </div>
-                     <div className="flex-1">
-                         <label className="text-[10px] text-zinc-500 font-bold mb-1 block">TEAM B</label>
-                         <input className="w-full bg-[#111] border border-[#333] rounded px-2 py-1 text-white text-xs mb-2" value={matchState.teamB.name} onChange={(e) => setMatchState({...matchState, teamB: {...matchState.teamB, name: e.target.value}})} />
-                         <div className="flex items-center gap-2">
-                             <button onClick={() => setMatchState({...matchState, teamB: {...matchState.teamB, score: Math.max(0, matchState.teamB.score - 1)}})} className="bg-[#3c3c3c] hover:bg-[#4a4a4a] px-3 py-1 rounded text-xs">-</button>
-                             <span className="flex-1 text-center font-black">{matchState.teamB.score}</span>
-                             <button onClick={() => setMatchState({...matchState, teamB: {...matchState.teamB, score: matchState.teamB.score + 1}})} className="bg-[#3c3c3c] hover:bg-[#4a4a4a] px-3 py-1 rounded text-xs">+</button>
-                         </div>
-                     </div>
-                 </div>
-                 <div>
-                    <label className="text-[10px] text-zinc-500 font-bold mb-1 block">SET</label>
-                    <input type="number" className="w-[100px] bg-[#111] border border-[#333] rounded px-2 py-1 text-white text-xs" value={matchState.currentSet} onChange={(e) => setMatchState({...matchState, currentSet: parseInt(e.target.value) || 1})} />
-                 </div>
-             </div>
-          );
-      }
-      if (previewScene === 'ADS') {
-          return (
-              <div className="space-y-2">
-                  <div className="text-[10px] text-zinc-500 font-bold mb-2 uppercase">Video/Image Library</div>
-                  {ADS_LIBRARY.map(ad => (
-                      <div key={ad.id} onClick={() => setActiveAdId(ad.id)} className={`p-2 rounded border cursor-pointer flex items-center justify-between text-xs transition-colors ${activeAdId === ad.id ? 'bg-fuchsia-600/20 border-fuchsia-500 text-white' : 'bg-[#111] border-[#333] text-zinc-400 hover:border-[#555]'}`}>
-                          <span className="truncate flex-1">{ad.title}</span>
-                          {activeAdId === ad.id && <i className="fa-solid fa-check text-fuchsia-400" />}
-                      </div>
-                  ))}
-              </div>
-          );
-      }
-      if (previewScene === 'YOUTUBE') {
-          return (
-              <div>
-                  <div className="flex items-center justify-between mb-4">
-                      <h3 className="font-black text-xs text-white uppercase tracking-widest"><i className="fa-brands fa-youtube text-red-500 mr-2" /> YouTube Player</h3>
-                      <button onClick={() => {
-                          const url = prompt("Enter YouTube URL:");
-                          if (url) {
-                              const title = prompt("Enter Video Title:") || "Custom Video";
-                              setYoutubeLibrary([...youtubeLibrary, { id: crypto.randomUUID(), title, url }]);
-                              setYoutubeUrl(url);
-                          }
-                      }} className="bg-[#444] hover:bg-[#555] text-white px-2 py-0.5 rounded text-[9px] font-bold">
-                          <i className="fa-solid fa-plus mr-1" /> Add Preset
-                      </button>
-                  </div>
-                  
-                  <div className="space-y-2 mb-4">
-                      {youtubeLibrary.map(yt => (
-                          <div key={yt.id} onClick={() => setYoutubeUrl(yt.url)} className={`p-2 rounded border cursor-pointer flex items-center justify-between text-xs transition-colors ${youtubeUrl === yt.url ? 'bg-red-600/20 border-red-500 text-white' : 'bg-[#111] border-[#333] text-zinc-400 hover:border-[#555]'}`}>
-                              <span className="truncate flex-1 font-bold">{yt.title}</span>
-                              {youtubeUrl === yt.url && <i className="fa-solid fa-play text-red-500" />}
-                          </div>
-                      ))}
-                  </div>
-
-                  <div className="space-y-4 pt-4 border-t border-[#333]">
-                      <div>
-                          <label className="text-[10px] text-zinc-500 font-bold mb-2 block uppercase tracking-widest">Active URL / Manual Override</label>
-                          <input 
-                              type="text" 
-                              className="w-full bg-black/50 border border-white/10 rounded px-2 py-1.5 text-white text-xs focus:outline-none focus:border-red-500 transition-colors" 
-                              value={youtubeUrl} 
-                              onChange={(e) => setYoutubeUrl(e.target.value)} 
-                              placeholder="https://youtube.com/watch?v=... OR /assets/video/local.mp4"
-                          />
-                          <div className="text-[9px] text-zinc-400 mt-2 p-2 bg-[#111] border border-[#333] rounded">
-                              <i className="fa-solid fa-circle-info text-blue-400 mr-1" /> To play a local video, place it in the public folder (e.g. <code className="bg-black px-1 text-red-300">/assets/video/myvideo.mp4</code>) and enter the path above.<br/>
-                              <i className="fa-solid fa-triangle-exclamation text-amber-500 mr-1 mt-1" /> <b>Important:</b> You must click <b className="text-white">PLAY VIDEO</b> below before Cutting, or the video will appear paused on the screen.
-                          </div>
-                      </div>
-                      <div className="p-3 bg-zinc-900 border border-white/5 rounded-xl flex items-center justify-center">
-                          <button onClick={() => setIsPlayingMedia(p => !p)} className={`w-full py-2 rounded font-black text-xs uppercase tracking-widest transition-all ${isPlayingMedia ? 'bg-red-500 text-white shadow-[0_0_15px_rgba(239,68,68,0.4)]' : 'bg-[#333] text-white hover:bg-[#444]'}`}>
-                              <i className={`fa-solid ${isPlayingMedia ? 'fa-pause' : 'fa-play'} mr-2`} /> {isPlayingMedia ? 'Pause' : 'Play Video'}
-                          </button>
-                      </div>
-                  </div>
-              </div>
-          );
-      }
-      if (previewScene === 'BRACKET') {
-          return (
-              <div>
-                  <div className="text-[10px] text-zinc-500 font-bold mb-2 uppercase">Bracket Topology</div>
-                  <div className="flex gap-2">
-                      <input type="number" className="w-20 bg-[#111] border border-[#333] rounded px-2 py-1 text-white text-xs" value={teamInputCount} onChange={(e) => setTeamInputCount(parseInt(e.target.value) || 0)} />
-                      <button onClick={handleRegenBracket} className="bg-blue-600 hover:bg-blue-500 px-3 py-1 rounded text-xs">Init New Tree</button>
-                  </div>
-              </div>
-          );
-      }
-      if (previewScene === 'ARENA_VISUALS') {
-          return (
-              <div className="space-y-4">
-                  {/* Tabs */}
-                  <div className="flex bg-[#111] p-1 rounded border border-[#333]">
-                      {(['PRESETS', 'PLAYERS', 'MEDIA'] as const).map(tab => (
-                          <button key={tab} onClick={() => setShowdownLibraryTab(tab)} className={`flex-1 text-[10px] font-black uppercase tracking-widest py-1.5 rounded transition-all ${showdownLibraryTab === tab ? 'bg-[#0056B3] text-white shadow-[0_0_10px_rgba(0,86,179,0.5)]' : 'text-zinc-500 hover:text-zinc-300'}`}>
-                              {tab}
-                          </button>
-                      ))}
-                  </div>
-
-                  {showdownLibraryTab === 'PRESETS' && (
-                      <div className="space-y-3">
-                          <div className="bg-[#111] border border-[#333] p-2 rounded flex flex-col gap-2">
-                              <input type="text" placeholder="Preset Name (e.g. Semi-Final A)" className="bg-black border border-[#333] rounded px-2 py-1 text-xs text-white" value={showdownDraft.name} onChange={e => setShowdownDraft({...showdownDraft, name: e.target.value})} />
-                              <div className="grid grid-cols-2 gap-2">
-                                  <select className="bg-black border border-[#333] rounded px-1 py-1 text-[10px] text-white" value={showdownDraft.leftPlayer} onChange={e => setShowdownDraft({...showdownDraft, leftPlayer: e.target.value})}>
-                                      <option value="">-- Left Player --</option>
-                                      {arenaPlayerLib.map(p => <option key={p.id} value={p.url}>{p.name}</option>)}
-                                  </select>
-                                  <select className="bg-black border border-[#333] rounded px-1 py-1 text-[10px] text-white" value={showdownDraft.rightPlayer} onChange={e => setShowdownDraft({...showdownDraft, rightPlayer: e.target.value})}>
-                                      <option value="">-- Right Player --</option>
-                                      {arenaPlayerLib.map(p => <option key={p.id} value={p.url}>{p.name}</option>)}
-                                  </select>
-                              </div>
-                              <select className="bg-black border border-[#333] rounded px-1 py-1 text-[10px] text-white" value={showdownDraft.bgVideo} onChange={e => setShowdownDraft({...showdownDraft, bgVideo: e.target.value})}>
-                                  <option value="">-- BG Loop --</option>
-                                  {arenaMediaLib.map(m => <option key={m.id} value={m.url}>{m.title}</option>)}
-                              </select>
-                              <button onClick={() => {
-                                  if (!showdownDraft.name) return;
-                                  setShowdownPresets([...showdownPresets, { id: crypto.randomUUID(), ...showdownDraft }]);
-                                  setShowdownDraft({ name:'', leftPlayer:'', rightPlayer:'', bgVideo:'' });
-                              }} className="bg-[#0056B3] hover:bg-blue-600 text-white font-bold text-[10px] py-1.5 rounded uppercase tracking-widest mt-1">
-                                  Save Preset
-                              </button>
-                          </div>
-                          <div className="space-y-2 max-h-40 overflow-y-auto">
-                              {showdownPresets.map(p => (
-                                  <div key={p.id} onClick={() => setSelectedPresetId(p.id)} className={`p-2 rounded border cursor-pointer transition-colors ${selectedPresetId === p.id ? 'bg-[#0056B3]/20 border-[#0056B3] shadow-[0_0_10px_rgba(0,86,179,0.2)]' : 'bg-[#111] border-[#333] hover:border-[#555]'}`}>
-                                      <div className={`text-xs font-black uppercase tracking-widest ${selectedPresetId === p.id ? 'text-white' : 'text-zinc-400'}`}>{p.name}</div>
-                                      <div className="text-[9px] text-zinc-500 mt-1 flex justify-between">
-                                          <span>L: {arenaPlayerLib.find(x => x.url === p.leftPlayer)?.name || 'None'}</span>
-                                          <span>R: {arenaPlayerLib.find(x => x.url === p.rightPlayer)?.name || 'None'}</span>
-                                      </div>
-                                  </div>
-                              ))}
-                              {showdownPresets.length === 0 && <div className="text-zinc-600 text-[10px] text-center italic py-4">No presets saved</div>}
-                          </div>
-
-                          {/* Action Controller */}
-                          {selectedPresetId && (
-                              <div className="mt-4 border-t border-[#333] pt-4 grid grid-cols-2 gap-2">
-                                  <button onClick={() => fireShowdownCommand('ACTIVATE_LEFT')} className="bg-[#0056B3] hover:bg-blue-500 text-white font-black text-[10px] py-3 rounded-lg shadow-[0_0_15px_rgba(0,86,179,0.4)] transition-all active:scale-95 uppercase tracking-widest flex flex-col items-center">
-                                      <i className="fa-solid fa-bolt mb-1 text-[14px]" /> L-Player
-                                  </button>
-                                  <button onClick={() => fireShowdownCommand('ACTIVATE_RIGHT')} className="bg-[#0056B3] hover:bg-blue-500 text-white font-black text-[10px] py-3 rounded-lg shadow-[0_0_15px_rgba(0,86,179,0.4)] transition-all active:scale-95 uppercase tracking-widest flex flex-col items-center">
-                                      <i className="fa-solid fa-bolt mb-1 text-[14px]" /> R-Player
-                                  </button>
-                                  <button onClick={() => fireShowdownCommand('FIRE_VS')} className="col-span-2 bg-amber-600 hover:bg-amber-500 text-white font-black text-xs py-3 rounded-lg shadow-[0_0_20px_rgba(217,119,6,0.5)] transition-all active:scale-95 uppercase tracking-[0.2em] flex flex-col items-center">
-                                      <i className="fa-solid fa-fire mb-1 text-[16px]" /> Fire VS Logo
-                                  </button>
-                                  <button onClick={() => fireShowdownCommand('RESET')} className="col-span-2 bg-red-900/50 hover:bg-red-800 text-red-400 font-bold text-[9px] py-2 rounded-lg transition-all active:scale-95 uppercase tracking-widest mt-2">
-                                      Clear Scene
-                                  </button>
-                              </div>
-                          )}
-                      </div>
-                  )}
-
-                  {showdownLibraryTab === 'PLAYERS' && (
-                      <div className="space-y-3">
-                          <button onClick={() => {
-                              const name = prompt("Player Name:");
-                              if (!name) return;
-                              const url = prompt("Image URL (transparent PNG):");
-                              if (url) setArenaPlayerLib([...arenaPlayerLib, { id: crypto.randomUUID(), name, url }]);
-                          }} className="w-full bg-[#222] hover:bg-[#333] border border-[#444] text-white text-[10px] py-2 rounded font-bold uppercase tracking-widest flex items-center justify-center gap-2">
-                              <i className="fa-solid fa-upload" /> Add Player PNG
-                          </button>
-                          <div className="grid grid-cols-2 gap-2">
-                              {arenaPlayerLib.map(p => (
-                                  <div key={p.id} className="relative aspect-square bg-[#111] border border-[#333] rounded-[12px] overflow-hidden group">
-                                      <img src={p.url} className="w-full h-full object-contain object-bottom p-2" />
-                                      <div className="absolute inset-x-0 bottom-0 bg-black/80 text-white text-[9px] font-black uppercase text-center py-1 truncate px-1">{p.name}</div>
-                                      <button onClick={() => setArenaPlayerLib(arenaPlayerLib.filter(x => x.id !== p.id))} className="absolute top-1 right-1 w-5 h-5 bg-red-600 rounded-full text-white text-[10px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                          <i className="fa-solid fa-xmark" />
-                                      </button>
-                                  </div>
-                              ))}
-                          </div>
-                      </div>
-                  )}
-
-                  {showdownLibraryTab === 'MEDIA' && (
-                      <div className="space-y-3">
-                          <button onClick={() => {
-                              const title = prompt("Video Title:");
-                              if (!title) return;
-                              const url = prompt("Video URL (.mp4 loop):");
-                              if (url) setArenaMediaLib([...arenaMediaLib, { id: crypto.randomUUID(), title, url }]);
-                          }} className="w-full bg-[#222] hover:bg-[#333] border border-[#444] text-white text-[10px] py-2 rounded font-bold uppercase tracking-widest flex items-center justify-center gap-2">
-                              <i className="fa-solid fa-plus" /> Add Video Loop
-                          </button>
-                          <div className="space-y-2">
-                              {arenaMediaLib.map(m => (
-                                  <div key={m.id} className="bg-[#111] border border-[#333] p-2 rounded flex justify-between items-center group">
-                                      <div className="truncate text-xs text-zinc-300 font-bold max-w-[200px]">{m.title}</div>
-                                      <button onClick={() => setArenaMediaLib(arenaMediaLib.filter(x => x.id !== m.id))} className="text-red-500 opacity-0 group-hover:opacity-100"><i className="fa-solid fa-trash" /></button>
-                                  </div>
-                              ))}
-                          </div>
-                      </div>
-                  )}
-              </div>
-          );
-      }
-      return <div className="text-zinc-600 text-xs italic">Select a broadcast source above to edit properties.</div>;
+  const locateScreens = () => {
+      if (targetScreens.length === 0) return alert("Select target screens!");
+      channelRef.current?.send({ type: 'broadcast', event: 'screen-action', payload: { action: 'locate', targets: targetScreens } });
   };
 
   return (
-    <div className="h-screen bg-[#1e1e1e] text-[#ddd] font-sans overflow-hidden flex flex-col select-none text-[11px]">
-        {/* TOP BAR */}
-        <header className="bg-black border-b border-[#333] h-8 flex items-center px-4 justify-between shrink-0">
-            <div className="flex items-center gap-4">
-                 <Link href={`/arena/${eventId}`} className="text-[#888] hover:text-white uppercase tracking-widest flex items-center gap-1">
-                     <i className="fa-solid fa-home"></i> ZTO Event OS
-                 </Link>
-                 <div className="w-px h-3 bg-[#333]"></div>
-                 <div className="font-bold text-blue-400 uppercase tracking-widest">{eventName}</div>
-                 <div className="w-px h-3 bg-[#333]"></div>
-                 <div className="font-bold">MULTI-SCREEN MASTER CONSOLE</div>
-            </div>
-            <div className="flex items-center gap-3">
-                 <div className="flex items-center gap-1.5 px-2 bg-[#222] rounded border border-[#333]">
-                     <div className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-emerald-500' : 'bg-red-500'}`} />
-                     <span className="text-[9px] uppercase tracking-widest">{isConnected ? 'LIVE' : 'OFFLINE'}</span>
-                 </div>
-            </div>
-        </header>
-        
-        {/* MAIN OBS WORKSPACE */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-            
-            {/* TOP HALF: MONITORS */}
-            <div className="h-[55%] flex border-b border-black bg-[#111]">
-                {/* PREVIEW */}
-                <div className="flex-[0.8] flex flex-col border-r border-black p-2 relative min-w-0">
-                    <div className="flex justify-between items-center bg-[#2b2b2b] px-2 py-1 mb-2 shadow-sm border border-[#333] rounded-sm">
-                       <span className="font-bold text-green-400">Preview: {previewScene}</span>
-                    </div>
-                    <div className="flex-1 bg-black border border-green-500/50 relative overflow-hidden rounded flex items-center justify-center shadow-[0_0_15px_rgba(34,197,94,0.15)]">
-                         {renderSimulatedMonitor(previewScene, false)}
-                    </div>
-                </div>
+    <div className="min-h-screen bg-gray-50 font-sans pb-20">
+      {/* HEADER */}
+      <header className="bg-white border-b shadow-sm sticky top-0 z-50">
+          <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                  <Link href={`/arena/${eventId}`} className="text-gray-500 hover:text-black font-bold text-sm uppercase tracking-widest transition-colors">
+                      <i className="fa-solid fa-arrow-left mr-2" /> Back
+                  </Link>
+                  <div className="w-px h-6 bg-gray-200" />
+                  <div className="font-black text-gray-900 text-lg uppercase tracking-widest">{eventName}</div>
+                  <div className="text-blue-600 font-bold text-sm uppercase tracking-widest bg-blue-50 px-3 py-1 rounded-full border border-blue-100 hidden md:block">Simplified Master Console</div>
+              </div>
+              <div className="flex items-center gap-3">
+                  <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-bold uppercase tracking-widest ${isConnected ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700'}`}>
+                      <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
+                      {isConnected ? 'Broadcasting' : 'Offline'}
+                  </div>
+              </div>
+          </div>
+      </header>
 
-                {/* TRANSITION BUTTONS */}
-                <div className="w-32 flex flex-col items-center justify-center p-2 bg-[#1a1a1a] border-r border-black shrink-0">
-                    <div className="text-[10px] text-[#aaa] font-bold uppercase tracking-widest mb-2">Targets</div>
-                    <div className="flex flex-wrap gap-1 mb-4 justify-center">
-                        {screensConfig.map(sc => (
-                            <label key={sc.id} className={`cursor-pointer text-[10px] font-black px-2 py-1 rounded border transition-colors ${targetScreens.includes(sc.id) ? 'bg-red-600 text-white border-red-500 shadow-[0_0_10px_rgba(220,38,38,0.3)]' : 'bg-[#222] text-[#555] border-[#333] hover:border-[#555]'}`}>
-                                <input type="checkbox" className="hidden" checked={targetScreens.includes(sc.id)} onChange={(e) => {
-                                    if (e.target.checked) setTargetScreens([...targetScreens, sc.id]);
-                                    else setTargetScreens(targetScreens.filter(x => x !== sc.id));
-                                }}/>
-                                S{sc.id}
-                            </label>
-                        ))}
-                        <button onClick={() => setTargetScreens(targetScreens.length === screensConfig.length ? [] : screensConfig.map(s => s.id))} className="w-full mt-1 text-[9px] py-1 rounded bg-[#333] hover:bg-[#444] text-white border border-[#444]">
-                            {targetScreens.length === screensConfig.length ? 'DESELECT ALL' : 'SELECT ALL'}
-                        </button>
-                    </div>
+      <div className="max-w-7xl mx-auto px-4 mt-8 space-y-8">
+          
+          {/* SECTION 1: TARGET SCREENS */}
+          <section className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+              <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
+                  <h2 className="text-sm font-black text-gray-400 uppercase tracking-widest">1. Target Screens</h2>
+                  <div className="flex gap-2">
+                      <button onClick={locateScreens} className="px-4 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors">
+                          <i className="fa-solid fa-location-crosshairs mr-2" /> Locate
+                      </button>
+                      <button onClick={resetScreens} className="px-4 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors">
+                          <i className="fa-solid fa-power-off mr-2" /> Reset to AutoPilot
+                      </button>
+                  </div>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                  <button 
+                      onClick={() => setTargetScreens(targetScreens.length === screensConfig.length ? [] : screensConfig.map(s => s.id))} 
+                      className={`px-6 py-3 rounded-xl font-black text-sm uppercase tracking-widest transition-all ${targetScreens.length === screensConfig.length ? 'bg-gray-900 text-white shadow-md' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+                  >
+                      All
+                  </button>
+                  {screensConfig.map(sc => (
+                      <button 
+                          key={sc.id}
+                          onClick={() => {
+                              if (targetScreens.includes(sc.id)) setTargetScreens(targetScreens.filter(x => x !== sc.id));
+                              else setTargetScreens([...targetScreens, sc.id]);
+                          }}
+                          className={`flex-1 min-w-[120px] px-6 py-3 rounded-xl font-black text-sm uppercase tracking-widest transition-all flex items-center justify-center gap-2 border-2 ${targetScreens.includes(sc.id) ? 'border-blue-600 bg-blue-50 text-blue-700 shadow-sm' : 'border-transparent bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+                      >
+                          <i className={`fa-solid ${targetScreens.includes(sc.id) ? 'fa-check-circle' : 'fa-tv'}`} /> 
+                          Screen {sc.id}
+                      </button>
+                  ))}
+              </div>
+          </section>
 
-                    <div className="w-full h-px bg-black my-2" />
-                    
-                    <button onClick={handleCut} className="w-full bg-[#3c3c3c] hover:bg-[#4a4a4a] border border-[#555] py-2 rounded shadow-inner text-white font-bold transition-colors mb-2">Cut</button>
-                    <button onClick={handleFade} disabled={isFading} className="w-full bg-indigo-900/60 hover:bg-indigo-800/80 border border-indigo-700/50 py-2 rounded flex items-center justify-center gap-1 text-indigo-300 font-bold transition-colors disabled:opacity-40 mb-4">
-                        {isFading ? <><i className="fa-solid fa-spinner fa-spin text-[9px]" /> Fading…</> : <><i className="fa-solid fa-wave-square text-[9px]" /> Fade</>}
-                    </button>
-                    
-                    <button onClick={handleCut} className="w-full bg-red-600 hover:bg-red-500 border border-red-500 py-3 rounded-lg text-white font-black shadow-inner tracking-widest flex flex-col items-center justify-center">
-                        TAKE
-                        <i className="fa-solid fa-angles-right mt-1" />
-                    </button>
-                    
-                    <button onClick={() => {
-                        if (targetScreens.length === 0) return alert("Select screens to locate");
-                        channelRef.current?.send({ type: 'broadcast', event: 'screen-action', payload: { action: 'locate', targets: targetScreens } });
-                    }} className="w-full mt-4 text-[10px] font-bold py-2 rounded bg-blue-600/30 hover:bg-blue-600 text-blue-300 hover:text-white border border-blue-500/50 transition-colors uppercase tracking-widest flex items-center justify-center gap-1">
-                        <i className="fa-solid fa-location-crosshairs" /> Locate
-                    </button>
-                </div>
+          {/* SECTION 2: LIVE MATCHES */}
+          <section className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+              <h2 className="text-sm font-black text-gray-400 uppercase tracking-widest mb-4">2. Live Matches (Push to Screen)</h2>
+              {liveMatches.length === 0 ? (
+                  <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+                      <i className="fa-solid fa-table-tennis-paddle-ball text-4xl text-gray-300 mb-3" />
+                      <p className="text-sm font-bold text-gray-500">No matches are currently LIVE.</p>
+                      <p className="text-xs text-gray-400 mt-1">Wait for a referee to start a match.</p>
+                  </div>
+              ) : (
+                  <div className="overflow-hidden border border-gray-200 rounded-xl">
+                      <table className="w-full text-left border-collapse">
+                          <thead>
+                              <tr className="bg-gray-50 border-b border-gray-200 text-gray-500 text-xs uppercase tracking-widest">
+                                  <th className="p-4 font-black">Event / Round</th>
+                                  <th className="p-4 font-black text-right">Team A</th>
+                                  <th className="p-4 font-black text-center">Score</th>
+                                  <th className="p-4 font-black">Team B</th>
+                                  <th className="p-4 font-black text-right">Action</th>
+                              </tr>
+                          </thead>
+                          <tbody>
+                              {liveMatches.map(match => (
+                                  <tr key={match.id} className="border-b border-gray-100 hover:bg-gray-50 transition">
+                                      <td className="p-4 font-bold text-sm text-gray-900">
+                                          {match.category_code} <span className="text-gray-400 mx-1">•</span> {match.round_type}
+                                      </td>
+                                      <td className="p-4 text-right font-black text-lg text-blue-700">
+                                          {match.clan_a?.short_name || match.team_a_name || 'TBD'}
+                                      </td>
+                                      <td className="p-4 text-center">
+                                          <div className="inline-flex items-center gap-3 bg-gray-900 text-white px-4 py-1.5 rounded-full font-black text-xl tabular-nums shadow-inner">
+                                              <span>{match.score_a}</span>
+                                              <span className="text-gray-500 text-sm">:</span>
+                                              <span>{match.score_b}</span>
+                                          </div>
+                                      </td>
+                                      <td className="p-4 font-black text-lg text-red-600">
+                                          {match.clan_b?.short_name || match.team_b_name || 'TBD'}
+                                      </td>
+                                      <td className="p-4 text-right">
+                                          <button 
+                                              onClick={() => pushScore(match)}
+                                              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-black text-xs uppercase tracking-widest shadow-md hover:shadow-lg transition-all active:scale-95"
+                                          >
+                                              <i className="fa-solid fa-satellite-dish mr-2" /> Broadcast
+                                          </button>
+                                      </td>
+                                  </tr>
+                              ))}
+                          </tbody>
+                      </table>
+                  </div>
+              )}
+          </section>
 
-                {/* PROGRAM (DYNAMIC SCREENS) */}
-                <div className="flex-[1.5] flex flex-col p-2 relative min-w-0 bg-[#0a0a0a]">
-                    <div className="flex justify-between items-center bg-[#2b2b2b] px-2 py-1 mb-2 shadow-sm border border-[#333] rounded-sm">
-                       <span className="font-bold text-red-400">Program ({screensConfig.length} Outputs)</span>
-                       <button onClick={handleAddScreen} className="bg-[#444] hover:bg-[#555] text-white px-2 py-0.5 rounded text-[9px] font-bold shadow-sm">
-                           <i className="fa-solid fa-plus" /> Matrix
-                       </button>
-                    </div>
-                    <div className="flex-1 grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gridAutoRows: '1fr' }}>
-                        {screensConfig.map(sc => {
-                          const screenNum = sc.id;
-                          const ratio = `${sc.w} / ${sc.h}`;
-                          const isExpanded = expandedDimScreen === screenNum;
-                          const prog = programScenes[screenNum] || { scene: 'STANDBY' };
-                          return (
-                            <div key={screenNum} className={`bg-black border relative rounded flex items-center justify-center group ${targetScreens.includes(screenNum) ? 'border-red-500 shadow-[0_0_10px_rgba(220,38,38,0.2)]' : 'border-[#333]'}`} style={{ overflow: 'hidden', isolation: 'isolate' }}>
-                                
-                                {/* Monitor content */}
-                                {renderSimulatedMonitor(prog, true)}
+          {/* SECTION 3: MEDIA & BRACKET */}
+          <section className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+              <h2 className="text-sm font-black text-gray-400 uppercase tracking-widest mb-4">3. Media & Custom Display</h2>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                  {/* BRACKET CARD */}
+                  <div className="border border-gray-200 rounded-xl p-6 flex flex-col items-center justify-center text-center hover:border-indigo-300 transition-colors group bg-gray-50">
+                      <div className="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                          <i className="fa-solid fa-sitemap text-2xl" />
+                      </div>
+                      <h3 className="font-black text-gray-900 mb-1">Tournament Bracket</h3>
+                      <p className="text-xs text-gray-500 mb-6">Display the live bracket tree.</p>
+                      <button onClick={pushBracket} className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-black text-xs uppercase tracking-widest transition-all shadow-md">
+                          Push Bracket
+                      </button>
+                  </div>
 
-                                {/* S-label */}
-                                <div className="absolute top-1 left-1 bg-red-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded shadow" style={{ zIndex: 20 }}>S{screenNum}</div>
-                                {/* Scene label */}
-                                <div className="absolute bottom-1 right-1 bg-black/60 text-white/50 text-[7px] font-black px-1 py-0.5 rounded uppercase" style={{ zIndex: 20 }}>{programScenes[screenNum].scene}</div>
-                                
-                                {/* Quick Actions Overlay — hidden when dimension editor is open */}
-                                {!isExpanded && (
-                                <div className="absolute inset-0 bg-black/80 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity" style={{ zIndex: 30 }}>
-                                    {programScenes[screenNum].scene === 'YOUTUBE' && (
-                                        <button onClick={() => handleScreenAction(screenNum, programScenes[screenNum].isPlaying ? 'pause' : 'play')} className="w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center shadow-lg transition-transform hover:scale-110">
-                                            <i className={`fa-solid ${programScenes[screenNum].isPlaying ? 'fa-pause' : 'fa-play'}`} />
-                                        </button>
-                                    )}
-                                    <button onClick={() => handleScreenAction(screenNum, 'clear')} className="w-8 h-8 rounded-full bg-red-600 hover:bg-red-500 text-white flex items-center justify-center shadow-lg transition-transform hover:scale-110" title="Clear Screen">
-                                        <i className="fa-solid fa-power-off" />
-                                    </button>
-                                </div>
-                                )}
+                  {/* ADS CARDS */}
+                  {ADS_LIBRARY.map(ad => (
+                      <div key={ad.id} className="border border-gray-200 rounded-xl overflow-hidden flex flex-col hover:border-emerald-300 transition-colors group">
+                          <div className="h-32 bg-black relative">
+                              {ad.isVideo ? (
+                                  <video src={ad.url} className="w-full h-full object-cover opacity-80" muted />
+                              ) : (
+                                  <img src={ad.url} className="w-full h-full object-cover opacity-80" />
+                              )}
+                              <div className="absolute top-2 right-2 bg-black/60 backdrop-blur text-white text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded">
+                                  {ad.isVideo ? 'Video' : 'Image'}
+                              </div>
+                          </div>
+                          <div className="p-4 flex-1 flex flex-col bg-white">
+                              <h3 className="font-black text-gray-900 mb-1 truncate text-sm">{ad.title}</h3>
+                              <p className="text-xs text-gray-500 mb-4 flex-1">Sponsor media overlay.</p>
+                              <button onClick={() => pushAd(ad)} className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-black text-xs uppercase tracking-widest transition-all shadow-md">
+                                  Play Ad
+                              </button>
+                          </div>
+                      </div>
+                  ))}
 
-                                {/* LED Dimension Badge — always on top */}
-                                <button
-                                    onClick={(e) => { e.stopPropagation(); setExpandedDimScreen(isExpanded ? null : screenNum); }}
-                                    title="Set LED Screen Dimensions"
-                                    style={{ position: 'absolute', top: 4, right: 4, zIndex: 50, display: 'flex', alignItems: 'center', gap: 3, background: 'rgba(0,86,179,0.85)', border: '1px solid rgba(77,163,255,0.5)', borderRadius: 4, padding: '2px 6px', cursor: 'pointer' }}
-                                >
-                                    <i className="fa-solid fa-tv" style={{ fontSize: 7, color: '#4da3ff' }} />
-                                    <span style={{ fontSize: 7, fontWeight: 900, color: '#4da3ff', fontFamily: 'monospace' }}>{sc.w}×{sc.h}M</span>
-                                </button>
+                  {/* YOUTUBE CARDS */}
+                  {YOUTUBE_LIBRARY.map(yt => (
+                      <div key={yt.id} className="border border-gray-200 rounded-xl overflow-hidden flex flex-col hover:border-red-300 transition-colors group">
+                          <div className="h-32 bg-gray-100 flex items-center justify-center relative">
+                              <i className="fa-brands fa-youtube text-5xl text-red-500" />
+                          </div>
+                          <div className="p-4 flex-1 flex flex-col bg-white">
+                              <h3 className="font-black text-gray-900 mb-1 truncate text-sm">{yt.title}</h3>
+                              <p className="text-xs text-gray-500 mb-4 flex-1 truncate">YouTube stream override.</p>
+                              <button onClick={() => pushYouTube(yt)} className="w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-black text-xs uppercase tracking-widest transition-all shadow-md">
+                                  Play YouTube
+                              </button>
+                          </div>
+                      </div>
+                  ))}
+              </div>
+          </section>
 
-                                {/* LED Dimension Editor Panel */}
-                                {isExpanded && (
-                                    <div style={{ position: 'absolute', inset: 0, zIndex: 60, background: 'rgba(0,0,0,0.96)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 12, gap: 10 }} onClick={e => e.stopPropagation()}>
-                                        <div style={{ fontSize: 9, fontWeight: 900, color: '#4da3ff', textTransform: 'uppercase', letterSpacing: 2 }}>S{screenNum} — LED Size</div>
-                                        
-                                        {/* Mini LED Visualizer */}
-                                        <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', height: 44 }}>
-                                            <div style={{
-                                                aspectRatio: ratio, maxWidth: '90%', maxHeight: 40, height: '100%', flexShrink: 0,
-                                                background: 'linear-gradient(135deg, #000820, #001244)',
-                                                border: '1.5px solid #0056B3',
-                                                boxShadow: '0 0 12px rgba(0,86,179,0.6)',
-                                                position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                            }}>
-                                                <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(0,86,179,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(0,86,179,0.3) 1px, transparent 1px)', backgroundSize: '25% 25%' }} />
-                                                <span style={{ position: 'relative', color: '#4da3ff', fontSize: 8, fontWeight: 900, fontFamily: 'monospace', textShadow: '0 0 6px rgba(77,163,255,0.8)' }}>
-                                                    {sc.w}×{sc.h}M
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        {/* W / H Inputs */}
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, width: '100%' }}>
-                                            <div>
-                                                <div style={{ fontSize: 8, fontWeight: 900, color: '#4da3ff', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>W (M)</div>
-                                                <input
-                                                    type="number" min={0.5} step={0.5}
-                                                    value={sc.w}
-                                                    onClick={e => e.stopPropagation()}
-                                                    onChange={e => updateScreenDim(screenNum, Math.max(0.5, parseFloat(e.target.value) || 1), sc.h)}
-                                                    style={{ width: '100%', background: '#000', border: '1px solid rgba(0,86,179,0.6)', borderRadius: 4, padding: '6px 4px', fontSize: 12, fontWeight: 900, color: '#fff', textAlign: 'center', fontFamily: 'monospace', outline: 'none', boxSizing: 'border-box' }}
-                                                />
-                                            </div>
-                                            <div>
-                                                <div style={{ fontSize: 8, fontWeight: 900, color: '#4da3ff', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>H (M)</div>
-                                                <input
-                                                    type="number" min={0.5} step={0.5}
-                                                    value={sc.h}
-                                                    onClick={e => e.stopPropagation()}
-                                                    onChange={e => updateScreenDim(screenNum, sc.w, Math.max(0.5, parseFloat(e.target.value) || 1))}
-                                                    style={{ width: '100%', background: '#000', border: '1px solid rgba(0,86,179,0.6)', borderRadius: 4, padding: '6px 4px', fontSize: 12, fontWeight: 900, color: '#fff', textAlign: 'center', fontFamily: 'monospace', outline: 'none', boxSizing: 'border-box' }}
-                                                />
-                                            </div>
-                                        </div>
-                                        
-                                        <div style={{ fontSize: 9, color: '#4da3ff', fontFamily: 'monospace', fontWeight: 900 }}>{sc.w} : {sc.h}</div>
-
-                                        <div className="flex gap-2 w-full mt-1">
-                                            <button
-                                                onClick={() => { setExpandedDimScreen(null); saveScreenConfig(screensConfig); }}
-                                                className="flex-1 bg-blue-600 hover:bg-blue-500 text-white rounded font-black text-[9px] py-1.5 transition-colors uppercase tracking-widest"
-                                            >
-                                                Done ✓
-                                            </button>
-                                            <button
-                                                onClick={(e) => { e.stopPropagation(); handleRemoveScreen(screenNum); setExpandedDimScreen(null); }}
-                                                className="w-8 bg-red-900/50 hover:bg-red-800 text-red-400 rounded font-black flex items-center justify-center transition-colors"
-                                                title="Remove Screen"
-                                            >
-                                                <i className="fa-solid fa-trash text-[9px]" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                          );
-                        })}
-                    </div>
-                </div>
-            </div>
-
-            {/* BOTTOM HALF: PANELS */}
-            <div className="h-[45%] flex bg-[#1e1e1e]">
-                 {/* SCENES */}
-                 <div className="w-40 border-r border-black flex flex-col shrink-0">
-                     <div className="bg-[#2b2b2b] px-2 py-1 shadow-sm border-b border-[#333] font-bold text-[#aaa]">
-                         Scenes
-                     </div>
-                     <div className="flex-1 overflow-y-auto p-1 bg-[#1a1a1a]">
-                         {SCENES_LIST.map(s => (
-                              <div key={s.id} onClick={() => setPreviewScene(s.id)} className={`px-2 py-2 text-[11px] font-bold tracking-wide cursor-pointer border border-transparent rounded flex items-center gap-2 transition-colors mb-1 ${previewScene === s.id ? 'bg-green-600/20 text-green-400 border-green-500/30' : 'text-[#888] hover:bg-[#333] hover:text-[#ccc]'}`}>
-                                  <i className={`fa-solid ${s.icon} text-[10px] opacity-70 w-4 text-center shrink-0`} />
-                                  {s.label}
-                               </div>
-                          ))}
-                     </div>
-                 </div>
-
-                 {/* SOURCES / PROPERTIES */}
-                 <div className="w-80 border-r border-black flex flex-col shrink-0">
-                     <div className="bg-[#2b2b2b] px-2 py-1 shadow-sm border-b border-[#333] font-bold text-[#aaa]">
-                         Sources Config
-                     </div>
-                     <div className="flex-1 overflow-y-auto bg-[#1e1e1e] p-3 text-[#ddd]">
-                          {renderProperties()}
-                     </div>
-                 </div>
-
-                 {/* AUDIO MIXER */}
-                 <div className="flex-1 border-r border-black flex flex-col min-w-0">
-                     <div className="bg-[#2b2b2b] px-2 py-1 shadow-sm border-b border-[#333] font-bold text-[#aaa] flex justify-between items-center">
-                         <span>Audio Mixer</span>
-                         <button onClick={addNewBgmTrack} className="bg-[#444] hover:bg-[#555] text-white px-2 py-0.5 rounded text-[9px] font-bold">
-                             <i className="fa-solid fa-plus mr-1" /> Add Track
-                         </button>
-                     </div>
-                     <div className="flex-1 overflow-x-auto overflow-y-hidden bg-[#161616] p-4 flex gap-4 text-[#ddd]">
-                         {bgmTracks.map(track => (
-                             <div key={track.id} className={`w-24 shrink-0 flex flex-col items-center bg-[#222] border rounded-lg p-2 transition-colors ${activeBgm === track.id ? 'border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.15)]' : 'border-[#333]'}`}>
-                                 <div className="text-[9px] uppercase font-bold truncate w-full text-center text-[#888] mb-3">{track.title}</div>
-                                 
-                                 {/* Volume Slider */}
-                                 <input 
-                                     type="range" 
-                                     min="0" max="1" step="0.01"
-                                     className="flex-1 w-2 bg-[#111] appearance-none rounded outline-none cursor-pointer"
-                                     style={{ WebkitAppearance: 'slider-vertical', writingMode: 'vertical-lr' } as any}
-                                     value={track.volume}
-                                     onChange={(e) => {
-                                         const v = parseFloat(e.target.value);
-                                         setBgmTracks(prev => prev.map(t => t.id === track.id ? {...t, volume: v} : t));
-                                     }}
-                                 />
-                                 <div className="text-[8px] text-[#666] font-mono mt-2">{Math.round(track.volume * 100)}%</div>
-                                 
-                                 <button onClick={() => setActiveBgm(activeBgm === track.id ? null : track.id)} className={`mt-2 w-full text-[10px] font-black uppercase tracking-widest rounded py-1.5 transition-colors ${activeBgm === track.id ? 'bg-amber-600 text-white' : 'bg-[#3c3c3c] hover:bg-[#4a4a4a] text-zinc-400'}`}>
-                                     {activeBgm === track.id ? 'Mute' : 'Play'}
-                                 </button>
-                                 
-                                 {/* Hidden Audio Player */}
-                                 {activeBgm === track.id && (
-                                     <ReactPlayer url={track.url} playing={true} volume={track.volume} width="0" height="0" style={{display: 'none'}} />
-                                 )}
-                             </div>
-                         ))}
-                     </div>
-                 </div>
-            </div>
-            
-            {/* STATUS BAR */}
-            <div className="h-6 bg-[#111] border-t border-black flex justify-between items-center px-4 text-[9px] text-[#555] font-black tracking-widest uppercase shrink-0">
-                  <span>
-                      ZTO ARENA OS · <span className={isConnected ? 'text-emerald-500' : 'text-red-500'}>{isConnected ? 'LIVE SYNC' : 'OFFLINE'}</span>
-                      {liveDbMatch && <span className="ml-3 text-emerald-400"><i className="fa-solid fa-database mr-1"/>DB ACTIVE</span>}
-                  </span>
-                  <span>CPU: 14% · MEM: 32MB · DROPPED: 0</span>
-            </div>
-        </div>
+      </div>
     </div>
   );
 }
 
 export default function MasterConsolePage() {
-    return (
-        <Suspense fallback={<div className="bg-black min-h-screen" />}>
-            <MasterConsoleContent />
-        </Suspense>
-    );
+  return (
+    <Suspense fallback={<div className="bg-gray-50 min-h-screen" />}>
+      <MasterConsoleContent />
+    </Suspense>
+  );
 }

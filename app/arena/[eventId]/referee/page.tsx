@@ -322,7 +322,6 @@ function PenaltyModal({
         </div>
 
         {type === 'CARD' && (
-        {/* Penalty Cards */}
         <div className="mb-8">
           <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-4">Select Team & Card</h3>
           <div className="grid grid-cols-2 gap-4">
@@ -348,7 +347,6 @@ function PenaltyModal({
         )}
 
         {type === 'WALKOVER' && (
-        {/* Walkover / Retirement */}
         <div>
           <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-4">Select Action</h3>
           <div className="space-y-3">
