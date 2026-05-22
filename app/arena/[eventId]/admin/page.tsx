@@ -225,12 +225,23 @@ function MasterConsoleContent() {
                                       <td className="p-4 font-black text-lg text-red-600">
                                           {match.clan_b?.short_name || match.team_b_name || 'TBD'}
                                       </td>
-                                      <td className="p-4 text-right">
+                                      <td className="p-4 text-right flex justify-end gap-2">
                                           <button 
                                               onClick={() => pushScore(match)}
+                                              title="Push static scoreboard to standard screens"
                                               className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-black text-xs uppercase tracking-widest shadow-md hover:shadow-lg transition-all active:scale-95"
                                           >
                                               <i className="fa-solid fa-satellite-dish mr-2" /> Broadcast
+                                          </button>
+                                          <button 
+                                              onClick={async () => {
+                                                  await supabase.from('arena_live_controls').upsert({ tournament_id: eventId, command: 'SHOW_MATCH', preset_name: match.id }, { onConflict: 'tournament_id' });
+                                                  window.open(`/arena/${eventId}/match-overlay`, '_blank');
+                                              }}
+                                              title="Launch Cinematic VS Overlay in new window"
+                                              className="px-6 py-2 bg-indigo-900 hover:bg-indigo-800 text-[#CCFF00] rounded-lg font-black text-xs uppercase tracking-widest shadow-md hover:shadow-lg transition-all active:scale-95 border border-[#CCFF00]/30"
+                                          >
+                                              <i className="fa-solid fa-bolt mr-2" /> Cinematic Overlay
                                           </button>
                                       </td>
                                   </tr>
