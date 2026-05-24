@@ -5,7 +5,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
-export const runtime = 'edge'; // Lightweight — runs on Vercel Edge
+export const runtime = 'edge';   // Lightweight — runs on Vercel Edge
+export const dynamic = 'force-dynamic'; // This route is always dynamic (reads Redis + cookies)
 
 interface QueueStatusResponse {
   admitted:         boolean;
