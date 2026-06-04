@@ -154,7 +154,7 @@ const BracketBoardView = ({ bracketState }: { bracketState: BracketState | null 
 };
 
 // ==========================================
-// BADMINTON 5-COURT STANDBY VIEW
+// BADMINTON 5-COURT STANDBY VIEW (OPTIMIZED FOR WIDE BANNERS)
 // ==========================================
 interface Badminton5CourtProps {
   urlEventId: string;
@@ -203,246 +203,123 @@ function Badminton5CourtStandbyView({ urlEventId, eventName }: Badminton5CourtPr
 
   const courtsList = [1, 2, 3, 4, 5];
 
-  const getServingBox = (match: ArenaMatch) => {
-    const isTeamALeft = match.left_team ? match.left_team === 'A' : true;
-    const isServerA = match.server === 'A';
-    const serverScore = isServerA ? match.score_a : match.score_b;
-    const isEven = serverScore % 2 === 0;
-    const serverOnLeft = isServerA ? isTeamALeft : !isTeamALeft;
-    if (serverOnLeft) {
-      return { x: 8, y: isEven ? 40 : 10, width: 32, height: 30 };
-    } else {
-      return { x: 80, y: isEven ? 10 : 40, width: 32, height: 30 };
-    }
-  };
-
-  const unassignedOrQueueMatches = matches.filter(
-    m => m.status === 'PENDING' && (!m.court_number || m.court_number > 5)
-  );
-
   return (
-    <div className="w-full h-full flex flex-col relative select-none bg-[#030712] text-white">
-      {/* Ambient background */}
-      <div className="absolute inset-0 z-0 pointer-events-none opacity-20">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#047857]/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#0e7490]/10 rounded-full blur-[120px]" />
-        <div className="absolute inset-0" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.01) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.01) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
-      </div>
-
-      {/* Header */}
-      <header className="relative z-10 px-8 py-4 border-b border-white/5 flex items-center justify-between bg-black/40 backdrop-blur-md shrink-0">
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-[#0f766e]/10 border border-[#0f766e]/20 shadow-[0_0_15px_rgba(15,118,110,0.15)]">
-            <i className="fa-solid fa-satellite text-[#22d3ee] text-lg animate-pulse" />
-          </div>
-          <div>
-            <h1 className="text-xl font-black uppercase tracking-[0.2em] text-white leading-none">
-              {eventName} <span className="text-[#059669]">LIVE</span>
-            </h1>
-            <p className="text-[8px] text-zinc-500 uppercase tracking-[0.3em] mt-1 font-black">
-              Arena Display Console // 5 Courts Scoreboard
-            </p>
-          </div>
-        </div>
-
-        <div className="text-right">
-          <div className="text-xl font-black text-[#22d3ee] tabular-nums tracking-widest leading-none">
-            {currentTime.toLocaleTimeString('en-US', { hour12: false })}
-          </div>
-        </div>
+    <div className="w-full h-full flex flex-col select-none bg-[#030712] text-white overflow-hidden">
+      {/* Ultra-thin header bar */}
+      <header className="flex justify-between items-center px-4 shrink-0 bg-black/60 border-b border-white/5" style={{ height: '2rem' }}>
+        <span className="text-[10px] font-black tracking-widest text-[#059669] uppercase">{eventName} · LIVE SCORES</span>
+        <span className="text-[10px] font-black text-[#22d3ee] tabular-nums tracking-widest">
+          {currentTime.toLocaleTimeString('en-US', { hour12: false })}
+        </span>
       </header>
 
-      {/* Grid */}
-      <main className="flex-1 relative z-10 p-6 flex overflow-hidden min-h-0">
-        <div className="grid grid-cols-5 gap-4 flex-1 h-full min-h-0">
-          {courtsList.map((courtNum) => {
-            const courtMatches = matches.filter(m => m.court_number === courtNum);
-            const liveMatch = courtMatches.find(m => m.status === 'LIVE');
-            const pendingMatch = !liveMatch ? courtMatches.find(m => m.status === 'PENDING') : null;
+      {/* 5-court grid – fills ALL remaining height */}
+      <div className="flex-1 min-h-0 grid grid-cols-5 gap-1.5 p-1.5">
+        {courtsList.map((courtNum) => {
+          const courtMatches = matches.filter(m => m.court_number === courtNum);
+          const liveMatch = courtMatches.find(m => m.status === 'LIVE');
+          const pendingMatch = !liveMatch ? courtMatches.find(m => m.status === 'PENDING') : null;
 
-            if (liveMatch) {
-              const servingBox = getServingBox(liveMatch);
-              const isTeamALeft = liveMatch.left_team ? liveMatch.left_team === 'A' : true;
-              return (
-                <div key={`court-${courtNum}`} className="bg-gradient-to-b from-[#022c22]/90 via-[#021f18]/95 to-[#022c22]/90 border border-[#059669]/30 rounded-2xl p-4 flex flex-col justify-between shadow-[0_4px_30px_rgba(4,120,87,0.15)] relative overflow-hidden">
-                  <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-[#059669]/50" />
-                  <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-[#059669]/50" />
-                  
-                  <div className="flex justify-between items-center border-b border-white/5 pb-2">
-                    <span className="bg-[#059669] text-black font-black text-[10px] px-2 py-0.5 rounded uppercase tracking-wider">
-                      COURT {courtNum}
-                    </span>
-                    <div className="flex items-center gap-1 px-1.5 py-0.5 bg-red-500/10 border border-red-500/20 rounded">
-                      <span className="w-1 h-1 rounded-full bg-red-500 animate-ping" />
-                      <span className="text-[8px] font-black text-red-400 uppercase tracking-widest">LIVE</span>
-                    </div>
-                  </div>
-
-                  <div className="text-center my-1.5">
-                    <span className="text-[8px] font-black text-[#22d3ee]/80 uppercase tracking-widest bg-[#22d3ee]/10 px-1.5 py-0.5 rounded border border-[#22d3ee]/20">
-                      {liveMatch.event_type || 'INDIVIDUAL'}
-                    </span>
-                  </div>
-
-                  <div className="flex-1 flex flex-col justify-center gap-2.5 my-1.5">
-                    {/* Team A */}
-                    <div className={`flex items-center justify-between p-2 rounded-lg border ${
-                      liveMatch.server === 'A' ? 'bg-[#0f766e]/10 border-[#0f766e]/30' : 'bg-black/20 border-white/5'
-                    }`}>
-                      <div className="flex-1 min-w-0 pr-2">
-                        <div className="flex items-center gap-1.5">
-                          {liveMatch.server === 'A' && <span className="inline-block text-[#f59e0b] animate-bounce shrink-0 text-xs" style={{ transform: 'rotate(45deg)' }}>🏸</span>}
-                          <span className={`text-[11px] font-black uppercase truncate tracking-wide ${liveMatch.server === 'A' ? 'text-white' : 'text-zinc-400'}`}>
-                            {liveMatch.team_a_name}
-                          </span>
-                        </div>
-                      </div>
-                      <span className={`text-2xl font-black tabular-nums ${liveMatch.server === 'A' ? 'text-[#f59e0b]' : 'text-white'}`}>
-                        {liveMatch.score_a}
-                      </span>
-                    </div>
-
-                    {/* Team B */}
-                    <div className={`flex items-center justify-between p-2 rounded-lg border ${
-                      liveMatch.server === 'B' ? 'bg-[#0f766e]/10 border-[#0f766e]/30' : 'bg-black/20 border-white/5'
-                    }`}>
-                      <div className="flex-1 min-w-0 pr-2">
-                        <div className="flex items-center gap-1.5">
-                          {liveMatch.server === 'B' && <span className="inline-block text-[#f59e0b] animate-bounce shrink-0 text-xs" style={{ transform: 'rotate(45deg)' }}>🏸</span>}
-                          <span className={`text-[11px] font-black uppercase truncate tracking-wide ${liveMatch.server === 'B' ? 'text-white' : 'text-zinc-400'}`}>
-                            {liveMatch.team_b_name}
-                          </span>
-                        </div>
-                      </div>
-                      <span className={`text-2xl font-black tabular-nums ${liveMatch.server === 'B' ? 'text-[#f59e0b]' : 'text-white'}`}>
-                        {liveMatch.score_b}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="border-t border-white/5 pt-2 mt-1 space-y-3">
-                    <div className="flex flex-col items-center">
-                      <div className="flex gap-1.5">
-                        {liveMatch.sets_scores && liveMatch.sets_scores.slice(0, liveMatch.current_set - 1).map((set, idx) => (
-                          <span key={idx} className="bg-white/5 border border-white/10 px-1.5 py-0.5 rounded text-[8px] font-black text-zinc-300">
-                            S{idx + 1}: {set.a}-{set.b}
-                          </span>
-                        ))}
-                        <span className="bg-[#059669]/10 border border-[#059669]/30 px-1.5 py-0.5 rounded text-[8px] font-black text-[#059669]">
-                          Set {liveMatch.current_set}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col items-center justify-center bg-black/40 rounded-lg p-1 border border-white/5">
-                      <div className="relative scale-90">
-                        <svg viewBox="0 0 120 80" className="w-28 h-18 opacity-80 select-none rounded border border-white/10">
-                          <rect x="0" y="0" width="120" height="80" fill="#047857" opacity="0.35" />
-                          <rect x="4" y="4" width="112" height="72" fill="none" stroke="#ffffff" strokeWidth="1" strokeOpacity="0.7" />
-                          <line x1="4" y1="10" x2="116" y2="10" stroke="#ffffff" strokeWidth="0.8" strokeOpacity="0.4" />
-                          <line x1="4" y1="70" x2="116" y2="70" stroke="#ffffff" strokeWidth="0.8" strokeOpacity="0.4" />
-                          <line x1="60" y1="4" x2="60" y2="76" stroke="#fbbf24" strokeWidth="1.5" strokeDasharray="2 2" strokeOpacity="0.9" />
-                          <line x1="40" y1="4" x2="40" y2="76" stroke="#ffffff" strokeWidth="1" strokeOpacity="0.7" />
-                          <line x1="80" y1="4" x2="80" y2="76" stroke="#ffffff" strokeWidth="1" strokeOpacity="0.7" />
-                          <line x1="12" y1="4" x2="12" y2="76" stroke="#ffffff" strokeWidth="0.8" strokeOpacity="0.4" />
-                          <line x1="108" y1="4" x2="108" y2="76" stroke="#ffffff" strokeWidth="0.8" strokeOpacity="0.4" />
-                          <line x1="4" y1="40" x2="40" y2="40" stroke="#ffffff" strokeWidth="1" strokeOpacity="0.7" />
-                          <line x1="80" y1="40" x2="116" y2="40" stroke="#ffffff" strokeWidth="1" strokeOpacity="0.7" />
-                          <rect x={servingBox.x} y={servingBox.y} width={servingBox.width} height={servingBox.height} fill="#f59e0b" opacity="0.3" className="animate-pulse" />
-                        </svg>
-                        <div className="absolute text-[8px] pointer-events-none transition-all duration-500 font-bold" style={{ left: `${servingBox.x + servingBox.width/2 - 4}px`, top: `${servingBox.y + servingBox.height/2 - 4}px` }}>🏸</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            }
-
-            if (pendingMatch) {
-              return (
-                <div key={`court-${courtNum}`} className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden">
-                  <div className="flex justify-between items-center border-b border-white/5 pb-2">
-                    <span className="bg-zinc-800 text-zinc-400 font-black text-[10px] px-2 py-0.5 rounded uppercase tracking-wider">
-                      COURT {courtNum}
-                    </span>
-                    <div className="flex items-center gap-1 px-1.5 py-0.5 bg-amber-500/10 border border-amber-500/20 rounded">
-                      <i className="fa-solid fa-bullhorn text-amber-500 text-[8px] animate-pulse" />
-                      <span className="text-[8px] font-black text-amber-400 uppercase tracking-widest">CALLING</span>
-                    </div>
-                  </div>
-
-                  <div className="text-center my-3">
-                    <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">UP NEXT</span>
-                  </div>
-
-                  <div className="flex-1 flex flex-col justify-center">
-                    <div className="bg-black/30 border border-white/5 p-2 rounded-xl text-center">
-                      <div className="text-zinc-400 text-[10px] font-bold truncate">{pendingMatch.team_a_name}</div>
-                      <div className="text-zinc-600 font-black text-[8px] my-1">VS</div>
-                      <div className="text-zinc-400 text-[10px] font-bold truncate">{pendingMatch.team_b_name}</div>
-                    </div>
-                  </div>
-
-                  <div className="border-t border-white/5 pt-2 mt-2 text-center">
-                    <div className="text-[#22d3ee] text-[8px] font-black uppercase tracking-widest">{pendingMatch.event_type || 'INDIVIDUAL'}</div>
-                    <span className="text-[8px] text-zinc-500 uppercase tracking-widest font-black">{pendingMatch.round_type}</span>
-                  </div>
-                </div>
-              );
-            }
-
+          if (liveMatch) {
+            const prevSets = liveMatch.sets_scores?.slice(0, (liveMatch.current_set ?? 1) - 1) ?? [];
             return (
-              <div key={`court-${courtNum}`} className="bg-[#050505] border border-white/5 rounded-2xl p-4 flex flex-col justify-between items-center text-center relative overflow-hidden">
-                <div className="w-full border-b border-white/5 pb-2 flex justify-between items-center">
-                  <span className="text-zinc-600 font-black text-[10px] uppercase tracking-wider">COURT {courtNum}</span>
-                  <span className="text-[8px] font-bold text-zinc-700 uppercase tracking-widest">STANDBY</span>
-                </div>
-                <div className="my-auto py-6 flex flex-col items-center justify-center">
-                  <div className="w-10 h-10 bg-white/[0.01] border border-white/10 rounded-full flex items-center justify-center mb-2">
-                    <i className="fa-solid fa-tower-observation text-zinc-700 text-sm" />
+              <div key={`court-${courtNum}`} className="bg-gradient-to-b from-[#011c14] to-[#030f09] border border-[#059669]/50 rounded-xl flex flex-col overflow-hidden">
+                {/* Court badge strip */}
+                <div className="flex items-center justify-between px-3 bg-[#059669]/20 border-b border-[#059669]/30 shrink-0" style={{ height: '2.2rem' }}>
+                  <span className="bg-[#059669] text-black font-black text-[11px] px-2.5 py-0.5 rounded leading-none tracking-wider">COURT {courtNum}</span>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                    <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">SET {liveMatch.current_set}</span>
                   </div>
-                  <span className="text-[9px] font-black text-zinc-600 tracking-widest uppercase">OPEN</span>
                 </div>
-                <div className="w-full border-t border-white/5 pt-2 mt-2">
-                  <span className="text-[7px] text-zinc-700 uppercase tracking-[0.2em] font-black">ZTO ARENA OS</span>
+
+                {/* Team A – 50% of body */}
+                <div className={`flex-1 flex items-center justify-between px-3 border-b border-white/5 min-h-0 ${liveMatch.server === 'A' ? 'bg-[#059669]/12' : ''}`}>
+                  <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5 overflow-hidden">
+                    {liveMatch.server === 'A' && (
+                      <span className="text-[#f59e0b] leading-none shrink-0" style={{ fontSize: 'clamp(0.7rem, 1.5vw, 1.2rem)' }}>🏸</span>
+                    )}
+                    <span className={`font-black uppercase leading-tight truncate ${liveMatch.server === 'A' ? 'text-white' : 'text-zinc-400'}`}
+                      style={{ fontSize: 'clamp(0.5rem, 1.1vw, 0.95rem)' }}>
+                      {liveMatch.team_a_name}
+                    </span>
+                  </div>
+                  <span
+                    className={`font-black tabular-nums leading-none ml-1 shrink-0 ${liveMatch.server === 'A' ? 'text-[#f59e0b]' : 'text-white'}`}
+                    style={{
+                      fontSize: 'clamp(3rem, 9vw, 9rem)',
+                      textShadow: liveMatch.server === 'A' ? '0 0 40px rgba(245,158,11,0.8)' : '0 0 20px rgba(255,255,255,0.1)',
+                    }}
+                  >
+                    {liveMatch.score_a}
+                  </span>
+                </div>
+
+                {/* Team B – 50% of body */}
+                <div className={`flex-1 flex items-center justify-between px-3 min-h-0 ${liveMatch.server === 'B' ? 'bg-[#059669]/12' : ''}`}>
+                  <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5 overflow-hidden">
+                    {liveMatch.server === 'B' && (
+                      <span className="text-[#f59e0b] leading-none shrink-0" style={{ fontSize: 'clamp(0.7rem, 1.5vw, 1.2rem)' }}>🏸</span>
+                    )}
+                    <span className={`font-black uppercase leading-tight truncate ${liveMatch.server === 'B' ? 'text-white' : 'text-zinc-400'}`}
+                      style={{ fontSize: 'clamp(0.5rem, 1.1vw, 0.95rem)' }}>
+                      {liveMatch.team_b_name}
+                    </span>
+                  </div>
+                  <span
+                    className={`font-black tabular-nums leading-none ml-1 shrink-0 ${liveMatch.server === 'B' ? 'text-[#f59e0b]' : 'text-white'}`}
+                    style={{
+                      fontSize: 'clamp(3rem, 9vw, 9rem)',
+                      textShadow: liveMatch.server === 'B' ? '0 0 40px rgba(245,158,11,0.8)' : '0 0 20px rgba(255,255,255,0.1)',
+                    }}
+                  >
+                    {liveMatch.score_b}
+                  </span>
+                </div>
+
+                {/* Previous sets footer */}
+                {prevSets.length > 0 && (
+                  <div className="flex items-center justify-center gap-1 px-2 border-t border-white/5 shrink-0 bg-black/30" style={{ height: '1.8rem' }}>
+                    {prevSets.map((set, idx) => (
+                      <span key={idx} className="bg-white/5 border border-white/10 px-1.5 rounded text-[10px] font-black text-zinc-300 leading-none py-0.5">
+                        {set.a}–{set.b}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          }
+
+          if (pendingMatch) {
+            return (
+              <div key={`court-${courtNum}`} className="bg-zinc-950 border border-zinc-800/60 rounded-xl flex flex-col overflow-hidden">
+                <div className="flex items-center justify-between px-3 bg-zinc-900/60 border-b border-white/5 shrink-0" style={{ height: '2.2rem' }}>
+                  <span className="bg-zinc-700 text-zinc-300 font-black text-[11px] px-2.5 py-0.5 rounded leading-none tracking-wider">COURT {courtNum}</span>
+                  <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest animate-pulse">CALLING</span>
+                </div>
+                <div className="flex-1 flex flex-col items-center justify-center gap-2 px-3 min-h-0">
+                  <span className="text-zinc-200 font-black text-center w-full truncate uppercase tracking-wide" style={{ fontSize: 'clamp(0.7rem, 1.5vw, 1.2rem)' }}>{pendingMatch.team_a_name}</span>
+                  <span className="text-zinc-600 font-black tracking-[0.4em]" style={{ fontSize: 'clamp(0.5rem, 1vw, 0.8rem)' }}>VS</span>
+                  <span className="text-zinc-200 font-black text-center w-full truncate uppercase tracking-wide" style={{ fontSize: 'clamp(0.7rem, 1.5vw, 1.2rem)' }}>{pendingMatch.team_b_name}</span>
                 </div>
               </div>
             );
-          })}
-        </div>
-      </main>
+          }
 
-      {/* Ticker */}
-      <footer className="relative z-10 h-12 bg-[#090d16] border-t border-white/5 flex items-center overflow-hidden shrink-0">
-        <div className="bg-[#059669] h-full flex items-center px-4 font-black text-black uppercase tracking-[0.2em] text-[8px] shrink-0 z-20 shadow-[10px_0_20px_rgba(0,0,0,0.3)]">
-          QUEUE
-        </div>
-        <div className="flex-1 relative overflow-hidden flex items-center">
-          {unassignedOrQueueMatches.length > 0 ? (
-            <div className="flex whitespace-nowrap animate-[marquee_120s_linear_infinite]">
-              {[...unassignedOrQueueMatches, ...unassignedOrQueueMatches].map((match, idx) => (
-                <span key={`${match.id}-${idx}`} className="mx-8 text-zinc-300 font-bold text-[10px] flex items-center gap-2">
-                  <span className="text-[#22d3ee] font-black uppercase text-[8px] bg-[#22d3ee]/10 px-1 py-0.5 rounded border border-[#22d3ee]/20">{match.event_type}</span>
-                  <span className="uppercase text-white font-black">{match.team_a_name}</span>
-                  <span className="text-zinc-600 text-[8px] font-black">VS</span>
-                  <span className="uppercase text-white font-black">{match.team_b_name}</span>
-                </span>
-              ))}
+          return (
+            <div key={`court-${courtNum}`} className="bg-[#050505] border border-white/5 rounded-xl flex flex-col overflow-hidden">
+              <div className="flex items-center justify-between px-3 border-b border-white/5 shrink-0" style={{ height: '2.2rem' }}>
+                <span className="text-zinc-600 font-black text-[11px] tracking-wider">COURT {courtNum}</span>
+                <span className="text-[10px] font-black text-zinc-700 tracking-widest">STANDBY</span>
+              </div>
+              <div className="flex-1 flex items-center justify-center">
+                <span className="font-black text-zinc-800 tracking-widest uppercase" style={{ fontSize: 'clamp(1rem, 2.5vw, 2rem)' }}>OPEN</span>
+              </div>
             </div>
-          ) : (
-            <div className="px-6 text-zinc-500 font-black text-[8px] uppercase tracking-widest">
-              No matches scheduled in queue.
-            </div>
-          )}
+          );
+        })}
         </div>
-      </footer>
-
-      <style dangerouslySetInnerHTML={{__html: `
-        @keyframes marquee {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-      `}} />
     </div>
   );
 }
