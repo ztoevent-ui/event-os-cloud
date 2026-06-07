@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabaseClient';
 import { PrintReportButton, CopyProgramButton } from '../../components/ProjectModals';
 import { usePrint } from '../../components/PrintContext';
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverlay, defaultDropAnimationSideEffects } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
@@ -50,6 +50,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
   const [hasChanges, setHasChanges] = useState(false);
   const [isSaving, setIsSaving]     = useState(false);
   const [isKiosk, setIsKiosk]       = useState(false);
+  const [activeId, setActiveId]     = useState<string | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [project, setProject]       = useState<any>(null);
   const { pageBreakIds, layoutType } = usePrint();
@@ -80,7 +81,12 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
     setLoading(false);
   };
 
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
+    setActiveId(null);
     const { active, over } = event;
     if (!over || active.id === over.id) return;
     setRows(items => {
@@ -89,6 +95,8 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
     });
     setHasChanges(true);
   };
+
+  const handleDragCancel = () => setActiveId(null);
 
   const updateCell = (rowId: string, colId: string, value: string, isCustom: boolean) => {
     setRows(rows.map(row => {
@@ -270,7 +278,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
             </button>
           </div>
         ) : (
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragCancel={handleDragCancel}>
             <SortableContext items={rows.map(r => r.id)} strategy={verticalListSortingStrategy}>
               <AnimatePresence initial={false}>
                 {rows.map(row => (
@@ -286,6 +294,18 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
                 ))}
               </AnimatePresence>
             </SortableContext>
+            <DragOverlay dropAnimation={{ sideEffects: defaultDropAnimationSideEffects({ styles: { active: { opacity: '0.4' } } }) }}>
+              {activeId ? (
+                <RowCard
+                  row={rows.find(r => r.id === activeId)!}
+                  editMode={editMode}
+                  updateCell={updateCell}
+                  removeRow={removeRow}
+                  toggleImportant={toggleImportant}
+                  isOverlay={true}
+                />
+              ) : null}
+            </DragOverlay>
           </DndContext>
         )}
       </div>
@@ -330,20 +350,12 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
         </div>
       )}
 
-      <style jsx global>{`
+      <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
         @media print {
-          @page {
-            size: A4 landscape;
-            margin: 12mm 14mm;
-          }
-
           /* Hide ALL chrome: sidebar, topbar, nav, action buttons */
           nav, aside, header, footer,
           button, [role="button"],
-          .print\\:hidden,
-          [class*="sidebar"], [class*="topbar"],
-          [class*="nav-"], [class*="action-bar"],
           .zto-action-bar { display: none !important; }
 
           /* Reset page layout so table fills the full A4 width */
@@ -360,9 +372,6 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
             gap: 0 !important;
             padding: 0 !important;
           }
-
-          /* Show hidden print block */
-          .print\\:block { display: block !important; }
 
           /* Strip all decorative styling */
           * {
@@ -392,14 +401,29 @@ function SortableRow({ row, editMode, updateCell, removeRow, toggleImportant, is
   toggleImportant: (id: string) => void;
   isPageBreak: boolean;
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: row.id });
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id: row.id });
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.6 : 1,
-    zIndex: isDragging ? 100 : 'auto',
+    opacity: isDragging ? 0.3 : 1,
+    zIndex: isDragging ? 0 : 'auto',
   };
 
+  return (
+    <motion.div
+      ref={setNodeRef} style={style}
+      initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.97 }}
+      className={isPageBreak ? 'print:break-before-page' : ''}
+    >
+      <RowCard
+        row={row} editMode={editMode} updateCell={updateCell} removeRow={removeRow} toggleImportant={toggleImportant}
+        isPlaceholder={isDragging} dragAttributes={attributes} dragListeners={listeners} setActivatorNodeRef={setActivatorNodeRef}
+      />
+    </motion.div>
+  );
+}
+
+function RowCard({ row, editMode, updateCell, removeRow, toggleImportant, isPlaceholder, isOverlay, dragAttributes, dragListeners, setActivatorNodeRef }: any) {
   const inputStyle: React.CSSProperties = {
     background: 'transparent',
     border: 'none',
@@ -414,15 +438,10 @@ function SortableRow({ row, editMode, updateCell, removeRow, toggleImportant, is
   };
 
   return (
-    <motion.div
-      ref={setNodeRef} style={style}
-      initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.97 }}
-      className={isPageBreak ? 'print:break-before-page' : ''}
-    >
       <div
         style={{
-          background: row.is_important ? 'rgba(239,68,68,0.05)' : 'rgba(255,255,255,0.025)',
-          border: row.is_important ? '1px solid rgba(239,68,68,0.3)' : '1px solid rgba(0,86,179,0.25)',
+          background: isPlaceholder ? 'rgba(255,255,255,0.02)' : (row.is_important ? 'rgba(239,68,68,0.05)' : 'rgba(255,255,255,0.025)'),
+          border: isPlaceholder ? '2px dashed rgba(222,255,154,0.4)' : (row.is_important ? '1px solid rgba(239,68,68,0.3)' : '1px solid rgba(0,86,179,0.25)'),
           borderRadius: 20,
           padding: '24px 28px',
           display: 'flex',
@@ -432,12 +451,18 @@ function SortableRow({ row, editMode, updateCell, removeRow, toggleImportant, is
           position: 'relative',
           overflow: 'hidden',
           fontFamily: 'Urbanist, sans-serif',
+          ...(isOverlay ? {
+            cursor: 'grabbing',
+            boxShadow: '0 32px 64px rgba(0,0,0,0.6)',
+            transform: 'scale(1.02)',
+            zIndex: 9999,
+          } : {})
         }}
-        onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = row.is_important ? 'rgba(239,68,68,0.5)' : 'rgba(0,86,179,0.5)'; }}
-        onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = row.is_important ? 'rgba(239,68,68,0.3)' : 'rgba(0,86,179,0.25)'; }}
+        onMouseEnter={e => { if (!isPlaceholder && !isOverlay) (e.currentTarget as HTMLDivElement).style.borderColor = row.is_important ? 'rgba(239,68,68,0.5)' : 'rgba(0,86,179,0.5)'; }}
+        onMouseLeave={e => { if (!isPlaceholder && !isOverlay) (e.currentTarget as HTMLDivElement).style.borderColor = row.is_important ? 'rgba(239,68,68,0.3)' : 'rgba(0,86,179,0.25)'; }}
       >
         {/* Left accent line for important */}
-        {row.is_important && (
+        {row.is_important && !isPlaceholder && (
           <div style={{
             position: 'absolute', left: 0, top: 0, bottom: 0, width: 4,
             background: '#ef4444',
@@ -447,8 +472,8 @@ function SortableRow({ row, editMode, updateCell, removeRow, toggleImportant, is
         )}
 
         {/* TIME Column */}
-        <div style={{ minWidth: 100, flexShrink: 0 }}>
-          {editMode ? (
+        <div style={{ minWidth: 100, flexShrink: 0, opacity: isPlaceholder ? 0.3 : 1 }}>
+          {editMode && !isOverlay ? (
             <input
               value={row.time}
               onChange={e => updateCell(row.id, 'time', e.target.value, false)}
@@ -463,9 +488,9 @@ function SortableRow({ row, editMode, updateCell, removeRow, toggleImportant, is
         </div>
 
         {/* CONTENT Center */}
-        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6, opacity: isPlaceholder ? 0.3 : 1 }}>
           {/* Activity (Title) */}
-          {editMode ? (
+          {editMode && !isOverlay ? (
             <input
               value={row.activities}
               onChange={e => updateCell(row.id, 'activities', e.target.value, false)}
@@ -483,7 +508,7 @@ function SortableRow({ row, editMode, updateCell, removeRow, toggleImportant, is
 
           {/* Extra / Movement / Cues row */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginTop: 4 }}>
-            {editMode ? (
+            {editMode && !isOverlay ? (
               <>
                 <input value={row.pic} onChange={e => updateCell(row.id, 'pic', e.target.value, false)} placeholder="PIC" style={{ ...inputStyle, fontSize: 12, color: '#4da3ff', width: 100 }} />
                 <input value={row.course} onChange={e => updateCell(row.id, 'course', e.target.value, false)} placeholder="Course Seq" style={{ ...inputStyle, fontSize: 12, color: '#f59e0b', width: 100 }} />
@@ -518,8 +543,8 @@ function SortableRow({ row, editMode, updateCell, removeRow, toggleImportant, is
         </div>
 
         {/* BGM / Volume */}
-        <div style={{ minWidth: 130, flexShrink: 0, textAlign: 'right' }}>
-          {editMode ? (
+        <div style={{ minWidth: 130, flexShrink: 0, textAlign: 'right', opacity: isPlaceholder ? 0.3 : 1 }}>
+          {editMode && !isOverlay ? (
             <>
               <input value={row.song} onChange={e => updateCell(row.id, 'song', e.target.value, false)} placeholder="BGM" style={{ ...inputStyle, fontSize: 12, color: '#4da3ff', textAlign: 'right' }} />
               <input value={row.volume} onChange={e => updateCell(row.id, 'volume', e.target.value, false)} placeholder="Vol" style={{ ...inputStyle, fontSize: 11, color: 'rgba(255,255,255,0.35)', textAlign: 'right', marginTop: 4 }} />
@@ -544,10 +569,12 @@ function SortableRow({ row, editMode, updateCell, removeRow, toggleImportant, is
             display: 'flex', flexDirection: 'column', gap: 8,
             borderLeft: '1px solid rgba(255,255,255,0.07)',
             paddingLeft: 20, marginLeft: 4, flexShrink: 0,
+            opacity: isPlaceholder ? 0.3 : 1
           }}>
-            {/* Drag handle — large touch target for iPad/tablet use */}
+            {/* Drag handle */}
             <button
-              {...attributes} {...listeners}
+              ref={setActivatorNodeRef}
+              {...(dragAttributes || {})} {...(dragListeners || {})}
               title="Hold & drag to reorder"
               style={{
                 background: 'rgba(222,255,154,0.08)',
@@ -555,39 +582,41 @@ function SortableRow({ row, editMode, updateCell, removeRow, toggleImportant, is
                 borderRadius: 10,
                 cursor: 'grab',
                 color: '#DEFF9A',
-                /* 48×48 minimum touch target (WCAG / Apple HIG) */
                 minWidth: 48,
                 minHeight: 48,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontSize: 20,
-                touchAction: 'none', // critical — lets dnd-kit capture the touch
+                touchAction: 'none',
                 WebkitUserSelect: 'none',
                 userSelect: 'none',
               }}
             >
               <i className="fa-solid fa-grip-vertical" />
             </button>
-            <button
-              onClick={() => toggleImportant(row.id)}
-              title="Mark important"
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: row.is_important ? '#ef4444' : 'rgba(255,255,255,0.2)', padding: 4, fontSize: 14 }}
-            >
-              <i className="fa-solid fa-flag" />
-            </button>
-            <button
-              onClick={() => removeRow(row.id)}
-              title="Delete row"
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.2)', padding: 4, fontSize: 13 }}
-              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#ef4444'; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.2)'; }}
-            >
-              <i className="fa-solid fa-trash-can" />
-            </button>
+            {!isOverlay && (
+              <>
+                <button
+                  onClick={() => toggleImportant(row.id)}
+                  title="Mark important"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: row.is_important ? '#ef4444' : 'rgba(255,255,255,0.2)', padding: 4, fontSize: 14 }}
+                >
+                  <i className="fa-solid fa-flag" />
+                </button>
+                <button
+                  onClick={() => removeRow(row.id)}
+                  title="Delete row"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.2)', padding: 4, fontSize: 13 }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#ef4444'; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.2)'; }}
+                >
+                  <i className="fa-solid fa-trash-can" />
+                </button>
+              </>
+            )}
           </div>
         )}
       </div>
-    </motion.div>
   );
 }
