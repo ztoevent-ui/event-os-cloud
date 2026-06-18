@@ -17,5 +17,9 @@ CREATE TABLE IF NOT EXISTS auction_items (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Enable RLS and grant full access for demo/internal purposes
+ALTER TABLE public.auction_items ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Enable all access for auction_items" ON public.auction_items FOR ALL USING (true) WITH CHECK (true);
+
 -- Note: We will use the existing `tool_states` table for real-time tracking
 -- of the 'auction' tool to keep things centralized.

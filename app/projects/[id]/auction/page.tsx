@@ -152,17 +152,26 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
   const saveItem = async () => {
     if (!editingItem.title) return alert('Title is required');
     
+    let resultError = null;
+
     if (editingItem.id) {
-      await supabase.from('auction_items').update(editingItem).eq('id', editingItem.id);
+      const { error } = await supabase.from('auction_items').update(editingItem).eq('id', editingItem.id);
+      resultError = error;
     } else {
-      await supabase.from('auction_items').insert({
+      const { error } = await supabase.from('auction_items').insert({
         ...editingItem,
         project_id: projectId,
         status: 'pending',
         current_price: editingItem.starting_price || 0
       });
+      resultError = error;
     }
     
+    if (resultError) {
+      alert(`Error saving item: ${resultError.message}\n(Hint: Have you executed the SQL migration script in Supabase?)`);
+      return;
+    }
+
     setIsEditing(false);
     setEditingItem({});
     fetchItems();
