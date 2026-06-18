@@ -114,22 +114,28 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
                 {/* ── Stats + Actions Hub ── */}
                 <div className="flex flex-wrap items-center gap-4">
                     {/* Premium Stats Pill */}
-                    <div className="h-12 px-6 flex items-center gap-6 rounded-2xl bg-[#050505] border border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
-                        <div className="flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
-                            <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Expenses</span>
+                    <div className="h-auto md:h-12 py-4 md:py-0 px-6 flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-6 rounded-2xl bg-[#050505] border border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.5)] w-full lg:w-auto">
+                        <div className="flex items-center justify-between w-full md:w-auto gap-2">
+                            <div className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
+                                <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Expenses</span>
+                            </div>
                             <span className="text-xs font-black text-red-500 font-mono ml-2">RM {totalSpends.toFixed(2)}</span>
                         </div>
-                        <div className="w-px h-4 bg-white/10" />
-                        <div className="flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#DEFF9A] shadow-[0_0_10px_rgba(222,255,154,0.5)]" />
-                            <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Income</span>
+                        <div className="hidden md:block w-px h-4 bg-white/10" />
+                        <div className="flex items-center justify-between w-full md:w-auto gap-2">
+                            <div className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#DEFF9A] shadow-[0_0_10px_rgba(222,255,154,0.5)]" />
+                                <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Income</span>
+                            </div>
                             <span className="text-xs font-black text-[#DEFF9A] font-mono ml-2">RM {totalIncome.toFixed(2)}</span>
                         </div>
-                        <div className="w-px h-4 bg-white/10" />
-                        <div className="flex items-center gap-2">
-                            <i className="fa-solid fa-scale-balanced text-[10px] text-[#0056B3]"></i>
-                            <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Net</span>
+                        <div className="hidden md:block w-px h-4 bg-white/10" />
+                        <div className="flex items-center justify-between w-full md:w-auto gap-2">
+                            <div className="flex items-center gap-2">
+                                <i className="fa-solid fa-scale-balanced text-[10px] text-[#0056B3]"></i>
+                                <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Net Profit</span>
+                            </div>
                             <span className={`text-xs font-black font-mono ml-2 ${netBalance >= 0 ? 'text-[#DEFF9A]' : 'text-red-500'}`}>
                                 RM {netBalance.toFixed(2)}
                             </span>

@@ -15,6 +15,7 @@ const NAV_ITEMS = [
     { label: 'Venue',             path: '/venue-layout',  icon: 'fa-solid fa-map-location-dot' },
     { label: '3D Stage',          path: '/stage-layout',  icon: 'fa-solid fa-cube' },
     { label: 'Registration',      path: '/registration',  icon: 'fa-solid fa-users' },
+    { label: 'Auction',           path: '/auction',       icon: 'fa-solid fa-gavel' },
 ];
 
 export default function ProjectSidebar({
