@@ -154,133 +154,148 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
   }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: '#050505', zIndex: 9999, display: 'flex', flexDirection: 'column', fontFamily: 'Urbanist, sans-serif' }}>
+    <div style={{ position: 'fixed', inset: 0, background: '#050505', zIndex: 9999, display: 'flex', flexDirection: 'column', fontFamily: 'Urbanist, sans-serif', overflow: 'hidden' }}>
       
       {/* ── Floating Fullscreen Button ── */}
       <button 
         onClick={toggleFullscreen}
         style={{
           position: 'absolute',
-          top: 24,
-          right: 24,
+          top: 20,
+          right: 20,
           zIndex: 10000,
-          background: 'rgba(255,255,255,0.1)',
-          border: '1px solid rgba(255,255,255,0.2)',
-          color: 'rgba(255,255,255,0.5)',
+          background: 'rgba(255,255,255,0.08)',
+          border: '1px solid rgba(255,255,255,0.15)',
+          color: 'rgba(255,255,255,0.4)',
           borderRadius: 8,
-          width: 48,
-          height: 48,
+          width: 40,
+          height: 40,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           cursor: 'pointer',
           transition: 'all 0.2s ease',
-          opacity: isFullscreen ? 0 : 1, // Hide when already in fullscreen to keep screen clean, or keep it low opacity
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.opacity = '1';
           e.currentTarget.style.background = 'rgba(255,255,255,0.2)';
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.opacity = isFullscreen ? '0' : '1';
-          e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
+          e.currentTarget.style.opacity = '1';
+          e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
         }}
         title="Toggle Fullscreen"
       >
-        <i className={`fa-solid ${isFullscreen ? 'fa-compress' : 'fa-expand'}`} style={{ fontSize: 20 }} />
+        <i className={`fa-solid ${isFullscreen ? 'fa-compress' : 'fa-expand'}`} style={{ fontSize: 16 }} />
       </button>
 
-      {/* ── Top Bar (Auction Title) ── */}
-      <div style={{ padding: '5% 5% 0 5%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 20, flexShrink: 0, gap: 40 }}>
-        <div style={{ fontSize: 24, fontWeight: 800, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.2em', whiteSpace: 'nowrap' }}>
-          LIVE AUCTION
-        </div>
-        <div style={{ fontSize: 24, fontWeight: 800, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.2em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'right' }}>
-          {project?.name || 'EVENT OS'}
-        </div>
-      </div>
-
-      {/* ── Content Area ── */}
-      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+      {/* ══════════════════════════════════════════
+          TOP 30%: Item Info (Header Bar + Photo + Title)
+      ══════════════════════════════════════════ */}
+      <div style={{ height: '30%', display: 'flex', flexDirection: 'column', borderBottom: '1px solid rgba(255,255,255,0.06)', flexShrink: 0 }}>
         
-        {/* ── Left Side: Image ── */}
-        <div style={{ flex: '1.2', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 5% 5% 5%' }}>
-          <AnimatePresence mode="wait">
-          <motion.img 
-            key={activeItem.image_url}
-            src={activeItem.image_url || '/placeholder.png'} 
-            initial={{ scale: 1.1, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            style={{ width: '60%', height: '60%', objectFit: 'contain', borderRadius: 24, boxShadow: '0 20px 60px rgba(0,0,0,0.8)' }}
-          />
-        </AnimatePresence>
-      </div>
-
-        {/* ── Right Side: Details & Bidding ── */}
-        <div style={{ flex: '1', display: 'flex', flexDirection: 'column', padding: '0 5% 5% 0', justifyContent: 'center' }}>
-        
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeItem.id}
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -50 }}
-            transition={{ duration: 0.6 }}
-          >
-            <div style={{ display: 'inline-block', padding: '8px 16px', background: 'rgba(222,255,154,0.1)', color: '#DEFF9A', borderRadius: 24, fontSize: 16, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.2em', marginBottom: 24 }}>
-              LOT {items.length > 0 ? items.findIndex(i => i.id === activeItem.id) + 1 : ''}
-            </div>
-            <h1 style={{ fontSize: 'clamp(3rem, 5vw, 5rem)', fontWeight: 800, color: '#fff', lineHeight: 1.1, marginBottom: 24 }}>
-              {activeItem.title}
-            </h1>
-            <p style={{ fontSize: 24, color: 'rgba(255,255,255,0.6)', lineHeight: 1.5, marginBottom: 64 }}>
-              {activeItem.description}
-            </p>
-          </motion.div>
-        </AnimatePresence>
-
-        <div style={{ flex: 1 }} />
-
-        {/* ── Price and Winner ── */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
-          
-          <div style={{ position: 'relative' }}>
-            <div style={{ fontSize: 20, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.2em', marginBottom: 12 }}>
-              Current Price
-            </div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 16 }}>
-              <span style={{ fontSize: 40, fontWeight: 700, color: isSold ? '#10b981' : '#4da3ff' }}>RM</span>
-              <motion.div 
-                key={livePrice}
-                initial={{ opacity: 0.5, y: 20, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                style={{ fontSize: 'clamp(6rem, 10vw, 12rem)', fontWeight: 800, color: isSold ? '#10b981' : '#fff', lineHeight: 1, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}
-              >
-                {livePrice.toLocaleString()}
-              </motion.div>
-            </div>
+        {/* Title bar */}
+        <div style={{ padding: '3% 5% 0 5%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+          <div style={{ fontSize: 'clamp(12px, 1.4vw, 20px)', fontWeight: 800, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.25em' }}>
+            LIVE AUCTION
           </div>
+          <div style={{ fontSize: 'clamp(12px, 1.4vw, 20px)', fontWeight: 700, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: '0.15em', textAlign: 'right', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '60%' }}>
+            {project?.name || 'EVENT OS'}
+          </div>
+        </div>
 
-          <AnimatePresence>
-            {liveWinner && (
-              <motion.div 
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 24, padding: 32, borderLeft: `8px solid ${isSold ? '#10b981' : '#DEFF9A'}` }}
+        {/* Item info row: image + lot + title + description */}
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '3%', padding: '2% 5%', overflow: 'hidden' }}>
+          
+          {/* Item image — compact */}
+          <AnimatePresence mode="wait">
+            <motion.img
+              key={activeItem.image_url}
+              src={activeItem.image_url || '/placeholder.png'}
+              initial={{ opacity: 0, scale: 1.05 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5 }}
+              style={{ height: '100%', maxHeight: 160, width: 'auto', objectFit: 'contain', borderRadius: 12, flexShrink: 0, boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}
+            />
+          </AnimatePresence>
+
+          {/* Text info */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeItem.id}
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5 }}
+              style={{ flex: 1, overflow: 'hidden' }}
+            >
+              <div style={{ fontSize: 'clamp(11px, 1.2vw, 16px)', fontWeight: 800, color: '#DEFF9A', textTransform: 'uppercase', letterSpacing: '0.2em', marginBottom: 8 }}>
+                LOT {items.length > 0 ? items.findIndex(i => i.id === activeItem.id) + 1 : ''}
+              </div>
+              <h1 style={{ fontSize: 'clamp(1.4rem, 2.8vw, 3.2rem)', fontWeight: 800, color: '#fff', lineHeight: 1.1, margin: 0, marginBottom: 10, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                {activeItem.title}
+              </h1>
+              <p style={{ fontSize: 'clamp(11px, 1.2vw, 16px)', color: 'rgba(255,255,255,0.5)', lineHeight: 1.5, margin: 0, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                {activeItem.description}
+              </p>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </div>
+
+      {/* ══════════════════════════════════════════
+          BOTTOM 70%: Price (Left) + Bidder (Right)
+      ══════════════════════════════════════════ */}
+      <div style={{ flex: 1, display: 'flex', position: 'relative' }}>
+
+        {/* LEFT — Current Price */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '5% 4% 5% 5%', borderRight: '1px solid rgba(255,255,255,0.06)' }}>
+          <div style={{ fontSize: 'clamp(12px, 1.3vw, 18px)', fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.25em', marginBottom: '4%' }}>
+            Current Price
+          </div>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '2%' }}>
+            <span style={{ fontSize: 'clamp(1.5rem, 3.5vw, 4rem)', fontWeight: 700, color: isSold ? '#10b981' : '#4da3ff', flexShrink: 0 }}>RM</span>
+            <motion.div
+              key={livePrice}
+              initial={{ opacity: 0.4, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, ease: 'easeOut' }}
+              style={{ fontSize: 'clamp(4rem, 12vw, 16rem)', fontWeight: 900, color: isSold ? '#10b981' : '#fff', lineHeight: 1, letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums' }}
+            >
+              {livePrice.toLocaleString()}
+            </motion.div>
+          </div>
+        </div>
+
+        {/* RIGHT — Bidder Number */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '5% 5% 5% 4%' }}>
+          <div style={{ fontSize: 'clamp(12px, 1.3vw, 18px)', fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.25em', marginBottom: '4%' }}>
+            Highest Bidder
+          </div>
+          <AnimatePresence mode="wait">
+            {liveWinner ? (
+              <motion.div
+                key={liveWinner}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.4, ease: 'easeOut' }}
+                style={{ fontSize: 'clamp(4rem, 12vw, 16rem)', fontWeight: 900, color: isSold ? '#10b981' : '#DEFF9A', lineHeight: 1, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}
               >
-                <div style={{ fontSize: 16, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.2em', marginBottom: 8 }}>
-                  Highest Bidder
-                </div>
-                <div style={{ fontSize: 48, fontWeight: 800, color: isSold ? '#10b981' : '#DEFF9A' }}>
-                  {liveWinner}
-                </div>
+                {liveWinner}
+              </motion.div>
+            ) : (
+              <motion.div
+                key="empty"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                style={{ fontSize: 'clamp(2rem, 5vw, 6rem)', fontWeight: 700, color: 'rgba(255,255,255,0.1)', lineHeight: 1 }}
+              >
+                —
               </motion.div>
             )}
           </AnimatePresence>
-
         </div>
 
         {/* ── Winning Bid Popup Overlay ── */}
@@ -298,31 +313,31 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                background: 'rgba(5, 5, 5, 0.85)',
-                backdropFilter: 'blur(12px)',
+                background: 'rgba(5, 5, 5, 0.88)',
+                backdropFilter: 'blur(16px)',
                 pointerEvents: 'none'
               }}
             >
               <div style={{
                 textAlign: 'center',
-                background: 'linear-gradient(145deg, rgba(16, 185, 129, 0.1) 0%, rgba(0, 0, 0, 0.8) 100%)',
+                background: 'linear-gradient(145deg, rgba(16, 185, 129, 0.12) 0%, rgba(0, 0, 0, 0.9) 100%)',
                 border: '1px solid rgba(16, 185, 129, 0.3)',
-                padding: '80px 120px',
+                padding: '8% 10%',
                 borderRadius: 32,
-                boxShadow: '0 40px 100px rgba(0,0,0,0.8), inset 0 0 80px rgba(16,185,129,0.1)'
+                boxShadow: '0 40px 100px rgba(0,0,0,0.8), inset 0 0 80px rgba(16,185,129,0.08)'
               }}>
-                <i className="fa-solid fa-gavel" style={{ fontSize: 48, color: '#10b981', marginBottom: 24 }} />
-                <div style={{ fontSize: 24, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: '0.3em', marginBottom: 16 }}>
+                <i className="fa-solid fa-gavel" style={{ fontSize: 'clamp(2rem, 3vw, 4rem)', color: '#10b981', marginBottom: '4%' }} />
+                <div style={{ fontSize: 'clamp(12px, 1.5vw, 20px)', color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: '0.3em', marginBottom: '3%' }}>
                   SUCCESSFUL BID
                 </div>
-                <div style={{ fontSize: 'clamp(6rem, 8vw, 10rem)', fontWeight: 900, color: '#fff', letterSpacing: '-0.02em', lineHeight: 1, marginBottom: 32 }}>
-                  <span style={{ fontSize: '0.4em', verticalAlign: 'super', color: '#10b981', marginRight: 16 }}>RM</span>
+                <div style={{ fontSize: 'clamp(3rem, 8vw, 12rem)', fontWeight: 900, color: '#fff', letterSpacing: '-0.02em', lineHeight: 1, marginBottom: '4%' }}>
+                  <span style={{ fontSize: '0.35em', verticalAlign: 'super', color: '#10b981', marginRight: '2%' }}>RM</span>
                   {livePrice.toLocaleString()}
                 </div>
-                <div style={{ fontSize: 20, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.2em', marginBottom: 16 }}>
+                <div style={{ fontSize: 'clamp(12px, 1.3vw, 18px)', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.2em', marginBottom: '2%' }}>
                   Winning Bidder
                 </div>
-                <div style={{ fontSize: 64, fontWeight: 800, color: '#DEFF9A', textShadow: '0 0 40px rgba(222, 255, 154, 0.3)' }}>
+                <div style={{ fontSize: 'clamp(3rem, 6vw, 8rem)', fontWeight: 800, color: '#DEFF9A', textShadow: '0 0 40px rgba(222, 255, 154, 0.3)' }}>
                   {liveWinner || 'ANONYMOUS'}
                 </div>
               </div>
@@ -330,8 +345,8 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
           )}
         </AnimatePresence>
 
-        </div>
       </div>
     </div>
   );
 }
+
