@@ -124,9 +124,6 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
 
   const handleSetStatus = async (itemId: string, status: string) => {
     await supabase.from('auction_items').update({ status }).eq('id', itemId);
-    if (status === 'sold' && itemId === activeItemId) {
-      updateLiveState({ active_item_id: null }); // clear active screen
-    }
     fetchItems();
   };
 

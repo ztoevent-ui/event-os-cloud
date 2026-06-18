@@ -275,32 +275,49 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
 
         </div>
 
-        {/* ── Sold Stamp Overlay ── */}
+        {/* ── Winning Bid Popup Overlay ── */}
         <AnimatePresence>
           {isSold && (
             <motion.div 
-              initial={{ scale: 3, opacity: 0, rotate: -20 }}
-              animate={{ scale: 1, opacity: 1, rotate: -10 }}
-              transition={{ type: 'spring', damping: 12, stiffness: 100 }}
+              initial={{ opacity: 0, scale: 0.9, y: 50 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 1.1 }}
+              transition={{ type: 'spring', damping: 20, stiffness: 100 }}
               style={{
                 position: 'absolute',
-                top: '40%',
-                right: '15%',
-                border: '16px solid #10b981',
-                color: '#10b981',
-                padding: '24px 64px',
-                borderRadius: 24,
-                fontSize: 120,
-                fontWeight: 900,
-                textTransform: 'uppercase',
-                letterSpacing: '0.1em',
-                pointerEvents: 'none',
-                boxShadow: '0 0 100px rgba(16, 185, 129, 0.4), inset 0 0 50px rgba(16, 185, 129, 0.4)',
-                textShadow: '0 0 20px rgba(16, 185, 129, 0.8)',
-                zIndex: 10,
+                inset: 0,
+                zIndex: 100,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'rgba(5, 5, 5, 0.85)',
+                backdropFilter: 'blur(12px)',
+                pointerEvents: 'none'
               }}
             >
-              SOLD
+              <div style={{
+                textAlign: 'center',
+                background: 'linear-gradient(145deg, rgba(16, 185, 129, 0.1) 0%, rgba(0, 0, 0, 0.8) 100%)',
+                border: '1px solid rgba(16, 185, 129, 0.3)',
+                padding: '80px 120px',
+                borderRadius: 32,
+                boxShadow: '0 40px 100px rgba(0,0,0,0.8), inset 0 0 80px rgba(16,185,129,0.1)'
+              }}>
+                <i className="fa-solid fa-gavel" style={{ fontSize: 48, color: '#10b981', marginBottom: 24 }} />
+                <div style={{ fontSize: 24, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: '0.3em', marginBottom: 16 }}>
+                  SUCCESSFUL BID
+                </div>
+                <div style={{ fontSize: 'clamp(6rem, 8vw, 10rem)', fontWeight: 900, color: '#fff', letterSpacing: '-0.02em', lineHeight: 1, marginBottom: 32 }}>
+                  <span style={{ fontSize: '0.4em', verticalAlign: 'super', color: '#10b981', marginRight: 16 }}>RM</span>
+                  {livePrice.toLocaleString()}
+                </div>
+                <div style={{ fontSize: 20, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.2em', marginBottom: 16 }}>
+                  Winning Bidder
+                </div>
+                <div style={{ fontSize: 64, fontWeight: 800, color: '#DEFF9A', textShadow: '0 0 40px rgba(222, 255, 154, 0.3)' }}>
+                  {liveWinner || 'ANONYMOUS'}
+                </div>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
