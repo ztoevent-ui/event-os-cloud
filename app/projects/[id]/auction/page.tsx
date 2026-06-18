@@ -36,6 +36,11 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
   const [editingItem, setEditingItem] = useState<Partial<AuctionItem>>({});
   const [uploadingImage, setUploadingImage] = useState(false);
 
+  // Atomic Popover State
+  const [pendingIncrement, setPendingIncrement] = useState<number | null>(null);
+  const [popoverBidder, setPopoverBidder] = useState('');
+  const [popoverRef, setPopoverRef] = useState<HTMLButtonElement | null>(null);
+
   useEffect(() => {
     fetchProject();
     fetchItems();
@@ -118,8 +123,36 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
     setIsUpdating(false);
   };
 
-  const handleIncrement = (amount: number) => {
-    updateLiveState({ current_price: livePrice + amount });
+  // Opens the proximity popover — does NOT update DB yet
+  const handleIncrementClick = (amount: number, buttonEl: HTMLButtonElement) => {
+    setPendingIncrement(amount);
+    setPopoverBidder('');
+    setPopoverRef(buttonEl);
+  };
+
+  // Atomically commits price + bidder in ONE update
+  const commitAtomicBid = async (bidderNumber: string) => {
+    if (pendingIncrement === null) return;
+    const newPrice = livePrice + pendingIncrement;
+    const bidderLabel = bidderNumber ? `No. ${bidderNumber}` : liveWinner;
+    await updateLiveState({
+      current_price: newPrice,
+      current_winner: bidderLabel,
+    });
+    setPendingIncrement(null);
+    setPopoverBidder('');
+    setPopoverRef(null);
+  };
+
+  const handlePopoverKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') commitAtomicBid(popoverBidder);
+    if (e.key === 'Escape') { setPendingIncrement(null); setPopoverRef(null); }
+  };
+
+  const closePopover = () => {
+    setPendingIncrement(null);
+    setPopoverBidder('');
+    setPopoverRef(null);
   };
 
   const handleSetStatus = async (itemId: string, status: string) => {
@@ -294,33 +327,122 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
                     />
                   </div>
 
-                  {/* Quick Increments */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+                  {/* Quick Increments — Atomic Popover */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, position: 'relative' }}>
                     {[50, 100, 500, 1000, 5000, 10000].map(amount => (
-                      <button 
+                      <button
                         key={amount}
-                        onClick={() => handleIncrement(amount)}
+                        ref={undefined}
+                        onClick={(e) => handleIncrementClick(amount, e.currentTarget)}
                         disabled={isUpdating}
                         className="zto-btn zto-btn-ghost"
-                        style={{ padding: '16px 0', fontSize: 18, fontWeight: 700, border: '1px solid rgba(77, 163, 255, 0.3)', color: '#4da3ff' }}
+                        style={{ padding: '16px 0', fontSize: 18, fontWeight: 700, border: `1px solid ${pendingIncrement === amount ? 'rgba(222,255,154,0.8)' : 'rgba(77,163,255,0.3)'}`, color: pendingIncrement === amount ? '#DEFF9A' : '#4da3ff', transition: 'all 0.15s', position: 'relative' }}
                       >
-                        +{amount}
+                        +{amount.toLocaleString()}
                       </button>
                     ))}
                   </div>
 
-                  {/* Current Winner */}
-                  <div style={{ background: 'rgba(0,0,0,0.4)', borderRadius: 16, padding: 24, border: '1px solid rgba(255,255,255,0.1)' }}>
-                    <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Highest Bidder (Table/Name)</div>
-                    <input 
-                      type="text" 
-                      value={liveWinner}
-                      onChange={(e) => setLiveWinner(e.target.value)}
-                      onBlur={() => updateLiveState({ current_winner: liveWinner })}
-                      placeholder="e.g. Table 5"
-                      style={{ background: 'transparent', border: 'none', borderBottom: '2px solid rgba(255,255,255,0.2)', color: '#DEFF9A', fontSize: 24, fontWeight: 700, width: '100%', outline: 'none', paddingBottom: 8, fontFamily: 'Urbanist' }}
-                    />
-                  </div>
+                  {/* Proximity Numpad Popover */}
+                  {pendingIncrement !== null && (
+                    <>
+                      {/* Backdrop to close */}
+                      <div
+                        onClick={closePopover}
+                        style={{ position: 'fixed', inset: 0, zIndex: 998 }}
+                      />
+                      <div style={{
+                        position: 'relative',
+                        zIndex: 999,
+                        background: 'rgba(15,15,20,0.98)',
+                        border: '1px solid rgba(222,255,154,0.3)',
+                        borderRadius: 20,
+                        padding: 24,
+                        boxShadow: '0 24px 80px rgba(0,0,0,0.8), 0 0 0 1px rgba(222,255,154,0.1)',
+                        backdropFilter: 'blur(20px)',
+                      }}>
+                        {/* Header */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                          <div>
+                            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.15em' }}>Bidding</div>
+                            <div style={{ fontSize: 20, fontWeight: 800, color: '#DEFF9A', marginTop: 2 }}>
+                              +RM {pendingIncrement.toLocaleString()} → RM {(livePrice + pendingIncrement).toLocaleString()}
+                            </div>
+                          </div>
+                          <button onClick={closePopover} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: 18, padding: 4 }}>
+                            <i className="fa-solid fa-xmark" />
+                          </button>
+                        </div>
+
+                        {/* Quick Paddle Number Grid (1-12) */}
+                        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 10 }}>Select Bidder No.</div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 8, marginBottom: 16 }}>
+                          {[1,2,3,4,5,6,7,8,9,10,11,12].map(n => (
+                            <button
+                              key={n}
+                              onClick={() => commitAtomicBid(String(n))}
+                              style={{
+                                padding: '12px 0',
+                                borderRadius: 10,
+                                border: '1px solid rgba(255,255,255,0.12)',
+                                background: popoverBidder === String(n) ? 'rgba(222,255,154,0.15)' : 'rgba(255,255,255,0.04)',
+                                color: popoverBidder === String(n) ? '#DEFF9A' : '#fff',
+                                fontSize: 20,
+                                fontWeight: 800,
+                                cursor: 'pointer',
+                                transition: 'all 0.1s',
+                              }}
+                              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(222,255,154,0.15)'; e.currentTarget.style.color = '#DEFF9A'; }}
+                              onMouseLeave={(e) => { e.currentTarget.style.background = popoverBidder === String(n) ? 'rgba(222,255,154,0.15)' : 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = popoverBidder === String(n) ? '#DEFF9A' : '#fff'; }}
+                            >
+                              {n}
+                            </button>
+                          ))}
+                        </div>
+
+                        {/* Custom Number Input */}
+                        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                          <input
+                            autoFocus
+                            type="number"
+                            placeholder="Custom No..."
+                            value={popoverBidder}
+                            onChange={(e) => setPopoverBidder(e.target.value)}
+                            onKeyDown={handlePopoverKeyDown}
+                            style={{
+                              flex: 1,
+                              background: 'rgba(255,255,255,0.06)',
+                              border: '1px solid rgba(255,255,255,0.2)',
+                              borderRadius: 10,
+                              color: '#fff',
+                              fontSize: 20,
+                              fontWeight: 700,
+                              padding: '10px 16px',
+                              outline: 'none',
+                              fontFamily: 'Urbanist',
+                            }}
+                          />
+                          <button
+                            onClick={() => commitAtomicBid(popoverBidder)}
+                            disabled={isUpdating}
+                            style={{
+                              padding: '10px 20px',
+                              borderRadius: 10,
+                              border: 'none',
+                              background: isUpdating ? 'rgba(222,255,154,0.3)' : '#DEFF9A',
+                              color: '#000',
+                              fontSize: 16,
+                              fontWeight: 800,
+                              cursor: isUpdating ? 'not-allowed' : 'pointer',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {isUpdating ? '...' : '✓ BID'}
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             ) : (
