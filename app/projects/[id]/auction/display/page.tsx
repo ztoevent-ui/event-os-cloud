@@ -25,6 +25,7 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
   const [liveWinner, setLiveWinner] = useState<string>('');
   const [isSold, setIsSold] = useState<boolean>(false);
   const [project, setProject] = useState<any>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
     supabase.from('projects').select('name').eq('id', projectId).single().then(({ data }) => setProject(data));
@@ -60,6 +61,27 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
       channel.unsubscribe();
     };
   }, [projectId, activeItem, isSold]);
+
+  // Handle fullscreen changes triggered by ESC key or F11
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch((err) => {
+        console.error(`Error attempting to enable fullscreen: ${err.message}`);
+      });
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+  };
 
   const fetchLiveState = async () => {
     const { data } = await supabase.from('tool_states')
@@ -126,6 +148,40 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
   return (
     <div style={{ position: 'fixed', inset: 0, background: '#050505', zIndex: 9999, display: 'flex', fontFamily: 'Urbanist, sans-serif' }}>
       
+      {/* ── Floating Fullscreen Button ── */}
+      <button 
+        onClick={toggleFullscreen}
+        style={{
+          position: 'absolute',
+          top: 24,
+          right: 24,
+          zIndex: 10000,
+          background: 'rgba(255,255,255,0.1)',
+          border: '1px solid rgba(255,255,255,0.2)',
+          color: 'rgba(255,255,255,0.5)',
+          borderRadius: 8,
+          width: 48,
+          height: 48,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          transition: 'all 0.2s ease',
+          opacity: isFullscreen ? 0 : 1, // Hide when already in fullscreen to keep screen clean, or keep it low opacity
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.opacity = '1';
+          e.currentTarget.style.background = 'rgba(255,255,255,0.2)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.opacity = isFullscreen ? '0' : '1';
+          e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
+        }}
+        title="Toggle Fullscreen"
+      >
+        <i className={`fa-solid ${isFullscreen ? 'fa-compress' : 'fa-expand'}`} style={{ fontSize: 20 }} />
+      </button>
+
       {/* ── Top Bar (Auction Title) ── */}
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, padding: '40px 60px', display: 'flex', justifyContent: 'space-between', zIndex: 20, pointerEvents: 'none' }}>
         <div style={{ fontSize: 24, fontWeight: 800, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.2em' }}>
