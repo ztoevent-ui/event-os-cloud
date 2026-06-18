@@ -26,9 +26,11 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
   const [isSold, setIsSold] = useState<boolean>(false);
   const [project, setProject] = useState<any>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [items, setItems] = useState<AuctionItem[]>([]);
 
   useEffect(() => {
     supabase.from('projects').select('name').eq('id', projectId).single().then(({ data }) => setProject(data));
+    fetchItems();
     fetchLiveState();
     
     const channel = supabase.channel(`auction_display_${projectId}`)
@@ -54,6 +56,7 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
             triggerSoldAnimation();
           }
         }
+        fetchItems(); // Refresh items list to keep sorting accurate if items change
       })
       .subscribe();
 
@@ -81,6 +84,11 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
         document.exitFullscreen();
       }
     }
+  };
+
+  const fetchItems = async () => {
+    const { data } = await supabase.from('auction_items').select('*').eq('project_id', projectId).order('sort_order', { ascending: true }).order('created_at', { ascending: true });
+    if (data) setItems(data);
   };
 
   const fetchLiveState = async () => {
@@ -222,7 +230,7 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
             transition={{ duration: 0.6 }}
           >
             <div style={{ display: 'inline-block', padding: '8px 16px', background: 'rgba(222,255,154,0.1)', color: '#DEFF9A', borderRadius: 24, fontSize: 16, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.2em', marginBottom: 24 }}>
-              Current Lot
+              LOT {items.length > 0 ? items.findIndex(i => i.id === activeItem.id) + 1 : ''}
             </div>
             <h1 style={{ fontSize: 'clamp(3rem, 5vw, 5rem)', fontWeight: 800, color: '#fff', lineHeight: 1.1, marginBottom: 24 }}>
               {activeItem.title}

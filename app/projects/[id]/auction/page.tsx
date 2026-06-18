@@ -174,6 +174,32 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
     fetchItems();
   };
 
+  const exportResults = () => {
+    const soldItems = items.filter(i => i.status === 'sold');
+    if (soldItems.length === 0) return alert('No items have been sold yet.');
+    
+    const headers = ['Lot Number', 'Item Title', 'Winner', 'Final Price (RM)'];
+    const rows = soldItems.map(item => {
+      const lotNum = items.findIndex(i => i.id === item.id) + 1;
+      return [
+        `Lot ${lotNum}`,
+        `"${item.title.replace(/"/g, '""')}"`,
+        `"${(item.winner_name || '').replace(/"/g, '""')}"`,
+        item.current_price
+      ].join(',');
+    });
+    
+    const csvContent = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `Auction_Results_${project?.name || 'Project'}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const activeItem = items.find(i => i.id === activeItemId);
 
   return (
@@ -205,11 +231,16 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
           </button>
         </div>
         
-        <Link href={`/projects/${projectId}/auction/display`} target="_blank">
-          <button className="zto-btn zto-btn-ghost" style={{ fontSize: 11, color: '#DEFF9A' }}>
-            <i className="fa-solid fa-display" /> Open Big Screen
+        <div style={{ display: 'flex', gap: 12 }}>
+          <button onClick={exportResults} className="zto-btn zto-btn-ghost" style={{ fontSize: 13, color: '#fff' }}>
+            <i className="fa-solid fa-file-csv" /> Export Results
           </button>
-        </Link>
+          <Link href={`/projects/${projectId}/auction/display`} target="_blank">
+            <button className="zto-btn zto-btn-ghost" style={{ fontSize: 13, color: '#DEFF9A', border: '1px solid rgba(222,255,154,0.3)' }}>
+              <i className="fa-solid fa-display" /> Open Big Screen
+            </button>
+          </Link>
+        </div>
       </div>
 
       {/* ── Live Control Tab ── */}
@@ -227,7 +258,10 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
               <div style={{ display: 'flex', gap: 48, flexWrap: 'wrap' }}>
                 <div style={{ flex: 1, minWidth: 280 }}>
                   <img src={activeItem.image_url || '/placeholder.png'} alt={activeItem.title} style={{ width: '100%', borderRadius: 16, aspectRatio: '4/3', objectFit: 'cover', border: '1px solid rgba(255,255,255,0.1)' }} />
-                  <h3 style={{ fontSize: 24, fontWeight: 800, marginTop: 16 }}>{activeItem.title}</h3>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: '#DEFF9A', marginTop: 24, letterSpacing: '0.1em' }}>
+                    LOT {items.findIndex(i => i.id === activeItem.id) + 1}
+                  </div>
+                  <h3 style={{ fontSize: 24, fontWeight: 800, marginTop: 8 }}>{activeItem.title}</h3>
                   <p style={{ color: 'rgba(255,255,255,0.6)', marginTop: 8 }}>{activeItem.description}</p>
                   
                   <div style={{ marginTop: 24, display: 'flex', gap: 16 }}>
@@ -301,7 +335,7 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
           <div className="zto-card" style={{ padding: 32 }}>
             <h3 style={{ fontSize: 16, fontWeight: 700, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 24 }}>Upcoming & Pending Items</h3>
             <div style={{ display: 'grid', gap: 16 }}>
-              {items.filter(i => i.status !== 'sold').map(item => (
+              {items.filter(i => i.status !== 'sold').map((item) => (
                 <div key={item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 20, background: 'rgba(255,255,255,0.02)', borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
                     {item.image_url ? (
@@ -310,6 +344,9 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
                       <div style={{ width: 64, height: 64, borderRadius: 8, background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><i className="fa-solid fa-image" /></div>
                     )}
                     <div>
+                      <div style={{ fontSize: 12, color: '#DEFF9A', fontWeight: 800, letterSpacing: '0.1em', marginBottom: 4 }}>
+                        LOT {items.findIndex(i => i.id === item.id) + 1}
+                      </div>
                       <div style={{ fontSize: 18, fontWeight: 700 }}>{item.title}</div>
                       <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>Starting: RM{item.starting_price}</div>
                     </div>
@@ -357,6 +394,9 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
                   {item.status === 'sold' && (
                     <div style={{ position: 'absolute', top: 12, right: 12, background: '#10b981', color: 'black', padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 800 }}>SOLD</div>
                   )}
+                  <div style={{ position: 'absolute', top: 12, left: 12, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', color: '#fff', padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 800 }}>
+                    LOT {items.findIndex(i => i.id === item.id) + 1}
+                  </div>
                 </div>
                 <div>
                   <h3 style={{ fontSize: 18, fontWeight: 700 }}>{item.title}</h3>
