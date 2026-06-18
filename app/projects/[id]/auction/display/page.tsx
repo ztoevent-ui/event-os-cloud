@@ -24,8 +24,10 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
   const [livePrice, setLivePrice] = useState<number>(0);
   const [liveWinner, setLiveWinner] = useState<string>('');
   const [isSold, setIsSold] = useState<boolean>(false);
+  const [project, setProject] = useState<any>(null);
 
   useEffect(() => {
+    supabase.from('projects').select('name').eq('id', projectId).single().then(({ data }) => setProject(data));
     fetchLiveState();
     
     const channel = supabase.channel(`auction_display_${projectId}`)
@@ -124,8 +126,18 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
   return (
     <div style={{ position: 'fixed', inset: 0, background: '#050505', zIndex: 9999, display: 'flex', fontFamily: 'Urbanist, sans-serif' }}>
       
+      {/* ── Top Bar (Auction Title) ── */}
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, padding: '40px 60px', display: 'flex', justifyContent: 'space-between', zIndex: 20, pointerEvents: 'none' }}>
+        <div style={{ fontSize: 24, fontWeight: 800, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.2em' }}>
+          LIVE AUCTION
+        </div>
+        <div style={{ fontSize: 24, fontWeight: 800, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.2em' }}>
+          {project?.name || 'EVENT OS'}
+        </div>
+      </div>
+
       {/* ── Left Side: Image ── */}
-      <div style={{ flex: '1.2', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ flex: '1.2', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40, marginTop: 40 }}>
         <AnimatePresence mode="wait">
           <motion.img 
             key={activeItem.image_url}
@@ -134,12 +146,9 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            style={{ width: '60%', height: '60%', objectFit: 'contain', borderRadius: 24, boxShadow: '0 20px 60px rgba(0,0,0,0.8)' }}
           />
         </AnimatePresence>
-        {/* Gradient Overlay for blending */}
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, transparent 50%, #050505 100%)' }} />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 30%)' }} />
       </div>
 
       {/* ── Right Side: Details & Bidding ── */}
