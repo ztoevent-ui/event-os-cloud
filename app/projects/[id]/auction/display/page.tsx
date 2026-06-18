@@ -183,7 +183,7 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
       </button>
 
       {/* ── Top Bar (Auction Title) ── */}
-      <div style={{ padding: '40px 60px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 20, flexShrink: 0, gap: 40 }}>
+      <div style={{ padding: '5% 5% 0 5%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 20, flexShrink: 0, gap: 40 }}>
         <div style={{ fontSize: 24, fontWeight: 800, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.2em', whiteSpace: 'nowrap' }}>
           LIVE AUCTION
         </div>
@@ -196,7 +196,7 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
         
         {/* ── Left Side: Image ── */}
-        <div style={{ flex: '1.2', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 40px 60px 40px' }}>
+        <div style={{ flex: '1.2', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 5% 5% 5%' }}>
           <AnimatePresence mode="wait">
           <motion.img 
             key={activeItem.image_url}
@@ -211,7 +211,7 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
       </div>
 
         {/* ── Right Side: Details & Bidding ── */}
-        <div style={{ flex: '1', display: 'flex', flexDirection: 'column', padding: '0 80px 80px 40px', justifyContent: 'center' }}>
+        <div style={{ flex: '1', display: 'flex', flexDirection: 'column', padding: '0 5% 5% 0', justifyContent: 'center' }}>
         
         <AnimatePresence mode="wait">
           <motion.div
