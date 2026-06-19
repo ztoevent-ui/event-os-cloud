@@ -34,18 +34,18 @@ function GoldParticleCanvas() {
     const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
     window.addEventListener('resize', resize);
 
-    const COLORS = ['#fcf6ba', '#bf953f', '#f5d060', '#ffe066', '#fff8dc', '#d4af37'];
+    const COLORS = ['#7fffd4', '#40e0d0', '#00ced1', '#00bcd4', '#4dd0e1', '#b2ebf2', '#80deea', '#26c6da', '#00acc1', '#ffffff'];
     const particles: { x: number; y: number; r: number; speed: number; color: string; opacity: number; drift: number; }[] = [];
 
-    for (let i = 0; i < 180; i++) {
+    for (let i = 0; i < 200; i++) {
       particles.push({
         x: Math.random() * window.innerWidth,
         y: Math.random() * window.innerHeight,
-        r: Math.random() * 2.5 + 0.4,
-        speed: Math.random() * 1.2 + 0.3,
+        r: Math.random() * 2.2 + 0.3,
+        speed: Math.random() * 1.0 + 0.25,
         color: COLORS[Math.floor(Math.random() * COLORS.length)],
-        opacity: Math.random() * 0.7 + 0.2,
-        drift: (Math.random() - 0.5) * 0.5,
+        opacity: Math.random() * 0.65 + 0.15,
+        drift: (Math.random() - 0.5) * 0.6,
       });
     }
 
@@ -53,28 +53,36 @@ function GoldParticleCanvas() {
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Deep golden gradient base
+      // Deep ocean blue gradient base
       const bg = ctx.createLinearGradient(0, 0, 0, canvas.height);
-      bg.addColorStop(0, '#0a0500');
-      bg.addColorStop(0.4, '#1a0e00');
-      bg.addColorStop(0.75, '#2a1500');
-      bg.addColorStop(1, '#3d1f00');
+      bg.addColorStop(0, '#000d1a');
+      bg.addColorStop(0.3, '#001a2e');
+      bg.addColorStop(0.65, '#002a3a');
+      bg.addColorStop(1, '#003344');
       ctx.fillStyle = bg;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Golden wave glow at bottom
-      const waveGrad = ctx.createRadialGradient(canvas.width / 2, canvas.height, 0, canvas.width / 2, canvas.height, canvas.width * 0.7);
-      waveGrad.addColorStop(0, 'rgba(212,175,55,0.35)');
-      waveGrad.addColorStop(0.5, 'rgba(180,130,20,0.12)');
+      // Ocean teal glow at bottom (underwater light)
+      const waveGrad = ctx.createRadialGradient(canvas.width / 2, canvas.height, 0, canvas.width / 2, canvas.height, canvas.width * 0.75);
+      waveGrad.addColorStop(0, 'rgba(0,180,200,0.28)');
+      waveGrad.addColorStop(0.45, 'rgba(0,120,150,0.12)');
       waveGrad.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = waveGrad;
-      ctx.fillRect(0, canvas.height * 0.55, canvas.width, canvas.height * 0.45);
+      ctx.fillRect(0, canvas.height * 0.45, canvas.width, canvas.height * 0.55);
 
-      // Center warm spotlight
-      const spotlight = ctx.createRadialGradient(canvas.width * 0.55, canvas.height * 0.4, 0, canvas.width * 0.55, canvas.height * 0.4, canvas.width * 0.4);
-      spotlight.addColorStop(0, 'rgba(160,100,10,0.18)');
+      // Centre-right cool teal spotlight
+      const spotlight = ctx.createRadialGradient(canvas.width * 0.55, canvas.height * 0.38, 0, canvas.width * 0.55, canvas.height * 0.38, canvas.width * 0.45);
+      spotlight.addColorStop(0, 'rgba(0,150,180,0.16)');
+      spotlight.addColorStop(0.6, 'rgba(0,80,120,0.06)');
       spotlight.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = spotlight;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Top-left dim cyan accent
+      const topLeft = ctx.createRadialGradient(canvas.width * 0.15, canvas.height * 0.2, 0, canvas.width * 0.15, canvas.height * 0.2, canvas.width * 0.3);
+      topLeft.addColorStop(0, 'rgba(0,200,210,0.10)');
+      topLeft.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = topLeft;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       // Falling gold particles
