@@ -53,18 +53,18 @@ function GoldParticleCanvas() {
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Imperial Jade Green radial gradient base
+      // Deep dark ocean blue radial gradient base
       const bg = ctx.createRadialGradient(canvas.width / 2, canvas.height / 2, 0, canvas.width / 2, canvas.height / 2, canvas.width);
-      bg.addColorStop(0, '#024b3e'); // Center jade green
-      bg.addColorStop(0.7, '#00221a'); // Dark emerald
-      bg.addColorStop(1, '#00110c'); // Near black edge
+      bg.addColorStop(0, '#002244'); // Center dark blue
+      bg.addColorStop(0.7, '#001122'); // Very dark blue
+      bg.addColorStop(1, '#000511'); // Almost black blue edge
       ctx.fillStyle = bg;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Bottom Jade glow
+      // Bottom Ocean glow
       const waveGrad = ctx.createRadialGradient(canvas.width / 2, canvas.height, 0, canvas.width / 2, canvas.height, canvas.width * 0.75);
-      waveGrad.addColorStop(0, 'rgba(4,120,87,0.3)'); // Emerald glow
-      waveGrad.addColorStop(0.45, 'rgba(2,75,62,0.1)');
+      waveGrad.addColorStop(0, 'rgba(0,100,180,0.3)'); // Ocean glow
+      waveGrad.addColorStop(0.45, 'rgba(0,50,100,0.1)');
       waveGrad.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = waveGrad;
       ctx.fillRect(0, canvas.height * 0.45, canvas.width, canvas.height * 0.55);
@@ -77,7 +77,7 @@ function GoldParticleCanvas() {
       ctx.fillStyle = spotlight;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Top-left accent (Gold/Jade sheen)
+      // Top-left accent (Gold/Blue sheen)
       const topLeft = ctx.createRadialGradient(canvas.width * 0.15, canvas.height * 0.2, 0, canvas.width * 0.15, canvas.height * 0.2, canvas.width * 0.3);
       topLeft.addColorStop(0, 'rgba(212,175,55,0.12)');
       topLeft.addColorStop(1, 'rgba(0,0,0,0)');
@@ -234,22 +234,33 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
 
       {/* Layer 1: Traditional Cloud/Wave Pattern Overlay (Subtle full BG) */}
       <div style={{
-        position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none',
-        backgroundImage: `radial-gradient(circle at 100% 150%, rgba(212,175,55,0.035) 24%, transparent 25%, transparent 28%, rgba(212,175,55,0.035) 29%, transparent 30%, transparent 36%, rgba(212,175,55,0.035) 36%, transparent 40%), radial-gradient(circle at 0 150%, rgba(212,175,55,0.035) 24%, transparent 25%, transparent 28%, rgba(212,175,55,0.035) 29%, transparent 30%, transparent 36%, rgba(212,175,55,0.035) 36%, transparent 40%)`,
+        position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none', opacity: 0.8,
+        backgroundImage: `radial-gradient(circle at 100% 150%, rgba(212,175,55,0.02) 24%, transparent 25%, transparent 28%, rgba(212,175,55,0.02) 29%, transparent 30%, transparent 36%, rgba(212,175,55,0.02) 36%, transparent 40%), radial-gradient(circle at 0 150%, rgba(212,175,55,0.02) 24%, transparent 25%, transparent 28%, rgba(212,175,55,0.02) 29%, transparent 30%, transparent 36%, rgba(212,175,55,0.02) 36%, transparent 40%)`,
         backgroundSize: '120px 60px',
         backgroundPosition: '0 0, 60px 30px'
       }} />
 
-      {/* Layer 1.5: Auspicious Cloud Border (Right Side) */}
-      <div style={{
-        position: 'absolute', right: 0, top: 0, bottom: 0, width: 120, zIndex: 1,
-        opacity: 0.35, pointerEvents: 'none',
-        filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.2))',
-        backgroundImage: `radial-gradient(circle at 100% 150%, rgba(212,175,55,0.8) 24%, transparent 25%, transparent 28%, rgba(212,175,55,0.8) 29%, transparent 30%, transparent 36%, rgba(212,175,55,0.8) 36%, transparent 40%), radial-gradient(circle at 0 150%, rgba(212,175,55,0.8) 24%, transparent 25%, transparent 28%, rgba(212,175,55,0.8) 29%, transparent 30%, transparent 36%, rgba(212,175,55,0.8) 36%, transparent 40%)`,
-        backgroundSize: '120px 60px',
-        backgroundRepeat: 'repeat-y',
-        borderLeft: '2px solid rgba(212,175,55,0.3)',
-      }} />
+      {/* Layer 1.5: Full Screen Chinese Totem Frame */}
+      {(() => {
+        const borderStyle = {
+          position: 'absolute', zIndex: 1, pointerEvents: 'none', opacity: 0.35,
+          filter: 'drop-shadow(0 0 6px rgba(212,175,55,0.3))',
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h40v40H0V0zm10 10h20v20H10V10zm5 5v10h10V15H15z' fill='none' stroke='%23d4af37' stroke-width='2'/%3E%3C/svg%3E")`,
+          backgroundSize: '40px 40px',
+        } as any;
+        return (
+          <>
+            {/* Top */}
+            <div style={{ ...borderStyle, top: 0, left: 0, right: 0, height: 40 }} />
+            {/* Bottom */}
+            <div style={{ ...borderStyle, bottom: 0, left: 0, right: 0, height: 40 }} />
+            {/* Left */}
+            <div style={{ ...borderStyle, top: 0, bottom: 0, left: 0, width: 40 }} />
+            {/* Right */}
+            <div style={{ ...borderStyle, top: 0, bottom: 0, right: 0, width: 40 }} />
+          </>
+        );
+      })()}
 
       {/* Layer 2: Content */}
       <div style={{ position: 'relative', zIndex: 2, width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -489,7 +500,7 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
                 initial={{ scale: 0.8, y: 60 }}
                 animate={{ scale: 1, y: 0 }}
                 transition={{ type: 'spring', damping: 18, stiffness: 100, delay: 0.08 }}
-                style={{ textAlign: 'center', background: 'linear-gradient(145deg, rgba(212,175,55,0.15) 0%, rgba(2,75,62,0.95) 100%)', border: '1px solid rgba(212,175,55,0.4)', padding: '7vh 9vw', borderRadius: 32, boxShadow: '0 0 80px rgba(212,175,55,0.3), 0 40px 120px rgba(0,17,12,0.9)' }}
+                style={{ textAlign: 'center', background: 'linear-gradient(145deg, rgba(212,175,55,0.15) 0%, rgba(0,22,44,0.95) 100%)', border: '1px solid rgba(212,175,55,0.4)', padding: '7vh 9vw', borderRadius: 32, boxShadow: '0 0 80px rgba(212,175,55,0.3), 0 40px 120px rgba(0,10,20,0.9)' }}
               >
                 <i className="fa-solid fa-gavel" style={{ fontSize: 'clamp(2rem, 3vw, 4rem)', color: '#d4af37', marginBottom: '2.5vh', display: 'block', textShadow: '0 0 30px rgba(212,175,55,0.8)' }} />
                 <div style={{ fontSize: 'clamp(11px, 1.3vw, 18px)', color: 'rgba(252,246,186,0.6)', textTransform: 'uppercase', letterSpacing: '0.35em', marginBottom: '2vh', fontFamily: '"Urbanist", sans-serif' }}>Successful Bid</div>
