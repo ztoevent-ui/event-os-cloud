@@ -233,15 +233,54 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
           <i className={`fa-solid ${isFullscreen ? 'fa-compress' : 'fa-expand'}`} style={{ fontSize: 14 }} />
         </button>
 
-        {/* ── HEADER ── */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '3.5vh 5vw 0 5vw', flexShrink: 0 }}>
-          <span style={{ fontSize: 'clamp(10px, 1vw, 14px)', fontWeight: 700, color: 'rgba(212,175,55,0.55)', textTransform: 'uppercase', letterSpacing: '0.35em', fontFamily: '"Urbanist", sans-serif' }}>
+        {/* ── HEADER — Centered Event Name ── */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '3vh 8vw 0 8vw', flexShrink: 0, textAlign: 'center', position: 'relative' }}>
+          {/* Small LIVE AUCTION badge on left */}
+          <span style={{ position: 'absolute', left: '5vw', top: '50%', transform: 'translateY(-50%)', fontSize: 'clamp(9px, 0.8vw, 12px)', fontWeight: 700, color: 'rgba(212,175,55,0.4)', textTransform: 'uppercase', letterSpacing: '0.35em', fontFamily: '"Urbanist", sans-serif' }}>
             Live Auction
           </span>
-          <span style={{ fontSize: 'clamp(10px, 1.1vw, 15px)', fontWeight: 700, textAlign: 'right', maxWidth: '65%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', background: 'linear-gradient(135deg, #bf953f 0%, #fcf6ba 40%, #b38728 70%, #fbf5b7 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', letterSpacing: '0.08em' }}>
-            {project?.name || ''}
-          </span>
+          {/* Chinese name — 楷体 gold large */}
+          {project?.name && (() => {
+            const name = project.name as string;
+            // Split at the boundary between CJK and Latin
+            const match = name.match(/^([\u4e00-\u9fff\u3000-\u303f\uff00-\uffef\s]+?)\s*([A-Za-z].*)$/);
+            const chinesePart = match ? match[1].trim() : name;
+            const englishPart = match ? match[2].trim() : '';
+            return (
+              <>
+                <div style={{
+                  fontSize: 'clamp(1.2rem, 2.8vw, 3.8rem)',
+                  fontWeight: 900,
+                  fontFamily: '"Noto Serif SC", "STKaiti", "KaiTi", serif',
+                  letterSpacing: '0.12em',
+                  lineHeight: 1.2,
+                  background: 'linear-gradient(135deg, #bf953f 0%, #fcf6ba 30%, #d4af37 55%, #fbf5b7 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                  filter: 'drop-shadow(0 2px 8px rgba(212,175,55,0.4))',
+                }}>
+                  {chinesePart}
+                </div>
+                {englishPart && (
+                  <div style={{
+                    fontSize: 'clamp(9px, 1vw, 14px)',
+                    fontWeight: 600,
+                    fontFamily: '"Urbanist", sans-serif',
+                    letterSpacing: '0.18em',
+                    color: 'rgba(252,246,186,0.55)',
+                    textTransform: 'uppercase',
+                    marginTop: 'clamp(2px, 0.5vh, 8px)',
+                    lineHeight: 1.4,
+                  }}>
+                    {englishPart}
+                  </div>
+                )}
+              </>
+            );
+          })()}
         </div>
+
 
         {/* ── MAIN BODY ── */}
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', padding: '3vh 5vw 5vh 5vw', gap: '5vw', overflow: 'hidden' }}>
