@@ -40,9 +40,9 @@ function GoldParticleCanvas() {
       particles.push({
         x: Math.random() * window.innerWidth,
         y: Math.random() * window.innerHeight,
-        length: Math.random() * 150 + 50,
-        speed: Math.random() * 15 + 5,
-        opacity: Math.random() * 0.7 + 0.1,
+        length: Math.random() * 80 + 30,
+        speed: Math.random() * 4 + 1.5,
+        opacity: Math.random() * 0.6 + 0.1,
         color: Math.random() > 0.5 ? '#d4af37' : '#fcf6ba'
       });
     }
@@ -248,37 +248,46 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
         backgroundPosition: '0 0, 60px 30px'
       }} />
 
-      {/* Layer 1.5: Vertical Couplets (Golden Calligraphy) */}
+      {/* Layer 1.5: Grand Imperial Frame (Auspicious Borders) */}
       <div style={{
-        position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none',
-        display: 'flex', justifyContent: 'space-between', padding: '12vh 4vw',
+        position: 'absolute', inset: 24, zIndex: 1, pointerEvents: 'none',
+        border: '3px solid rgba(212,175,55,0.7)',
+        outline: '1px solid rgba(252,246,186,0.3)', outlineOffset: '-12px',
+        boxShadow: 'inset 0 0 80px rgba(212,175,55,0.15), 0 0 60px rgba(212,175,55,0.3)',
       }}>
-        <div style={{
-          writingMode: 'vertical-rl',
-          fontSize: 'clamp(3rem, 6vw, 7.5rem)',
-          fontFamily: '"Ma Shan Zheng", "STKaiti", "KaiTi", serif',
-          fontWeight: 900,
-          background: 'linear-gradient(180deg, #bf953f 0%, #fcf6ba 40%, #b38728 60%, #fbf5b7 100%)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          filter: 'drop-shadow(0 4px 12px rgba(212,175,55,0.3))',
-          letterSpacing: '0.2em'
-        }}>
-          四海昇平
-        </div>
-        <div style={{
-          writingMode: 'vertical-rl',
-          fontSize: 'clamp(3rem, 6vw, 7.5rem)',
-          fontFamily: '"Ma Shan Zheng", "STKaiti", "KaiTi", serif',
-          fontWeight: 900,
-          background: 'linear-gradient(180deg, #bf953f 0%, #fcf6ba 40%, #b38728 60%, #fbf5b7 100%)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          filter: 'drop-shadow(0 4px 12px rgba(212,175,55,0.3))',
-          letterSpacing: '0.2em'
-        }}>
-          万象更新
-        </div>
+        {/* 4 Ornate Corners */}
+        {(() => {
+          const Corner = () => (
+            <svg width="140" height="140" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style={{ filter: 'drop-shadow(0 0 12px rgba(212,175,55,0.8))' }}>
+              {/* Ornate corner flourish */}
+              <path d="M0 0 L100 0 C100 40 60 100 0 100 Z" fill="rgba(212,175,55,0.15)"/>
+              <path d="M0 0 L100 0 L100 8 C100 35 65 100 8 100 L0 100 Z" fill="url(#goldGrad)"/>
+              <path d="M20 20 L80 20 L80 26 L26 26 L26 80 L20 80 Z" fill="url(#lightGoldGrad)"/>
+              <circle cx="50" cy="50" r="15" fill="none" stroke="#d4af37" strokeWidth="4"/>
+              <circle cx="50" cy="50" r="6" fill="#fcf6ba"/>
+              <path d="M50 35 L50 65 M35 50 L65 50" stroke="#d4af37" strokeWidth="2"/>
+              <defs>
+                <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#bf953f" />
+                  <stop offset="50%" stopColor="#fcf6ba" />
+                  <stop offset="100%" stopColor="#b38728" />
+                </linearGradient>
+                <linearGradient id="lightGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#fcf6ba" />
+                  <stop offset="100%" stopColor="#d4af37" />
+                </linearGradient>
+              </defs>
+            </svg>
+          );
+          return (
+            <>
+              <div style={{ position: 'absolute', top: -3, left: -3 }}><Corner /></div>
+              <div style={{ position: 'absolute', top: -3, right: -3, transform: 'scaleX(-1)' }}><Corner /></div>
+              <div style={{ position: 'absolute', bottom: -3, left: -3, transform: 'scaleY(-1)' }}><Corner /></div>
+              <div style={{ position: 'absolute', bottom: -3, right: -3, transform: 'scaleX(-1) scaleY(-1)' }}><Corner /></div>
+            </>
+          );
+        })()}
       </div>
 
       {/* Layer 2: Content */}

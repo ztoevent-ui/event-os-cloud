@@ -30,6 +30,10 @@ export default function ProjectSidebar({
     isTournament: boolean;
 }) {
     const pathname = usePathname();
+    
+    // Hide sidebar completely on display screens
+    if (pathname.endsWith('/display')) return null;
+
     const base = `/projects/${projectId}`;
     const [mobileOpen, setMobileOpen] = useState(false);
 
