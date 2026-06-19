@@ -331,10 +331,28 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
             {/* Divider */}
             <div style={{ height: 1, background: 'linear-gradient(90deg, rgba(212,175,55,0.6), rgba(212,175,55,0.1))', width: '80%' }} />
 
-            {/* CURRENT PRICE */}
+            {/* 起拍价 STARTING PRICE */}
+            <AnimatePresence mode="wait">
+              <motion.div key={activeItem.id + '-start'} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <div style={{ fontSize: 'clamp(9px, 0.95vw, 13px)', fontWeight: 700, color: 'rgba(212,175,55,0.55)', letterSpacing: '0.2em', marginBottom: 'clamp(2px, 0.5vh, 8px)', fontFamily: '"Noto Serif SC", serif' }}>
+                  起拍价
+                </div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.8vw' }}>
+                  <span style={{ fontSize: 'clamp(0.9rem, 1.5vw, 2rem)', fontWeight: 700, color: 'rgba(212,175,55,0.6)', lineHeight: 1, flexShrink: 0 }}>RM</span>
+                  <span style={{ fontSize: 'clamp(1.2rem, 2.5vw, 3.2rem)', fontWeight: 800, color: 'rgba(252,246,186,0.55)', lineHeight: 1, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums', fontFamily: '"Urbanist", sans-serif' }}>
+                    {(activeItem.starting_price || 0).toLocaleString()}
+                  </span>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Divider */}
+            <div style={{ height: 1, background: 'linear-gradient(90deg, rgba(212,175,55,0.6), rgba(212,175,55,0.1))', width: '80%' }} />
+
+            {/* 现价 CURRENT PRICE */}
             <div>
-              <div style={{ fontSize: 'clamp(9px, 0.95vw, 13px)', fontWeight: 700, color: 'rgba(212,175,55,0.7)', textTransform: 'uppercase', letterSpacing: '0.28em', marginBottom: 'clamp(4px, 1vh, 14px)', fontFamily: '"Urbanist", sans-serif' }}>
-                Current Price
+              <div style={{ fontSize: 'clamp(9px, 0.95vw, 13px)', fontWeight: 700, color: 'rgba(212,175,55,0.7)', letterSpacing: '0.2em', marginBottom: 'clamp(4px, 1vh, 14px)', fontFamily: '"Noto Serif SC", serif' }}>
+                现价
               </div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '1vw' }}>
                 <span style={{ fontSize: 'clamp(1.4rem, 2.5vw, 3.5rem)', fontWeight: 900, color: '#d4af37', lineHeight: 1, flexShrink: 0, textShadow: '0 0 20px rgba(212,175,55,0.8), 0 0 40px rgba(212,175,55,0.4)' }}>
@@ -360,8 +378,8 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
 
             {/* HIGHEST BIDDER */}
             <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: 'clamp(9px, 0.95vw, 13px)', fontWeight: 700, color: 'rgba(212,175,55,0.7)', textTransform: 'uppercase', letterSpacing: '0.28em', marginBottom: 'clamp(4px, 1vh, 14px)', fontFamily: '"Urbanist", sans-serif' }}>
-                Highest Bidder
+              <div style={{ fontSize: 'clamp(9px, 0.95vw, 13px)', fontWeight: 700, color: 'rgba(212,175,55,0.7)', letterSpacing: '0.2em', marginBottom: 'clamp(4px, 1vh, 14px)', fontFamily: '"Noto Serif SC", serif' }}>
+                最高出价牌号
               </div>
               <AnimatePresence mode="wait">
                 {liveWinner ? (
