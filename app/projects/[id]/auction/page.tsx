@@ -361,7 +361,7 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
                   </div>
 
                   {/* Proximity Numpad Popover */}
-                  {pendingIncrement !== null && (
+                  {pendingNewPrice !== null && (
                     <>
                       {/* Backdrop to close */}
                       <div
@@ -383,7 +383,7 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
                           <div>
                             <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.15em' }}>Bidding</div>
                             <div style={{ fontSize: 20, fontWeight: 800, color: '#DEFF9A', marginTop: 2 }}>
-                              +RM {pendingIncrement.toLocaleString()} → RM {(livePrice + pendingIncrement).toLocaleString()}
+                              {pendingLabel} → RM {pendingNewPrice.toLocaleString()}
                             </div>
                           </div>
                           <button onClick={closePopover} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: 18, padding: 4 }}>
