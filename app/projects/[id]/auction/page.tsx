@@ -37,9 +37,9 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
   const [uploadingImage, setUploadingImage] = useState(false);
 
   // Atomic Popover State
-  const [pendingIncrement, setPendingIncrement] = useState<number | null>(null);
+  const [pendingNewPrice, setPendingNewPrice] = useState<number | null>(null);
+  const [pendingLabel, setPendingLabel] = useState<string>(''); // display label e.g. '+500' or 'Custom'
   const [popoverBidder, setPopoverBidder] = useState('');
-  const [popoverRef, setPopoverRef] = useState<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     fetchProject();
@@ -123,36 +123,43 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
     setIsUpdating(false);
   };
 
-  // Opens the proximity popover — does NOT update DB yet
+  // Opens popover for an increment button click
   const handleIncrementClick = (amount: number, buttonEl: HTMLButtonElement) => {
-    setPendingIncrement(amount);
+    setPendingNewPrice(livePrice + amount);
+    setPendingLabel(`+RM ${amount.toLocaleString()}`);
     setPopoverBidder('');
-    setPopoverRef(buttonEl);
   };
 
-  // Atomically commits price + bidder in ONE update
+  // Opens popover for a custom price — called from the price input
+  const handleCustomPriceConfirm = (newPrice: number) => {
+    if (newPrice <= 0 || newPrice === livePrice) return;
+    setPendingNewPrice(newPrice);
+    setPendingLabel('Custom Price');
+    setPopoverBidder('');
+  };
+
+  // Atomically commits finalPrice + bidder in ONE update
   const commitAtomicBid = async (bidderNumber: string) => {
-    if (pendingIncrement === null) return;
-    const newPrice = livePrice + pendingIncrement;
+    if (pendingNewPrice === null) return;
     const bidderLabel = bidderNumber ? `No. ${bidderNumber}` : liveWinner;
     await updateLiveState({
-      current_price: newPrice,
+      current_price: pendingNewPrice,
       current_winner: bidderLabel,
     });
-    setPendingIncrement(null);
+    setPendingNewPrice(null);
+    setPendingLabel('');
     setPopoverBidder('');
-    setPopoverRef(null);
   };
 
   const handlePopoverKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') commitAtomicBid(popoverBidder);
-    if (e.key === 'Escape') { setPendingIncrement(null); setPopoverRef(null); }
+    if (e.key === 'Escape') { setPendingNewPrice(null); setPopoverBidder(''); }
   };
 
   const closePopover = () => {
-    setPendingIncrement(null);
+    setPendingNewPrice(null);
+    setPendingLabel('');
     setPopoverBidder('');
-    setPopoverRef(null);
   };
 
   const handleSetStatus = async (itemId: string, status: string) => {
@@ -322,7 +329,18 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
                       type="number" 
                       value={livePrice}
                       onChange={(e) => setLivePrice(Number(e.target.value))}
-                      onBlur={() => updateLiveState({ current_price: livePrice })}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.currentTarget.blur();
+                          handleCustomPriceConfirm(livePrice);
+                        }
+                      }}
+                      onBlur={(e) => {
+                        const val = Number(e.target.value);
+                        if (val > 0 && val !== livePrice) {
+                          handleCustomPriceConfirm(val);
+                        }
+                      }}
                       style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: 48, fontWeight: 800, width: '100%', outline: 'none', fontFamily: 'Urbanist' }}
                     />
                   </div>
@@ -332,11 +350,10 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
                     {[50, 100, 500, 1000, 5000, 10000].map(amount => (
                       <button
                         key={amount}
-                        ref={undefined}
                         onClick={(e) => handleIncrementClick(amount, e.currentTarget)}
                         disabled={isUpdating}
                         className="zto-btn zto-btn-ghost"
-                        style={{ padding: '16px 0', fontSize: 18, fontWeight: 700, border: `1px solid ${pendingIncrement === amount ? 'rgba(222,255,154,0.8)' : 'rgba(77,163,255,0.3)'}`, color: pendingIncrement === amount ? '#DEFF9A' : '#4da3ff', transition: 'all 0.15s', position: 'relative' }}
+                        style={{ padding: '16px 0', fontSize: 18, fontWeight: 700, border: `1px solid ${pendingNewPrice === livePrice + amount ? 'rgba(222,255,154,0.8)' : 'rgba(77,163,255,0.3)'}`, color: pendingNewPrice === livePrice + amount ? '#DEFF9A' : '#4da3ff', transition: 'all 0.15s', position: 'relative' }}
                       >
                         +{amount.toLocaleString()}
                       </button>

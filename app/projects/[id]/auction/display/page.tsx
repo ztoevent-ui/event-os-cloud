@@ -175,8 +175,26 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
           </motion.div>
         </AnimatePresence>
 
-        {/* RIGHT — Stacked: Price on top, Bidder below */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 'clamp(16px, 5vh, 52px)', overflow: 'hidden', minWidth: 0 }}>
+        {/* RIGHT — LOT + Title + Price + Bidder stacked vertically */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 'clamp(10px, 3vh, 32px)', overflow: 'hidden', minWidth: 0 }}>
+
+          {/* LOT NUMBER + ITEM TITLE */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeItem.id + '-title'}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              <div style={{ fontSize: 'clamp(10px, 1.1vw, 15px)', fontWeight: 800, color: '#DEFF9A', textTransform: 'uppercase', letterSpacing: '0.25em', marginBottom: 'clamp(4px, 0.8vh, 10px)' }}>
+                LOT {items.length > 0 ? items.findIndex(i => i.id === activeItem.id) + 1 : ''}
+              </div>
+              <div style={{ fontSize: 'clamp(1.2rem, 2.8vw, 3.5rem)', fontWeight: 800, color: '#ffffff', lineHeight: 1.15, letterSpacing: '-0.01em', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                {activeItem.title}
+              </div>
+            </motion.div>
+          </AnimatePresence>
 
           {/* CURRENT PRICE */}
           <div>
