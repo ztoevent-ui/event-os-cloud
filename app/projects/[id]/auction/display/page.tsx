@@ -124,6 +124,14 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
   const [priceImpact, setPriceImpact] = useState(0);  // increment to trigger animation
   const [bidderImpact, setBidderImpact] = useState(0);
 
+  const activeItemIdRef = useRef<string | null>(null);
+  const isSoldRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    activeItemIdRef.current = activeItem?.id || null;
+    isSoldRef.current = isSold;
+  }, [activeItem, isSold]);
+
   useEffect(() => {
     supabase.from('projects').select('name').eq('id', projectId).single().then(({ data }) => setProject(data));
     fetchItems();
@@ -134,7 +142,7 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
         if (payload.new && payload.new.project_id === projectId) {
           const state = payload.new.current_state;
           if (!state) return;
-          if (state.active_item_id && (!activeItem || activeItem.id !== state.active_item_id)) {
+          if (state.active_item_id && activeItemIdRef.current !== state.active_item_id) {
             fetchItemDetails(state.active_item_id);
             setIsSold(false);
           } else if (!state.active_item_id) {
@@ -149,7 +157,7 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
         }
       })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'auction_items' }, payload => {
-        if (payload.new && activeItem && payload.new.id === activeItem.id && payload.new.status === 'sold' && !isSold) {
+        if (payload.new && activeItemIdRef.current === payload.new.id && payload.new.status === 'sold' && !isSoldRef.current) {
           triggerSoldAnimation();
         }
         fetchItems();
@@ -157,7 +165,7 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
       .subscribe();
 
     return () => { channel.unsubscribe(); };
-  }, [projectId, activeItem, isSold]);
+  }, [projectId]);
 
   useEffect(() => {
     const handleFSChange = () => setIsFullscreen(!!document.fullscreenElement);
