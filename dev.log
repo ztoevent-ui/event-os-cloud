@@ -9,6 +9,4 @@
 
 ✓ Starting...
 ✓ Ready in 352ms
-○ Compiling /projects/[id]/auction/display ...
- GET /projects/123/auction/display 200 in 6.4s (compile: 4.9s, proxy.ts: 63ms, render: 1354ms)
 [?25h

@@ -44,10 +44,10 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
   useEffect(() => {
     fetchProject();
     fetchItems();
-    subscribeToLiveState();
+    const channel = subscribeToLiveState();
     
     return () => {
-      supabase.channel(`auction_${projectId}`).unsubscribe();
+      if (channel) supabase.removeChannel(channel);
     };
   }, [projectId]);
 
@@ -64,7 +64,7 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
   };
 
   const subscribeToLiveState = () => {
-    supabase.channel(`auction_${projectId}`)
+    const channel = supabase.channel(`auction_${projectId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tool_states', filter: `tool_name=eq.auction` }, payload => {
         if (payload.new && payload.new.project_id === projectId) {
           const state = payload.new.current_state;
@@ -90,6 +90,8 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
           setLiveWinner(data.current_state.current_winner || '');
         }
       });
+
+    return channel;
   };
 
   const updateLiveState = async (newState: any) => {
