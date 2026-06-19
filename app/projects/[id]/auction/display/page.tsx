@@ -34,18 +34,18 @@ function GoldParticleCanvas() {
     const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
     window.addEventListener('resize', resize);
 
-    const COLORS = ['#7fffd4', '#40e0d0', '#00ced1', '#00bcd4', '#4dd0e1', '#b2ebf2', '#80deea', '#26c6da', '#00acc1', '#ffffff'];
-    const particles: { x: number; y: number; r: number; speed: number; color: string; opacity: number; drift: number; }[] = [];
+    const particles: { x: number; y: number; r: number; speed: number; opacity: number; drift: number; rotation: number; rotSpeed: number }[] = [];
 
-    for (let i = 0; i < 200; i++) {
+    for (let i = 0; i < 150; i++) {
       particles.push({
         x: Math.random() * window.innerWidth,
         y: Math.random() * window.innerHeight,
-        r: Math.random() * 2.2 + 0.3,
-        speed: Math.random() * 1.0 + 0.25,
-        color: COLORS[Math.floor(Math.random() * COLORS.length)],
-        opacity: Math.random() * 0.65 + 0.15,
-        drift: (Math.random() - 0.5) * 0.6,
+        r: Math.random() * 3 + 1.5,
+        speed: Math.random() * 2 + 1.5,
+        opacity: Math.random() * 0.8 + 0.2,
+        drift: (Math.random() - 0.5) * 1.5,
+        rotation: Math.random() * Math.PI * 2,
+        rotSpeed: (Math.random() - 0.5) * 0.1
       });
     }
 
@@ -84,20 +84,33 @@ function GoldParticleCanvas() {
       ctx.fillStyle = topLeft;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Falling gold particles
+      // Rising Golden Embers (霸气动态效果)
       particles.forEach(p => {
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rotation);
+        
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = p.color;
+        ctx.moveTo(0, -p.r * 2.5);
+        ctx.lineTo(p.r, 0);
+        ctx.lineTo(0, p.r * 2.5);
+        ctx.lineTo(-p.r, 0);
+        ctx.closePath();
+        
+        ctx.fillStyle = '#d4af37';
         ctx.globalAlpha = p.opacity;
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = '#fcf6ba';
         ctx.fill();
-        ctx.globalAlpha = 1;
+        ctx.restore();
 
-        p.y += p.speed;
+        p.y -= p.speed; // Move upwards
         p.x += p.drift;
-        if (p.y > canvas.height + 4) { p.y = -4; p.x = Math.random() * canvas.width; }
-        if (p.x < -4) p.x = canvas.width + 4;
-        if (p.x > canvas.width + 4) p.x = -4;
+        p.rotation += p.rotSpeed;
+        
+        if (p.y < -20) { p.y = canvas.height + 20; p.x = Math.random() * canvas.width; }
+        if (p.x < -20) p.x = canvas.width + 20;
+        if (p.x > canvas.width + 20) p.x = -20;
       });
 
       animId = requestAnimationFrame(draw);
@@ -240,27 +253,47 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
         backgroundPosition: '0 0, 60px 30px'
       }} />
 
-      {/* Layer 1.5: Full Screen Chinese Totem Frame */}
-      {(() => {
-        const borderStyle = {
-          position: 'absolute', zIndex: 1, pointerEvents: 'none', opacity: 0.35,
-          filter: 'drop-shadow(0 0 6px rgba(212,175,55,0.3))',
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h40v40H0V0zm10 10h20v20H10V10zm5 5v10h10V15H15z' fill='none' stroke='%23d4af37' stroke-width='2'/%3E%3C/svg%3E")`,
-          backgroundSize: '40px 40px',
-        } as any;
-        return (
-          <>
-            {/* Top */}
-            <div style={{ ...borderStyle, top: 0, left: 0, right: 0, height: 40 }} />
-            {/* Bottom */}
-            <div style={{ ...borderStyle, bottom: 0, left: 0, right: 0, height: 40 }} />
-            {/* Left */}
-            <div style={{ ...borderStyle, top: 0, bottom: 0, left: 0, width: 40 }} />
-            {/* Right */}
-            <div style={{ ...borderStyle, top: 0, bottom: 0, right: 0, width: 40 }} />
-          </>
-        );
-      })()}
+      {/* Layer 1.5: Grand Imperial Frame (Auspicious Borders) */}
+      <div style={{
+        position: 'absolute', inset: 24, zIndex: 1, pointerEvents: 'none',
+        border: '3px solid rgba(212,175,55,0.7)',
+        outline: '1px solid rgba(252,246,186,0.3)', outlineOffset: '-12px',
+        boxShadow: 'inset 0 0 80px rgba(212,175,55,0.15), 0 0 60px rgba(212,175,55,0.3)',
+      }}>
+        {/* 4 Ornate Corners */}
+        {(() => {
+          const Corner = () => (
+            <svg width="140" height="140" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style={{ filter: 'drop-shadow(0 0 12px rgba(212,175,55,0.8))' }}>
+              {/* Ornate corner flourish */}
+              <path d="M0 0 L100 0 C100 40 60 100 0 100 Z" fill="rgba(212,175,55,0.15)"/>
+              <path d="M0 0 L100 0 L100 8 C100 35 65 100 8 100 L0 100 Z" fill="url(#goldGrad)"/>
+              <path d="M20 20 L80 20 L80 26 L26 26 L26 80 L20 80 Z" fill="url(#lightGoldGrad)"/>
+              <circle cx="50" cy="50" r="15" fill="none" stroke="#d4af37" strokeWidth="4"/>
+              <circle cx="50" cy="50" r="6" fill="#fcf6ba"/>
+              <path d="M50 35 L50 65 M35 50 L65 50" stroke="#d4af37" strokeWidth="2"/>
+              <defs>
+                <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#bf953f" />
+                  <stop offset="50%" stopColor="#fcf6ba" />
+                  <stop offset="100%" stopColor="#b38728" />
+                </linearGradient>
+                <linearGradient id="lightGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#fcf6ba" />
+                  <stop offset="100%" stopColor="#d4af37" />
+                </linearGradient>
+              </defs>
+            </svg>
+          );
+          return (
+            <>
+              <div style={{ position: 'absolute', top: -3, left: -3 }}><Corner /></div>
+              <div style={{ position: 'absolute', top: -3, right: -3, transform: 'scaleX(-1)' }}><Corner /></div>
+              <div style={{ position: 'absolute', bottom: -3, left: -3, transform: 'scaleY(-1)' }}><Corner /></div>
+              <div style={{ position: 'absolute', bottom: -3, right: -3, transform: 'scaleX(-1) scaleY(-1)' }}><Corner /></div>
+            </>
+          );
+        })()}
+      </div>
 
       {/* Layer 2: Content */}
       <div style={{ position: 'relative', zIndex: 2, width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -276,7 +309,7 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
         </button>
 
         {/* ── HEADER — Centered Event Name ── */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '3vh 8vw 0 8vw', flexShrink: 0, textAlign: 'center', position: 'relative' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '7vh 8vw 0 8vw', flexShrink: 0, textAlign: 'center', position: 'relative' }}>
           {/* Small LIVE AUCTION badge on left */}
           <span style={{ position: 'absolute', left: '5vw', top: '50%', transform: 'translateY(-50%)', fontSize: 'clamp(9px, 0.8vw, 12px)', fontWeight: 700, color: 'rgba(212,175,55,0.4)', textTransform: 'uppercase', letterSpacing: '0.35em', fontFamily: '"Urbanist", sans-serif' }}>
             Live Auction
