@@ -53,35 +53,34 @@ function GoldParticleCanvas() {
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Deep ocean blue gradient base
-      const bg = ctx.createLinearGradient(0, 0, 0, canvas.height);
-      bg.addColorStop(0, '#001a4d'); // Navy blue top
-      bg.addColorStop(0.3, '#003366'); // Ocean blue middle
-      bg.addColorStop(0.65, '#004d80'); // Lighter ocean blue
-      bg.addColorStop(1, '#006699'); // Vibrant ocean blue bottom
+      // Imperial Jade Green radial gradient base
+      const bg = ctx.createRadialGradient(canvas.width / 2, canvas.height / 2, 0, canvas.width / 2, canvas.height / 2, canvas.width);
+      bg.addColorStop(0, '#024b3e'); // Center jade green
+      bg.addColorStop(0.7, '#00221a'); // Dark emerald
+      bg.addColorStop(1, '#00110c'); // Near black edge
       ctx.fillStyle = bg;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Ocean teal glow at bottom (underwater light)
+      // Bottom Jade glow
       const waveGrad = ctx.createRadialGradient(canvas.width / 2, canvas.height, 0, canvas.width / 2, canvas.height, canvas.width * 0.75);
-      waveGrad.addColorStop(0, 'rgba(0,212,255,0.4)');
-      waveGrad.addColorStop(0.45, 'rgba(0,180,220,0.15)');
-      waveGrad.addColorStop(1, 'rgba(0,150,200,0)');
+      waveGrad.addColorStop(0, 'rgba(4,120,87,0.3)'); // Emerald glow
+      waveGrad.addColorStop(0.45, 'rgba(2,75,62,0.1)');
+      waveGrad.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = waveGrad;
       ctx.fillRect(0, canvas.height * 0.45, canvas.width, canvas.height * 0.55);
 
-      // Centre-right cool teal spotlight
+      // Centre-right Gold spotlight
       const spotlight = ctx.createRadialGradient(canvas.width * 0.55, canvas.height * 0.38, 0, canvas.width * 0.55, canvas.height * 0.38, canvas.width * 0.45);
-      spotlight.addColorStop(0, 'rgba(0,180,220,0.2)');
-      spotlight.addColorStop(0.6, 'rgba(0,130,180,0.08)');
-      spotlight.addColorStop(1, 'rgba(0,100,150,0)');
+      spotlight.addColorStop(0, 'rgba(212,175,55,0.15)'); // Gold spotlight
+      spotlight.addColorStop(0.6, 'rgba(180,140,40,0.05)');
+      spotlight.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = spotlight;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Top-left dim cyan accent
+      // Top-left accent (Gold/Jade sheen)
       const topLeft = ctx.createRadialGradient(canvas.width * 0.15, canvas.height * 0.2, 0, canvas.width * 0.15, canvas.height * 0.2, canvas.width * 0.3);
-      topLeft.addColorStop(0, 'rgba(0,200,240,0.15)');
-      topLeft.addColorStop(1, 'rgba(0,150,200,0)');
+      topLeft.addColorStop(0, 'rgba(212,175,55,0.12)');
+      topLeft.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = topLeft;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -233,8 +232,24 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
       {/* Layer 0: Gold Particle Canvas */}
       <GoldParticleCanvas />
 
-      {/* Layer 1: Dark blue overlay for readability */}
-      <div style={{ position: 'absolute', inset: 0, zIndex: 1, background: 'rgba(0,30,80,0.15)', pointerEvents: 'none' }} />
+      {/* Layer 1: Traditional Cloud/Wave Pattern Overlay (Subtle full BG) */}
+      <div style={{
+        position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none',
+        backgroundImage: `radial-gradient(circle at 100% 150%, rgba(212,175,55,0.035) 24%, transparent 25%, transparent 28%, rgba(212,175,55,0.035) 29%, transparent 30%, transparent 36%, rgba(212,175,55,0.035) 36%, transparent 40%), radial-gradient(circle at 0 150%, rgba(212,175,55,0.035) 24%, transparent 25%, transparent 28%, rgba(212,175,55,0.035) 29%, transparent 30%, transparent 36%, rgba(212,175,55,0.035) 36%, transparent 40%)`,
+        backgroundSize: '120px 60px',
+        backgroundPosition: '0 0, 60px 30px'
+      }} />
+
+      {/* Layer 1.5: Auspicious Cloud Border (Right Side) */}
+      <div style={{
+        position: 'absolute', right: 0, top: 0, bottom: 0, width: 120, zIndex: 1,
+        opacity: 0.35, pointerEvents: 'none',
+        filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.2))',
+        backgroundImage: `radial-gradient(circle at 100% 150%, rgba(212,175,55,0.8) 24%, transparent 25%, transparent 28%, rgba(212,175,55,0.8) 29%, transparent 30%, transparent 36%, rgba(212,175,55,0.8) 36%, transparent 40%), radial-gradient(circle at 0 150%, rgba(212,175,55,0.8) 24%, transparent 25%, transparent 28%, rgba(212,175,55,0.8) 29%, transparent 30%, transparent 36%, rgba(212,175,55,0.8) 36%, transparent 40%)`,
+        backgroundSize: '120px 60px',
+        backgroundRepeat: 'repeat-y',
+        borderLeft: '2px solid rgba(212,175,55,0.3)',
+      }} />
 
       {/* Layer 2: Content */}
       <div style={{ position: 'relative', zIndex: 2, width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -311,20 +326,34 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
               transition={{ duration: 0.7, ease: 'easeOut' }}
               style={{ flexShrink: 0, position: 'relative', width: 'clamp(200px, 34vw, 500px)', height: 'clamp(200px, 34vw, 500px)' }}
             >
-              {/* Outer glow aura */}
-              <div className="gala-aura" style={{ position: 'absolute', inset: -16, borderRadius: 'clamp(20px, 3vw, 40px)', background: 'transparent', boxShadow: '0 0 60px rgba(212,175,55,0.5), 0 0 120px rgba(212,175,55,0.25), 0 0 200px rgba(180,130,10,0.15)', zIndex: 0 }} />
-              {/* Gold border frame */}
-              <div style={{ position: 'absolute', inset: -4, borderRadius: 'clamp(18px, 2.5vw, 34px)', background: 'linear-gradient(135deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #d4af37)', zIndex: 1, padding: 3 }}>
-                <div style={{ width: '100%', height: '100%', borderRadius: 'clamp(15px, 2vw, 30px)', background: '#0a0500' }} />
+              {/* Classical Wood & Gold Frame */}
+              <div style={{
+                position: 'absolute', inset: -14,
+                borderRadius: 'clamp(20px, 3vw, 42px)',
+                background: 'linear-gradient(145deg, #4a2e00, #1a0f00)',
+                padding: 8, zIndex: 1,
+                boxShadow: 'inset 0 0 10px rgba(0,0,0,0.9), 0 0 40px rgba(212, 175, 55, 0.5)',
+                animation: 'pulse 3s infinite'
+              }}>
+                <div style={{
+                  position: 'absolute', inset: 8,
+                  borderRadius: 'clamp(14px, 2.5vw, 34px)',
+                  background: 'linear-gradient(135deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #d4af37)',
+                  padding: 4,
+                  boxShadow: '0 0 15px rgba(0,0,0,0.8)'
+                }}>
+                  <div style={{ width: '100%', height: '100%', borderRadius: 'clamp(10px, 2.2vw, 30px)', background: '#00110c', boxShadow: 'inset 0 0 20px rgba(0,0,0,1)' }} />
+                </div>
               </div>
+              
               {/* White card with image */}
-              <div className="gala-float" style={{ position: 'relative', width: '100%', height: '100%', background: '#ffffff', borderRadius: 'clamp(14px, 2vw, 28px)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2 }}>
+              <div className="gala-float" style={{ position: 'relative', width: '100%', height: '100%', background: '#ffffff', borderRadius: 'clamp(12px, 2.2vw, 30px)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, boxShadow: 'inset 0 0 20px rgba(0,0,0,0.1)' }}>
                 {activeItem.image_url
-                  ? <img src={activeItem.image_url} alt={activeItem.title} style={{ width: '88%', height: '88%', objectFit: 'contain' }} />
+                  ? <img src={activeItem.image_url} alt={activeItem.title} style={{ width: '92%', height: '92%', objectFit: 'contain' }} />
                   : <i className="fa-solid fa-image" style={{ fontSize: 56, color: 'rgba(0,0,0,0.12)' }} />
                 }
                 {/* Shimmer sweep */}
-                <div className="gala-shimmer" style={{ position: 'absolute', inset: 0, background: 'linear-gradient(110deg, transparent 25%, rgba(255,255,255,0.22) 50%, transparent 75%)', pointerEvents: 'none' }} />
+                <div className="gala-shimmer" style={{ position: 'absolute', inset: 0, background: 'linear-gradient(110deg, transparent 25%, rgba(255,255,255,0.4) 50%, transparent 75%)', pointerEvents: 'none' }} />
               </div>
             </motion.div>
           </AnimatePresence>
@@ -350,12 +379,12 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
             {/* 起拍价 STARTING PRICE */}
             <AnimatePresence mode="wait">
               <motion.div key={activeItem.id + '-start'} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                <div style={{ fontSize: 'clamp(9px, 0.95vw, 13px)', fontWeight: 700, color: 'rgba(212,175,55,0.55)', letterSpacing: '0.2em', marginBottom: 'clamp(2px, 0.5vh, 8px)', fontFamily: '"Noto Serif SC", serif' }}>
+                <div style={{ fontSize: 'clamp(12px, 1.2vw, 18px)', fontWeight: 400, color: '#d4af37', letterSpacing: '0.2em', marginBottom: 'clamp(2px, 0.5vh, 8px)', fontFamily: '"Ma Shan Zheng", "Noto Serif SC", serif' }}>
                   起拍价
                 </div>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.8vw' }}>
                   <span style={{ fontSize: 'clamp(0.9rem, 1.5vw, 2rem)', fontWeight: 700, color: 'rgba(212,175,55,0.6)', lineHeight: 1, flexShrink: 0 }}>RM</span>
-                  <span style={{ fontSize: 'clamp(1.2rem, 2.5vw, 3.2rem)', fontWeight: 800, color: 'rgba(252,246,186,0.55)', lineHeight: 1, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums', fontFamily: '"Urbanist", sans-serif' }}>
+                  <span style={{ fontSize: 'clamp(1.2rem, 2.5vw, 3.2rem)', fontWeight: 800, lineHeight: 1, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums', fontFamily: '"Urbanist", sans-serif', background: 'linear-gradient(180deg, #ffe58f 0%, #d4af37 50%, #aa7c11 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', filter: 'drop-shadow(2px 4px 6px rgba(0,0,0,0.7))' }}>
                     {(activeItem.starting_price || 0).toLocaleString()}
                   </span>
                 </div>
@@ -367,25 +396,36 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
 
             {/* 现价 CURRENT PRICE */}
             <div>
-              <div style={{ fontSize: 'clamp(9px, 0.95vw, 13px)', fontWeight: 700, color: 'rgba(212,175,55,0.7)', letterSpacing: '0.2em', marginBottom: 'clamp(4px, 1vh, 14px)', fontFamily: '"Noto Serif SC", serif' }}>
+              <div style={{ fontSize: 'clamp(14px, 1.4vw, 22px)', fontWeight: 400, color: '#d4af37', letterSpacing: '0.2em', marginBottom: 'clamp(4px, 1vh, 14px)', fontFamily: '"Ma Shan Zheng", "Noto Serif SC", serif' }}>
                 现价
               </div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '1vw' }}>
                 <span style={{ fontSize: 'clamp(1.4rem, 2.5vw, 3.5rem)', fontWeight: 900, color: '#d4af37', lineHeight: 1, flexShrink: 0, textShadow: '0 0 20px rgba(212,175,55,0.8), 0 0 40px rgba(212,175,55,0.4)' }}>
                   RM
                 </span>
-                <AnimatePresence mode="wait">
+                
+                <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
+                  {/* Golden Ripple Effect for Impact */}
+                  <AnimatePresence mode="popLayout">
+                    <motion.div
+                      key={'ripple-' + priceImpact}
+                      initial={{ opacity: 0.8, scale: 1 }}
+                      animate={{ opacity: 0, scale: 1.4 }}
+                      transition={{ duration: 0.4, ease: "easeOut" }}
+                      style={{ position: 'absolute', inset: -10, borderRadius: 20, border: '3px solid rgba(212,175,55,0.9)', pointerEvents: 'none', filter: 'blur(4px)' }}
+                    />
+                  </AnimatePresence>
+                  
                   <motion.span
-                    key={livePrice}
-                    initial={{ opacity: 0, scale: 1.35, y: -10 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                    style={{ fontSize: 'clamp(3rem, 9vw, 11rem)', fontWeight: 900, color: '#ffffff', lineHeight: 1, letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums', textShadow: '0 0 30px rgba(255,255,255,0.5), 0 0 60px rgba(212,175,55,0.3)', fontFamily: '"Urbanist", "Noto Serif SC", sans-serif' }}
+                    key={'price-' + priceImpact}
+                    initial={{ scale: 1.3, textShadow: '0 0 60px rgba(212,175,55,1)' }}
+                    animate={{ scale: 1, textShadow: '0 0 20px rgba(212,175,55,0)' }}
+                    transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                    style={{ fontSize: 'clamp(3rem, 9vw, 11rem)', fontWeight: 900, lineHeight: 1, letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums', fontFamily: '"Urbanist", "Noto Serif SC", sans-serif', background: 'linear-gradient(180deg, #ffe58f 0%, #d4af37 50%, #aa7c11 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', filter: 'drop-shadow(2px 6px 10px rgba(0,0,0,0.8))' }}
                   >
                     {livePrice.toLocaleString()}
                   </motion.span>
-                </AnimatePresence>
+                </div>
               </div>
             </div>
 
@@ -394,27 +434,42 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
 
             {/* HIGHEST BIDDER */}
             <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: 'clamp(9px, 0.95vw, 13px)', fontWeight: 700, color: 'rgba(212,175,55,0.7)', letterSpacing: '0.2em', marginBottom: 'clamp(4px, 1vh, 14px)', fontFamily: '"Noto Serif SC", serif' }}>
+              <div style={{ fontSize: 'clamp(14px, 1.4vw, 22px)', fontWeight: 400, color: '#d4af37', letterSpacing: '0.2em', marginBottom: 'clamp(4px, 1vh, 14px)', fontFamily: '"Ma Shan Zheng", "Noto Serif SC", serif' }}>
                 最高出价牌号
               </div>
-              <AnimatePresence mode="wait">
-                {liveWinner ? (
-                  <motion.div
-                    key={liveWinner}
-                    initial={{ opacity: 0, scale: 1.3, y: -8 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                    style={{ fontSize: 'clamp(2rem, 6.5vw, 8.5rem)', fontWeight: 900, lineHeight: 1.08, letterSpacing: '-0.01em', wordBreak: 'break-word', background: 'linear-gradient(135deg, #d4af37 0%, #fcf6ba 35%, #b38728 65%, #ffe066 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', filter: 'drop-shadow(0 0 20px rgba(212,175,55,0.7))' }}
-                  >
-                    {liveWinner}
-                  </motion.div>
-                ) : (
-                  <motion.div key="dash" initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ fontSize: 'clamp(2rem, 4vw, 5rem)', fontWeight: 700, color: 'rgba(212,175,55,0.12)', lineHeight: 1 }}>
-                    —
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              <div style={{ position: 'relative', display: 'inline-block' }}>
+                {/* Ripple for bidder */}
+                <AnimatePresence mode="popLayout">
+                  {liveWinner && (
+                    <motion.div
+                      key={'ripple-bidder-' + bidderImpact}
+                      initial={{ opacity: 0.8, scale: 1 }}
+                      animate={{ opacity: 0, scale: 1.3 }}
+                      transition={{ duration: 0.4, ease: "easeOut" }}
+                      style={{ position: 'absolute', inset: -10, borderRadius: 20, border: '3px solid rgba(212,175,55,0.9)', pointerEvents: 'none', filter: 'blur(4px)' }}
+                    />
+                  )}
+                </AnimatePresence>
+                
+                <AnimatePresence mode="wait">
+                  {liveWinner ? (
+                    <motion.div
+                      key={'bidder-' + bidderImpact}
+                      initial={{ scale: 1.3, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                      style={{ fontSize: 'clamp(2rem, 6.5vw, 8.5rem)', fontWeight: 900, lineHeight: 1.08, letterSpacing: '-0.01em', wordBreak: 'break-word', fontFamily: '"Urbanist", sans-serif', background: 'linear-gradient(180deg, #ffe58f 0%, #d4af37 50%, #aa7c11 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', filter: 'drop-shadow(2px 6px 10px rgba(0,0,0,0.8))' }}
+                    >
+                      {liveWinner}
+                    </motion.div>
+                  ) : (
+                    <motion.div key="dash" initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ fontSize: 'clamp(2rem, 4vw, 5rem)', fontWeight: 700, color: 'rgba(212,175,55,0.12)', lineHeight: 1 }}>
+                      —
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
 
           </div>
@@ -434,7 +489,7 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
                 initial={{ scale: 0.8, y: 60 }}
                 animate={{ scale: 1, y: 0 }}
                 transition={{ type: 'spring', damping: 18, stiffness: 100, delay: 0.08 }}
-                style={{ textAlign: 'center', background: 'linear-gradient(145deg, rgba(212,175,55,0.15) 0%, rgba(0,30,80,0.95) 100%)', border: '1px solid rgba(212,175,55,0.4)', padding: '7vh 9vw', borderRadius: 32, boxShadow: '0 0 80px rgba(212,175,55,0.3), 0 40px 120px rgba(0,20,60,0.9)' }}
+                style={{ textAlign: 'center', background: 'linear-gradient(145deg, rgba(212,175,55,0.15) 0%, rgba(2,75,62,0.95) 100%)', border: '1px solid rgba(212,175,55,0.4)', padding: '7vh 9vw', borderRadius: 32, boxShadow: '0 0 80px rgba(212,175,55,0.3), 0 40px 120px rgba(0,17,12,0.9)' }}
               >
                 <i className="fa-solid fa-gavel" style={{ fontSize: 'clamp(2rem, 3vw, 4rem)', color: '#d4af37', marginBottom: '2.5vh', display: 'block', textShadow: '0 0 30px rgba(212,175,55,0.8)' }} />
                 <div style={{ fontSize: 'clamp(11px, 1.3vw, 18px)', color: 'rgba(252,246,186,0.6)', textTransform: 'uppercase', letterSpacing: '0.35em', marginBottom: '2vh', fontFamily: '"Urbanist", sans-serif' }}>Successful Bid</div>
@@ -455,15 +510,15 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
 
       {/* ── CSS Animations ── */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@700;900&family=Urbanist:wght@700;800;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@700;900&family=Urbanist:wght@700;800;900&display=swap');
 
         @keyframes gala-float {
           0%, 100% { transform: translateY(0px); }
           50% { transform: translateY(-14px); }
         }
-        @keyframes gala-aura-pulse {
-          0%, 100% { opacity: 0.6; }
-          50% { opacity: 1; }
+        @keyframes pulse {
+          0%, 100% { box-shadow: inset 0 0 10px rgba(0,0,0,0.9), 0 0 40px rgba(212, 175, 55, 0.5); }
+          50% { box-shadow: inset 0 0 10px rgba(0,0,0,0.9), 0 0 80px rgba(212, 175, 55, 0.8), 0 0 120px rgba(212, 175, 55, 0.3); }
         }
         @keyframes gala-shimmer-sweep {
           0% { transform: translateX(-160%); }
@@ -471,9 +526,6 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
         }
         .gala-float {
           animation: gala-float 4.5s ease-in-out infinite;
-        }
-        .gala-aura {
-          animation: gala-aura-pulse 2.8s ease-in-out infinite;
         }
         .gala-shimmer {
           animation: gala-shimmer-sweep 4s ease-in-out infinite 1.2s;
