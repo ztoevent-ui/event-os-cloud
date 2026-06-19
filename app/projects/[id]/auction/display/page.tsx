@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, use } from 'react';
+import React, { useState, useEffect, use, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
@@ -18,6 +18,92 @@ interface AuctionItem {
   winner_name: string;
 }
 
+// ── Gold Particle Canvas Background ──────────────────────────
+function GoldParticleCanvas() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+    window.addEventListener('resize', resize);
+
+    const COLORS = ['#fcf6ba', '#bf953f', '#f5d060', '#ffe066', '#fff8dc', '#d4af37'];
+    const particles: { x: number; y: number; r: number; speed: number; color: string; opacity: number; drift: number; }[] = [];
+
+    for (let i = 0; i < 180; i++) {
+      particles.push({
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+        r: Math.random() * 2.5 + 0.4,
+        speed: Math.random() * 1.2 + 0.3,
+        color: COLORS[Math.floor(Math.random() * COLORS.length)],
+        opacity: Math.random() * 0.7 + 0.2,
+        drift: (Math.random() - 0.5) * 0.5,
+      });
+    }
+
+    let animId: number;
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Deep golden gradient base
+      const bg = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      bg.addColorStop(0, '#0a0500');
+      bg.addColorStop(0.4, '#1a0e00');
+      bg.addColorStop(0.75, '#2a1500');
+      bg.addColorStop(1, '#3d1f00');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Golden wave glow at bottom
+      const waveGrad = ctx.createRadialGradient(canvas.width / 2, canvas.height, 0, canvas.width / 2, canvas.height, canvas.width * 0.7);
+      waveGrad.addColorStop(0, 'rgba(212,175,55,0.35)');
+      waveGrad.addColorStop(0.5, 'rgba(180,130,20,0.12)');
+      waveGrad.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = waveGrad;
+      ctx.fillRect(0, canvas.height * 0.55, canvas.width, canvas.height * 0.45);
+
+      // Center warm spotlight
+      const spotlight = ctx.createRadialGradient(canvas.width * 0.55, canvas.height * 0.4, 0, canvas.width * 0.55, canvas.height * 0.4, canvas.width * 0.4);
+      spotlight.addColorStop(0, 'rgba(160,100,10,0.18)');
+      spotlight.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = spotlight;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Falling gold particles
+      particles.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.opacity;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+
+        p.y += p.speed;
+        p.x += p.drift;
+        if (p.y > canvas.height + 4) { p.y = -4; p.x = Math.random() * canvas.width; }
+        if (p.x < -4) p.x = canvas.width + 4;
+        if (p.x > canvas.width + 4) p.x = -4;
+      });
+
+      animId = requestAnimationFrame(draw);
+    };
+    draw();
+
+    return () => { cancelAnimationFrame(animId); window.removeEventListener('resize', resize); };
+  }, []);
+
+  return <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none' }} />;
+}
+
+// ── Main Component ─────────────────────────────────────────────
 export default function AuctionDisplayPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: projectId } = use(params);
   const [activeItem, setActiveItem] = useState<AuctionItem | null>(null);
@@ -27,33 +113,36 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
   const [project, setProject] = useState<any>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [items, setItems] = useState<AuctionItem[]>([]);
+  const [priceImpact, setPriceImpact] = useState(0);  // increment to trigger animation
+  const [bidderImpact, setBidderImpact] = useState(0);
 
   useEffect(() => {
     supabase.from('projects').select('name').eq('id', projectId).single().then(({ data }) => setProject(data));
     fetchItems();
     fetchLiveState();
 
-    const channel = supabase.channel(`auction_display_${projectId}`)
+    const channel = supabase.channel(`auction_display_gala_${projectId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tool_states', filter: `tool_name=eq.auction` }, payload => {
         if (payload.new && payload.new.project_id === projectId) {
           const state = payload.new.current_state;
-          if (state) {
-            if (state.active_item_id && (!activeItem || activeItem.id !== state.active_item_id)) {
-              fetchItemDetails(state.active_item_id);
-              setIsSold(false);
-            } else if (!state.active_item_id) {
-              setActiveItem(null);
-            }
-            if (state.current_price !== undefined) setLivePrice(state.current_price);
-            if (state.current_winner !== undefined) setLiveWinner(state.current_winner);
+          if (!state) return;
+          if (state.active_item_id && (!activeItem || activeItem.id !== state.active_item_id)) {
+            fetchItemDetails(state.active_item_id);
+            setIsSold(false);
+          } else if (!state.active_item_id) {
+            setActiveItem(null);
+          }
+          if (state.current_price !== undefined) {
+            setLivePrice(p => { if (p !== state.current_price) setPriceImpact(c => c + 1); return state.current_price; });
+          }
+          if (state.current_winner !== undefined) {
+            setLiveWinner(w => { if (w !== state.current_winner) setBidderImpact(c => c + 1); return state.current_winner; });
           }
         }
       })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'auction_items' }, payload => {
-        if (payload.new && activeItem && payload.new.id === activeItem.id) {
-          if (payload.new.status === 'sold' && !isSold) {
-            triggerSoldAnimation();
-          }
+        if (payload.new && activeItem && payload.new.id === activeItem.id && payload.new.status === 'sold' && !isSold) {
+          triggerSoldAnimation();
         }
         fetchItems();
       })
@@ -69,11 +158,8 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
   }, []);
 
   const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(err => console.error(err));
-    } else {
-      document.exitFullscreen();
-    }
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
+    else document.exitFullscreen();
   };
 
   const fetchItems = async () => {
@@ -92,255 +178,234 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
 
   const fetchItemDetails = async (itemId: string) => {
     const { data } = await supabase.from('auction_items').select('*').eq('id', itemId).single();
-    if (data) {
-      setActiveItem(data);
-      if (data.status === 'sold') setIsSold(true);
-    }
+    if (data) { setActiveItem(data); if (data.status === 'sold') setIsSold(true); }
   };
 
   const triggerSoldAnimation = () => {
     setIsSold(true);
-    const end = Date.now() + 3000;
+    const end = Date.now() + 4000;
     const frame = () => {
-      confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#DEFF9A', '#4da3ff', '#ef4444', '#10b981'] });
-      confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#DEFF9A', '#4da3ff', '#ef4444', '#10b981'] });
+      confetti({ particleCount: 8, angle: 60, spread: 60, origin: { x: 0 }, colors: ['#d4af37', '#fcf6ba', '#bf953f', '#ffe066', '#fff'] });
+      confetti({ particleCount: 8, angle: 120, spread: 60, origin: { x: 1 }, colors: ['#d4af37', '#fcf6ba', '#bf953f', '#ffe066', '#fff'] });
       if (Date.now() < end) requestAnimationFrame(frame);
     };
     frame();
   };
 
-  /* ─── STANDBY SCREEN ─── */
+  const lotNum = items.length > 0 && activeItem ? items.findIndex(i => i.id === activeItem.id) + 1 : '';
+
+  /* ─── STANDBY ─── */
   if (!activeItem) {
     return (
-      <div style={{ position: 'fixed', inset: 0, background: '#050505', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', fontFamily: '"Urbanist", sans-serif' }}>
-        <h1 style={{ color: 'rgba(255,255,255,0.15)', fontSize: 'clamp(2rem, 5vw, 5rem)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.2em' }}>Live Auction</h1>
-        <p style={{ color: 'rgba(255,255,255,0.08)', fontSize: 'clamp(1rem, 2vw, 1.5rem)', marginTop: 16, letterSpacing: '0.1em' }}>Waiting for next item...</p>
+      <div style={{ position: 'fixed', inset: 0, zIndex: 9999, overflow: 'hidden', fontFamily: '"Noto Serif SC", "STKaiti", "KaiTi", serif' }}>
+        <GoldParticleCanvas />
+        <div style={{ position: 'relative', zIndex: 1, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ fontSize: 'clamp(2rem, 6vw, 7rem)', fontWeight: 900, background: 'linear-gradient(135deg, #bf953f 0%, #fcf6ba 30%, #b38728 55%, #fbf5b7 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', letterSpacing: '0.15em', textShadow: 'none' }}>
+            竞 拍 进 行 中
+          </div>
+          <div style={{ color: 'rgba(252,246,186,0.4)', fontSize: 'clamp(1rem, 2vw, 2rem)', marginTop: 24, letterSpacing: '0.3em' }}>Waiting for next item...</div>
+        </div>
+        <style>{`@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@700;900&display=swap');`}</style>
       </div>
     );
   }
 
-  /* ─── MAIN DISPLAY ─── */
+  /* ─── MAIN GALA DISPLAY ─── */
   return (
-    <div style={{ position: 'fixed', inset: 0, background: '#050505', zIndex: 9999, display: 'flex', flexDirection: 'column', fontFamily: '"Urbanist", sans-serif', overflow: 'hidden' }}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 9999, overflow: 'hidden', fontFamily: '"Noto Serif SC", "STKaiti", "KaiTi", "Urbanist", serif' }}>
 
-      {/* Fullscreen Toggle */}
-      <button
-        onClick={toggleFullscreen}
-        style={{ position: 'absolute', top: 18, right: 18, zIndex: 10000, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.3)', borderRadius: 8, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.15)'; e.currentTarget.style.color = 'rgba(255,255,255,0.7)'; }}
-        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'rgba(255,255,255,0.3)'; }}
-        title="Toggle Fullscreen"
-      >
-        <i className={`fa-solid ${isFullscreen ? 'fa-compress' : 'fa-expand'}`} style={{ fontSize: 14 }} />
-      </button>
+      {/* Layer 0: Gold Particle Canvas */}
+      <GoldParticleCanvas />
 
-      {/* ── HEADER: LIVE AUCTION | EVENT NAME ── */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4vh 5vw 0 5vw', flexShrink: 0 }}>
-        <span style={{ fontSize: 'clamp(10px, 1.1vw, 14px)', fontWeight: 700, color: 'rgba(255,255,255,0.28)', textTransform: 'uppercase', letterSpacing: '0.35em' }}>
-          Live Auction
-        </span>
-        <span style={{ fontSize: 'clamp(10px, 1.1vw, 14px)', fontWeight: 600, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.15em', textAlign: 'right', maxWidth: '65%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {project?.name || ''}
-        </span>
-      </div>
+      {/* Layer 1: Dark overlay for readability */}
+      <div style={{ position: 'absolute', inset: 0, zIndex: 1, background: 'rgba(0,0,0,0.2)', pointerEvents: 'none' }} />
 
-      {/* ── MAIN BODY: Image (left) | Price + Bidder (right) ── */}
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', padding: '3vh 5vw 5vh 5vw', gap: '6vw', overflow: 'hidden' }}>
+      {/* Layer 2: Content */}
+      <div style={{ position: 'relative', zIndex: 2, width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
 
-        {/* LEFT — Animated image card with glow + float + shimmer */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeItem.id}
-            initial={{ opacity: 0, scale: 1.08 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.92 }}
-            transition={{ duration: 0.6, ease: 'easeOut' }}
-            style={{
-              flexShrink: 0,
-              position: 'relative',
-              width: 'clamp(200px, 35vw, 520px)',
-              height: 'clamp(200px, 35vw, 520px)',
-            }}
-          >
-            {/* Outer glow ring */}
-            <div className="auction-glow-ring" style={{
-              position: 'absolute',
-              inset: -8,
-              borderRadius: 'clamp(20px, 3vw, 36px)',
-              background: 'transparent',
-              border: '2px solid rgba(222,255,154,0.25)',
-              zIndex: 0,
-            }} />
-            {/* Second pulsing ring */}
-            <div className="auction-pulse-ring" style={{
-              position: 'absolute',
-              inset: -20,
-              borderRadius: 'clamp(24px, 3.5vw, 42px)',
-              background: 'transparent',
-              border: '1px solid rgba(222,255,154,0.1)',
-              zIndex: 0,
-            }} />
-            {/* Main white card */}
-            <div className="auction-float" style={{
-              position: 'relative',
-              width: '100%',
-              height: '100%',
-              background: '#ffffff',
-              borderRadius: 'clamp(14px, 2vw, 26px)',
-              overflow: 'hidden',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 24px 72px rgba(0,0,0,0.75), 0 0 60px rgba(222,255,154,0.12), 0 0 120px rgba(222,255,154,0.06)',
-              zIndex: 1,
-            }}>
-              {activeItem.image_url
-                ? <img src={activeItem.image_url} alt={activeItem.title} style={{ width: '86%', height: '86%', objectFit: 'contain' }} />
-                : <i className="fa-solid fa-image" style={{ fontSize: 56, color: 'rgba(0,0,0,0.12)' }} />
-              }
-              {/* Light sweep shimmer overlay */}
-              <div className="auction-shimmer" style={{
-                position: 'absolute',
-                inset: 0,
-                background: 'linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.18) 50%, transparent 70%)',
-                zIndex: 2,
-                borderRadius: 'inherit',
-                pointerEvents: 'none',
-              }} />
-            </div>
-          </motion.div>
-        </AnimatePresence>
+        {/* Fullscreen Button */}
+        <button
+          onClick={toggleFullscreen}
+          style={{ position: 'absolute', top: 18, right: 18, zIndex: 100, background: 'rgba(212,175,55,0.15)', border: '1px solid rgba(212,175,55,0.3)', color: 'rgba(252,246,186,0.5)', borderRadius: 8, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(212,175,55,0.3)'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(212,175,55,0.15)'; }}
+        >
+          <i className={`fa-solid ${isFullscreen ? 'fa-compress' : 'fa-expand'}`} style={{ fontSize: 14 }} />
+        </button>
 
-        {/* RIGHT — LOT + Title + Price + Bidder stacked vertically */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 'clamp(10px, 3vh, 32px)', overflow: 'hidden', minWidth: 0 }}>
+        {/* ── HEADER ── */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '3.5vh 5vw 0 5vw', flexShrink: 0 }}>
+          <span style={{ fontSize: 'clamp(10px, 1vw, 14px)', fontWeight: 700, color: 'rgba(212,175,55,0.55)', textTransform: 'uppercase', letterSpacing: '0.35em', fontFamily: '"Urbanist", sans-serif' }}>
+            Live Auction
+          </span>
+          <span style={{ fontSize: 'clamp(10px, 1.1vw, 15px)', fontWeight: 700, textAlign: 'right', maxWidth: '65%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', background: 'linear-gradient(135deg, #bf953f 0%, #fcf6ba 40%, #b38728 70%, #fbf5b7 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', letterSpacing: '0.08em' }}>
+            {project?.name || ''}
+          </span>
+        </div>
 
-          {/* LOT NUMBER + ITEM TITLE */}
+        {/* ── MAIN BODY ── */}
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', padding: '3vh 5vw 5vh 5vw', gap: '5vw', overflow: 'hidden' }}>
+
+          {/* LEFT — Holy Frame Image */}
           <AnimatePresence mode="wait">
             <motion.div
-              key={activeItem.id + '-title'}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.4 }}
+              key={activeItem.id}
+              initial={{ opacity: 0, scale: 1.1 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.7, ease: 'easeOut' }}
+              style={{ flexShrink: 0, position: 'relative', width: 'clamp(200px, 34vw, 500px)', height: 'clamp(200px, 34vw, 500px)' }}
             >
-              <div style={{ fontSize: 'clamp(10px, 1.1vw, 15px)', fontWeight: 800, color: '#DEFF9A', textTransform: 'uppercase', letterSpacing: '0.25em', marginBottom: 'clamp(4px, 0.8vh, 10px)' }}>
-                LOT {items.length > 0 ? items.findIndex(i => i.id === activeItem.id) + 1 : ''}
+              {/* Outer glow aura */}
+              <div className="gala-aura" style={{ position: 'absolute', inset: -16, borderRadius: 'clamp(20px, 3vw, 40px)', background: 'transparent', boxShadow: '0 0 60px rgba(212,175,55,0.5), 0 0 120px rgba(212,175,55,0.25), 0 0 200px rgba(180,130,10,0.15)', zIndex: 0 }} />
+              {/* Gold border frame */}
+              <div style={{ position: 'absolute', inset: -4, borderRadius: 'clamp(18px, 2.5vw, 34px)', background: 'linear-gradient(135deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #d4af37)', zIndex: 1, padding: 3 }}>
+                <div style={{ width: '100%', height: '100%', borderRadius: 'clamp(15px, 2vw, 30px)', background: '#0a0500' }} />
               </div>
-              <div style={{ fontSize: 'clamp(1.2rem, 2.8vw, 3.5rem)', fontWeight: 800, color: '#ffffff', lineHeight: 1.15, letterSpacing: '-0.01em', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
-                {activeItem.title}
+              {/* White card with image */}
+              <div className="gala-float" style={{ position: 'relative', width: '100%', height: '100%', background: '#ffffff', borderRadius: 'clamp(14px, 2vw, 28px)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2 }}>
+                {activeItem.image_url
+                  ? <img src={activeItem.image_url} alt={activeItem.title} style={{ width: '88%', height: '88%', objectFit: 'contain' }} />
+                  : <i className="fa-solid fa-image" style={{ fontSize: 56, color: 'rgba(0,0,0,0.12)' }} />
+                }
+                {/* Shimmer sweep */}
+                <div className="gala-shimmer" style={{ position: 'absolute', inset: 0, background: 'linear-gradient(110deg, transparent 25%, rgba(255,255,255,0.22) 50%, transparent 75%)', pointerEvents: 'none' }} />
               </div>
             </motion.div>
           </AnimatePresence>
 
-          {/* CURRENT PRICE */}
-          <div>
-            <div style={{ fontSize: 'clamp(9px, 1vw, 14px)', fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.28em', marginBottom: 'clamp(4px, 1vh, 14px)' }}>
-              Current Price
+          {/* RIGHT — Info Stack */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 'clamp(8px, 2.5vh, 28px)', overflow: 'hidden', minWidth: 0 }}>
+
+            {/* LOT + Title */}
+            <AnimatePresence mode="wait">
+              <motion.div key={activeItem.id + '-info'} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}>
+                <div style={{ fontSize: 'clamp(10px, 1.1vw, 15px)', fontWeight: 800, color: '#d4af37', textTransform: 'uppercase', letterSpacing: '0.3em', marginBottom: 'clamp(4px, 0.8vh, 12px)', fontFamily: '"Urbanist", sans-serif', textShadow: '0 0 12px rgba(212,175,55,0.6)' }}>
+                  LOT {lotNum}
+                </div>
+                <div style={{ fontSize: 'clamp(1.3rem, 3vw, 4rem)', fontWeight: 900, lineHeight: 1.2, letterSpacing: '0.02em', background: 'linear-gradient(135deg, #ffffff 0%, #fcf6ba 40%, #fff 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', filter: 'drop-shadow(0 2px 12px rgba(252,246,186,0.3))' }}>
+                  {activeItem.title}
+                </div>
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Divider */}
+            <div style={{ height: 1, background: 'linear-gradient(90deg, rgba(212,175,55,0.6), rgba(212,175,55,0.1))', width: '80%' }} />
+
+            {/* CURRENT PRICE */}
+            <div>
+              <div style={{ fontSize: 'clamp(9px, 0.95vw, 13px)', fontWeight: 700, color: 'rgba(212,175,55,0.7)', textTransform: 'uppercase', letterSpacing: '0.28em', marginBottom: 'clamp(4px, 1vh, 14px)', fontFamily: '"Urbanist", sans-serif' }}>
+                Current Price
+              </div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '1vw' }}>
+                <span style={{ fontSize: 'clamp(1.4rem, 2.5vw, 3.5rem)', fontWeight: 900, color: '#d4af37', lineHeight: 1, flexShrink: 0, textShadow: '0 0 20px rgba(212,175,55,0.8), 0 0 40px rgba(212,175,55,0.4)' }}>
+                  RM
+                </span>
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={livePrice}
+                    initial={{ opacity: 0, scale: 1.35, y: -10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                    style={{ fontSize: 'clamp(3rem, 9vw, 11rem)', fontWeight: 900, color: '#ffffff', lineHeight: 1, letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums', textShadow: '0 0 30px rgba(255,255,255,0.5), 0 0 60px rgba(212,175,55,0.3)', fontFamily: '"Urbanist", "Noto Serif SC", sans-serif' }}
+                  >
+                    {livePrice.toLocaleString()}
+                  </motion.span>
+                </AnimatePresence>
+              </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '1.2vw', flexWrap: 'nowrap' }}>
-              <span style={{ fontSize: 'clamp(1.4rem, 2.8vw, 4rem)', fontWeight: 800, color: '#4da3ff', lineHeight: 1, flexShrink: 0 }}>
-                RM
-              </span>
+
+            {/* Divider */}
+            <div style={{ height: 1, background: 'linear-gradient(90deg, rgba(212,175,55,0.6), rgba(212,175,55,0.1))', width: '80%' }} />
+
+            {/* HIGHEST BIDDER */}
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 'clamp(9px, 0.95vw, 13px)', fontWeight: 700, color: 'rgba(212,175,55,0.7)', textTransform: 'uppercase', letterSpacing: '0.28em', marginBottom: 'clamp(4px, 1vh, 14px)', fontFamily: '"Urbanist", sans-serif' }}>
+                Highest Bidder
+              </div>
               <AnimatePresence mode="wait">
-                <motion.span
-                  key={livePrice}
-                  initial={{ opacity: 0, y: 18 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.18, ease: 'easeOut' }}
-                  style={{ fontSize: 'clamp(3rem, 9.5vw, 12rem)', fontWeight: 900, color: '#ffffff', lineHeight: 1, letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums', minWidth: 0 }}
-                >
-                  {livePrice.toLocaleString()}
-                </motion.span>
+                {liveWinner ? (
+                  <motion.div
+                    key={liveWinner}
+                    initial={{ opacity: 0, scale: 1.3, y: -8 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                    style={{ fontSize: 'clamp(2rem, 6.5vw, 8.5rem)', fontWeight: 900, lineHeight: 1.08, letterSpacing: '-0.01em', wordBreak: 'break-word', background: 'linear-gradient(135deg, #d4af37 0%, #fcf6ba 35%, #b38728 65%, #ffe066 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', filter: 'drop-shadow(0 0 20px rgba(212,175,55,0.7))' }}
+                  >
+                    {liveWinner}
+                  </motion.div>
+                ) : (
+                  <motion.div key="dash" initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ fontSize: 'clamp(2rem, 4vw, 5rem)', fontWeight: 700, color: 'rgba(212,175,55,0.12)', lineHeight: 1 }}>
+                    —
+                  </motion.div>
+                )}
               </AnimatePresence>
             </div>
-          </div>
 
-          {/* HIGHEST BIDDER */}
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 'clamp(9px, 1vw, 14px)', fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.28em', marginBottom: 'clamp(4px, 1vh, 14px)' }}>
-              Highest Bidder
-            </div>
-            <AnimatePresence mode="wait">
-              {liveWinner ? (
-                <motion.div
-                  key={liveWinner}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.25, ease: 'easeOut' }}
-                  style={{ fontSize: 'clamp(2.2rem, 7.5vw, 10rem)', fontWeight: 900, color: '#DEFF9A', lineHeight: 1.05, letterSpacing: '-0.01em', wordBreak: 'break-word' }}
-                >
-                  {liveWinner}
-                </motion.div>
-              ) : (
-                <motion.div key="dash" initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ fontSize: 'clamp(2rem, 4vw, 5rem)', fontWeight: 700, color: 'rgba(255,255,255,0.07)', lineHeight: 1 }}>
-                  —
-                </motion.div>
-              )}
-            </AnimatePresence>
           </div>
-
         </div>
+
+        {/* ── WINNING BID POPUP ── */}
+        <AnimatePresence>
+          {isSold && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4 }}
+              style={{ position: 'absolute', inset: 0, zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(5,3,0,0.88)', backdropFilter: 'blur(16px)', pointerEvents: 'none' }}
+            >
+              <motion.div
+                initial={{ scale: 0.8, y: 60 }}
+                animate={{ scale: 1, y: 0 }}
+                transition={{ type: 'spring', damping: 18, stiffness: 100, delay: 0.08 }}
+                style={{ textAlign: 'center', background: 'linear-gradient(145deg, rgba(212,175,55,0.15) 0%, rgba(0,0,0,0.95) 100%)', border: '1px solid rgba(212,175,55,0.4)', padding: '7vh 9vw', borderRadius: 32, boxShadow: '0 0 80px rgba(212,175,55,0.3), 0 40px 120px rgba(0,0,0,0.9)' }}
+              >
+                <i className="fa-solid fa-gavel" style={{ fontSize: 'clamp(2rem, 3vw, 4rem)', color: '#d4af37', marginBottom: '2.5vh', display: 'block', textShadow: '0 0 30px rgba(212,175,55,0.8)' }} />
+                <div style={{ fontSize: 'clamp(11px, 1.3vw, 18px)', color: 'rgba(252,246,186,0.6)', textTransform: 'uppercase', letterSpacing: '0.35em', marginBottom: '2vh', fontFamily: '"Urbanist", sans-serif' }}>Successful Bid</div>
+                <div style={{ fontSize: 'clamp(3rem, 8vw, 11rem)', fontWeight: 900, color: '#fff', lineHeight: 1, marginBottom: '2.5vh', textShadow: '0 0 40px rgba(252,246,186,0.4)', fontFamily: '"Urbanist", sans-serif' }}>
+                  <span style={{ fontSize: '0.33em', color: '#d4af37', marginRight: '0.8vw', verticalAlign: 'super', textShadow: '0 0 20px rgba(212,175,55,0.8)' }}>RM</span>
+                  {livePrice.toLocaleString()}
+                </div>
+                <div style={{ fontSize: 'clamp(11px, 1.3vw, 18px)', color: 'rgba(212,175,55,0.5)', textTransform: 'uppercase', letterSpacing: '0.25em', marginBottom: '1.5vh', fontFamily: '"Urbanist", sans-serif' }}>Winning Bidder</div>
+                <div style={{ fontSize: 'clamp(2rem, 5.5vw, 7.5rem)', fontWeight: 900, background: 'linear-gradient(135deg, #d4af37 0%, #fcf6ba 35%, #b38728 70%, #ffe066 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', letterSpacing: '-0.01em' }}>
+                  {liveWinner || 'ANONYMOUS'}
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
       </div>
 
-      {/* ── WINNING BID POPUP ── */}
-      <AnimatePresence>
-        {isSold && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.35 }}
-            style={{ position: 'absolute', inset: 0, zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(5,5,5,0.9)', backdropFilter: 'blur(20px)', pointerEvents: 'none' }}
-          >
-            <motion.div
-              initial={{ scale: 0.86, y: 48 }}
-              animate={{ scale: 1, y: 0 }}
-              transition={{ type: 'spring', damping: 20, stiffness: 110, delay: 0.08 }}
-              style={{ textAlign: 'center', background: 'linear-gradient(145deg, rgba(16,185,129,0.1) 0%, rgba(0,0,0,0.96) 100%)', border: '1px solid rgba(16,185,129,0.22)', padding: '7vh 9vw', borderRadius: 32, boxShadow: '0 40px 120px rgba(0,0,0,0.9)' }}
-            >
-              <i className="fa-solid fa-gavel" style={{ fontSize: 'clamp(1.8rem, 2.8vw, 3.5rem)', color: '#10b981', marginBottom: '2.5vh', display: 'block' }} />
-              <div style={{ fontSize: 'clamp(10px, 1.2vw, 16px)', color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', letterSpacing: '0.3em', marginBottom: '1.8vh' }}>Successful Bid</div>
-              <div style={{ fontSize: 'clamp(2.5rem, 7.5vw, 10rem)', fontWeight: 900, color: '#fff', lineHeight: 1, marginBottom: '2.5vh' }}>
-                <span style={{ fontSize: '0.33em', color: '#10b981', marginRight: '0.8vw', verticalAlign: 'super' }}>RM</span>
-                {livePrice.toLocaleString()}
-              </div>
-              <div style={{ fontSize: 'clamp(10px, 1.2vw, 16px)', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.22em', marginBottom: '1.2vh' }}>Winning Bidder</div>
-              <div style={{ fontSize: 'clamp(2rem, 5.5vw, 7.5rem)', fontWeight: 900, color: '#DEFF9A', letterSpacing: '-0.01em' }}>{liveWinner || 'ANONYMOUS'}</div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* ── CSS Animations ── */}
       <style>{`
-        @keyframes auction-float {
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@700;900&family=Urbanist:wght@700;800;900&display=swap');
+
+        @keyframes gala-float {
           0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-12px); }
+          50% { transform: translateY(-14px); }
         }
-        @keyframes auction-glow-pulse {
-          0%, 100% { opacity: 0.3; transform: scale(1); }
-          50% { opacity: 0.8; transform: scale(1.015); }
+        @keyframes gala-aura-pulse {
+          0%, 100% { opacity: 0.6; }
+          50% { opacity: 1; }
         }
-        @keyframes auction-shimmer-sweep {
-          0% { transform: translateX(-150%); }
-          100% { transform: translateX(250%); }
+        @keyframes gala-shimmer-sweep {
+          0% { transform: translateX(-160%); }
+          100% { transform: translateX(260%); }
         }
-        .auction-float {
-          animation: auction-float 4s ease-in-out infinite;
+        .gala-float {
+          animation: gala-float 4.5s ease-in-out infinite;
         }
-        .auction-glow-ring {
-          animation: auction-glow-pulse 2.5s ease-in-out infinite;
+        .gala-aura {
+          animation: gala-aura-pulse 2.8s ease-in-out infinite;
         }
-        .auction-pulse-ring {
-          animation: auction-glow-pulse 2.5s ease-in-out infinite 0.6s;
-        }
-        .auction-shimmer {
-          animation: auction-shimmer-sweep 3.5s ease-in-out infinite 1s;
+        .gala-shimmer {
+          animation: gala-shimmer-sweep 4s ease-in-out infinite 1.2s;
         }
       `}</style>
-
     </div>
-
   );
 }
-
