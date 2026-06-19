@@ -55,33 +55,33 @@ function GoldParticleCanvas() {
 
       // Deep ocean blue gradient base
       const bg = ctx.createLinearGradient(0, 0, 0, canvas.height);
-      bg.addColorStop(0, '#000d1a');
-      bg.addColorStop(0.3, '#001a2e');
-      bg.addColorStop(0.65, '#002a3a');
-      bg.addColorStop(1, '#003344');
+      bg.addColorStop(0, '#001a4d'); // Navy blue top
+      bg.addColorStop(0.3, '#003366'); // Ocean blue middle
+      bg.addColorStop(0.65, '#004d80'); // Lighter ocean blue
+      bg.addColorStop(1, '#006699'); // Vibrant ocean blue bottom
       ctx.fillStyle = bg;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       // Ocean teal glow at bottom (underwater light)
       const waveGrad = ctx.createRadialGradient(canvas.width / 2, canvas.height, 0, canvas.width / 2, canvas.height, canvas.width * 0.75);
-      waveGrad.addColorStop(0, 'rgba(0,180,200,0.28)');
-      waveGrad.addColorStop(0.45, 'rgba(0,120,150,0.12)');
-      waveGrad.addColorStop(1, 'rgba(0,0,0,0)');
+      waveGrad.addColorStop(0, 'rgba(0,212,255,0.4)');
+      waveGrad.addColorStop(0.45, 'rgba(0,180,220,0.15)');
+      waveGrad.addColorStop(1, 'rgba(0,150,200,0)');
       ctx.fillStyle = waveGrad;
       ctx.fillRect(0, canvas.height * 0.45, canvas.width, canvas.height * 0.55);
 
       // Centre-right cool teal spotlight
       const spotlight = ctx.createRadialGradient(canvas.width * 0.55, canvas.height * 0.38, 0, canvas.width * 0.55, canvas.height * 0.38, canvas.width * 0.45);
-      spotlight.addColorStop(0, 'rgba(0,150,180,0.16)');
-      spotlight.addColorStop(0.6, 'rgba(0,80,120,0.06)');
-      spotlight.addColorStop(1, 'rgba(0,0,0,0)');
+      spotlight.addColorStop(0, 'rgba(0,180,220,0.2)');
+      spotlight.addColorStop(0.6, 'rgba(0,130,180,0.08)');
+      spotlight.addColorStop(1, 'rgba(0,100,150,0)');
       ctx.fillStyle = spotlight;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       // Top-left dim cyan accent
       const topLeft = ctx.createRadialGradient(canvas.width * 0.15, canvas.height * 0.2, 0, canvas.width * 0.15, canvas.height * 0.2, canvas.width * 0.3);
-      topLeft.addColorStop(0, 'rgba(0,200,210,0.10)');
-      topLeft.addColorStop(1, 'rgba(0,0,0,0)');
+      topLeft.addColorStop(0, 'rgba(0,200,240,0.15)');
+      topLeft.addColorStop(1, 'rgba(0,150,200,0)');
       ctx.fillStyle = topLeft;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -233,8 +233,8 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
       {/* Layer 0: Gold Particle Canvas */}
       <GoldParticleCanvas />
 
-      {/* Layer 1: Dark overlay for readability */}
-      <div style={{ position: 'absolute', inset: 0, zIndex: 1, background: 'rgba(0,0,0,0.2)', pointerEvents: 'none' }} />
+      {/* Layer 1: Dark blue overlay for readability */}
+      <div style={{ position: 'absolute', inset: 0, zIndex: 1, background: 'rgba(0,30,80,0.15)', pointerEvents: 'none' }} />
 
       {/* Layer 2: Content */}
       <div style={{ position: 'relative', zIndex: 2, width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -434,7 +434,7 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
                 initial={{ scale: 0.8, y: 60 }}
                 animate={{ scale: 1, y: 0 }}
                 transition={{ type: 'spring', damping: 18, stiffness: 100, delay: 0.08 }}
-                style={{ textAlign: 'center', background: 'linear-gradient(145deg, rgba(212,175,55,0.15) 0%, rgba(0,0,0,0.95) 100%)', border: '1px solid rgba(212,175,55,0.4)', padding: '7vh 9vw', borderRadius: 32, boxShadow: '0 0 80px rgba(212,175,55,0.3), 0 40px 120px rgba(0,0,0,0.9)' }}
+                style={{ textAlign: 'center', background: 'linear-gradient(145deg, rgba(212,175,55,0.15) 0%, rgba(0,30,80,0.95) 100%)', border: '1px solid rgba(212,175,55,0.4)', padding: '7vh 9vw', borderRadius: 32, boxShadow: '0 0 80px rgba(212,175,55,0.3), 0 40px 120px rgba(0,20,60,0.9)' }}
               >
                 <i className="fa-solid fa-gavel" style={{ fontSize: 'clamp(2rem, 3vw, 4rem)', color: '#d4af37', marginBottom: '2.5vh', display: 'block', textShadow: '0 0 30px rgba(212,175,55,0.8)' }} />
                 <div style={{ fontSize: 'clamp(11px, 1.3vw, 18px)', color: 'rgba(252,246,186,0.6)', textTransform: 'uppercase', letterSpacing: '0.35em', marginBottom: '2vh', fontFamily: '"Urbanist", sans-serif' }}>Successful Bid</div>
