@@ -147,31 +147,67 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
       {/* ── MAIN BODY: Image (left) | Price + Bidder (right) ── */}
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', padding: '3vh 5vw 5vh 5vw', gap: '6vw', overflow: 'hidden' }}>
 
-        {/* LEFT — White-card image */}
+        {/* LEFT — Animated image card with glow + float + shimmer */}
         <AnimatePresence mode="wait">
           <motion.div
             key={activeItem.id}
-            initial={{ opacity: 0, scale: 1.05 }}
+            initial={{ opacity: 0, scale: 1.08 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.55, ease: 'easeOut' }}
+            exit={{ opacity: 0, scale: 0.92 }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
             style={{
               flexShrink: 0,
+              position: 'relative',
               width: 'clamp(200px, 35vw, 520px)',
               height: 'clamp(200px, 35vw, 520px)',
+            }}
+          >
+            {/* Outer glow ring */}
+            <div className="auction-glow-ring" style={{
+              position: 'absolute',
+              inset: -8,
+              borderRadius: 'clamp(20px, 3vw, 36px)',
+              background: 'transparent',
+              border: '2px solid rgba(222,255,154,0.25)',
+              zIndex: 0,
+            }} />
+            {/* Second pulsing ring */}
+            <div className="auction-pulse-ring" style={{
+              position: 'absolute',
+              inset: -20,
+              borderRadius: 'clamp(24px, 3.5vw, 42px)',
+              background: 'transparent',
+              border: '1px solid rgba(222,255,154,0.1)',
+              zIndex: 0,
+            }} />
+            {/* Main white card */}
+            <div className="auction-float" style={{
+              position: 'relative',
+              width: '100%',
+              height: '100%',
               background: '#ffffff',
               borderRadius: 'clamp(14px, 2vw, 26px)',
               overflow: 'hidden',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 24px 72px rgba(0,0,0,0.75)',
-            }}
-          >
-            {activeItem.image_url
-              ? <img src={activeItem.image_url} alt={activeItem.title} style={{ width: '86%', height: '86%', objectFit: 'contain' }} />
-              : <i className="fa-solid fa-image" style={{ fontSize: 56, color: 'rgba(0,0,0,0.12)' }} />
-            }
+              boxShadow: '0 24px 72px rgba(0,0,0,0.75), 0 0 60px rgba(222,255,154,0.12), 0 0 120px rgba(222,255,154,0.06)',
+              zIndex: 1,
+            }}>
+              {activeItem.image_url
+                ? <img src={activeItem.image_url} alt={activeItem.title} style={{ width: '86%', height: '86%', objectFit: 'contain' }} />
+                : <i className="fa-solid fa-image" style={{ fontSize: 56, color: 'rgba(0,0,0,0.12)' }} />
+              }
+              {/* Light sweep shimmer overlay */}
+              <div className="auction-shimmer" style={{
+                position: 'absolute',
+                inset: 0,
+                background: 'linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.18) 50%, transparent 70%)',
+                zIndex: 2,
+                borderRadius: 'inherit',
+                pointerEvents: 'none',
+              }} />
+            </div>
           </motion.div>
         </AnimatePresence>
 
@@ -276,7 +312,35 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
           </motion.div>
         )}
       </AnimatePresence>
+      <style>{`
+        @keyframes auction-float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-12px); }
+        }
+        @keyframes auction-glow-pulse {
+          0%, 100% { opacity: 0.3; transform: scale(1); }
+          50% { opacity: 0.8; transform: scale(1.015); }
+        }
+        @keyframes auction-shimmer-sweep {
+          0% { transform: translateX(-150%); }
+          100% { transform: translateX(250%); }
+        }
+        .auction-float {
+          animation: auction-float 4s ease-in-out infinite;
+        }
+        .auction-glow-ring {
+          animation: auction-glow-pulse 2.5s ease-in-out infinite;
+        }
+        .auction-pulse-ring {
+          animation: auction-glow-pulse 2.5s ease-in-out infinite 0.6s;
+        }
+        .auction-shimmer {
+          animation: auction-shimmer-sweep 3.5s ease-in-out infinite 1s;
+        }
+      `}</style>
 
     </div>
+
   );
 }
+
