@@ -240,13 +240,20 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
         position: 'absolute', inset: 0, zIndex: -1, pointerEvents: 'none',
         backgroundImage: "url('/images/dragon_cloud_bg.png')",
         backgroundSize: 'cover', backgroundPosition: 'center',
-        opacity: 0.95
+        opacity: 1,
+        filter: 'brightness(1.5) contrast(1.4) saturate(1.6)'
+      }} />
+
+      {/* Layer 0.5: Vivid Blue Core Glow */}
+      <div style={{
+        position: 'absolute', inset: 0, zIndex: -1, pointerEvents: 'none',
+        background: 'radial-gradient(circle at center, rgba(0,80,180,0.15) 0%, transparent 65%)'
       }} />
 
       {/* Layer 1: Subtle Vignette / Edge Shadow */}
       <div style={{
         position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none',
-        boxShadow: 'inset 0 0 150px rgba(0,10,25,0.9)'
+        boxShadow: 'inset 0 0 100px rgba(0,20,50,0.7)'
       }} />
 
       {/* Layer 1.5: Grand Imperial Frame (Pan Chang Knot Borders) */}
