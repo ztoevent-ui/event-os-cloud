@@ -51,13 +51,8 @@ function GoldParticleCanvas() {
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Deep dark ocean blue radial gradient base
-      const bg = ctx.createRadialGradient(canvas.width / 2, canvas.height / 2, 0, canvas.width / 2, canvas.height / 2, canvas.width);
-      bg.addColorStop(0, '#002244'); // Center dark blue
-      bg.addColorStop(0.7, '#001122'); // Very dark blue
-      bg.addColorStop(1, '#000511'); // Almost black blue edge
-      ctx.fillStyle = bg;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Deep dark ocean blue radial gradient base (REMOVED to make canvas transparent for background image)
+      // The canvas will only draw glowing elements over the background image layer.
 
       // Bottom Ocean glow
       const waveGrad = ctx.createRadialGradient(canvas.width / 2, canvas.height, 0, canvas.width / 2, canvas.height, canvas.width * 0.75);
@@ -240,51 +235,67 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
       {/* Layer 0: Gold Particle Canvas */}
       <GoldParticleCanvas />
 
-      {/* Layer 1: Traditional Cloud/Wave Pattern Overlay (Subtle full BG) */}
+      {/* Layer -1: Dragon & Cloud Watermark Background */}
       <div style={{
-        position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none', opacity: 0.8,
-        backgroundImage: `radial-gradient(circle at 100% 150%, rgba(212,175,55,0.02) 24%, transparent 25%, transparent 28%, rgba(212,175,55,0.02) 29%, transparent 30%, transparent 36%, rgba(212,175,55,0.02) 36%, transparent 40%), radial-gradient(circle at 0 150%, rgba(212,175,55,0.02) 24%, transparent 25%, transparent 28%, rgba(212,175,55,0.02) 29%, transparent 30%, transparent 36%, rgba(212,175,55,0.02) 36%, transparent 40%)`,
-        backgroundSize: '120px 60px',
-        backgroundPosition: '0 0, 60px 30px'
+        position: 'absolute', inset: 0, zIndex: -1, pointerEvents: 'none',
+        backgroundImage: "url('/images/dragon_cloud_bg.png')",
+        backgroundSize: 'cover', backgroundPosition: 'center',
+        opacity: 0.95
       }} />
 
-      {/* Layer 1.5: Grand Imperial Frame (Auspicious Borders) */}
+      {/* Layer 1: Subtle Vignette / Edge Shadow */}
+      <div style={{
+        position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none',
+        boxShadow: 'inset 0 0 150px rgba(0,10,25,0.9)'
+      }} />
+
+      {/* Layer 1.5: Grand Imperial Frame (Pan Chang Knot Borders) */}
       <div style={{
         position: 'absolute', inset: 24, zIndex: 1, pointerEvents: 'none',
-        border: '3px solid rgba(212,175,55,0.7)',
-        outline: '1px solid rgba(252,246,186,0.3)', outlineOffset: '-12px',
-        boxShadow: 'inset 0 0 80px rgba(212,175,55,0.15), 0 0 60px rgba(212,175,55,0.3)',
+        border: '3px solid rgba(212,175,55,0.6)',
+        outline: '1px solid rgba(252,246,186,0.2)', outlineOffset: '-12px',
+        boxShadow: 'inset 0 0 80px rgba(212,175,55,0.1), 0 0 60px rgba(212,175,55,0.2)',
       }}>
-        {/* 4 Ornate Corners */}
+        {/* 4 Chinese Knot Corners */}
         {(() => {
-          const Corner = () => (
-            <svg width="140" height="140" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style={{ filter: 'drop-shadow(0 0 12px rgba(212,175,55,0.8))' }}>
-              {/* Ornate corner flourish */}
-              <path d="M0 0 L100 0 C100 40 60 100 0 100 Z" fill="rgba(212,175,55,0.15)"/>
-              <path d="M0 0 L100 0 L100 8 C100 35 65 100 8 100 L0 100 Z" fill="url(#goldGrad)"/>
-              <path d="M20 20 L80 20 L80 26 L26 26 L26 80 L20 80 Z" fill="url(#lightGoldGrad)"/>
-              <circle cx="50" cy="50" r="15" fill="none" stroke="#d4af37" strokeWidth="4"/>
-              <circle cx="50" cy="50" r="6" fill="#fcf6ba"/>
-              <path d="M50 35 L50 65 M35 50 L65 50" stroke="#d4af37" strokeWidth="2"/>
+          const KnotCorner = () => (
+            <svg width="120" height="120" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style={{ filter: 'drop-shadow(0 0 10px rgba(212,175,55,0.8))' }}>
+              <g fill="none" stroke="url(#goldGrad)" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                {/* Central Diamond */}
+                <path d="M20 50 L50 20 L80 50 L50 80 Z" />
+                <path d="M35 35 L65 65 M35 65 L65 35" strokeWidth="2" />
+                {/* Top loops */}
+                <path d="M50 20 C50 0 30 0 30 20 L50 40" />
+                <path d="M50 20 C50 0 70 0 70 20 L50 40" />
+                {/* Left loops */}
+                <path d="M20 50 C0 50 0 30 20 30 L40 50" />
+                <path d="M20 50 C0 50 0 70 20 70 L40 50" />
+                {/* Right loops */}
+                <path d="M80 50 C100 50 100 30 80 30 L60 50" />
+                <path d="M80 50 C100 50 100 70 80 70 L60 50" />
+                {/* Bottom loops */}
+                <path d="M50 80 C50 100 30 100 30 80 L50 60" />
+                <path d="M50 80 C50 100 70 100 70 80 L50 60" />
+                {/* Corner connecting lines */}
+                <path d="M0 0 L25 25" strokeWidth="3" />
+                <path d="M15 0 L15 15 L0 15" strokeWidth="2" />
+              </g>
               <defs>
                 <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                   <stop offset="0%" stopColor="#bf953f" />
-                  <stop offset="50%" stopColor="#fcf6ba" />
-                  <stop offset="100%" stopColor="#b38728" />
-                </linearGradient>
-                <linearGradient id="lightGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#fcf6ba" />
-                  <stop offset="100%" stopColor="#d4af37" />
+                  <stop offset="40%" stopColor="#fcf6ba" />
+                  <stop offset="60%" stopColor="#d4af37" />
+                  <stop offset="100%" stopColor="#aa7c11" />
                 </linearGradient>
               </defs>
             </svg>
           );
           return (
             <>
-              <div style={{ position: 'absolute', top: -3, left: -3 }}><Corner /></div>
-              <div style={{ position: 'absolute', top: -3, right: -3, transform: 'scaleX(-1)' }}><Corner /></div>
-              <div style={{ position: 'absolute', bottom: -3, left: -3, transform: 'scaleY(-1)' }}><Corner /></div>
-              <div style={{ position: 'absolute', bottom: -3, right: -3, transform: 'scaleX(-1) scaleY(-1)' }}><Corner /></div>
+              <div style={{ position: 'absolute', top: -3, left: -3 }}><KnotCorner /></div>
+              <div style={{ position: 'absolute', top: -3, right: -3, transform: 'scaleX(-1)' }}><KnotCorner /></div>
+              <div style={{ position: 'absolute', bottom: -3, left: -3, transform: 'scaleY(-1)' }}><KnotCorner /></div>
+              <div style={{ position: 'absolute', bottom: -3, right: -3, transform: 'scaleX(-1) scaleY(-1)' }}><KnotCorner /></div>
             </>
           );
         })()}
