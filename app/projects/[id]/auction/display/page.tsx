@@ -235,19 +235,23 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
       {/* Layer 0: Gold Particle Canvas */}
       <GoldParticleCanvas />
 
+      {/* Layer -2: Deep Ocean Base */}
+      <div style={{ position: 'absolute', inset: 0, zIndex: -2, backgroundColor: '#001a4d' }} />
+
       {/* Layer -1: Dragon & Cloud Watermark Background */}
       <div style={{
         position: 'absolute', inset: 0, zIndex: -1, pointerEvents: 'none',
         backgroundImage: "url('/images/dragon_cloud_bg.png')",
         backgroundSize: 'cover', backgroundPosition: 'center',
         opacity: 1,
-        filter: 'brightness(1.5) contrast(1.4) saturate(1.6)'
+        filter: 'brightness(2.5) contrast(1.4) saturate(3.0)'
       }} />
 
       {/* Layer 0.5: Vivid Blue Core Glow */}
       <div style={{
         position: 'absolute', inset: 0, zIndex: -1, pointerEvents: 'none',
-        background: 'radial-gradient(circle at center, rgba(0,80,180,0.15) 0%, transparent 65%)'
+        background: 'radial-gradient(circle at center, rgba(0, 120, 255, 0.4) 0%, rgba(0, 60, 180, 0.1) 65%, transparent 100%)',
+        mixBlendMode: 'screen'
       }} />
 
       {/* Layer 1: Subtle Vignette / Edge Shadow */}
