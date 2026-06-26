@@ -356,6 +356,11 @@ export const ZTO_LOCAL_BUSINESS_SCHEMA = {
         "description": "Platform deployed exclusively at ZTO-managed live events in Sarawak and East Malaysia.",
         "seller": { "@id": "https://ztoevent.com/#organization" },
       },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "5.0",
+        "reviewCount": "12"
+      },
     },
 
     // ═══════════════════════════════════════════════════════════════════
