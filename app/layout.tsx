@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
+import { ZTO_SCHEMA_JSON } from "@/lib/schema/local-business-schema";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -102,6 +103,11 @@ export default function RootLayout({
         <meta name="geo.region" content="MY-13" />
         <meta name="geo.placename" content="Bintulu, Sarawak, Malaysia" />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        {/* JSON-LD LocalBusiness Schema — ZTO Entity Cluster */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: ZTO_SCHEMA_JSON }}
+        />
       </head>
       <body className={`${inter.variable} antialiased`}>
         {/* Google tag (gtag.js) */}
