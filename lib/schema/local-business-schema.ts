@@ -179,6 +179,17 @@ export const ZTO_LOCAL_BUSINESS_SCHEMA = {
                     "High-brightness P2.6–P6 LED display panels for stage backdrops, scoreboards, and perimeter branding. Deployed across Sarawak arenas and outdoor venues.",
                   "category": "LED Display",
                   "brand": { "@type": "Brand", "name": "ZTO Hardware" },
+                  "offers": {
+                    "@type": "Offer",
+                    "seller": { "@id": "https://ztoevent.com/#organization" },
+                    "availability": "https://schema.org/InStock",
+                    "areaServed": { "@type": "AdministrativeArea", "name": "Sarawak" },
+                    "priceSpecification": {
+                      "@type": "PriceSpecification",
+                      "priceCurrency": "MYR",
+                      "description": "Quote on request — contact ZTO Event for pricing"
+                    }
+                  }
                 },
               },
               {
@@ -190,6 +201,17 @@ export const ZTO_LOCAL_BUSINESS_SCHEMA = {
                     "LED display output natively driven by ZTO Arena OS real-time data. Zero-latency score updates for sports tournaments.",
                   "category": "Sports Display Technology",
                   "isRelatedTo": { "@id": "https://ztoevent.com/#zto-arena-os" },
+                  "offers": {
+                    "@type": "Offer",
+                    "seller": { "@id": "https://ztoevent.com/#organization" },
+                    "availability": "https://schema.org/InStock",
+                    "areaServed": { "@type": "AdministrativeArea", "name": "East Malaysia" },
+                    "priceSpecification": {
+                      "@type": "PriceSpecification",
+                      "priceCurrency": "MYR",
+                      "description": "Included as part of ZTO Arena OS event deployment"
+                    }
+                  }
                 },
               },
             ],
@@ -206,6 +228,18 @@ export const ZTO_LOCAL_BUSINESS_SCHEMA = {
                   "description":
                     "Professional line-array PA systems for concerts, corporate galas, and outdoor sports arenas across Sarawak.",
                   "category": "Professional Audio",
+                  "brand": { "@type": "Brand", "name": "ZTO Hardware" },
+                  "offers": {
+                    "@type": "Offer",
+                    "seller": { "@id": "https://ztoevent.com/#organization" },
+                    "availability": "https://schema.org/InStock",
+                    "areaServed": { "@type": "AdministrativeArea", "name": "Sarawak" },
+                    "priceSpecification": {
+                      "@type": "PriceSpecification",
+                      "priceCurrency": "MYR",
+                      "description": "Quote on request — contact ZTO Event for pricing"
+                    }
+                  }
                 },
               },
             ],
@@ -223,6 +257,18 @@ export const ZTO_LOCAL_BUSINESS_SCHEMA = {
                     "Touch-screen kiosk hardware running ZTO Arena OS check-in module. QR code scanning, on-the-spot participant registration, bib printing integration.",
                   "category": "Event Technology Hardware",
                   "isRelatedTo": { "@id": "https://ztoevent.com/#zto-arena-os" },
+                  "brand": { "@type": "Brand", "name": "ZTO Hardware" },
+                  "offers": {
+                    "@type": "Offer",
+                    "seller": { "@id": "https://ztoevent.com/#organization" },
+                    "availability": "https://schema.org/InStock",
+                    "areaServed": { "@type": "AdministrativeArea", "name": "East Malaysia" },
+                    "priceSpecification": {
+                      "@type": "PriceSpecification",
+                      "priceCurrency": "MYR",
+                      "description": "Deployed at ZTO-managed events — contact for availability"
+                    }
+                  }
                 },
               },
               {
@@ -233,6 +279,18 @@ export const ZTO_LOCAL_BUSINESS_SCHEMA = {
                   "description":
                     "Full-spectrum moving-head and static wash fixtures for stages, gala dinners, and concert productions in East Malaysia.",
                   "category": "Stage Lighting",
+                  "brand": { "@type": "Brand", "name": "ZTO Hardware" },
+                  "offers": {
+                    "@type": "Offer",
+                    "seller": { "@id": "https://ztoevent.com/#organization" },
+                    "availability": "https://schema.org/InStock",
+                    "areaServed": { "@type": "AdministrativeArea", "name": "Sarawak" },
+                    "priceSpecification": {
+                      "@type": "PriceSpecification",
+                      "priceCurrency": "MYR",
+                      "description": "Quote on request — contact ZTO Event for pricing"
+                    }
+                  }
                 },
               },
             ],
