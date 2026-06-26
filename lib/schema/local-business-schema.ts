@@ -83,6 +83,7 @@ export const ZTO_LOCAL_BUSINESS_SCHEMA = {
         "name": "Bintulu, Sarawak, Malaysia",
       },
       "email": "z.t.o.event@gmail.com",
+      "telephone": "+60-000000000", // TODO: Replace with actual phone number
 
       // ── Service Area: Miri → Kuching full corridor ────────────────
       "areaServed": [
