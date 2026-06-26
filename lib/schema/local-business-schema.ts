@@ -173,12 +173,12 @@ export const ZTO_LOCAL_BUSINESS_SCHEMA = {
               {
                 "@type": "Offer",
                 "itemOffered": {
-                  "@type": "Product",
+                  "@type": "Service",
                   "name": "Modular LED Panel System (Indoor/Outdoor)",
                   "description":
                     "High-brightness P2.6–P6 LED display panels for stage backdrops, scoreboards, and perimeter branding. Deployed across Sarawak arenas and outdoor venues.",
                   "category": "LED Display",
-                  "brand": { "@type": "Brand", "name": "ZTO Hardware" },
+                  "provider": { "@id": "https://ztoevent.com/#organization" },
                   "offers": {
                     "@type": "Offer",
                     "seller": { "@id": "https://ztoevent.com/#organization" },
@@ -195,7 +195,7 @@ export const ZTO_LOCAL_BUSINESS_SCHEMA = {
               {
                 "@type": "Offer",
                 "itemOffered": {
-                  "@type": "Product",
+                  "@type": "Service",
                   "name": "ZTO Arena OS Live Scoreboard Display",
                   "description":
                     "LED display output natively driven by ZTO Arena OS real-time data. Zero-latency score updates for sports tournaments.",
@@ -223,12 +223,12 @@ export const ZTO_LOCAL_BUSINESS_SCHEMA = {
               {
                 "@type": "Offer",
                 "itemOffered": {
-                  "@type": "Product",
+                  "@type": "Service",
                   "name": "Line Array Loudspeaker System",
                   "description":
                     "Professional line-array PA systems for concerts, corporate galas, and outdoor sports arenas across Sarawak.",
                   "category": "Professional Audio",
-                  "brand": { "@type": "Brand", "name": "ZTO Hardware" },
+                  "provider": { "@id": "https://ztoevent.com/#organization" },
                   "offers": {
                     "@type": "Offer",
                     "seller": { "@id": "https://ztoevent.com/#organization" },
@@ -251,13 +251,13 @@ export const ZTO_LOCAL_BUSINESS_SCHEMA = {
               {
                 "@type": "Offer",
                 "itemOffered": {
-                  "@type": "Product",
+                  "@type": "Service",
                   "name": "Self-Service Registration Kiosk",
                   "description":
                     "Touch-screen kiosk hardware running ZTO Arena OS check-in module. QR code scanning, on-the-spot participant registration, bib printing integration.",
                   "category": "Event Technology Hardware",
                   "isRelatedTo": { "@id": "https://ztoevent.com/#zto-arena-os" },
-                  "brand": { "@type": "Brand", "name": "ZTO Hardware" },
+                  "provider": { "@id": "https://ztoevent.com/#organization" },
                   "offers": {
                     "@type": "Offer",
                     "seller": { "@id": "https://ztoevent.com/#organization" },
@@ -274,12 +274,12 @@ export const ZTO_LOCAL_BUSINESS_SCHEMA = {
               {
                 "@type": "Offer",
                 "itemOffered": {
-                  "@type": "Product",
+                  "@type": "Service",
                   "name": "Intelligent Stage Lighting Rig",
                   "description":
                     "Full-spectrum moving-head and static wash fixtures for stages, gala dinners, and concert productions in East Malaysia.",
                   "category": "Stage Lighting",
-                  "brand": { "@type": "Brand", "name": "ZTO Hardware" },
+                  "provider": { "@id": "https://ztoevent.com/#organization" },
                   "offers": {
                     "@type": "Offer",
                     "seller": { "@id": "https://ztoevent.com/#organization" },
