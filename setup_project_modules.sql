@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS public.program_items (
 CREATE TABLE IF NOT EXISTS public.schedule_items (
     id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
     project_id uuid REFERENCES public.projects(id) ON DELETE CASCADE,
+    date text DEFAULT 'Day 1',
     time text DEFAULT '',
     title text DEFAULT '',
     assignee text DEFAULT '',

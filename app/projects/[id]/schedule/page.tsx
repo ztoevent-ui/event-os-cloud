@@ -10,6 +10,7 @@ import { usePrint } from '../../components/PrintContext';
 interface ScheduleItem {
   id: string;
   project_id: string;
+  date: string;
   time: string;
   title: string;
   assignee: string;
@@ -23,10 +24,35 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
   const [editMode, setEditMode] = useState(false);
   const [project, setProject] = useState<any>(null);
   const { pageBreakIds } = usePrint();
+  const [selectedDate, setSelectedDate] = useState<string>('Day 1');
+
+  const uniqueDates = Array.from(new Set(schedule.map(s => s.date || 'Day 1'))).sort();
+  const displayedSchedule = schedule.filter(s => (s.date || 'Day 1') === selectedDate);
 
   useEffect(() => {
     fetchProject();
     fetchSchedule();
+
+    // Set up real-time subscription for multi-user collaboration
+    const channel = supabase
+      .channel('schedule_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'schedule_items',
+          filter: `project_id=eq.${projectId}`
+        },
+        () => {
+          fetchSchedule();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [projectId]);
 
   const fetchProject = async () => {
@@ -127,6 +153,7 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
       .from('schedule_items')
       .insert({
         project_id: projectId,
+        date: selectedDate,
         time: '',
         title: 'New Logistics Item',
         assignee: 'Assignee',
@@ -180,7 +207,7 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
                     <div className="flex flex-col items-end mr-6 px-6 border-r border-white/5">
                         <span className="text-[9px] font-black text-zinc-600 uppercase tracking-[0.3em] mb-1">Execution Density</span>
                         <div className="text-2xl font-black text-[#4da3ff] font-['Urbanist'] tracking-tight leading-none">
-                            {schedule.length > 0 ? Math.round((schedule.filter(s => s.status === 'DONE').length / schedule.length) * 100) : 0}%
+                            {displayedSchedule.length > 0 ? Math.round((displayedSchedule.filter(s => s.status === 'DONE').length / displayedSchedule.length) * 100) : 0}%
                         </div>
                     </div>
 
@@ -199,6 +226,36 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
                 </div>
             </div>
 
+            {/* ── Date Tabs ── */}
+            {!loading && schedule.length > 0 && (
+                <div className="print:hidden flex items-center gap-2 mb-8 overflow-x-auto pb-2 scrollbar-hide">
+                    {uniqueDates.map(date => (
+                        <button
+                            key={date}
+                            onClick={() => setSelectedDate(date)}
+                            className={`shrink-0 h-10 px-6 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
+                                selectedDate === date
+                                ? 'bg-[#0056B3] text-white shadow-[0_0_20px_rgba(0,86,179,0.4)]'
+                                : 'bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-white'
+                            }`}
+                        >
+                            {date}
+                        </button>
+                    ))}
+                    {editMode && (
+                        <button
+                            onClick={() => {
+                                const newDate = prompt('Enter new date/day name (e.g., Day 2):');
+                                if (newDate) setSelectedDate(newDate);
+                            }}
+                            className="shrink-0 w-10 h-10 rounded-full border border-dashed border-white/20 text-zinc-400 flex items-center justify-center hover:border-white/50 hover:text-white transition-all"
+                        >
+                            <i className="fa-solid fa-plus text-xs" />
+                        </button>
+                    )}
+                </div>
+            )}
+
             {/* ── Timeline Console ── */}
             <div className="flex flex-col gap-12 relative">
                 {/* Strategic Timeline Background */}
@@ -209,7 +266,7 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
                         <i className="fa-solid fa-clock-rotate-left fa-spin text-4xl mb-4" />
                         <p className="text-[10px] font-black uppercase tracking-[0.2em]">Synchronizing Master Logistics...</p>
                     </div>
-                ) : schedule.length === 0 ? (
+                ) : displayedSchedule.length === 0 ? (
                     <div className="py-32 border border-dashed border-white/5 rounded-[32px] bg-white/[0.02] flex flex-col items-center justify-center opacity-30">
                         <i className="fa-solid fa-calendar-xmark text-4xl mb-4" />
                         <p className="text-[10px] font-black uppercase tracking-[0.2em]">No mission sequence detected</p>
@@ -222,7 +279,7 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
                     </div>
                 ) : (
                     <div className="flex flex-col gap-8">
-                        {schedule.map((item, index) => (
+                        {displayedSchedule.map((item, index) => (
                             <div key={item.id} className={`${pageBreakIds.includes(item.id) ? 'print:break-before-page' : ''} group relative pl-0 md:pl-24`}>
                                 {/* Timeline Node */}
                                 <div className="absolute left-8 top-10 w-4 h-4 rounded-full bg-zinc-900 border-2 border-white/10 z-10 hidden md:flex items-center justify-center transition-all group-hover:scale-125 group-hover:border-[#4da3ff]">
@@ -246,6 +303,19 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
                                                 <span className="text-3xl font-black text-white font-['Urbanist'] tabular-nums tracking-tight uppercase">{item.time || 'TBD'}</span>
                                             )}
                                         </div>
+
+                                        {/* Date Indicator (Edit Mode Only) */}
+                                        {editMode && (
+                                            <div className="shrink-0 flex flex-col min-w-[100px] border-l border-white/10 pl-6">
+                                                <span className="text-[8px] font-black text-zinc-600 uppercase tracking-[0.3em] mb-1">Date</span>
+                                                <input 
+                                                    type="text" 
+                                                    defaultValue={item.date || 'Day 1'} 
+                                                    onBlur={(e) => handleFieldChange(item.id, 'date', e.target.value)}
+                                                    className="bg-transparent border-b border-white/10 text-sm font-black text-white font-['Urbanist'] outline-none py-1 focus:border-[#0056B3] transition-all"
+                                                />
+                                            </div>
+                                        )}
 
                                         {/* Title & Assignee */}
                                         <div className="flex-1">
