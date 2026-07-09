@@ -140,6 +140,24 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
     }
   };
 
+  const exportData = () => {
+    const sortedSchedule = [...schedule].sort((a, b) => {
+      if (a.date !== b.date) return (a.date || '').localeCompare(b.date || '');
+      return (a.time || '').localeCompare(b.time || '');
+    });
+
+    const dataStr = JSON.stringify(sortedSchedule, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Project-${projectId}-Schedule.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   // Calendar Logic
   const year = currentMonthDate.getFullYear();
   const month = currentMonthDate.getMonth();
@@ -203,6 +221,13 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
           >
             <i className={`fa-solid ${editMode ? 'fa-check-double' : 'fa-pen-to-square'} text-[10px]`} />
             {editMode ? 'Finalize' : 'Deploy Editor'}
+          </button>
+          <button 
+            onClick={exportData}
+            className="h-11 px-6 rounded-xl font-black text-[10px] tracking-widest uppercase transition-all flex items-center gap-2.5 bg-zinc-900 text-white hover:bg-zinc-800 border border-white/10 shadow-[0_0_20px_rgba(255,255,255,0.05)]"
+          >
+            <i className="fa-solid fa-file-export text-[10px]" />
+            Export JSON
           </button>
           <PrintReportButton title="Production Schedule" />
         </div>
