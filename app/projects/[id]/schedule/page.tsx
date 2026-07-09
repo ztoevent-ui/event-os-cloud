@@ -124,6 +124,7 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
 
     if (error) {
       console.error('Error adding schedule item:', error);
+      alert('无法创建任务：' + error.message + '\n\n提示：请确认您是否已经在 Supabase 中执行了添加 note 和 transport 字段的 SQL 语句。');
     } else if (data) {
       setSchedule([...schedule, data]);
     }
