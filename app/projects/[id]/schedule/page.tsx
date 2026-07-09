@@ -6,13 +6,14 @@ import { PrintReportButton } from '../../components/ProjectModals';
 import { PrintBreakTrigger } from '../../components/PrintBreakTrigger';
 import { usePrint } from '../../components/PrintContext';
 
-
 interface ScheduleItem {
   id: string;
   project_id: string;
   date: string;
   time: string;
   title: string;
+  note: string;
+  transport: string;
   assignee: string;
   status: 'PENDING' | 'IN_PROGRESS' | 'DONE';
 }
@@ -24,16 +25,15 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
   const [editMode, setEditMode] = useState(false);
   const [project, setProject] = useState<any>(null);
   const { pageBreakIds } = usePrint();
-  const [selectedDate, setSelectedDate] = useState<string>('Day 1');
-
-  const uniqueDates = Array.from(new Set(schedule.map(s => s.date || 'Day 1'))).sort();
-  const displayedSchedule = schedule.filter(s => (s.date || 'Day 1') === selectedDate);
+  
+  // Default selected date to today, will update when project loads
+  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [currentMonthDate, setCurrentMonthDate] = useState<Date>(new Date());
 
   useEffect(() => {
     fetchProject();
     fetchSchedule();
 
-    // Set up real-time subscription for multi-user collaboration
     const channel = supabase
       .channel('schedule_changes')
       .on(
@@ -56,37 +56,15 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
   }, [projectId]);
 
   const fetchProject = async () => {
-    const { data } = await supabase.from('projects').select('type').eq('id', projectId).single();
+    const { data } = await supabase.from('projects').select('*').eq('id', projectId).single();
     setProject(data);
+    if (data?.start_date) {
+      const pDate = new Date(data.start_date);
+      setCurrentMonthDate(pDate);
+      setSelectedDate(data.start_date);
+    }
   };
   
-  const isWedding = project?.type === 'wedding' || project?.type === 'wedding_fair';
-  const theme = isWedding ? {
-    text: 'text-pink-500',
-    bg: 'bg-pink-500',
-    border: 'border-pink-500',
-    text400: 'text-pink-400',
-    bg20: 'bg-pink-500/20',
-    border30: 'border-pink-500/30',
-    shadow: 'shadow-[0_0_15px_rgba(236,72,153,0.8)]',
-    border900_30: 'border-pink-900/30',
-    border900_20: 'border-pink-900/20',
-    hoverBorder900_50: 'hover:border-pink-900/50',
-    text80: 'text-pink-500/80'
-  } : {
-    text: 'text-[#0056B3]',
-    bg: 'bg-[#0056B3]',
-    border: 'border-[#0056B3]/30',
-    text400: 'text-[#0056B3]',
-    bg20: 'bg-[#0056B3]/20',
-    border30: 'border-[#0056B3]/30',
-    shadow: 'shadow-[0_0_15px_rgba(245,158,11,0.8)]',
-    border900_30: 'border-[#0056B3]/30',
-    border900_20: 'border-[#0056B3]/30',
-    hoverBorder900_50: 'hover:border-[#0056B3]/30',
-    text80: 'text-[#0056B3]/80'
-  };
-
   const fetchSchedule = async () => {
     setLoading(true);
     const { data, error } = await supabase
@@ -104,14 +82,6 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
     setLoading(false);
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'DONE': return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
-      case 'IN_PROGRESS': return '${theme.bg20} ${theme.text400} ${theme.border30}';
-      default: return 'bg-zinc-800 text-zinc-400 border-zinc-700';
-    }
-  };
-
   const getStatusLabel = (status: string) => {
     switch (status) {
       case 'DONE': return 'COMPLETED';
@@ -122,15 +92,8 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
 
   const cycleStatus = async (id: string, current: string) => {
     const nextStatus = current === 'PENDING' ? 'IN_PROGRESS' : current === 'IN_PROGRESS' ? 'DONE' : 'PENDING';
-    
-    // Optimistic update
     setSchedule(schedule.map(s => s.id === id ? { ...s, status: nextStatus as any } : s));
-
-    const { error } = await supabase
-      .from('schedule_items')
-      .update({ status: nextStatus })
-      .eq('id', id);
-    
+    const { error } = await supabase.from('schedule_items').update({ status: nextStatus }).eq('id', id);
     if (error) {
       console.error('Error cycling status:', error);
       fetchSchedule(); // Rollback
@@ -139,12 +102,7 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
 
   const handleFieldChange = async (id: string, field: keyof ScheduleItem, value: string) => {
     setSchedule(schedule.map(item => item.id === id ? { ...item, [field]: value } : item));
-
-    const { error } = await supabase
-      .from('schedule_items')
-      .update({ [field]: value })
-      .eq('id', id);
-    
+    const { error } = await supabase.from('schedule_items').update({ [field]: value }).eq('id', id);
     if (error) console.error('Error updating schedule item:', error);
   };
 
@@ -154,8 +112,10 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
       .insert({
         project_id: projectId,
         date: selectedDate,
-        time: '',
-        title: 'New Logistics Item',
+        time: '09:00 - 10:00',
+        title: 'New Task',
+        note: '',
+        transport: '',
         assignee: 'Assignee',
         status: 'PENDING'
       })
@@ -164,16 +124,13 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
 
     if (error) {
       console.error('Error adding schedule item:', error);
-      if (error.code === '404' || error.message.includes('not found')) {
-        alert('Table "schedule_items" not found. Please run the SQL script in Supabase first.');
-      }
     } else if (data) {
       setSchedule([...schedule, data]);
     }
   };
 
   const removeItem = async (id: string) => {
-    if (!confirm('确定要删除吗？')) return;
+    if (!confirm('Are you sure you want to delete this task?')) return;
     setSchedule(schedule.filter(s => s.id !== id));
     const { error } = await supabase.from('schedule_items').delete().eq('id', id);
     if (error) {
@@ -182,221 +139,292 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
     }
   };
 
-  if (loading) {
+  // Calendar Logic
+  const year = currentMonthDate.getFullYear();
+  const month = currentMonthDate.getMonth();
+  
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const firstDayOfMonth = new Date(year, month, 1).getDay(); // 0 is Sunday
+  
+  const calendarDays = [];
+  for (let i = 0; i < firstDayOfMonth; i++) {
+    calendarDays.push(null); // Empty slots before the 1st
+  }
+  for (let i = 1; i <= daysInMonth; i++) {
+    calendarDays.push(i);
+  }
+
+  const changeMonth = (offset: number) => {
+    setCurrentMonthDate(new Date(year, month + offset, 1));
+  };
+
+  const displayedSchedule = schedule.filter(s => s.date === selectedDate);
+  const densityPercent = displayedSchedule.length > 0 
+    ? Math.round((displayedSchedule.filter(s => s.status === 'DONE').length / displayedSchedule.length) * 100) 
+    : 0;
+
+  if (loading && !project) {
     return (
       <div className="flex flex-col items-center justify-center py-32 text-zinc-500">
-        <i className={`fa-solid fa-clock animate-spin text-4xl mb-6 ${theme.text}`}></i>
+        <i className="fa-solid fa-clock animate-spin text-4xl mb-6"></i>
         <p className="font-black text-sm uppercase tracking-widest italic">Syncing Logistics...</p>
       </div>
     );
   }
 
-    return (
-        <div className="flex flex-col flex-1 animate-in fade-in duration-700">
-            {/* ── Page Header + Action Bar ── */}
-            <div className="print:hidden flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
-                <div className="flex flex-col">
-                    <p className="text-xs font-black uppercase tracking-[0.2em] text-[#0056B3] mb-2">Operations Hub</p>
-                    <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tight leading-none font-['Urbanist']">
-                        Strategic Schedule
-                    </h1>
-                </div>
+  const isWedding = project?.type === 'wedding' || project?.type === 'wedding_fair';
+  const theme = isWedding ? { text: 'text-pink-500', bg: 'bg-pink-500' } : { text: 'text-[#0056B3]', bg: 'bg-[#0056B3]' };
 
-                {/* Action Hub */}
-                <div className="flex flex-wrap items-center gap-3">
-                    <div className="flex flex-col items-end mr-6 px-6 border-r border-white/5">
-                        <span className="text-[9px] font-black text-zinc-600 uppercase tracking-[0.3em] mb-1">Execution Density</span>
-                        <div className="text-2xl font-black text-[#4da3ff] font-['Urbanist'] tracking-tight leading-none">
-                            {displayedSchedule.length > 0 ? Math.round((displayedSchedule.filter(s => s.status === 'DONE').length / displayedSchedule.length) * 100) : 0}%
-                        </div>
-                    </div>
-
-                    <button 
-                        onClick={() => setEditMode(!editMode)}
-                        className={`h-11 px-8 rounded-xl font-black text-[10px] tracking-widest uppercase transition-all flex items-center gap-2.5 shadow-[0_0_20px_rgba(255,255,255,0.05)] ${
-                            editMode 
-                            ? 'bg-[#0056B3] text-white' 
-                            : 'bg-white text-black hover:bg-zinc-200'
-                        }`}
-                    >
-                        <i className={`fa-solid ${editMode ? 'fa-check-double' : 'fa-pen-to-square'} text-[10px]`} />
-                        {editMode ? 'Finalize' : 'Deploy Editor'}
-                    </button>
-                    <PrintReportButton title="Production Schedule" />
-                </div>
-            </div>
-
-            {/* ── Date Tabs ── */}
-            {!loading && schedule.length > 0 && (
-                <div className="print:hidden flex items-center gap-2 mb-8 overflow-x-auto pb-2 scrollbar-hide">
-                    {uniqueDates.map(date => (
-                        <button
-                            key={date}
-                            onClick={() => setSelectedDate(date)}
-                            className={`shrink-0 h-10 px-6 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
-                                selectedDate === date
-                                ? 'bg-[#0056B3] text-white shadow-[0_0_20px_rgba(0,86,179,0.4)]'
-                                : 'bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-white'
-                            }`}
-                        >
-                            {date}
-                        </button>
-                    ))}
-                    {editMode && (
-                        <button
-                            onClick={() => {
-                                const newDate = prompt('Enter new date/day name (e.g., Day 2):');
-                                if (newDate) setSelectedDate(newDate);
-                            }}
-                            className="shrink-0 w-10 h-10 rounded-full border border-dashed border-white/20 text-zinc-400 flex items-center justify-center hover:border-white/50 hover:text-white transition-all"
-                        >
-                            <i className="fa-solid fa-plus text-xs" />
-                        </button>
-                    )}
-                </div>
-            )}
-
-            {/* ── Timeline Console ── */}
-            <div className="flex flex-col gap-12 relative">
-                {/* Strategic Timeline Background */}
-                <div className="absolute left-[39px] top-4 bottom-4 w-px bg-white/5 hidden md:block" />
-
-                {loading ? (
-                    <div className="py-32 flex flex-col items-center justify-center opacity-30">
-                        <i className="fa-solid fa-clock-rotate-left fa-spin text-4xl mb-4" />
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em]">Synchronizing Master Logistics...</p>
-                    </div>
-                ) : displayedSchedule.length === 0 ? (
-                    <div className="py-32 border border-dashed border-white/5 rounded-[32px] bg-white/[0.02] flex flex-col items-center justify-center opacity-30">
-                        <i className="fa-solid fa-calendar-xmark text-4xl mb-4" />
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em]">No mission sequence detected</p>
-                        <button 
-                            onClick={addItem}
-                            className="mt-8 h-12 px-10 bg-[#0056B3] text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all hover:shadow-[0_0_40px_rgba(0,86,179,0.3)]"
-                        >
-                            Initialize Sequence
-                        </button>
-                    </div>
-                ) : (
-                    <div className="flex flex-col gap-8">
-                        {displayedSchedule.map((item, index) => (
-                            <div key={item.id} className={`${pageBreakIds.includes(item.id) ? 'print:break-before-page' : ''} group relative pl-0 md:pl-24`}>
-                                {/* Timeline Node */}
-                                <div className="absolute left-8 top-10 w-4 h-4 rounded-full bg-zinc-900 border-2 border-white/10 z-10 hidden md:flex items-center justify-center transition-all group-hover:scale-125 group-hover:border-[#4da3ff]">
-                                    <div className={`w-1.5 h-1.5 rounded-full transition-colors ${item.status === 'DONE' ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : item.status === 'IN_PROGRESS' ? 'bg-[#4da3ff] shadow-[0_0_10px_rgba(77,163,255,0.5)]' : 'bg-zinc-700'}`} />
-                                </div>
-
-                                {/* Logistics Card */}
-                                <div className={`bg-white/[0.03] border border-white/5 p-8 rounded-[32px] flex flex-col md:flex-row md:items-center justify-between gap-8 hover:border-[#0056B3]/40 transition-all relative overflow-hidden print:bg-white print:border-zinc-200 print:text-black ${item.status === 'DONE' && !editMode ? 'opacity-40 grayscale' : ''}`}>
-                                    <div className="flex flex-col md:flex-row md:items-center gap-12 flex-1">
-                                        {/* Time Indicator */}
-                                        <div className="shrink-0 flex flex-col min-w-[100px]">
-                                            <span className="text-[8px] font-black text-zinc-600 uppercase tracking-[0.3em] mb-1">Time Delta</span>
-                                            {editMode ? (
-                                                <input 
-                                                    type="text" 
-                                                    defaultValue={item.time} 
-                                                    onBlur={(e) => handleFieldChange(item.id, 'time', e.target.value)}
-                                                    className="bg-transparent border-b border-white/10 text-2xl font-black text-[#4da3ff] font-['Urbanist'] outline-none py-1 focus:border-[#0056B3] transition-all"
-                                                />
-                                            ) : (
-                                                <span className="text-3xl font-black text-white font-['Urbanist'] tabular-nums tracking-tight uppercase">{item.time || 'TBD'}</span>
-                                            )}
-                                        </div>
-
-                                        {/* Date Indicator (Edit Mode Only) */}
-                                        {editMode && (
-                                            <div className="shrink-0 flex flex-col min-w-[100px] border-l border-white/10 pl-6">
-                                                <span className="text-[8px] font-black text-zinc-600 uppercase tracking-[0.3em] mb-1">Date</span>
-                                                <input 
-                                                    type="text" 
-                                                    defaultValue={item.date || 'Day 1'} 
-                                                    onBlur={(e) => handleFieldChange(item.id, 'date', e.target.value)}
-                                                    className="bg-transparent border-b border-white/10 text-sm font-black text-white font-['Urbanist'] outline-none py-1 focus:border-[#0056B3] transition-all"
-                                                />
-                                            </div>
-                                        )}
-
-                                        {/* Title & Assignee */}
-                                        <div className="flex-1">
-                                            {editMode ? (
-                                                <input 
-                                                    type="text" 
-                                                    defaultValue={item.title} 
-                                                    onBlur={(e) => handleFieldChange(item.id, 'title', e.target.value)}
-                                                    className="w-full bg-transparent border-b border-white/10 text-xl font-black text-white font-['Urbanist'] outline-none py-1 focus:border-[#0056B3] transition-all uppercase placeholder:text-zinc-800"
-                                                    placeholder="Operational Title"
-                                                />
-                                            ) : (
-                                                <h3 className={`text-xl font-black uppercase tracking-tight font-['Urbanist'] mb-2 ${item.status === 'DONE' ? 'text-zinc-600' : 'text-white'}`}>
-                                                    {item.title}
-                                                </h3>
-                                            )}
-                                            <div className="flex items-center gap-3">
-                                                <i className="fa-solid fa-id-badge text-[10px] text-[#0056B3]" />
-                                                {editMode ? (
-                                                    <input 
-                                                        type="text" 
-                                                        defaultValue={item.assignee} 
-                                                        onBlur={(e) => handleFieldChange(item.id, 'assignee', e.target.value)}
-                                                        className="bg-transparent border-b border-white/10 text-[10px] font-black text-zinc-400 uppercase tracking-widest outline-none py-1 focus:border-[#0056B3] transition-all"
-                                                        placeholder="Personnel Assigned"
-                                                    />
-                                                ) : (
-                                                    <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">{item.assignee || 'Unassigned'}</span>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Action Hub */}
-                                    <div className="shrink-0 flex items-center gap-3">
-                                        {editMode && (
-                                            <button onClick={() => removeItem(item.id)} className="w-12 h-12 rounded-2xl bg-red-500/5 text-red-500/30 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center print:hidden">
-                                                <i className="fa-solid fa-trash-can" />
-                                            </button>
-                                        )}
-                                        <button 
-                                            onClick={() => cycleStatus(item.id, item.status)}
-                                            className={`h-11 px-6 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all active:scale-95 shadow-lg ${
-                                                item.status === 'DONE' 
-                                                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-emerald-500/5' 
-                                                : item.status === 'IN_PROGRESS' 
-                                                ? 'bg-[#0056B3]/10 text-[#4da3ff] border-[#0056B3]/20 shadow-[#0056B3]/5' 
-                                                : 'bg-white/5 text-zinc-500 border-white/5 shadow-none'
-                                            }`}
-                                        >
-                                            {getStatusLabel(item.status)}
-                                        </button>
-                                    </div>
-                                </div>
-                                <PrintBreakTrigger id={item.id} />
-                            </div>
-                        ))}
-
-                        {editMode && (
-                            <div className="pt-12 flex justify-center pl-0 md:pl-24">
-                                <button 
-                                    onClick={addItem}
-                                    className="h-14 px-12 bg-white text-black font-black text-[11px] uppercase tracking-[0.2em] rounded-2xl transition-all hover:bg-zinc-200 flex items-center gap-3 shadow-[0_0_40px_rgba(255,255,255,0.1)] active:scale-95"
-                                >
-                                    <i className="fa-solid fa-plus-circle text-lg" /> Append Sequence
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                )}
-            </div>
-
-            <style jsx global>{`
-                @media print {
-                    @page { size: A4 portrait; margin: 15mm; }
-                    html, body, main { background: white !important; color: black !important; }
-                    .print\\:hidden, nav, header, footer, button { display: none !important; }
-                    .bg-white\\/\\[0\\.03\\] { background: transparent !important; border: 1px solid #eee !important; border-radius: 12px !important; }
-                    .text-white, .text-zinc-600 { color: black !important; }
-                }
-            `}</style>
+  return (
+    <div className="flex flex-col flex-1 animate-in fade-in duration-700 pb-20">
+      {/* ── Page Header + Action Bar ── */}
+      <div className="print:hidden flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
+        <div className="flex flex-col">
+          <p className={`text-xs font-black uppercase tracking-[0.2em] ${theme.text} mb-2`}>Operations Hub</p>
+          <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tight leading-none font-['Urbanist']">
+            Strategic Schedule
+          </h1>
         </div>
-    );
+
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-col items-end mr-6 px-6 border-r border-white/5">
+            <span className="text-[9px] font-black text-zinc-600 uppercase tracking-[0.3em] mb-1">Execution Density</span>
+            <div className={`text-2xl font-black ${theme.text} font-['Urbanist'] tracking-tight leading-none`}>
+              {densityPercent}%
+            </div>
+          </div>
+
+          <button 
+            onClick={() => setEditMode(!editMode)}
+            className={`h-11 px-8 rounded-xl font-black text-[10px] tracking-widest uppercase transition-all flex items-center gap-2.5 shadow-[0_0_20px_rgba(255,255,255,0.05)] ${
+              editMode ? 'bg-[#0056B3] text-white' : 'bg-white text-black hover:bg-zinc-200'
+            }`}
+          >
+            <i className={`fa-solid ${editMode ? 'fa-check-double' : 'fa-pen-to-square'} text-[10px]`} />
+            {editMode ? 'Finalize' : 'Deploy Editor'}
+          </button>
+          <PrintReportButton title="Production Schedule" />
+        </div>
+      </div>
+
+      <div className="flex flex-col xl:flex-row gap-12">
+        
+        {/* ── Calendar View ── */}
+        <div className="print:hidden xl:w-[350px] shrink-0 flex flex-col gap-6">
+          <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-6">
+            <div className="flex items-center justify-between mb-6">
+              <button onClick={() => changeMonth(-1)} className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition-all"><i className="fa-solid fa-chevron-left text-xs"></i></button>
+              <h3 className="font-black text-white uppercase tracking-widest text-sm font-['Urbanist']">
+                {currentMonthDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
+              </h3>
+              <button onClick={() => changeMonth(1)} className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition-all"><i className="fa-solid fa-chevron-right text-xs"></i></button>
+            </div>
+            
+            <div className="grid grid-cols-7 gap-1 text-center mb-2">
+              {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => (
+                <div key={d} className="text-[9px] font-black uppercase text-zinc-600 tracking-wider py-2">{d}</div>
+              ))}
+            </div>
+            
+            <div className="grid grid-cols-7 gap-1">
+              {calendarDays.map((day, idx) => {
+                if (!day) return <div key={`empty-${idx}`} className="h-10"></div>;
+                
+                const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const isSelected = dateString === selectedDate;
+                const hasTasks = schedule.some(s => s.date === dateString);
+                const allTasksDone = hasTasks && schedule.filter(s => s.date === dateString).every(s => s.status === 'DONE');
+                
+                return (
+                  <button
+                    key={dateString}
+                    onClick={() => setSelectedDate(dateString)}
+                    className={`h-10 rounded-xl flex flex-col items-center justify-center relative transition-all active:scale-95 ${
+                      isSelected 
+                      ? 'bg-[#0056B3] text-white shadow-[0_0_15px_rgba(0,86,179,0.5)]' 
+                      : 'hover:bg-white/5 text-zinc-400 hover:text-white'
+                    }`}
+                  >
+                    <span className="text-sm font-black font-['Urbanist'] tabular-nums">{day}</span>
+                    {hasTasks && (
+                      <div className={`absolute bottom-1.5 w-1 h-1 rounded-full ${isSelected ? 'bg-white' : allTasksDone ? 'bg-emerald-500' : 'bg-[#4da3ff]'}`}></div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* ── Daily Itinerary List ── */}
+        <div className="flex-1 flex flex-col min-w-0">
+          <div className="mb-8 flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-black text-white uppercase tracking-tight font-['Urbanist']">{selectedDate}</h2>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mt-1">Daily Itinerary</p>
+            </div>
+            {editMode && (
+              <button 
+                onClick={addItem}
+                className="h-10 px-6 bg-white text-black font-black text-[10px] uppercase tracking-widest rounded-xl transition-all hover:bg-zinc-200 flex items-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.1)] active:scale-95 print:hidden"
+              >
+                <i className="fa-solid fa-plus" /> Add Task
+              </button>
+            )}
+          </div>
+
+          {displayedSchedule.length === 0 ? (
+            <div className="py-24 border border-dashed border-white/5 rounded-[32px] bg-white/[0.01] flex flex-col items-center justify-center opacity-40">
+              <i className="fa-solid fa-mug-hot text-4xl mb-4 text-zinc-600" />
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">No tasks for this day</p>
+              {editMode && (
+                <button onClick={addItem} className="mt-6 text-[#4da3ff] hover:text-white text-xs font-black uppercase tracking-widest transition-colors">
+                  Create First Task
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="flex flex-col gap-4">
+              {/* List Header */}
+              <div className="hidden md:grid grid-cols-[140px_1.5fr_1fr_100px_100px_auto] gap-4 px-6 pb-2 border-b border-white/10 text-[9px] font-black text-zinc-600 uppercase tracking-widest">
+                <div>Time</div>
+                <div>Task</div>
+                <div>Note</div>
+                <div>Assignee</div>
+                <div>Transport</div>
+                <div className="w-24 text-right">Status</div>
+              </div>
+
+              {/* List Items */}
+              {displayedSchedule.map((item) => (
+                <div 
+                  key={item.id} 
+                  className={`group ${pageBreakIds.includes(item.id) ? 'print:break-before-page' : ''} bg-white/[0.02] border border-white/5 rounded-2xl p-4 md:px-6 md:py-4 transition-all hover:bg-white/[0.04] flex flex-col md:grid md:grid-cols-[140px_1.5fr_1fr_100px_100px_auto] gap-4 md:items-center relative ${item.status === 'DONE' && !editMode ? 'opacity-50 grayscale' : ''}`}
+                >
+                  <PrintBreakTrigger id={item.id} />
+                  
+                  {/* Time Range */}
+                  <div className="flex flex-col shrink-0">
+                    <span className="md:hidden text-[8px] font-black text-zinc-600 uppercase tracking-widest mb-1">Time</span>
+                    {editMode ? (
+                      <input 
+                        type="text" 
+                        defaultValue={item.time} 
+                        onBlur={(e) => handleFieldChange(item.id, 'time', e.target.value)}
+                        className="bg-transparent border-b border-white/10 text-sm font-black text-[#4da3ff] font-['Urbanist'] outline-none py-1 focus:border-[#0056B3] w-full"
+                        placeholder="09:00 - 10:00"
+                      />
+                    ) : (
+                      <span className="text-base font-black text-[#4da3ff] font-['Urbanist'] tabular-nums tracking-tight whitespace-nowrap">{item.time || '-'}</span>
+                    )}
+                  </div>
+
+                  {/* Task / Title */}
+                  <div className="flex flex-col min-w-0">
+                    <span className="md:hidden text-[8px] font-black text-zinc-600 uppercase tracking-widest mb-1">Task</span>
+                    {editMode ? (
+                      <input 
+                        type="text" 
+                        defaultValue={item.title} 
+                        onBlur={(e) => handleFieldChange(item.id, 'title', e.target.value)}
+                        className="bg-transparent border-b border-white/10 text-sm font-black text-white font-['Urbanist'] outline-none py-1 focus:border-[#0056B3] w-full"
+                        placeholder="Task Name"
+                      />
+                    ) : (
+                      <span className="text-sm font-black text-white font-['Urbanist'] tracking-tight truncate">{item.title || '-'}</span>
+                    )}
+                  </div>
+
+                  {/* Note */}
+                  <div className="flex flex-col min-w-0">
+                    <span className="md:hidden text-[8px] font-black text-zinc-600 uppercase tracking-widest mb-1">Note</span>
+                    {editMode ? (
+                      <input 
+                        type="text" 
+                        defaultValue={item.note} 
+                        onBlur={(e) => handleFieldChange(item.id, 'note', e.target.value)}
+                        className="bg-transparent border-b border-white/10 text-xs text-zinc-400 outline-none py-1 focus:border-[#0056B3] w-full"
+                        placeholder="Remarks..."
+                      />
+                    ) : (
+                      <span className="text-xs text-zinc-400 truncate">{item.note || '-'}</span>
+                    )}
+                  </div>
+
+                  {/* Assignee */}
+                  <div className="flex flex-col shrink-0">
+                    <span className="md:hidden text-[8px] font-black text-zinc-600 uppercase tracking-widest mb-1">Assignee</span>
+                    {editMode ? (
+                      <input 
+                        type="text" 
+                        defaultValue={item.assignee} 
+                        onBlur={(e) => handleFieldChange(item.id, 'assignee', e.target.value)}
+                        className="bg-transparent border-b border-white/10 text-xs font-black text-zinc-300 uppercase outline-none py-1 focus:border-[#0056B3] w-full"
+                        placeholder="Assignee"
+                      />
+                    ) : (
+                      <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest truncate flex items-center gap-2">
+                        <i className="fa-solid fa-user text-zinc-600 text-[8px]"></i> {item.assignee || '-'}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Transport */}
+                  <div className="flex flex-col shrink-0">
+                    <span className="md:hidden text-[8px] font-black text-zinc-600 uppercase tracking-widest mb-1">Transport</span>
+                    {editMode ? (
+                      <input 
+                        type="text" 
+                        defaultValue={item.transport} 
+                        onBlur={(e) => handleFieldChange(item.id, 'transport', e.target.value)}
+                        className="bg-transparent border-b border-white/10 text-xs font-black text-zinc-300 uppercase outline-none py-1 focus:border-[#0056B3] w-full"
+                        placeholder="Transport"
+                      />
+                    ) : (
+                      <span className="text-[10px] font-black text-zinc-300 uppercase tracking-widest truncate flex items-center gap-2">
+                        <i className="fa-solid fa-car text-zinc-600 text-[8px]"></i> {item.transport || '-'}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Status & Actions */}
+                  <div className="flex items-center justify-end gap-2 mt-4 md:mt-0 pt-4 md:pt-0 border-t border-white/5 md:border-t-0">
+                    {editMode && (
+                      <button onClick={() => removeItem(item.id)} className="w-8 h-8 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center print:hidden mr-2">
+                        <i className="fa-solid fa-trash text-[10px]" />
+                      </button>
+                    )}
+                    <button 
+                      onClick={() => cycleStatus(item.id, item.status)}
+                      className={`h-8 px-4 rounded-lg text-[9px] font-black uppercase tracking-widest border transition-all active:scale-95 ${
+                        item.status === 'DONE' 
+                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
+                        : item.status === 'IN_PROGRESS' 
+                        ? 'bg-[#0056B3]/20 text-[#4da3ff] border-[#0056B3]/30' 
+                        : 'bg-zinc-800/50 text-zinc-500 border-zinc-700/50'
+                      }`}
+                    >
+                      {getStatusLabel(item.status)}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <style jsx global>{`
+        @media print {
+          @page { size: A4 landscape; margin: 15mm; }
+          html, body, main { background: white !important; color: black !important; }
+          .print\\:hidden, nav, header, footer, button { display: none !important; }
+          .bg-white\\/\\[0\\.02\\] { background: transparent !important; border: 1px solid #eee !important; border-radius: 8px !important; }
+          .text-white { color: black !important; }
+          .text-zinc-400, .text-zinc-300 { color: #555 !important; }
+          .border-white\\/10, .border-white\\/5 { border-color: #eee !important; }
+        }
+      `}</style>
+    </div>
+  );
 }

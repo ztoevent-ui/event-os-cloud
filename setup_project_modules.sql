@@ -23,6 +23,8 @@ CREATE TABLE IF NOT EXISTS public.schedule_items (
     date text DEFAULT 'Day 1',
     time text DEFAULT '',
     title text DEFAULT '',
+    note text DEFAULT '',
+    transport text DEFAULT '',
     assignee text DEFAULT '',
     status text DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'IN_PROGRESS', 'DONE')),
     sort_order int DEFAULT 0,
