@@ -32,6 +32,7 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
     const [editOpen, setEditOpen] = useState(false);
     const [editData, setEditData] = useState<any>(null);
     const [saving, setSaving] = useState(false);
+    const [userRole, setUserRole] = useState<string | null>(null);
 
     useEffect(() => { fetchData(); }, [id]);
 
@@ -55,6 +56,13 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const exp = budgetItems?.filter((b: any) => b.type === 'expense').reduce((s: number, b: any) => s + Number(b.amount), 0) ?? 0;
         setStats({ pending: pending ?? 0, critical: critical ?? 0, done: done ?? 0, expenses: exp, enquiries: enquiries ?? 0 });
+        
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+            if (profile) setUserRole(profile.role);
+        }
+        
         setLoading(false);
     };
 
@@ -117,7 +125,7 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
             color: '#4da3ff',
             href: `/projects/${id}/tasks`,
         },
-        {
+        userRole === 'intern' ? null : {
             label: 'Treasury Flow',
             val: `RM ${stats.expenses.toLocaleString()}`,
             sub: 'Capital Allocated',
@@ -141,7 +149,11 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
             color: '#a855f7',
             href: null,
         },
-    ];
+    ].filter(Boolean);
+
+    const visibleModules = userRole === 'intern'
+        ? MODULES.filter(mod => mod.label !== 'Budget')
+        : MODULES;
 
     return (
         <div className="page-transition" style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
@@ -249,7 +261,7 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
                 gridTemplateColumns: 'repeat(auto-fill, minmax(min(160px, 100%), 1fr))',
                 gap: 16,
             }}>
-                {kpis.map(card => {
+                {kpis.map((card, idx) => {
                     const inner = (
                         <div className="zto-card zto-card-sm" key={card.label} style={{
                             height: '100%',
@@ -286,7 +298,7 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
                         fontSize: 9, fontWeight: 700,
                         background: 'rgba(0,86,179,0.1)', border: '1px solid rgba(0,86,179,0.25)',
                         color: '#6BB8FF', padding: '2px 8px', borderRadius: 999,
-                    }}>{MODULES.length}</span>
+                    }}>{visibleModules.length}</span>
                 </div>
 
                 <div style={{
@@ -294,7 +306,7 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
                     gridTemplateColumns: 'repeat(auto-fill, minmax(min(140px, 100%), 1fr))',
                     gap: 14,
                 }}>
-                    {MODULES.map(mod => (
+                    {visibleModules.map(mod => (
                         <Link key={mod.path} href={`/projects/${id}${mod.path}`} style={{ textDecoration: 'none' }}>
                             <div className="zto-card zto-card-sm" style={{
                                 display: 'flex', flexDirection: 'column', cursor: 'pointer',

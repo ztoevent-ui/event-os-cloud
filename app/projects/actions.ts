@@ -342,3 +342,60 @@ export async function captureStageScreenshot(projectId: string, dataUrl: string,
     }
 }
 
+// --- PACKING LIST ---
+export async function createPackingItem(formData: FormData) {
+    const project_id = formData.get('project_id') as string;
+    const name = formData.get('name') as string;
+    const category = formData.get('category') as string || 'General';
+    const quantity = parseInt(formData.get('quantity') as string) || 1;
+    const remarks = formData.get('remarks') as string;
+    const status = formData.get('status') as string || 'pending';
+
+    const { error } = await supabase.from('packing_items').insert({
+        project_id,
+        name,
+        category,
+        quantity,
+        remarks,
+        status
+    });
+
+    if (error) console.error('Error creating packing item:', error);
+    revalidatePath(`/projects/${project_id}/packing-list`);
+}
+
+export async function updatePackingItem(formData: FormData) {
+    const id = formData.get('id') as string;
+    const project_id = formData.get('project_id') as string;
+    const name = formData.get('name') as string;
+    const category = formData.get('category') as string;
+    const quantity = parseInt(formData.get('quantity') as string) || 1;
+    const remarks = formData.get('remarks') as string;
+    const status = formData.get('status') as string;
+
+    const { error } = await supabase.from('packing_items').update({
+        name,
+        category,
+        quantity,
+        remarks,
+        status
+    }).eq('id', id);
+
+    if (error) console.error('Error updating packing item:', error);
+    revalidatePath(`/projects/${project_id}/packing-list`);
+}
+
+export async function updatePackingItemStatus(id: string, projectId: string, status: string) {
+    const { error } = await supabase.from('packing_items').update({ status }).eq('id', id);
+    if (error) console.error('Error updating packing item status:', error);
+    revalidatePath(`/projects/${projectId}/packing-list`);
+}
+
+export async function deletePackingItem(formData: FormData) {
+    const id = formData.get('id') as string;
+    const project_id = formData.get('project_id') as string;
+
+    const { error } = await supabase.from('packing_items').delete().eq('id', id);
+    if (error) console.error('Error deleting packing item:', error);
+    revalidatePath(`/projects/${project_id}/packing-list`);
+}

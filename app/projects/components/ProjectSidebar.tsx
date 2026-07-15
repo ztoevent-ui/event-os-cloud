@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabaseClient';
 
 const NAV_ITEMS = [
     { label: 'Dashboard',         path: '',               icon: 'fa-solid fa-chart-line' },
@@ -12,6 +13,7 @@ const NAV_ITEMS = [
     { label: 'Tentative Program', path: '/program',       icon: 'fa-solid fa-clipboard-list' },
     { label: 'Budget',            path: '/budget',        icon: 'fa-solid fa-wallet' },
     { label: 'Vendors',           path: '/vendors',       icon: 'fa-solid fa-truck-fast' },
+    { label: 'Packing List',      path: '/packing-list',  icon: 'fa-solid fa-box-open' },
     { label: 'Venue',             path: '/venue-layout',  icon: 'fa-solid fa-map-location-dot' },
     { label: '3D Stage',          path: '/stage-layout',  icon: 'fa-solid fa-cube' },
     { label: 'Registration',      path: '/registration',  icon: 'fa-solid fa-users' },
@@ -36,10 +38,27 @@ export default function ProjectSidebar({
 
     const base = `/projects/${projectId}`;
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [userRole, setUserRole] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchRole = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                const { data } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+                if (data) setUserRole(data.role);
+            }
+        };
+        fetchRole();
+    }, []);
+
+    const filteredNavItems = NAV_ITEMS.filter(item => {
+        if (item.label === 'Budget' && userRole === 'intern') return false;
+        return true;
+    });
 
     const allItems = isTournament
-        ? [...NAV_ITEMS, { label: 'Tournament Page', path: '/registration#tournament', icon: 'fa-solid fa-globe' }]
-        : NAV_ITEMS;
+        ? [...filteredNavItems, { label: 'Tournament Page', path: '/registration#tournament', icon: 'fa-solid fa-globe' }]
+        : filteredNavItems;
 
     // Sync data attribute on shell for CSS-driven drawer
     useEffect(() => {
@@ -118,12 +137,14 @@ export default function ProjectSidebar({
                     Current Project
                 </div>
                 <div style={{
-                    fontSize: 15,
+                    fontSize: 14,
                     fontWeight: 700,
                     color: '#fff',
-                    whiteSpace: 'nowrap',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
                     overflow: 'hidden',
-                    textOverflow: 'ellipsis',
+                    lineHeight: '1.35',
                     marginBottom: 10,
                 }}>
                     {projectName}

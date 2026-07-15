@@ -12,6 +12,7 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
     const [logoUrl, setLogoUrl] = useState<string>('');
     const [loading, setLoading] = useState(true);
     const [editingItem, setEditingItem] = useState<any>(null);
+    const [userRole, setUserRole] = useState<string | null>(null);
     const { pageBreakIds, layoutType } = usePrint();
 
     useEffect(() => {
@@ -35,6 +36,13 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
             .order('created_at', { ascending: true });
 
         setBudgetItems(budgetData || []);
+
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+            if (profile) setUserRole(profile.role);
+        }
+
         setLoading(false);
     };
 
@@ -44,6 +52,20 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
             Syncing Treasury Data…
         </div>
     );
+
+    if (userRole === 'intern') {
+        return (
+            <div className="flex flex-col items-center justify-center h-[60vh] text-center animate-in fade-in zoom-in-95 duration-500">
+                <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mb-6 border border-red-500/20 shadow-[0_0_30px_rgba(239,68,68,0.15)]">
+                    <i className="fa-solid fa-lock text-3xl text-red-500"></i>
+                </div>
+                <h2 className="text-3xl font-black text-white uppercase tracking-tight mb-3">Classified Sector</h2>
+                <p className="text-zinc-400 max-w-md">
+                    Your current clearance level (Intern) does not permit access to financial data. Please contact the project administrator if you require access.
+                </p>
+            </div>
+        );
+    }
 
     const expenses = budgetItems.filter(item => item.type === 'expense');
     const income   = budgetItems.filter(item => item.type === 'income');
