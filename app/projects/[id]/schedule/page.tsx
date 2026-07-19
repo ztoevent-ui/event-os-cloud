@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, use } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import PTWWizard from '@/app/projects/components/PTWWizard';
 
 interface ScheduleItem {
   id: string;
@@ -170,6 +171,7 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
   const [activeId, setActiveId] = useState<string | null>(null);
   // Ref to block realtime refetch while we are mid-drag or just saved a reorder
   const suppressRealtimeRef = React.useRef(false);
+  const [showPTW, setShowPTW] = useState(false);
 
   // Print / export selection
   const [showPrintPanel, setShowPrintPanel] = useState(false);
@@ -394,6 +396,7 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
   const theme = isWedding ? { text: 'text-pink-500', bg: 'bg-pink-500' } : { text: 'text-[#0056B3]', bg: 'bg-[#0056B3]' };
 
   return (
+    <>
     <div className="flex flex-col flex-1 animate-in fade-in duration-700 pb-20">
 
       {/* ─────────────── PRINT LAYOUT ─────────────── */}
@@ -476,6 +479,16 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
               <span className="text-[9px] font-black text-zinc-600 uppercase tracking-[0.3em] mb-1">Day Completion</span>
               <div className={`text-2xl font-black ${theme.text} font-['Urbanist'] tracking-tight leading-none`}>{densityPercent}%</div>
             </div>
+            <button
+              onClick={() => setShowPTW(true)}
+              className="h-11 px-6 rounded-xl font-black text-[10px] tracking-widest uppercase transition-all flex items-center gap-2 text-white"
+              style={{ background: 'transparent', border: '1.5px solid #0056B3', color: '#4da3ff', boxShadow: '0 0 12px rgba(0,86,179,0.25)' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,86,179,0.15)'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+            >
+              <i className="fa-solid fa-file-signature text-[10px]" />
+              Generate PTW
+            </button>
             <button
               onClick={() => setEditMode(!editMode)}
               className={`h-11 px-6 rounded-xl font-black text-[10px] tracking-widest uppercase transition-all flex items-center gap-2 ${editMode ? 'bg-[#0056B3] text-white' : 'bg-white text-black hover:bg-zinc-200'}`}
@@ -681,5 +694,15 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
         }
       `}</style>
     </div>
+
+    {/* PTW Wizard */}
+    {showPTW && project && (
+      <PTWWizard
+        project={project}
+        schedule={schedule}
+        onClose={() => setShowPTW(false)}
+      />
+    )}
+    </>
   );
 }
