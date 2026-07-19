@@ -32,8 +32,9 @@ function formatDateTime(d: string) {
   });
 }
 
-export default async function PTWDocumentPage({ params }: { params: { hash: string } }) {
-  const ptw = await getPTW(params.hash);
+export default async function PTWDocumentPage({ params }: { params: Promise<{ hash: string }> }) {
+  const { hash } = await params;
+  const ptw = await getPTW(hash);
   if (!ptw) return notFound();
 
   const project = ptw.projects as any;
