@@ -77,7 +77,7 @@ export default async function PTWDocumentPage({ params }: { params: Promise<{ ha
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button
-            onClick={() => { if (typeof window !== 'undefined') window.print(); }}
+            data-print="true"
             style={{
               padding: '9px 20px', borderRadius: 8, cursor: 'pointer',
               background: '#fff', color: '#0056B3', fontWeight: 700, fontSize: 12,
@@ -87,7 +87,7 @@ export default async function PTWDocumentPage({ params }: { params: Promise<{ ha
             🖨 Print / Save PDF
           </button>
           <button
-            onClick={() => { if (typeof window !== 'undefined') navigator.clipboard.writeText(window.location.href); }}
+            data-copy="true"
             style={{
               padding: '9px 20px', borderRadius: 8, cursor: 'pointer',
               background: 'rgba(255,255,255,0.15)', color: '#fff', fontWeight: 600, fontSize: 12,
@@ -98,6 +98,7 @@ export default async function PTWDocumentPage({ params }: { params: Promise<{ ha
           </button>
         </div>
       </div>
+
 
       {/* Document body */}
       <div className="doc" style={{ padding: '0' }}>
@@ -379,8 +380,16 @@ export default async function PTWDocumentPage({ params }: { params: Promise<{ ha
       {/* Print trigger script */}
       <script dangerouslySetInnerHTML={{ __html: `
         document.addEventListener('DOMContentLoaded', function() {
-          const btns = document.querySelectorAll('[data-print]');
-          btns.forEach(b => b.addEventListener('click', () => window.print()));
+          const printBtns = document.querySelectorAll('[data-print]');
+          printBtns.forEach(b => b.addEventListener('click', () => window.print()));
+          
+          const copyBtns = document.querySelectorAll('[data-copy]');
+          copyBtns.forEach(b => b.addEventListener('click', () => {
+            navigator.clipboard.writeText(window.location.href);
+            const originalText = b.innerText;
+            b.innerText = 'Copied!';
+            setTimeout(() => b.innerText = originalText, 2000);
+          }));
         });
       `}} />
     </>
