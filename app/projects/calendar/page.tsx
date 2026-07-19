@@ -89,11 +89,22 @@ export default function GlobalCalendarPage() {
   for (let i = 0; i < firstDayOfMonth; i++) calendarDays.push(null);
   for (let i = 1; i <= daysInMonth; i++) calendarDays.push(i);
 
-  // Group items by date string (YYYY-MM-DD)
+  // Group items by date string (YYYY-MM-DD), sorted by time within each day
+  const parseTimeMinutes = (t: string) => {
+    if (!t) return 9999;
+    const match = t.match(/(\d{1,2}):(\d{2})/);
+    if (!match) return 9999;
+    return parseInt(match[1]) * 60 + parseInt(match[2]);
+  };
+
   const itemsByDate: Record<string, ScheduleItem[]> = {};
   scheduleItems.forEach(item => {
     if (!itemsByDate[item.date]) itemsByDate[item.date] = [];
     itemsByDate[item.date].push(item);
+  });
+  // Sort each day's items by start time
+  Object.values(itemsByDate).forEach(items => {
+    items.sort((a, b) => parseTimeMinutes(a.time) - parseTimeMinutes(b.time));
   });
 
   return (

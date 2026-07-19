@@ -168,6 +168,8 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
   const [activeId, setActiveId] = useState<string | null>(null);
+  // Ref to block realtime refetch while we are mid-drag or just saved a reorder
+  const suppressRealtimeRef = React.useRef(false);
 
   // Print / export selection
   const [showPrintPanel, setShowPrintPanel] = useState(false);
@@ -180,6 +182,8 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
     const channel = supabase
       .channel('schedule_changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'schedule_items', filter: `project_id=eq.${projectId}` }, () => {
+        // Skip refetch if we just saved a drag reorder — avoid overwriting local state
+        if (suppressRealtimeRef.current) return;
         fetchSchedule();
       })
       .subscribe();
@@ -231,52 +235,72 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
   const handleDragStart = (event: any) => {
     if (!editMode) return;
     setActiveId(event.active.id);
+    // Suppress realtime while dragging
+    suppressRealtimeRef.current = true;
   };
 
   const handleDragEnd = async (event: any) => {
     setActiveId(null);
-    if (!editMode) return;
+    if (!editMode) {
+      suppressRealtimeRef.current = false;
+      return;
+    }
     const { active, over } = event;
-    if (!over) return;
+    if (!over) {
+      suppressRealtimeRef.current = false;
+      return;
+    }
 
-    if (over.id.toString().length === 10) {
-      // Dragged onto a calendar date
-      const targetDate = over.id as string;
-      if (active.id !== over.id) {
-        const itemToMove = schedule.find(s => s.id === active.id);
-        if (itemToMove && itemToMove.date !== targetDate) {
-          const targetItems = schedule.filter(s => s.date === targetDate);
-          const nextOrder = targetItems.length > 0 ? Math.max(...targetItems.map(t => t.sort_order)) + 10 : 0;
-          setSchedule(prev => prev.map(item => item.id === active.id ? { ...item, date: targetDate, sort_order: nextOrder } : item));
-          await supabase.from('schedule_items').update({ date: targetDate, sort_order: nextOrder }).eq('id', active.id);
-        }
+    // Detect a calendar-date drop: over.id is a YYYY-MM-DD string (length 10)
+    const overId = over.id.toString();
+    const isDateDrop = /^\d{4}-\d{2}-\d{2}$/.test(overId);
+
+    if (isDateDrop) {
+      const targetDate = overId;
+      const itemToMove = schedule.find(s => s.id === active.id);
+      if (itemToMove && itemToMove.date !== targetDate) {
+        const targetItems = schedule.filter(s => s.date === targetDate);
+        const nextOrder = targetItems.length > 0 ? Math.max(...targetItems.map(t => t.sort_order ?? 0)) + 10 : 0;
+        const updated = { ...itemToMove, date: targetDate, sort_order: nextOrder };
+        setSchedule(prev => prev.map(item => item.id === active.id ? updated : item));
+        // keep suppressed during DB write, then release
+        await supabase.from('schedule_items').update({ date: targetDate, sort_order: nextOrder }).eq('id', active.id);
       }
+      suppressRealtimeRef.current = false;
       return;
     }
 
     if (active.id !== over.id) {
+      // Reorder within the same day
       setSchedule((items) => {
-        const displayedItems = items.filter(s => s.date === selectedDate).sort((a, b) => a.sort_order - b.sort_order);
-        const oldIndex = displayedItems.findIndex(i => i.id === active.id);
-        const newIndex = displayedItems.findIndex(i => i.id === over.id);
-        
-        const newDisplayed = arrayMove(displayedItems, oldIndex, newIndex).map((item, index) => ({
+        const dayItems = items
+          .filter(s => s.date === selectedDate)
+          .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+        const oldIndex = dayItems.findIndex(i => i.id === active.id);
+        const newIndex = dayItems.findIndex(i => i.id === over.id);
+        if (oldIndex === -1 || newIndex === -1) return items;
+
+        const reordered = arrayMove(dayItems, oldIndex, newIndex).map((item, index) => ({
           ...item,
           sort_order: index * 10
         }));
-        
-        // Update DB
-        newDisplayed.forEach(async (item) => {
+
+        // Write to DB (fire-and-forget, suppressor is still true)
+        reordered.forEach(async (item) => {
           await supabase.from('schedule_items').update({ sort_order: item.sort_order }).eq('id', item.id);
         });
 
-        // Merge back into main schedule state
-        return items.map(item => {
-          const updated = newDisplayed.find(d => d.id === item.id);
-          return updated ? updated : item;
+        const result = items.map(item => {
+          const updated = reordered.find(d => d.id === item.id);
+          return updated ?? item;
         });
+
+        return result;
       });
     }
+
+    // Release suppressor after a brief delay so all DB writes have propagated
+    setTimeout(() => { suppressRealtimeRef.current = false; }, 2000);
   };
 
   const addItem = async () => {
@@ -305,7 +329,27 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
 
   const changeMonth = (offset: number) => setCurrentMonthDate(new Date(year, month + offset, 1));
 
-  const displayedSchedule = schedule.filter(s => s.date === selectedDate);
+  // Parse time string ("09:00 - 10:00" or "09:00") -> minutes since midnight for sorting
+  const parseTimeMinutes = (t: string) => {
+    if (!t) return 9999;
+    const match = t.match(/(\d{1,2}):(\d{2})/);
+    if (!match) return 9999;
+    return parseInt(match[1]) * 60 + parseInt(match[2]);
+  };
+
+  const displayedSchedule = schedule
+    .filter(s => s.date === selectedDate)
+    .sort((a, b) => {
+      // If both have explicit sort_order set (> 0 or non-null), use it
+      const aHasOrder = a.sort_order != null;
+      const bHasOrder = b.sort_order != null;
+      if (aHasOrder && bHasOrder) {
+        const diff = (a.sort_order ?? 0) - (b.sort_order ?? 0);
+        if (diff !== 0) return diff;
+      }
+      // Fallback: sort by time
+      return parseTimeMinutes(a.time) - parseTimeMinutes(b.time);
+    });
   const densityPercent = displayedSchedule.length > 0
     ? Math.round((displayedSchedule.filter(s => s.status === 'DONE').length / displayedSchedule.length) * 100)
     : 0;
