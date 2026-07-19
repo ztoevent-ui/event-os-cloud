@@ -49,9 +49,9 @@ function DroppableDayButton({ dateString, isSelected, hasTasks, allDone, day, on
           : 'hover:bg-white/5 text-zinc-400 hover:text-white'
       }`}
     >
-      <span className="text-sm font-black font-['Urbanist'] tabular-nums">{day}</span>
+      <span className="text-sm font-black font-['Urbanist'] tabular-nums pointer-events-none">{day}</span>
       {hasTasks && (
-        <div className={`absolute bottom-1.5 w-1 h-1 rounded-full ${isSelected ? 'bg-white' : allDone ? 'bg-emerald-500' : 'bg-[#4da3ff]'}`}></div>
+        <div className={`absolute bottom-1.5 w-1 h-1 rounded-full pointer-events-none ${isSelected ? 'bg-white' : allDone ? 'bg-emerald-500' : 'bg-[#4da3ff]'}`}></div>
       )}
     </button>
   );
@@ -260,25 +260,21 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
         const oldIndex = displayedItems.findIndex(i => i.id === active.id);
         const newIndex = displayedItems.findIndex(i => i.id === over.id);
         
-        const newDisplayed = arrayMove(displayedItems, oldIndex, newIndex);
+        const newDisplayed = arrayMove(displayedItems, oldIndex, newIndex).map((item, index) => ({
+          ...item,
+          sort_order: index * 10
+        }));
         
-        // Re-assign sort_orders
-        newDisplayed.forEach((item, index) => {
-          item.sort_order = index * 10;
-        });
-
         // Update DB
         newDisplayed.forEach(async (item) => {
           await supabase.from('schedule_items').update({ sort_order: item.sort_order }).eq('id', item.id);
         });
 
         // Merge back into main schedule state
-        const updatedSchedule = items.map(item => {
+        return items.map(item => {
           const updated = newDisplayed.find(d => d.id === item.id);
           return updated ? updated : item;
         });
-        
-        return updatedSchedule;
       });
     }
   };

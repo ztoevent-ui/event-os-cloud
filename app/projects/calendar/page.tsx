@@ -21,6 +21,10 @@ export default function GlobalCalendarPage() {
   const [projects, setProjects] = useState<Record<string, Project>>({});
   const [loading, setLoading] = useState(true);
 
+  // Edit Modal State
+  const [editingItem, setEditingItem] = useState<ScheduleItem | null>(null);
+  const [editFormData, setEditFormData] = useState({ date: '', time: '' });
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -57,6 +61,24 @@ export default function GlobalCalendarPage() {
     const d = new Date(currentMonthDate);
     d.setMonth(d.getMonth() + offset);
     setCurrentMonthDate(d);
+  };
+
+  const openEditModal = (item: ScheduleItem) => {
+    setEditingItem(item);
+    setEditFormData({ date: item.date, time: item.time });
+  };
+
+  const saveEdit = async () => {
+    if (!editingItem) return;
+    setLoading(true);
+    const { date, time } = editFormData;
+    
+    await supabase.from('schedule_items').update({ date, time }).eq('id', editingItem.id);
+    
+    setScheduleItems(prev => prev.map(s => s.id === editingItem.id ? { ...s, date, time } : s));
+    
+    setEditingItem(null);
+    setLoading(false);
   };
 
   const year = currentMonthDate.getFullYear();
@@ -141,20 +163,20 @@ export default function GlobalCalendarPage() {
                     const col = typeColor(project.type);
                     
                     return (
-                      <Link key={item.id} href={`/projects/${project.id}/schedule`} style={{ textDecoration: 'none' }}>
-                        <div
-                          className="px-1.5 py-0.5 rounded-[4px] flex items-center gap-1.5 cursor-pointer transition-all hover:bg-white/10 group"
-                          title={`${project.name}\n${item.time} - ${item.title}`}
-                        >
-                          <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: col }}></div>
-                          <div className="text-[10px] font-medium text-white/50 tabular-nums shrink-0 group-hover:text-white/80 transition-colors">
-                            {item.time?.replace(/ - .*/, '')} {/* Show only start time for compactness if it's a range */}
-                          </div>
-                          <div className="text-[11px] font-medium text-white/90 truncate group-hover:text-white transition-colors">
-                            {item.title}
-                          </div>
+                      <div
+                        key={item.id}
+                        onClick={() => openEditModal(item)}
+                        className="px-1.5 py-0.5 rounded-[4px] flex items-center gap-1.5 cursor-pointer transition-all hover:bg-white/10 group"
+                        title={`${project.name}\n${item.time} - ${item.title}`}
+                      >
+                        <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: col }}></div>
+                        <div className="text-[10px] font-medium text-white/50 tabular-nums shrink-0 group-hover:text-white/80 transition-colors">
+                          {item.time?.replace(/ - .*/, '')} {/* Show only start time for compactness if it's a range */}
                         </div>
-                      </Link>
+                        <div className="text-[11px] font-medium text-white/90 truncate group-hover:text-white transition-colors">
+                          {item.title}
+                        </div>
+                      </div>
                     );
                   })}
                 </div>
@@ -163,6 +185,76 @@ export default function GlobalCalendarPage() {
           </div>
         </div>
       </div>
+
+      {/* ── Edit Modal ── */}
+      {editingItem && (
+        <div style={{
+            position: 'fixed', inset: 0, zIndex: 1000,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: 20,
+        }}>
+            <div
+                onClick={() => setEditingItem(null)}
+                style={{
+                    position: 'absolute', inset: 0,
+                    background: 'rgba(5,5,5,0.85)',
+                    backdropFilter: 'blur(8px)',
+                }}
+            />
+            <div className="zto-card page-transition" style={{
+                position: 'relative',
+                width: '100%',
+                maxWidth: 400,
+                zIndex: 10,
+                padding: 24
+            }}>
+                <button
+                    onClick={() => setEditingItem(null)}
+                    className="zto-btn zto-btn-ghost"
+                    style={{ position: 'absolute', top: 16, right: 16, padding: '6px 10px', fontSize: 13 }}
+                >
+                    <i className="fa-solid fa-xmark" />
+                </button>
+
+                <h2 style={{ fontSize: 18, fontWeight: 700, color: '#fff', marginBottom: 6 }}>Edit Schedule</h2>
+                <p className="zto-desc" style={{ marginBottom: 24, fontSize: 12 }}>
+                  {editingItem.title}
+                </p>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    <div>
+                        <label className="zto-label" style={{ display: 'block', marginBottom: 8 }}>Date</label>
+                        <input
+                            type="date"
+                            value={editFormData.date}
+                            onChange={e => setEditFormData({ ...editFormData, date: e.target.value })}
+                            className="zto-input"
+                            style={{ colorScheme: 'dark' }}
+                        />
+                    </div>
+                    <div>
+                        <label className="zto-label" style={{ display: 'block', marginBottom: 8 }}>Time</label>
+                        <input
+                            type="text"
+                            value={editFormData.time}
+                            onChange={e => setEditFormData({ ...editFormData, time: e.target.value })}
+                            className="zto-input"
+                            placeholder="09:00 - 10:00"
+                        />
+                    </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: 12, marginTop: 28 }}>
+                    <button onClick={() => setEditingItem(null)} className="zto-btn zto-btn-ghost" style={{ flex: 1 }}>
+                        Cancel
+                    </button>
+                    <button onClick={saveEdit} disabled={loading} className="zto-btn zto-btn-primary" style={{ flex: 1 }}>
+                        {loading ? <i className="fa-solid fa-circle-notch fa-spin" /> : 'Save Changes'}
+                    </button>
+                </div>
+            </div>
+        </div>
+      )}
     </div>
   );
 }
