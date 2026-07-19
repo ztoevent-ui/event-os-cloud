@@ -81,6 +81,16 @@ export default function GlobalCalendarPage() {
     setLoading(false);
   };
 
+  const deleteItem = async () => {
+    if (!editingItem) return;
+    if (!confirm(`Delete "${editingItem.title}"? This cannot be undone.`)) return;
+    setLoading(true);
+    await supabase.from('schedule_items').delete().eq('id', editingItem.id);
+    setScheduleItems(prev => prev.filter(s => s.id !== editingItem.id));
+    setEditingItem(null);
+    setLoading(false);
+  };
+
   const year = currentMonthDate.getFullYear();
   const month = currentMonthDate.getMonth();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -256,11 +266,14 @@ export default function GlobalCalendarPage() {
                 </div>
 
                 <div style={{ display: 'flex', gap: 12, marginTop: 28 }}>
+                    <button onClick={deleteItem} disabled={loading} className="zto-btn zto-btn-danger" style={{ padding: '0 16px' }}>
+                        <i className="fa-regular fa-trash-can" />
+                    </button>
                     <button onClick={() => setEditingItem(null)} className="zto-btn zto-btn-ghost" style={{ flex: 1 }}>
                         Cancel
                     </button>
                     <button onClick={saveEdit} disabled={loading} className="zto-btn zto-btn-primary" style={{ flex: 1 }}>
-                        {loading ? <i className="fa-solid fa-circle-notch fa-spin" /> : 'Save Changes'}
+                        {loading ? <i className="fa-solid fa-circle-notch fa-spin" /> : 'Save'}
                     </button>
                 </div>
             </div>
