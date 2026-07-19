@@ -113,24 +113,24 @@ export default function GlobalCalendarPage() {
           </div>
 
           {/* Grid */}
-          <div className="grid grid-cols-7 gap-px bg-white/10 border border-white/10 rounded-xl overflow-hidden">
-            {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(d => (
-              <div key={d} className="bg-zinc-900 text-center py-3 text-[10px] font-black uppercase tracking-widest text-zinc-500">
+          <div className="grid grid-cols-7 gap-px bg-white/10 border border-white/10 rounded-xl overflow-hidden shadow-2xl">
+            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
+              <div key={d} className="bg-[#1C1C1E] text-center py-2 text-[11px] font-medium text-white/50">
                 {d}
               </div>
             ))}
             
             {calendarDays.map((day, idx) => {
-              if (!day) return <div key={`empty-${idx}`} className="bg-[#0a0a0a] min-h-[120px]"></div>;
+              if (!day) return <div key={`empty-${idx}`} className="bg-[#1C1C1E] min-h-[120px]"></div>;
               
               const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
               const dayItems = itemsByDate[dateString] || [];
               const isToday = dateString === new Date().toISOString().split('T')[0];
 
               return (
-                <div key={dateString} className={`bg-[#0a0a0a] min-h-[120px] p-2 flex flex-col gap-1 border-t border-white/5 transition-all hover:bg-white/[0.02]`}>
-                  <div className={`text-right mb-2`}>
-                    <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-black tabular-nums ${isToday ? 'bg-[#0056B3] text-white' : 'text-zinc-500'}`}>
+                <div key={dateString} className={`bg-[#1C1C1E] min-h-[120px] p-1.5 flex flex-col gap-0.5 border-t border-white/5 transition-all hover:bg-white/[0.04]`}>
+                  <div className={`text-right mb-1 pr-1 pt-1`}>
+                    <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-[13px] tabular-nums ${isToday ? 'bg-[#FF3B30] text-white font-semibold' : 'text-white/80'}`}>
                       {day}
                     </span>
                   </div>
@@ -143,15 +143,15 @@ export default function GlobalCalendarPage() {
                     return (
                       <Link key={item.id} href={`/projects/${project.id}/schedule`} style={{ textDecoration: 'none' }}>
                         <div
-                          className="px-2 py-1.5 rounded-lg mb-1 flex flex-col gap-0.5 cursor-pointer transition-all active:scale-95 hover:brightness-125"
-                          style={{ background: `${col}20`, borderLeft: `3px solid ${col}` }}
-                          title={`${project.name} - ${item.title}`}
+                          className="px-1.5 py-0.5 rounded-[4px] flex items-center gap-1.5 cursor-pointer transition-all hover:bg-white/10 group"
+                          title={`${project.name}\n${item.time} - ${item.title}`}
                         >
-                          <div style={{ fontSize: 9, fontWeight: 800, color: col, textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            {project.name}
+                          <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: col }}></div>
+                          <div className="text-[10px] font-medium text-white/50 tabular-nums shrink-0 group-hover:text-white/80 transition-colors">
+                            {item.time?.replace(/ - .*/, '')} {/* Show only start time for compactness if it's a range */}
                           </div>
-                          <div style={{ fontSize: 10, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            {item.time} - {item.title}
+                          <div className="text-[11px] font-medium text-white/90 truncate group-hover:text-white transition-colors">
+                            {item.title}
                           </div>
                         </div>
                       </Link>
