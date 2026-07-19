@@ -126,6 +126,9 @@ export default function ProjectsPage() {
                     <Link href="/dashboard" className="zto-btn zto-btn-ghost" style={{ textDecoration: 'none' }}>
                         <i className="fa-solid fa-arrow-left" /> Dashboard
                     </Link>
+                    <Link href="/projects/calendar" className="zto-btn zto-btn-ghost" style={{ textDecoration: 'none' }}>
+                        <i className="fa-solid fa-calendar-days" /> Global Calendar
+                    </Link>
                     <button onClick={() => setShowModal(true)} className="zto-btn zto-btn-primary">
                         <i className="fa-solid fa-plus" /> Deploy Event
                     </button>
