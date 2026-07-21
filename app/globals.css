@@ -73,7 +73,7 @@ html {
 body {
   background: var(--zto-bg);
   color: var(--zto-fg);
-  font-family: 'Urbanist', sans-serif;
+  font-family: 'Urbanist', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
@@ -103,7 +103,7 @@ body {
   height: 100vh;
   overflow: hidden;
   background: var(--zto-bg);
-  font-family: 'Urbanist', sans-serif;
+  font-family: 'Urbanist', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
   color: var(--zto-fg);
 }
 
@@ -278,7 +278,7 @@ body {
   gap: 0.5rem;
   padding: 0.625rem 1.25rem;
   border-radius: 12px;
-  font-family: 'Urbanist', sans-serif;
+  font-family: 'Urbanist', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
   font-weight: 700;
   font-size: 0.75rem;
   letter-spacing: 0.08em;
@@ -344,7 +344,7 @@ body {
   border-radius: 12px;
   background: var(--zto-blue);
   color: #ffffff;
-  font-family: 'Urbanist', sans-serif;
+  font-family: 'Urbanist', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
   font-weight: 700;
   font-size: 0.75rem;
   letter-spacing: 0.08em;
@@ -379,7 +379,7 @@ body {
   border-radius: 12px;
   background: var(--zto-blue);
   color: #ffffff;
-  font-family: 'Urbanist', sans-serif;
+  font-family: 'Urbanist', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
   font-weight: 700;
   font-size: 0.75rem;
   letter-spacing: 0.08em;
@@ -406,7 +406,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   color: #ffffff;
-  font-family: 'Urbanist', sans-serif;
+  font-family: 'Urbanist', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
   font-size: 0.875rem;
   outline: none;
   transition: border-color 0.2s ease;
@@ -426,7 +426,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   color: #ffffff;
-  font-family: 'Urbanist', sans-serif;
+  font-family: 'Urbanist', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
   font-size: 0.875rem;
   outline: none;
   appearance: none;

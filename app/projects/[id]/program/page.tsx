@@ -313,7 +313,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
       {/* ── Compact Table (Print Only) ── */}
       {layoutType === 'table' && (
         <div className="hidden print:block mt-6">
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11.5px', fontFamily: 'Arial, sans-serif' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11.5px', fontFamily: '"Urbanist", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif' }}>
             <thead>
               <tr style={{ borderBottom: '2px solid #000' }}>
                 <th style={{ padding: '6px 10px', textAlign: 'left', fontWeight: 800, width: '14%', whiteSpace: 'nowrap' }}>Time</th>
@@ -430,7 +430,7 @@ function RowCard({ row, editMode, updateCell, removeRow, toggleImportant, isPlac
     borderBottom: '1px solid rgba(255,255,255,0.12)',
     outline: 'none',
     color: 'inherit',
-    fontFamily: 'Urbanist, sans-serif',
+    fontFamily: '"Urbanist", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif',
     fontWeight: 'inherit',
     fontSize: 'inherit',
     width: '100%',
@@ -450,7 +450,7 @@ function RowCard({ row, editMode, updateCell, removeRow, toggleImportant, isPlac
           transition: 'all 0.2s ease',
           position: 'relative',
           overflow: 'hidden',
-          fontFamily: 'Urbanist, sans-serif',
+          fontFamily: '"Urbanist", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif',
           ...(isOverlay ? {
             cursor: 'grabbing',
             boxShadow: '0 32px 64px rgba(0,0,0,0.6)',

@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabaseClient';
 import { notFound } from 'next/navigation';
+import ClientSignature from './ClientSignature';
 
 interface ScheduleItem {
   id: string; date: string; time: string; title: string;
@@ -195,7 +196,7 @@ export default async function PTWDocumentPage({ params }: { params: Promise<{ ha
                 </tr>
                 <tr>
                   <td style={{ background: '#F8FAFF', fontWeight: 700, color: '#333' }}>Issuing Organisation</td>
-                  <td>ZTO Event Management Sdn. Bhd.</td>
+                  <td>ZERO TO ONE EVENT PLT</td>
                 </tr>
               </tbody>
             </table>
@@ -347,16 +348,28 @@ export default async function PTWDocumentPage({ params }: { params: Promise<{ ha
               </div>
 
               {/* Client / Venue */}
-              <div style={{ border: '1px solid #D0D7E4', borderRadius: 8, padding: 20 }}>
-                <div style={{ fontSize: 9, fontWeight: 700, color: '#0056B3', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 }}>
-                  Client / Venue Site Manager (Approver)
+              {ptw.status === 'approved' ? (
+                <div style={{ border: '1px solid #D0D7E4', borderRadius: 8, padding: 20 }}>
+                  <div style={{ fontSize: 9, fontWeight: 700, color: '#10b981', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 }}>
+                    Client / Venue Site Manager (Approved)
+                  </div>
+                  <div style={{ height: 56, marginBottom: 10, display: 'flex', alignItems: 'flex-end' }}>
+                    {ptw.client_signature ? (
+                      <img src={ptw.client_signature} alt="Signature" style={{ maxHeight: '100%', maxWidth: '100%' }} />
+                    ) : (
+                      <div style={{ borderBottom: '1px solid #ccc', width: '100%' }}></div>
+                    )}
+                  </div>
+                  <div style={{ fontSize: 12, color: '#111', fontWeight: 700 }}>{ptw.client_name || '___________________'}</div>
+                  <div style={{ fontSize: 10, color: '#888', marginTop: 3 }}>Name &amp; Signature &amp; Stamp</div>
+                  <div style={{ marginTop: 12, marginBottom: 6, fontSize: 11, fontWeight: 600, color: '#333' }}>
+                    {ptw.signed_at ? formatDateTime(ptw.signed_at) : '___________________'}
+                  </div>
+                  <div style={{ fontSize: 10, color: '#888' }}>Date</div>
                 </div>
-                <div style={{ height: 56, borderBottom: '1px solid #ccc', marginBottom: 10 }}></div>
-                <div style={{ fontSize: 11, color: '#888' }}>___________________</div>
-                <div style={{ fontSize: 10, color: '#888', marginTop: 3 }}>Name &amp; Signature &amp; Stamp</div>
-                <div style={{ marginTop: 12, height: 24, borderBottom: '1px solid #ccc', marginBottom: 6 }}></div>
-                <div style={{ fontSize: 10, color: '#888' }}>Date</div>
-              </div>
+              ) : (
+                <ClientSignature hash={ptw.hash} />
+              )}
             </div>
           </section>
 

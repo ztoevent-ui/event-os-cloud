@@ -21,6 +21,7 @@ const MODULES = [
     { label: 'Registration',   icon: 'fa-id-card',               path: '/registration',   desc: 'Participant management',     color: '#a855f7', tag: 'REG'  },
     { label: 'Guests',         icon: 'fa-users',                 path: '/guests',         desc: 'Guest list & seating',       color: '#14b8a6', tag: 'REG'  },
     { label: 'Auction',        icon: 'fa-gavel',                 path: '/auction',        desc: 'Live auction control',       color: '#f59e0b', tag: 'LIVE' },
+    { label: 'PTW',            icon: 'fa-file-signature',        path: '/ptw',            desc: 'Permit To Work documents',   color: '#ef4444', tag: 'DOC'  },
 ];
 
 export default function ProjectDashboard({ params }: { params: Promise<{ id: string }> }) {
