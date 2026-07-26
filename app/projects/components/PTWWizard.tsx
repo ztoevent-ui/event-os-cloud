@@ -3,6 +3,14 @@
 import React, { useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 
+interface Team {
+  id: string;
+  name: string;
+  leader: string;
+  members: string;
+}
+
+
 interface ScheduleItem {
   id: string;
   date: string;
@@ -47,6 +55,7 @@ export default function PTWWizard({ project, schedule, onClose }: PTWWizardProps
   const [customRisks, setCustomRisks] = useState<string[]>([]);
   const [workLeader, setWorkLeader] = useState('');
   const [workLeaderContact, setWorkLeaderContact] = useState('');
+  const [teams, setTeams] = useState<Team[]>([]);
   const [notes, setNotes] = useState('');
   const [generating, setGenerating] = useState(false);
   const [ptwHash, setPtwHash] = useState('');
@@ -98,6 +107,7 @@ export default function PTWWizard({ project, schedule, onClose }: PTWWizardProps
         title: `Work Permit & Site Activity Notice — ${project.name}`,
         work_leader: workLeader,
         work_leader_contact: workLeaderContact,
+        teams: teams,
         selected_items: selectedItems,
         risks: allRisks,
         notes,
@@ -407,6 +417,50 @@ export default function PTWWizard({ project, schedule, onClose }: PTWWizardProps
                     color: '#fff', fontSize: 13, outline: 'none', boxSizing: 'border-box',
                   }}
                 />
+              </div>
+              <div>
+                <label style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>
+                  Personnel Allocation / Teams (Optional)
+                </label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 8 }}>
+                  {teams.map((team, idx) => (
+                    <div key={team.id} style={{
+                      background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)',
+                      borderRadius: 12, padding: 12, display: 'flex', flexDirection: 'column', gap: 10
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: '#DEFF9A' }}>Team {idx + 1}</div>
+                        <button onClick={() => setTeams(prev => prev.filter(t => t.id !== team.id))} style={{ background: 'none', border: 'none', color: 'rgba(255,100,100,0.7)', cursor: 'pointer', fontSize: 14 }}>✕</button>
+                      </div>
+                      <div style={{ display: 'flex', gap: 10 }}>
+                        <input
+                          type="text" placeholder="Team Name (e.g. Rigging)"
+                          value={team.name} onChange={e => setTeams(prev => prev.map(t => t.id === team.id ? { ...t, name: e.target.value } : t))}
+                          style={{ flex: 1, padding: '8px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: 12, outline: 'none', boxSizing: 'border-box' }}
+                        />
+                        <input
+                          type="text" placeholder="Team Leader"
+                          value={team.leader} onChange={e => setTeams(prev => prev.map(t => t.id === team.id ? { ...t, leader: e.target.value } : t))}
+                          style={{ flex: 1, padding: '8px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: 12, outline: 'none', boxSizing: 'border-box' }}
+                        />
+                      </div>
+                      <input
+                        type="text" placeholder="Members (comma separated)"
+                        value={team.members} onChange={e => setTeams(prev => prev.map(t => t.id === team.id ? { ...t, members: e.target.value } : t))}
+                        style={{ width: '100%', padding: '8px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: 12, outline: 'none', boxSizing: 'border-box' }}
+                      />
+                    </div>
+                  ))}
+                </div>
+                <button
+                  onClick={() => setTeams(prev => [...prev, { id: `team-${Date.now()}`, name: '', leader: '', members: '' }])}
+                  style={{
+                    padding: '8px 16px', borderRadius: 10, background: 'rgba(0,86,179,0.2)', border: '1px solid rgba(0,86,179,0.3)',
+                    color: '#4da3ff', fontSize: 12, fontWeight: 700, cursor: 'pointer', width: '100%', textAlign: 'center', marginBottom: 16
+                  }}
+                >
+                  + Add Team
+                </button>
               </div>
               <div>
                 <label style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>

@@ -313,7 +313,50 @@ export default async function PTWDocumentPage({ params }: { params: Promise<{ ha
             </section>
           )}
 
-          {/* ── PART D: Sign-Off ── */}
+          {/* ── PART D: Personnel Allocation ── */}
+          {ptw.teams && ptw.teams.length > 0 && (
+            <section>
+              <div style={{
+                fontSize: 10, fontWeight: 700, color: '#0056B3', textTransform: 'uppercase',
+                letterSpacing: '0.15em', marginBottom: 14,
+                paddingBottom: 8, borderBottom: '2px solid #0056B3',
+                display: 'flex', alignItems: 'center', gap: 8,
+              }}>
+                <span style={{
+                  width: 22, height: 22, borderRadius: 6, background: '#0056B3',
+                  color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 11, fontWeight: 900,
+                }}>D</span>
+                Part D — Personnel Allocation / Team Structure
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
+                {ptw.teams.map((team: any, idx: number) => (
+                  <div key={team.id || idx} style={{
+                    background: '#F8FAFF', border: '1px solid #D0D7E4',
+                    borderRadius: 8, padding: '16px', display: 'flex', flexDirection: 'column', gap: 8
+                  }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: '#0056B3', borderBottom: '1px solid #D0D7E4', paddingBottom: 6, marginBottom: 4 }}>
+                      {team.name || `Team ${idx + 1}`}
+                    </div>
+                    {team.leader && (
+                      <div style={{ fontSize: 11, color: '#333' }}>
+                        <strong style={{ color: '#555', textTransform: 'uppercase', fontSize: 9, display: 'block' }}>Team Leader</strong>
+                        {team.leader}
+                      </div>
+                    )}
+                    {team.members && (
+                      <div style={{ fontSize: 11, color: '#333' }}>
+                        <strong style={{ color: '#555', textTransform: 'uppercase', fontSize: 9, display: 'block' }}>Members</strong>
+                        {team.members}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* ── PART E: Sign-Off ── */}
           <section>
             <div style={{
               fontSize: 10, fontWeight: 700, color: '#0056B3', textTransform: 'uppercase',
@@ -325,8 +368,8 @@ export default async function PTWDocumentPage({ params }: { params: Promise<{ ha
                 width: 22, height: 22, borderRadius: 6, background: '#0056B3',
                 color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 11, fontWeight: 900,
-              }}>D</span>
-              Part D — Declaration &amp; Sign-Off
+              }}>{ptw.teams && ptw.teams.length > 0 ? 'E' : 'D'}</span>
+              Part {ptw.teams && ptw.teams.length > 0 ? 'E' : 'D'} — Declaration &amp; Sign-Off
             </div>
             <div style={{
               fontSize: 11, color: '#555', lineHeight: 1.7, marginBottom: 20,
