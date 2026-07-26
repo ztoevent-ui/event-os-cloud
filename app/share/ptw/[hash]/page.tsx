@@ -333,7 +333,8 @@ export default async function PTWDocumentPage({ params }: { params: Promise<{ ha
                 {ptw.teams.map((team: any, idx: number) => (
                   <div key={team.id || idx} style={{
                     background: '#F8FAFF', border: '1px solid #D0D7E4',
-                    borderRadius: 8, padding: '16px', display: 'flex', flexDirection: 'column', gap: 8
+                    borderRadius: 8, padding: '16px', display: 'flex', flexDirection: 'column', gap: 8,
+                    breakInside: 'avoid', pageBreakInside: 'avoid'
                   }}>
                     <div style={{ fontSize: 13, fontWeight: 800, color: '#0056B3', borderBottom: '1px solid #D0D7E4', paddingBottom: 6, marginBottom: 4 }}>
                       {team.name || `Team ${idx + 1}`}
