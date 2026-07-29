@@ -23,7 +23,11 @@ export default function GlobalCalendarPage() {
 
   // Edit Modal State
   const [editingItem, setEditingItem] = useState<ScheduleItem | null>(null);
-  const [editFormData, setEditFormData] = useState({ date: '', time: '' });
+  const [editFormData, setEditFormData] = useState({ date: '', time: '', title: '' });
+
+  // Add Modal State
+  const [addingGlobal, setAddingGlobal] = useState(false);
+  const [addFormData, setAddFormData] = useState({ title: '', date: '', time: '09:00 - 10:00', note: '', assignee: '' });
 
   useEffect(() => {
     fetchData();
@@ -43,17 +47,20 @@ export default function GlobalCalendarPage() {
     }
     setProjects(projectMap);
 
-    // Fetch all schedule items that belong to these projects
-    if (projectsData && projectsData.length > 0) {
-      const projectIds = projectsData.map(p => p.id);
-      const { data: scheduleData } = await supabase
-        .from('schedule_items')
-        .select('*')
-        .in('project_id', projectIds)
-        .order('time', { ascending: true });
-        
-      setScheduleItems(scheduleData || []);
+    // Fetch all schedule items that belong to these projects or are global (project_id is null)
+    const projectIds = projectsData ? projectsData.map(p => p.id) : [];
+    
+    let query = supabase.from('schedule_items').select('*').order('time', { ascending: true });
+    
+    if (projectIds.length > 0) {
+      query = query.or(`project_id.in.(${projectIds.join(',')}),project_id.is.null`);
+    } else {
+      query = query.is('project_id', null);
     }
+    
+    const { data: scheduleData } = await query;
+    setScheduleItems(scheduleData || []);
+    
     setLoading(false);
   };
 
@@ -65,19 +72,42 @@ export default function GlobalCalendarPage() {
 
   const openEditModal = (item: ScheduleItem) => {
     setEditingItem(item);
-    setEditFormData({ date: item.date, time: item.time });
+    setEditFormData({ date: item.date, time: item.time, title: item.title });
   };
 
   const saveEdit = async () => {
     if (!editingItem) return;
     setLoading(true);
-    const { date, time } = editFormData;
+    const { date, time, title } = editFormData;
     
-    await supabase.from('schedule_items').update({ date, time }).eq('id', editingItem.id);
+    await supabase.from('schedule_items').update({ date, time, title }).eq('id', editingItem.id);
     
-    setScheduleItems(prev => prev.map(s => s.id === editingItem.id ? { ...s, date, time } : s));
+    setScheduleItems(prev => prev.map(s => s.id === editingItem.id ? { ...s, date, time, title } : s));
     
     setEditingItem(null);
+    setLoading(false);
+  };
+
+  const addGlobalItem = async () => {
+    if (!addFormData.title || !addFormData.date) return;
+    setLoading(true);
+    const { data, error } = await supabase.from('schedule_items').insert({
+      project_id: null,
+      title: addFormData.title,
+      date: addFormData.date,
+      time: addFormData.time,
+      note: addFormData.note,
+      assignee: addFormData.assignee,
+      status: 'PENDING'
+    }).select().single();
+    
+    if (error) {
+      alert('Error adding global task: ' + error.message);
+    } else if (data) {
+      setScheduleItems(prev => [...prev, data]);
+      setAddingGlobal(false);
+      setAddFormData({ title: '', date: '', time: '09:00 - 10:00', note: '', assignee: '' });
+    }
     setLoading(false);
   };
 
@@ -132,7 +162,13 @@ export default function GlobalCalendarPage() {
               </h1>
               <p className="zto-desc" style={{ marginTop: 6 }}>All tasks across active deployments.</p>
           </div>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+              <button onClick={() => {
+                setAddFormData(prev => ({ ...prev, date: new Date().toISOString().split('T')[0] }));
+                setAddingGlobal(true);
+              }} className="zto-btn zto-btn-primary" style={{ padding: '8px 16px' }}>
+                <i className="fa-solid fa-plus" /> Add Global Task
+              </button>
               <Link href="/projects" className="zto-btn zto-btn-ghost" style={{ textDecoration: 'none' }}>
                   <i className="fa-solid fa-arrow-left" /> Back to Projects
               </Link>
@@ -179,16 +215,18 @@ export default function GlobalCalendarPage() {
                   </div>
                   
                   {dayItems.map(item => {
-                    const project = projects[item.project_id];
-                    if (!project) return null;
-                    const col = typeColor(project.type);
+                    const isGlobal = !item.project_id;
+                    const project = isGlobal ? null : projects[item.project_id];
+                    if (!isGlobal && !project) return null;
+                    const col = isGlobal ? '#f59e0b' : typeColor(project!.type);
+                    const projName = isGlobal ? 'Global Task' : project!.name;
                     
                     return (
                       <div
                         key={item.id}
                         onClick={() => openEditModal(item)}
                         className="px-1.5 py-0.5 rounded-[4px] flex items-center gap-1.5 cursor-pointer transition-all hover:bg-white/10 group"
-                        title={`${project.name}\n${item.time} - ${item.title}`}
+                        title={`${projName}\n${item.time} - ${item.title}`}
                       >
                         <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: col }}></div>
                         <div className="text-[10px] font-medium text-white/50 tabular-nums shrink-0 group-hover:text-white/80 transition-colors">
@@ -244,6 +282,16 @@ export default function GlobalCalendarPage() {
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                     <div>
+                        <label className="zto-label" style={{ display: 'block', marginBottom: 8 }}>Title</label>
+                        <input
+                            type="text"
+                            value={editFormData.title}
+                            onChange={e => setEditFormData({ ...editFormData, title: e.target.value })}
+                            className="zto-input"
+                            placeholder="Task title"
+                        />
+                    </div>
+                    <div>
                         <label className="zto-label" style={{ display: 'block', marginBottom: 8 }}>Date</label>
                         <input
                             type="date"
@@ -274,6 +322,97 @@ export default function GlobalCalendarPage() {
                     </button>
                     <button onClick={saveEdit} disabled={loading} className="zto-btn zto-btn-primary" style={{ flex: 1 }}>
                         {loading ? <i className="fa-solid fa-circle-notch fa-spin" /> : 'Save'}
+                    </button>
+                </div>
+            </div>
+        </div>
+      )}
+
+      {/* ── Add Global Task Modal ── */}
+      {addingGlobal && (
+        <div style={{
+            position: 'fixed', inset: 0, zIndex: 1000,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: 20,
+        }}>
+            <div
+                onClick={() => setAddingGlobal(false)}
+                style={{
+                    position: 'absolute', inset: 0,
+                    background: 'rgba(5,5,5,0.85)',
+                    backdropFilter: 'blur(8px)',
+                }}
+            />
+            <div className="zto-card page-transition" style={{
+                position: 'relative',
+                width: '100%',
+                maxWidth: 400,
+                zIndex: 10,
+                padding: 24
+            }}>
+                <button
+                    onClick={() => setAddingGlobal(false)}
+                    className="zto-btn zto-btn-ghost"
+                    style={{ position: 'absolute', top: 16, right: 16, padding: '6px 10px', fontSize: 13 }}
+                >
+                    <i className="fa-solid fa-xmark" />
+                </button>
+
+                <h2 style={{ fontSize: 18, fontWeight: 700, color: '#fff', marginBottom: 6 }}>Add Global Task</h2>
+                <p className="zto-desc" style={{ marginBottom: 24, fontSize: 12 }}>
+                  This task will not be attached to any specific event.
+                </p>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    <div>
+                        <label className="zto-label" style={{ display: 'block', marginBottom: 8 }}>Title</label>
+                        <input
+                            type="text"
+                            value={addFormData.title}
+                            onChange={e => setAddFormData({ ...addFormData, title: e.target.value })}
+                            className="zto-input"
+                            placeholder="e.g. Office Meeting"
+                            autoFocus
+                        />
+                    </div>
+                    <div>
+                        <label className="zto-label" style={{ display: 'block', marginBottom: 8 }}>Date</label>
+                        <input
+                            type="date"
+                            value={addFormData.date}
+                            onChange={e => setAddFormData({ ...addFormData, date: e.target.value })}
+                            className="zto-input"
+                            style={{ colorScheme: 'dark' }}
+                        />
+                    </div>
+                    <div>
+                        <label className="zto-label" style={{ display: 'block', marginBottom: 8 }}>Time</label>
+                        <input
+                            type="text"
+                            value={addFormData.time}
+                            onChange={e => setAddFormData({ ...addFormData, time: e.target.value })}
+                            className="zto-input"
+                            placeholder="09:00 - 10:00"
+                        />
+                    </div>
+                    <div>
+                        <label className="zto-label" style={{ display: 'block', marginBottom: 8 }}>Assignee</label>
+                        <input
+                            type="text"
+                            value={addFormData.assignee}
+                            onChange={e => setAddFormData({ ...addFormData, assignee: e.target.value })}
+                            className="zto-input"
+                            placeholder="e.g. John Doe"
+                        />
+                    </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: 12, marginTop: 28 }}>
+                    <button onClick={() => setAddingGlobal(false)} className="zto-btn zto-btn-ghost" style={{ flex: 1 }}>
+                        Cancel
+                    </button>
+                    <button onClick={addGlobalItem} disabled={loading} className="zto-btn zto-btn-primary" style={{ flex: 1 }}>
+                        {loading ? <i className="fa-solid fa-circle-notch fa-spin" /> : 'Add Task'}
                     </button>
                 </div>
             </div>
