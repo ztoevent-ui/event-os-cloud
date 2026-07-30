@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
+import PTWWizard from './components/PTWWizard';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Project = any;
@@ -14,6 +15,8 @@ export default function ProjectsPage() {
     const [showModal, setShowModal] = useState(false);
     const [creating, setCreating] = useState(false);
     const [showPast, setShowPast] = useState(false);
+    const [activePtwProject, setActivePtwProject] = useState<Project | null>(null);
+    const [activePtwSchedule, setActivePtwSchedule] = useState<any[]>([]);
     const router = useRouter();
 
     const [formData, setFormData] = useState({
@@ -72,6 +75,23 @@ export default function ProjectsPage() {
         if (type === 'corporate') return 'fa-regular fa-building';
         return 'fa-regular fa-calendar-check';
     };
+
+    const openPTW = async (e: React.MouseEvent, project: Project) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Fetch schedule for this project
+        const { data } = await supabase
+            .from('schedule_items')
+            .select('*')
+            .eq('project_id', project.id)
+            .order('date', { ascending: true })
+            .order('sort_order', { ascending: true });
+            
+        setActivePtwSchedule(data || []);
+        setActivePtwProject(project);
+    };
+
     const typeColor = (type: string) => {
         if (type === 'wedding' || type === 'wedding_fair') return '#ec4899';
         if (type === 'corporate') return '#3b82f6';
@@ -251,14 +271,24 @@ export default function ProjectsPage() {
                                             justifyContent: 'space-between',
                                             alignItems: 'center',
                                         }}>
-                                            <button
-                                                onClick={e => deleteProject(e, project.id, project.name)}
-                                                className="zto-btn zto-btn-danger"
-                                                style={{ padding: '6px 10px', fontSize: 11 }}
-                                                title="Delete Project"
-                                            >
-                                                <i className="fa-regular fa-trash-can" />
-                                            </button>
+                                            <div style={{ display: 'flex', gap: 8 }}>
+                                                <button
+                                                    onClick={e => openPTW(e, project)}
+                                                    className="zto-btn zto-btn-primary"
+                                                    style={{ padding: '6px 12px', fontSize: 11 }}
+                                                    title="Generate PTW"
+                                                >
+                                                    <i className="fa-solid fa-file-signature" /> PTW
+                                                </button>
+                                                <button
+                                                    onClick={e => deleteProject(e, project.id, project.name)}
+                                                    className="zto-btn zto-btn-danger"
+                                                    style={{ padding: '6px 10px', fontSize: 11 }}
+                                                    title="Delete Project"
+                                                >
+                                                    <i className="fa-regular fa-trash-can" />
+                                                </button>
+                                            </div>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                                 <span className="zto-label">Enter</span>
                                                 <div style={{
@@ -392,6 +422,14 @@ export default function ProjectsPage() {
                         </div>
                     </div>
                 </div>
+            )}
+            
+            {activePtwProject && (
+                <PTWWizard
+                    project={activePtwProject}
+                    schedule={activePtwSchedule}
+                    onClose={() => setActivePtwProject(null)}
+                />
             )}
         </div>
     );
