@@ -80,15 +80,27 @@ export default function ProjectsPage() {
         e.preventDefault();
         e.stopPropagation();
         
-        // Fetch schedule for this project
-        const { data } = await supabase
-            .from('schedule_items')
-            .select('*')
-            .eq('project_id', project.id)
-            .order('date', { ascending: true })
-            .order('sort_order', { ascending: true });
-            
-        setActivePtwSchedule(data || []);
+        if (project.id === 'GLOBAL') {
+            const { data: projectsData } = await supabase.from('projects').select('id').neq('status', 'completed');
+            const projectIds = projectsData ? projectsData.map(p => p.id) : [];
+            let query = supabase.from('schedule_items').select('*').order('date', { ascending: true }).order('sort_order', { ascending: true });
+            if (projectIds.length > 0) {
+                query = query.or(`project_id.in.(${projectIds.join(',')}),project_id.is.null`);
+            } else {
+                query = query.is('project_id', null);
+            }
+            const { data } = await query;
+            setActivePtwSchedule(data || []);
+        } else {
+            const { data } = await supabase
+                .from('schedule_items')
+                .select('*')
+                .eq('project_id', project.id)
+                .order('date', { ascending: true })
+                .order('sort_order', { ascending: true });
+            setActivePtwSchedule(data || []);
+        }
+        
         setActivePtwProject(project);
     };
 
@@ -149,6 +161,9 @@ export default function ProjectsPage() {
                     <Link href="/projects/calendar" className="zto-btn zto-btn-ghost" style={{ textDecoration: 'none' }}>
                         <i className="fa-solid fa-calendar-days" /> Global Calendar
                     </Link>
+                    <button onClick={e => openPTW(e, { id: 'GLOBAL', name: 'Global Operations', venue: 'HQ / Multiple' })} className="zto-btn zto-btn-ghost">
+                        <i className="fa-solid fa-file-signature" /> Global PTW
+                    </button>
                     <button onClick={() => setShowModal(true)} className="zto-btn zto-btn-primary">
                         <i className="fa-solid fa-plus" /> Deploy Event
                     </button>
@@ -271,24 +286,14 @@ export default function ProjectsPage() {
                                             justifyContent: 'space-between',
                                             alignItems: 'center',
                                         }}>
-                                            <div style={{ display: 'flex', gap: 8 }}>
-                                                <button
-                                                    onClick={e => openPTW(e, project)}
-                                                    className="zto-btn zto-btn-primary"
-                                                    style={{ padding: '6px 12px', fontSize: 11 }}
-                                                    title="Generate PTW"
-                                                >
-                                                    <i className="fa-solid fa-file-signature" /> PTW
-                                                </button>
-                                                <button
-                                                    onClick={e => deleteProject(e, project.id, project.name)}
-                                                    className="zto-btn zto-btn-danger"
-                                                    style={{ padding: '6px 10px', fontSize: 11 }}
-                                                    title="Delete Project"
-                                                >
-                                                    <i className="fa-regular fa-trash-can" />
-                                                </button>
-                                            </div>
+                                            <button
+                                                onClick={e => deleteProject(e, project.id, project.name)}
+                                                className="zto-btn zto-btn-danger"
+                                                style={{ padding: '6px 10px', fontSize: 11 }}
+                                                title="Delete Project"
+                                            >
+                                                <i className="fa-regular fa-trash-can" />
+                                            </button>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                                 <span className="zto-label">Enter</span>
                                                 <div style={{

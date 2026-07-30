@@ -103,8 +103,8 @@ export default function PTWWizard({ project, schedule, onClose }: PTWWizardProps
     const { data, error } = await supabase
       .from('ptw_documents')
       .insert({
-        project_id: project.id,
-        title: `Work Permit & Site Activity Notice — ${project.name}`,
+        project_id: project.id === 'GLOBAL' ? null : project.id,
+        title: project.id === 'GLOBAL' ? `Work Permit & Site Activity Notice — ${project.name}` : `Work Permit & Site Activity Notice — ${project.name}`,
         work_leader: workLeader,
         work_leader_contact: workLeaderContact,
         teams: teams,
@@ -118,7 +118,11 @@ export default function PTWWizard({ project, schedule, onClose }: PTWWizardProps
       .single();
 
     if (error) {
-      alert('Error generating PTW: ' + error.message);
+      if (error.code === '23502' && project.id === 'GLOBAL') {
+        alert('Global PTW requires a database migration to allow null project_id. Please run the SQL migration in supabase/migrations/20260731_global_ptw.sql first.');
+      } else {
+        alert('Error generating PTW: ' + error.message);
+      }
       setGenerating(false);
       return;
     }

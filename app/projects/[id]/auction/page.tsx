@@ -66,8 +66,9 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
   const subscribeToLiveState = () => {
     const channel = supabase.channel(`auction_${projectId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tool_states', filter: `tool_name=eq.auction` }, payload => {
-        if (payload.new && payload.new.project_id === projectId) {
-          const state = payload.new.current_state;
+        const newRecord = payload.new as any;
+        if (newRecord && newRecord.project_id === projectId) {
+          const state = newRecord.current_state;
           if (state) {
             setActiveItemId(state.active_item_id);
             setLivePrice(state.current_price);
@@ -324,27 +325,34 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
                 </div>
 
                 <div style={{ flex: 1, minWidth: 320, display: 'flex', flexDirection: 'column', gap: 24 }}>
-                  {/* Price Display */}
-                  <div style={{ background: 'rgba(0,0,0,0.4)', borderRadius: 16, padding: 24, border: '1px solid rgba(255,255,255,0.1)' }}>
-                    <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Current Price (RM)</div>
-                    <input 
-                      type="number" 
-                      value={livePrice}
-                      onChange={(e) => setLivePrice(Number(e.target.value))}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.currentTarget.blur();
-                          handleCustomPriceConfirm(livePrice);
-                        }
-                      }}
-                      onBlur={(e) => {
-                        const val = Number(e.target.value);
-                        if (val > 0 && val !== livePrice) {
-                          handleCustomPriceConfirm(val);
-                        }
-                      }}
-                      style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: 48, fontWeight: 800, width: '100%', outline: 'none', fontFamily: 'Urbanist' }}
-                    />
+                  {/* Price Display & Sync Control */}
+                  <div style={{ background: 'rgba(0,0,0,0.4)', borderRadius: 16, padding: 24, border: '1px solid rgba(222,255,154,0.2)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                      <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Current Price (RM)</div>
+                      <span style={{ fontSize: 11, color: '#DEFF9A', opacity: 0.8 }}>按 Enter 或点击右侧按键同步大屏</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                      <input 
+                        type="number" 
+                        value={livePrice || ''}
+                        onChange={(e) => setLivePrice(Number(e.target.value))}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.currentTarget.blur();
+                            updateLiveState({ current_price: Number(livePrice) });
+                          }
+                        }}
+                        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 12, color: '#fff', fontSize: 36, fontWeight: 800, padding: '8px 16px', flex: 1, outline: 'none', fontFamily: 'Urbanist' }}
+                      />
+                      <button
+                        onClick={() => updateLiveState({ current_price: Number(livePrice) })}
+                        disabled={isUpdating}
+                        className="zto-btn zto-btn-primary"
+                        style={{ padding: '14px 20px', whiteSpace: 'nowrap', fontSize: 14 }}
+                      >
+                        <i className="fa-solid fa-sync" /> 同步至大荧幕
+                      </button>
+                    </div>
                   </div>
 
                   {/* Quick Increments — Atomic Popover */}

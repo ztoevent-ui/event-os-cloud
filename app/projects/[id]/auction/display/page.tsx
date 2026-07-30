@@ -51,28 +51,25 @@ function GoldParticleCanvas() {
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Deep dark ocean blue radial gradient base (REMOVED to make canvas transparent for background image)
-      // The canvas will only draw glowing elements over the background image layer.
-
-      // Bottom Ocean glow
+      // Bottom Emerald glow (正阳绿)
       const waveGrad = ctx.createRadialGradient(canvas.width / 2, canvas.height, 0, canvas.width / 2, canvas.height, canvas.width * 0.75);
-      waveGrad.addColorStop(0, 'rgba(0,100,180,0.3)'); // Ocean glow
-      waveGrad.addColorStop(0.45, 'rgba(0,50,100,0.1)');
+      waveGrad.addColorStop(0, 'rgba(0, 180, 90, 0.35)'); // Imperial Jade Emerald glow
+      waveGrad.addColorStop(0.45, 'rgba(0, 90, 45, 0.15)');
       waveGrad.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = waveGrad;
       ctx.fillRect(0, canvas.height * 0.45, canvas.width, canvas.height * 0.55);
 
       // Centre-right Gold spotlight
       const spotlight = ctx.createRadialGradient(canvas.width * 0.55, canvas.height * 0.38, 0, canvas.width * 0.55, canvas.height * 0.38, canvas.width * 0.45);
-      spotlight.addColorStop(0, 'rgba(212,175,55,0.15)'); // Gold spotlight
-      spotlight.addColorStop(0.6, 'rgba(180,140,40,0.05)');
+      spotlight.addColorStop(0, 'rgba(212,175,55,0.18)'); // Gold spotlight
+      spotlight.addColorStop(0.6, 'rgba(180,140,40,0.06)');
       spotlight.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = spotlight;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Top-left accent (Gold/Blue sheen)
+      // Top-left accent (Gold Sheen)
       const topLeft = ctx.createRadialGradient(canvas.width * 0.15, canvas.height * 0.2, 0, canvas.width * 0.15, canvas.height * 0.2, canvas.width * 0.3);
-      topLeft.addColorStop(0, 'rgba(212,175,55,0.12)');
+      topLeft.addColorStop(0, 'rgba(212,175,55,0.15)');
       topLeft.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = topLeft;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -141,8 +138,9 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
 
     const channel = supabase.channel(`auction_display_gala_${projectId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tool_states', filter: `tool_name=eq.auction` }, payload => {
-        if (payload.new && payload.new.project_id === projectId) {
-          const state = payload.new.current_state;
+        const newRecord = payload.new as any;
+        if (newRecord && newRecord.project_id === projectId) {
+          const state = newRecord.current_state;
           if (!state) return;
           if (state.active_item_id && activeItemIdRef.current !== state.active_item_id) {
             fetchItemDetails(state.active_item_id);
@@ -215,7 +213,7 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
   /* ─── STANDBY ─── */
   if (!activeItem) {
     return (
-      <div style={{ position: 'fixed', inset: 0, zIndex: 9999, overflow: 'hidden', fontFamily: '"Noto Serif SC", "STKaiti", "KaiTi", serif' }}>
+      <div style={{ position: 'fixed', inset: 0, zIndex: 9999, overflow: 'hidden', fontFamily: '"Noto Serif SC", "STKaiti", "KaiTi", serif', backgroundColor: '#012111' }}>
         <GoldParticleCanvas />
         <div style={{ position: 'relative', zIndex: 1, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ fontSize: 'clamp(2rem, 6vw, 7rem)', fontWeight: 900, background: 'linear-gradient(135deg, #bf953f 0%, #fcf6ba 30%, #b38728 55%, #fbf5b7 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', letterSpacing: '0.15em', textShadow: 'none' }}>
@@ -235,29 +233,29 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
       {/* Layer 0: Gold Particle Canvas */}
       <GoldParticleCanvas />
 
-      {/* Layer -2: Deep Ocean Base */}
-      <div style={{ position: 'absolute', inset: 0, zIndex: -2, backgroundColor: '#001a4d' }} />
+      {/* Layer -2: Zheng Yang Emerald Green Base (正阳绿) */}
+      <div style={{ position: 'absolute', inset: 0, zIndex: -2, backgroundColor: '#012111' }} />
 
       {/* Layer -1: Dragon & Cloud Watermark Background */}
       <div style={{
         position: 'absolute', inset: 0, zIndex: -1, pointerEvents: 'none',
         backgroundImage: "url('/images/dragon_cloud_bg.png')",
         backgroundSize: 'cover', backgroundPosition: 'center',
-        opacity: 1,
-        filter: 'brightness(2.5) contrast(1.4) saturate(3.0)'
+        opacity: 0.9,
+        filter: 'brightness(1.8) contrast(1.3) hue-rotate(90deg)'
       }} />
 
-      {/* Layer 0.5: Vivid Blue Core Glow */}
+      {/* Layer 0.5: Vivid Zheng Yang Emerald Core Glow (正阳绿核心强光) */}
       <div style={{
         position: 'absolute', inset: 0, zIndex: -1, pointerEvents: 'none',
-        background: 'radial-gradient(circle at center, rgba(0, 120, 255, 0.4) 0%, rgba(0, 60, 180, 0.1) 65%, transparent 100%)',
+        background: 'radial-gradient(circle at center, rgba(0, 200, 90, 0.45) 0%, rgba(0, 100, 45, 0.15) 65%, transparent 100%)',
         mixBlendMode: 'screen'
       }} />
 
-      {/* Layer 1: Subtle Vignette / Edge Shadow */}
+      {/* Layer 1: Edge Shadow */}
       <div style={{
         position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none',
-        boxShadow: 'inset 0 0 100px rgba(0,20,50,0.7)'
+        boxShadow: 'inset 0 0 120px rgba(0,30,15,0.85)'
       }} />
 
       {/* Layer 1.5: Grand Imperial Frame (Pan Chang Knot Borders) */}
@@ -272,22 +270,16 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
           const KnotCorner = () => (
             <svg width="120" height="120" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style={{ filter: 'drop-shadow(0 0 10px rgba(212,175,55,0.8))' }}>
               <g fill="none" stroke="url(#goldGrad)" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
-                {/* Central Diamond */}
                 <path d="M20 50 L50 20 L80 50 L50 80 Z" />
                 <path d="M35 35 L65 65 M35 65 L65 35" strokeWidth="2" />
-                {/* Top loops */}
                 <path d="M50 20 C50 0 30 0 30 20 L50 40" />
                 <path d="M50 20 C50 0 70 0 70 20 L50 40" />
-                {/* Left loops */}
                 <path d="M20 50 C0 50 0 30 20 30 L40 50" />
                 <path d="M20 50 C0 50 0 70 20 70 L40 50" />
-                {/* Right loops */}
                 <path d="M80 50 C100 50 100 30 80 30 L60 50" />
                 <path d="M80 50 C100 50 100 70 80 70 L60 50" />
-                {/* Bottom loops */}
                 <path d="M50 80 C50 100 30 100 30 80 L50 60" />
                 <path d="M50 80 C50 100 70 100 70 80 L50 60" />
-                {/* Corner connecting lines */}
                 <path d="M0 0 L25 25" strokeWidth="3" />
                 <path d="M15 0 L15 15 L0 15" strokeWidth="2" />
               </g>
@@ -326,15 +318,14 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
         </button>
 
         {/* ── HEADER — Centered Event Name ── */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '7vh 8vw 0 8vw', flexShrink: 0, textAlign: 'center', position: 'relative' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '6vh 8vw 0 8vw', flexShrink: 0, textAlign: 'center', position: 'relative' }}>
           {/* Small LIVE AUCTION badge on left */}
-          <span style={{ position: 'absolute', left: '5vw', top: '50%', transform: 'translateY(-50%)', fontSize: 'clamp(9px, 0.8vw, 12px)', fontWeight: 700, color: 'rgba(212,175,55,0.4)', textTransform: 'uppercase', letterSpacing: '0.35em', fontFamily: '"Urbanist", sans-serif' }}>
+          <span style={{ position: 'absolute', left: '5vw', top: '50%', transform: 'translateY(-50%)', fontSize: 'clamp(9px, 0.8vw, 12px)', fontWeight: 700, color: 'rgba(212,175,55,0.5)', textTransform: 'uppercase', letterSpacing: '0.35em', fontFamily: '"Urbanist", sans-serif' }}>
             Live Auction
           </span>
           {/* Chinese name — 楷体 gold large */}
           {project?.name && (() => {
             const name = project.name as string;
-            // Split at the boundary between CJK and Latin
             const match = name.match(/^([\u4e00-\u9fff\u3000-\u303f\uff00-\uffef\s]+?)\s*([A-Za-z].*)$/);
             const chinesePart = match ? match[1].trim() : name;
             const englishPart = match ? match[2].trim() : '';
@@ -375,7 +366,7 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
 
 
         {/* ── MAIN BODY ── */}
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '3vh 5vw 5vh 5vw', gap: '6vw', overflow: 'hidden' }}>
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2vh 5vw 4vh 5vw', gap: '5vw', overflow: 'hidden' }}>
 
           {/* LEFT — Holy Frame Image */}
           <AnimatePresence mode="wait">
@@ -385,15 +376,15 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
               transition={{ duration: 0.7, ease: 'easeOut' }}
-              style={{ flexShrink: 0, position: 'relative', width: 'clamp(200px, 34vw, 500px)', height: 'clamp(200px, 34vw, 500px)' }}
+              style={{ flexShrink: 0, position: 'relative', width: 'clamp(240px, 36vw, 540px)', height: 'clamp(240px, 36vw, 540px)' }}
             >
               {/* Classical Wood & Gold Frame */}
               <div style={{
                 position: 'absolute', inset: -14,
                 borderRadius: 'clamp(20px, 3vw, 42px)',
-                background: 'linear-gradient(145deg, #4a2e00, #1a0f00)',
+                background: 'linear-gradient(145deg, #3a2200, #180b00)',
                 padding: 8, zIndex: 1,
-                boxShadow: 'inset 0 0 10px rgba(0,0,0,0.9), 0 0 40px rgba(212, 175, 55, 0.5)',
+                boxShadow: 'inset 0 0 10px rgba(0,0,0,0.9), 0 0 50px rgba(212, 175, 55, 0.6)',
                 animation: 'pulse 3s infinite'
               }}>
                 <div style={{
@@ -403,7 +394,7 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
                   padding: 4,
                   boxShadow: '0 0 15px rgba(0,0,0,0.8)'
                 }}>
-                  <div style={{ width: '100%', height: '100%', borderRadius: 'clamp(10px, 2.2vw, 30px)', background: '#00110c', boxShadow: 'inset 0 0 20px rgba(0,0,0,1)' }} />
+                  <div style={{ width: '100%', height: '100%', borderRadius: 'clamp(10px, 2.2vw, 30px)', background: '#002414', boxShadow: 'inset 0 0 20px rgba(0,0,0,0.9)' }} />
                 </div>
               </div>
               
@@ -419,33 +410,33 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
             </motion.div>
           </AnimatePresence>
 
-          {/* RIGHT — Info Stack */}
-          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 'clamp(8px, 2.5vh, 28px)', overflow: 'hidden', flexShrink: 0, minWidth: '40%' }}>
+          {/* RIGHT — Info Stack (ENLARGED PRICING SECTIONS) */}
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 'clamp(12px, 3vh, 32px)', overflow: 'hidden', flex: 1, minWidth: '40%' }}>
 
             {/* LOT + Title */}
             <AnimatePresence mode="wait">
               <motion.div key={activeItem.id + '-info'} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}>
-                <div style={{ fontSize: 'clamp(10px, 1.1vw, 15px)', fontWeight: 800, color: '#d4af37', textTransform: 'uppercase', letterSpacing: '0.3em', marginBottom: 'clamp(4px, 0.8vh, 12px)', fontFamily: '"Urbanist", sans-serif', textShadow: '0 0 12px rgba(212,175,55,0.6)' }}>
+                <div style={{ fontSize: 'clamp(12px, 1.3vw, 18px)', fontWeight: 800, color: '#d4af37', textTransform: 'uppercase', letterSpacing: '0.3em', marginBottom: 'clamp(4px, 0.8vh, 12px)', fontFamily: '"Urbanist", sans-serif', textShadow: '0 0 12px rgba(212,175,55,0.6)' }}>
                   LOT {lotNum}
                 </div>
-                <div style={{ fontSize: 'clamp(1.3rem, 3vw, 4rem)', fontWeight: 900, lineHeight: 1.2, letterSpacing: '0.02em', background: 'linear-gradient(135deg, #ffffff 0%, #fcf6ba 40%, #fff 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', filter: 'drop-shadow(0 2px 12px rgba(252,246,186,0.3))' }}>
+                <div style={{ fontSize: 'clamp(1.5rem, 3.5vw, 4.5rem)', fontWeight: 900, lineHeight: 1.15, letterSpacing: '0.02em', background: 'linear-gradient(135deg, #ffffff 0%, #fcf6ba 40%, #fff 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', filter: 'drop-shadow(0 2px 12px rgba(252,246,186,0.3))' }}>
                   {activeItem.title}
                 </div>
               </motion.div>
             </AnimatePresence>
 
             {/* Divider */}
-            <div style={{ height: 1, background: 'linear-gradient(90deg, rgba(212,175,55,0.6), rgba(212,175,55,0.1))', width: '80%' }} />
+            <div style={{ height: 2, background: 'linear-gradient(90deg, rgba(212,175,55,0.8), rgba(212,175,55,0.15))', width: '90%' }} />
 
-            {/* 起拍价 STARTING PRICE */}
+            {/* 起拍价 STARTING PRICE (ENLARGED) */}
             <AnimatePresence mode="wait">
               <motion.div key={activeItem.id + '-start'} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                <div style={{ fontSize: 'clamp(12px, 1.2vw, 18px)', fontWeight: 400, color: '#d4af37', letterSpacing: '0.2em', marginBottom: 'clamp(2px, 0.5vh, 8px)', fontFamily: '"Ma Shan Zheng", "Noto Serif SC", serif' }}>
+                <div style={{ fontSize: 'clamp(16px, 1.8vw, 26px)', fontWeight: 700, color: '#fcf6ba', letterSpacing: '0.2em', marginBottom: 'clamp(4px, 0.8vh, 10px)', fontFamily: '"Ma Shan Zheng", "Noto Serif SC", serif' }}>
                   起拍价
                 </div>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.8vw' }}>
-                  <span style={{ fontSize: 'clamp(0.9rem, 1.5vw, 2rem)', fontWeight: 700, color: 'rgba(212,175,55,0.6)', lineHeight: 1, flexShrink: 0 }}>RM</span>
-                  <span style={{ fontSize: 'clamp(1.2rem, 2.5vw, 3.2rem)', fontWeight: 800, lineHeight: 1, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums', fontFamily: '"Urbanist", sans-serif', background: 'linear-gradient(180deg, #ffe58f 0%, #d4af37 50%, #aa7c11 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', filter: 'drop-shadow(2px 4px 6px rgba(0,0,0,0.7))' }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '1vw' }}>
+                  <span style={{ fontSize: 'clamp(1.4rem, 2.5vw, 3.2rem)', fontWeight: 800, color: 'rgba(212,175,55,0.75)', lineHeight: 1, flexShrink: 0 }}>RM</span>
+                  <span style={{ fontSize: 'clamp(2rem, 4vw, 5.5rem)', fontWeight: 800, lineHeight: 1, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums', fontFamily: '"Urbanist", sans-serif', background: 'linear-gradient(180deg, #ffe58f 0%, #d4af37 50%, #aa7c11 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', filter: 'drop-shadow(2px 4px 8px rgba(0,0,0,0.8))' }}>
                     {(activeItem.starting_price || 0).toLocaleString()}
                   </span>
                 </div>
@@ -453,15 +444,15 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
             </AnimatePresence>
 
             {/* Divider */}
-            <div style={{ height: 1, background: 'linear-gradient(90deg, rgba(212,175,55,0.6), rgba(212,175,55,0.1))', width: '80%' }} />
+            <div style={{ height: 2, background: 'linear-gradient(90deg, rgba(212,175,55,0.8), rgba(212,175,55,0.15))', width: '90%' }} />
 
-            {/* 现价 CURRENT PRICE */}
+            {/* 现价 CURRENT PRICE (MUCH LARGER & PROMINENT) */}
             <div>
-              <div style={{ fontSize: 'clamp(14px, 1.4vw, 22px)', fontWeight: 400, color: '#d4af37', letterSpacing: '0.2em', marginBottom: 'clamp(4px, 1vh, 14px)', fontFamily: '"Ma Shan Zheng", "Noto Serif SC", serif' }}>
+              <div style={{ fontSize: 'clamp(20px, 2.2vw, 32px)', fontWeight: 900, color: '#ffe066', letterSpacing: '0.25em', marginBottom: 'clamp(6px, 1.2vh, 16px)', fontFamily: '"Ma Shan Zheng", "Noto Serif SC", serif', filter: 'drop-shadow(0 0 10px rgba(212,175,55,0.6))' }}>
                 现价
               </div>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '1vw' }}>
-                <span style={{ fontSize: 'clamp(1.4rem, 2.5vw, 3.5rem)', fontWeight: 900, color: '#d4af37', lineHeight: 1, flexShrink: 0, textShadow: '0 0 20px rgba(212,175,55,0.8), 0 0 40px rgba(212,175,55,0.4)' }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '1.2vw' }}>
+                <span style={{ fontSize: 'clamp(2.2rem, 4.5vw, 6rem)', fontWeight: 900, color: '#d4af37', lineHeight: 1, flexShrink: 0, textShadow: '0 0 25px rgba(212,175,55,0.9), 0 0 50px rgba(212,175,55,0.5)' }}>
                   RM
                 </span>
                 
@@ -473,63 +464,20 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
                       initial={{ opacity: 0.8, scale: 1 }}
                       animate={{ opacity: 0, scale: 1.4 }}
                       transition={{ duration: 0.4, ease: "easeOut" }}
-                      style={{ position: 'absolute', inset: -10, borderRadius: 20, border: '3px solid rgba(212,175,55,0.9)', pointerEvents: 'none', filter: 'blur(4px)' }}
+                      style={{ position: 'absolute', inset: -10, borderRadius: 20, border: '4px solid rgba(212,175,55,0.9)', pointerEvents: 'none', filter: 'blur(4px)' }}
                     />
                   </AnimatePresence>
                   
                   <motion.span
                     key={'price-' + priceImpact}
-                    initial={{ scale: 1.3, textShadow: '0 0 60px rgba(212,175,55,1)' }}
-                    animate={{ scale: 1, textShadow: '0 0 20px rgba(212,175,55,0)' }}
+                    initial={{ scale: 1.3, textShadow: '0 0 80px rgba(212,175,55,1)' }}
+                    animate={{ scale: 1, textShadow: '0 0 25px rgba(212,175,55,0)' }}
                     transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                    style={{ fontSize: 'clamp(3rem, 9vw, 11rem)', fontWeight: 900, lineHeight: 1, letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums', fontFamily: '"Urbanist", "Noto Serif SC", sans-serif', background: 'linear-gradient(180deg, #ffe58f 0%, #d4af37 50%, #aa7c11 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', filter: 'drop-shadow(2px 6px 10px rgba(0,0,0,0.8))' }}
+                    style={{ fontSize: 'clamp(4.5rem, 12vw, 15rem)', fontWeight: 900, lineHeight: 1, letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums', fontFamily: '"Urbanist", "Noto Serif SC", sans-serif', background: 'linear-gradient(180deg, #ffffff 0%, #ffe58f 30%, #d4af37 65%, #aa7c11 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', filter: 'drop-shadow(3px 8px 16px rgba(0,0,0,0.9))' }}
                   >
                     {livePrice.toLocaleString()}
                   </motion.span>
                 </div>
-              </div>
-            </div>
-
-            {/* Divider */}
-            <div style={{ height: 1, background: 'linear-gradient(90deg, rgba(212,175,55,0.6), rgba(212,175,55,0.1))', width: '80%' }} />
-
-            {/* HIGHEST BIDDER */}
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: 'clamp(14px, 1.4vw, 22px)', fontWeight: 400, color: '#d4af37', letterSpacing: '0.2em', marginBottom: 'clamp(4px, 1vh, 14px)', fontFamily: '"Ma Shan Zheng", "Noto Serif SC", serif' }}>
-                最高出价牌号
-              </div>
-              <div style={{ position: 'relative', display: 'inline-block' }}>
-                {/* Ripple for bidder */}
-                <AnimatePresence mode="popLayout">
-                  {liveWinner && (
-                    <motion.div
-                      key={'ripple-bidder-' + bidderImpact}
-                      initial={{ opacity: 0.8, scale: 1 }}
-                      animate={{ opacity: 0, scale: 1.3 }}
-                      transition={{ duration: 0.4, ease: "easeOut" }}
-                      style={{ position: 'absolute', inset: -10, borderRadius: 20, border: '3px solid rgba(212,175,55,0.9)', pointerEvents: 'none', filter: 'blur(4px)' }}
-                    />
-                  )}
-                </AnimatePresence>
-                
-                <AnimatePresence mode="wait">
-                  {liveWinner ? (
-                    <motion.div
-                      key={'bidder-' + bidderImpact}
-                      initial={{ scale: 1.3, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                      style={{ fontSize: 'clamp(2rem, 6.5vw, 8.5rem)', fontWeight: 900, lineHeight: 1.08, letterSpacing: '-0.01em', wordBreak: 'break-word', fontFamily: '"Urbanist", sans-serif', background: 'linear-gradient(180deg, #ffe58f 0%, #d4af37 50%, #aa7c11 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', filter: 'drop-shadow(2px 6px 10px rgba(0,0,0,0.8))' }}
-                    >
-                      {liveWinner}
-                    </motion.div>
-                  ) : (
-                    <motion.div key="dash" initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ fontSize: 'clamp(2rem, 4vw, 5rem)', fontWeight: 700, color: 'rgba(212,175,55,0.12)', lineHeight: 1 }}>
-                      —
-                    </motion.div>
-                  )}
-                </AnimatePresence>
               </div>
             </div>
 
@@ -544,24 +492,28 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.4 }}
-              style={{ position: 'absolute', inset: 0, zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(5,3,0,0.88)', backdropFilter: 'blur(16px)', pointerEvents: 'none' }}
+              style={{ position: 'absolute', inset: 0, zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(1, 20, 10, 0.92)', backdropFilter: 'blur(16px)', pointerEvents: 'none' }}
             >
               <motion.div
                 initial={{ scale: 0.8, y: 60 }}
                 animate={{ scale: 1, y: 0 }}
                 transition={{ type: 'spring', damping: 18, stiffness: 100, delay: 0.08 }}
-                style={{ textAlign: 'center', background: 'linear-gradient(145deg, rgba(212,175,55,0.15) 0%, rgba(0,22,44,0.95) 100%)', border: '1px solid rgba(212,175,55,0.4)', padding: '7vh 9vw', borderRadius: 32, boxShadow: '0 0 80px rgba(212,175,55,0.3), 0 40px 120px rgba(0,10,20,0.9)' }}
+                style={{ textAlign: 'center', background: 'linear-gradient(145deg, rgba(212,175,55,0.18) 0%, rgba(1,40,20,0.96) 100%)', border: '2px solid rgba(212,175,55,0.5)', padding: '7vh 9vw', borderRadius: 32, boxShadow: '0 0 80px rgba(212,175,55,0.4), 0 40px 120px rgba(0,10,5,0.95)' }}
               >
-                <i className="fa-solid fa-gavel" style={{ fontSize: 'clamp(2rem, 3vw, 4rem)', color: '#d4af37', marginBottom: '2.5vh', display: 'block', textShadow: '0 0 30px rgba(212,175,55,0.8)' }} />
-                <div style={{ fontSize: 'clamp(11px, 1.3vw, 18px)', color: 'rgba(252,246,186,0.6)', textTransform: 'uppercase', letterSpacing: '0.35em', marginBottom: '2vh', fontFamily: '"Urbanist", sans-serif' }}>Successful Bid</div>
-                <div style={{ fontSize: 'clamp(3rem, 8vw, 11rem)', fontWeight: 900, color: '#fff', lineHeight: 1, marginBottom: '2.5vh', textShadow: '0 0 40px rgba(252,246,186,0.4)', fontFamily: '"Urbanist", sans-serif' }}>
+                <i className="fa-solid fa-gavel" style={{ fontSize: 'clamp(2rem, 3.5vw, 4.5rem)', color: '#d4af37', marginBottom: '2.5vh', display: 'block', textShadow: '0 0 30px rgba(212,175,55,0.8)' }} />
+                <div style={{ fontSize: 'clamp(12px, 1.5vw, 20px)', color: 'rgba(252,246,186,0.8)', textTransform: 'uppercase', letterSpacing: '0.35em', marginBottom: '2vh', fontFamily: '"Urbanist", sans-serif' }}>Successful Bid</div>
+                <div style={{ fontSize: 'clamp(3.5rem, 9vw, 12rem)', fontWeight: 900, color: '#fff', lineHeight: 1, marginBottom: '2.5vh', textShadow: '0 0 40px rgba(252,246,186,0.4)', fontFamily: '"Urbanist", sans-serif' }}>
                   <span style={{ fontSize: '0.33em', color: '#d4af37', marginRight: '0.8vw', verticalAlign: 'super', textShadow: '0 0 20px rgba(212,175,55,0.8)' }}>RM</span>
                   {livePrice.toLocaleString()}
                 </div>
-                <div style={{ fontSize: 'clamp(11px, 1.3vw, 18px)', color: 'rgba(212,175,55,0.5)', textTransform: 'uppercase', letterSpacing: '0.25em', marginBottom: '1.5vh', fontFamily: '"Urbanist", sans-serif' }}>Winning Bidder</div>
-                <div style={{ fontSize: 'clamp(2rem, 5.5vw, 7.5rem)', fontWeight: 900, background: 'linear-gradient(135deg, #d4af37 0%, #fcf6ba 35%, #b38728 70%, #ffe066 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', letterSpacing: '-0.01em' }}>
-                  {liveWinner || 'ANONYMOUS'}
-                </div>
+                {liveWinner && (
+                  <>
+                    <div style={{ fontSize: 'clamp(11px, 1.3vw, 18px)', color: 'rgba(212,175,55,0.5)', textTransform: 'uppercase', letterSpacing: '0.25em', marginBottom: '1.5vh', fontFamily: '"Urbanist", sans-serif' }}>Winning Bidder</div>
+                    <div style={{ fontSize: 'clamp(2rem, 5.5vw, 7.5rem)', fontWeight: 900, background: 'linear-gradient(135deg, #d4af37 0%, #fcf6ba 35%, #b38728 70%, #ffe066 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', letterSpacing: '-0.01em' }}>
+                      {liveWinner}
+                    </div>
+                  </>
+                )}
               </motion.div>
             </motion.div>
           )}
@@ -595,3 +547,4 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
     </div>
   );
 }
+

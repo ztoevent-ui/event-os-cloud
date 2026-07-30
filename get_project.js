@@ -1,18 +1,16 @@
 const { createClient } = require('@supabase/supabase-js');
-const fs = require('fs');
-const env = fs.readFileSync('.env.local', 'utf8');
-const urlMatch = env.match(/NEXT_PUBLIC_SUPABASE_URL="([^"]+)"/);
-const keyMatch = env.match(/NEXT_PUBLIC_SUPABASE_ANON_KEY="([^"]+)"/);
+require('dotenv').config({ path: '.env.local' });
 
-if (!urlMatch || !keyMatch) {
-  console.log("Could not find supabase credentials");
-  process.exit(1);
-}
-
-const supabase = createClient(urlMatch[1], keyMatch[1]);
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function run() {
-  const { data, error } = await supabase.from('projects').select('id, name').ilike('name', '%emart%');
-  console.log("Projects:", data);
+  const { data, error } = await supabase.from('projects').select('*').ilike('name', '%emart%');
+  if (error) {
+    console.error(error);
+  } else {
+    console.log(data);
+  }
 }
 run();
