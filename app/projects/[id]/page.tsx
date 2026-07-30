@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabaseClient';
 import Link from 'next/link';
 import { PrintReportButton } from '../components/ProjectModals';
 import MeetingNotesPanel from '../components/MeetingNotesPanel';
+import PTWWizard from '../components/PTWWizard';
 
 const fmt = (d?: string) =>
     d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : null;
@@ -34,6 +35,8 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
     const [editData, setEditData] = useState<any>(null);
     const [saving, setSaving] = useState(false);
     const [userRole, setUserRole] = useState<string | null>(null);
+    const [schedule, setSchedule] = useState<any[]>([]);
+    const [showPTW, setShowPTW] = useState(false);
 
     useEffect(() => { fetchData(); }, [id]);
 
@@ -46,17 +49,20 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
             { count: critical },
             { count: done },
             { data: budgetItems },
-            { count: enquiries }
+            { count: enquiries },
+            { data: scheduleData }
         ] = await Promise.all([
             supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('project_id', id).neq('status', 'done'),
             supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('project_id', id).eq('priority', 'critical').neq('status', 'done'),
             supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('project_id', id).eq('status', 'done'),
             supabase.from('budgets').select('amount,type').eq('project_id', id),
             supabase.from('consulting_forms').select('*', { count: 'exact', head: true }).eq('project_id', id),
+            supabase.from('schedule_items').select('*').eq('project_id', id).order('date', { ascending: true }).order('sort_order', { ascending: true })
         ]);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const exp = budgetItems?.filter((b: any) => b.type === 'expense').reduce((s: number, b: any) => s + Number(b.amount), 0) ?? 0;
         setStats({ pending: pending ?? 0, critical: critical ?? 0, done: done ?? 0, expenses: exp, enquiries: enquiries ?? 0 });
+        setSchedule(scheduleData || []);
         
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
@@ -189,6 +195,9 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
                     </div>
                     {/* Actions — now inline, wrap-safe on mobile */}
                     <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
+                        <button onClick={() => setShowPTW(true)} className="zto-btn zto-btn-primary" style={{ fontSize: 12, padding: '6px 14px' }}>
+                            <i className="fa-solid fa-file-signature" /> Generate PTW
+                        </button>
                         <button onClick={openEdit} className="zto-btn zto-btn-ghost" style={{ fontSize: 12, padding: '6px 14px' }}>
                             <i className="fa-regular fa-pen-to-square" /> Edit
                         </button>
@@ -414,6 +423,14 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
                         </div>
                     </div>
                 </div>
+            )}
+            
+            {showPTW && project && (
+              <PTWWizard
+                project={project}
+                schedule={schedule}
+                onClose={() => setShowPTW(false)}
+              />
             )}
 
             <style jsx global>{`
