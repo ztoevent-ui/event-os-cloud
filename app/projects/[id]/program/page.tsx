@@ -53,6 +53,9 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
   const [activeId, setActiveId]     = useState<string | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [project, setProject]       = useState<any>(null);
+  const [shareToken, setShareToken]  = useState<string | null>(null);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [copySuccess, setCopySuccess]  = useState(false);
   const { pageBreakIds, layoutType } = usePrint();
 
   const sensors = useSensors(
@@ -67,10 +70,36 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
   useEffect(() => { fetchProjectAndSettings(); fetchProgram(); }, [projectId]);
 
   const fetchProjectAndSettings = async () => {
-    const { data: projData } = await supabase.from('projects').select('type, name').eq('id', projectId).single();
+    const { data: projData } = await supabase.from('projects').select('type, name, program_share_token').eq('id', projectId).single();
     setProject(projData);
+    if (projData?.program_share_token) setShareToken(projData.program_share_token);
     const { data: settingsData } = await supabase.from('tournament_settings').select('program_columns').eq('project_id', projectId).maybeSingle();
     if (settingsData && settingsData.program_columns?.length > 0) setColumns(settingsData.program_columns);
+  };
+
+  const generateShareLink = async () => {
+    if (shareToken) {
+      setShowShareModal(true);
+      return;
+    }
+    // Generate a new token by updating the project row
+    const newToken = crypto.randomUUID();
+    const { error } = await supabase
+      .from('projects')
+      .update({ program_share_token: newToken })
+      .eq('id', projectId);
+    if (!error) {
+      setShareToken(newToken);
+      setShowShareModal(true);
+    }
+  };
+
+  const copyShareLink = async () => {
+    if (!shareToken) return;
+    const url = `${window.location.origin}/share/program/${shareToken}`;
+    await navigator.clipboard.writeText(url);
+    setCopySuccess(true);
+    setTimeout(() => setCopySuccess(false), 2000);
   };
 
   const fetchProgram = async () => {
@@ -257,6 +286,14 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
           {isSaving ? 'Saving' : editMode ? 'Save' : 'Modify'}
         </button>
         <CopyProgramButton projectId={projectId} />
+        <button
+          onClick={generateShareLink}
+          className="zto-btn zto-btn-ghost"
+          style={{ fontSize: 11 }}
+          title="Share a public link to this program"
+        >
+          <i className="fa-solid fa-share-nodes" /> Share
+        </button>
         <PrintReportButton title="Event Program" />
         {editMode && (
           <button onClick={addRow} className="zto-btn zto-btn-ghost" style={{ fontSize: 11 }}>
@@ -264,6 +301,90 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
           </button>
         )}
       </div>
+
+      {/* ── Share Modal ── */}
+      {showShareModal && shareToken && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, zIndex: 9999,
+            background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(12px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
+          }}
+          onClick={() => setShowShareModal(false)}
+        >
+          <div
+            style={{
+              background: '#0a0a0a', border: '1px solid rgba(0,86,179,0.3)',
+              borderRadius: 24, padding: 32, maxWidth: 520, width: '100%',
+              boxShadow: '0 0 80px rgba(0,86,179,0.2)',
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                  <div style={{
+                    width: 36, height: 36, borderRadius: 12,
+                    background: 'linear-gradient(135deg, #0056B3, #003d82)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: '0 0 16px rgba(0,86,179,0.5)',
+                  }}>
+                    <i className="fa-solid fa-share-nodes" style={{ color: '#fff', fontSize: 14 }} />
+                  </div>
+                  <h3 style={{ fontSize: 20, fontWeight: 900, color: '#fff', textTransform: 'uppercase', letterSpacing: '-0.01em' }}>Share Program</h3>
+                </div>
+                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>Anyone with this link can view the latest program — no login required.</p>
+              </div>
+              <button
+                onClick={() => setShowShareModal(false)}
+                style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: 18, padding: 4 }}
+              >
+                <i className="fa-solid fa-xmark" />
+              </button>
+            </div>
+
+            {/* Link Box */}
+            <div style={{
+              background: 'rgba(255,255,255,0.03)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: 14, padding: '14px 16px', marginBottom: 16,
+              display: 'flex', alignItems: 'center', gap: 12,
+            }}>
+              <i className="fa-solid fa-link" style={{ color: '#4da3ff', fontSize: 12, flexShrink: 0 }} />
+              <span style={{
+                flex: 1, fontSize: 12, color: 'rgba(255,255,255,0.6)',
+                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              }}>
+                {typeof window !== 'undefined' ? `${window.location.origin}/share/program/${shareToken}` : ''}
+              </span>
+            </div>
+
+            {/* Copy Button */}
+            <button
+              onClick={copyShareLink}
+              style={{
+                width: '100%', padding: '14px',
+                background: copySuccess ? 'rgba(222,255,154,0.1)' : '#0056B3',
+                border: copySuccess ? '1px solid rgba(222,255,154,0.4)' : 'none',
+                color: copySuccess ? '#DEFF9A' : '#fff',
+                borderRadius: 14, fontSize: 13, fontWeight: 700,
+                cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                transition: 'all 0.2s ease',
+                boxShadow: copySuccess ? '0 0 20px rgba(222,255,154,0.3)' : '0 0 20px rgba(0,86,179,0.4)',
+              }}
+            >
+              <i className={`fa-solid ${copySuccess ? 'fa-circle-check' : 'fa-copy'}`} />
+              {copySuccess ? 'Copied!' : 'Copy Link'}
+            </button>
+
+            <div style={{ marginTop: 16, fontSize: 10, color: 'rgba(255,255,255,0.2)', textAlign: 'center', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+              Read-only · Live data · No account needed
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Program Cards (Vertical Stack) ── */}
       <div className={layoutType === 'table' ? 'print:hidden' : ''} style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingTop: 4 }}>

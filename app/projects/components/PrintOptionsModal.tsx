@@ -26,9 +26,12 @@ export function PrintOptionsModal({ isOpen, onClose, title }: PrintOptionsModalP
   const handlePrint = () => {
     setIsPageBreakMode(false);
     onClose();
-    setTimeout(() => {
+    // Wait for ALL fonts (including async Google Fonts / CJK glyphs) to be fully
+    // loaded before triggering the print dialog. This is the correct fix for
+    // Chinese characters appearing invisible in Chrome's PDF engine.
+    document.fonts.ready.then(() => {
       window.print();
-    }, 150);
+    });
   };
 
   return (
