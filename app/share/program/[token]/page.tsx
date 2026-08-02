@@ -2,11 +2,13 @@ import { createClient } from '@supabase/supabase-js';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 
-// Public Supabase client (uses anon key — read-only, no auth needed)
-const supabasePublic = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+// Helper — creates a fresh client inside each request (never at module load time)
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+}
 
 interface ProgramRow {
   id: string;
@@ -28,7 +30,7 @@ export async function generateMetadata({
   params: Promise<{ token: string }>;
 }): Promise<Metadata> {
   const { token } = await params;
-  const { data: project } = await supabasePublic
+  const { data: project } = await getSupabase()
     .from('projects')
     .select('name')
     .eq('program_share_token', token)
@@ -46,9 +48,10 @@ export default async function SharedProgramPage({
   params: Promise<{ token: string }>;
 }) {
   const { token } = await params;
+  const supabase = getSupabase();
 
   // Lookup project by share token
-  const { data: project } = await supabasePublic
+  const { data: project } = await supabase
     .from('projects')
     .select('id, name')
     .eq('program_share_token', token)
@@ -57,7 +60,7 @@ export default async function SharedProgramPage({
   if (!project) notFound();
 
   // Fetch program rows
-  const { data: rows } = await supabasePublic
+  const { data: rows } = await supabase
     .from('program_items')
     .select('*')
     .eq('project_id', project.id)
