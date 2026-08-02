@@ -160,7 +160,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
   if (loading) return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 300, gap: 16, opacity: 0.5 }}>
       <div style={{ width: 36, height: 36, border: '2px solid rgba(0,86,179,0.2)', borderTopColor: '#0056B3', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-      <p style={{ color: '#0056B3', fontSize: 10, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', fontFamily: 'Urbanist, sans-serif' }}>
+      <p style={{ color: '#0056B3', fontSize: 10, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase' }}>
         Syncing Sequence Data...
       </p>
       <style jsx>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
@@ -169,7 +169,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
 
   // ── Kiosk Mode ───────────────────────────────────────────────────────────────
   if (isKiosk) return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 2000, background: '#050505', overflowY: 'auto', padding: '48px 64px 120px', fontFamily: "'Urbanist', sans-serif" }}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 2000, background: '#050505', overflowY: 'auto', padding: '48px 64px 120px' }}>
       <div style={{ position: 'fixed', bottom: 32, right: 32, zIndex: 2100 }}>
         <button
           onClick={() => setIsKiosk(false)}
@@ -313,7 +313,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
       {/* ── Compact Table (Print Only) ── */}
       {layoutType === 'table' && (
         <div className="hidden print:block mt-6">
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11.5px', fontFamily: '"Urbanist", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11.5px' }}>
             <thead>
               <tr style={{ borderBottom: '2px solid #000' }}>
                 <th style={{ padding: '6px 10px', textAlign: 'left', fontWeight: 800, width: '14%', whiteSpace: 'nowrap' }}>Time</th>
@@ -431,7 +431,7 @@ function RowCard({ row, editMode, updateCell, removeRow, toggleImportant, isPlac
     borderBottom: '1px solid rgba(255,255,255,0.12)',
     outline: 'none',
     color: 'inherit',
-    fontFamily: '"Urbanist", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif',
+
     fontWeight: 'inherit',
     fontSize: 'inherit',
     width: '100%',
@@ -451,7 +451,7 @@ function RowCard({ row, editMode, updateCell, removeRow, toggleImportant, isPlac
           transition: 'all 0.2s ease',
           position: 'relative',
           overflow: 'hidden',
-          fontFamily: '"Urbanist", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif',
+
           ...(isOverlay ? {
             cursor: 'grabbing',
             boxShadow: '0 32px 64px rgba(0,0,0,0.6)',
