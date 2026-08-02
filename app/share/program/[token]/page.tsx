@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import { PrintButton } from './PrintButton';
 
 // Helper — creates a fresh client inside each request (never at module load time)
 function getSupabase() {
@@ -148,16 +149,7 @@ export default async function SharedProgramPage({
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#DEFF9A', display: 'inline-block', animation: 'pulse 2s infinite' }} />
               <span style={{ fontSize: 9, fontWeight: 700, color: '#DEFF9A', letterSpacing: '0.15em', textTransform: 'uppercase' }}>Live</span>
             </div>
-            <button
-              onClick={() => window.print()}
-              style={{
-                background: '#0056B3', color: '#fff', border: 'none', borderRadius: 10,
-                padding: '8px 16px', fontSize: 11, fontWeight: 700, cursor: 'pointer',
-                display: 'flex', alignItems: 'center', gap: 6, letterSpacing: '0.08em',
-              }}
-            >
-              <span>⬇</span> Export PDF
-            </button>
+            <PrintButton />
           </div>
         </div>
 
