@@ -208,6 +208,7 @@ export default function TentativeProgramPage() {
             @page { margin: 15mm; size: landscape; }
             header, footer, .print\\:hidden, button { display: none !important; }
             body { background: white !important; padding: 0 !important; margin: 0 !important; }
+            * { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif !important; }
             main { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
             table { width: 100% !important; border-collapse: collapse !important; font-size: 10pt !important; }
             th, td { border: 1px solid #ddd !important; padding: 8px !important; }
