@@ -688,6 +688,7 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
         @media print {
           @page { size: A4 landscape; margin: 12mm; }
           html, body, main { background: white !important; color: black !important; }
+          * { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif !important; }
           .print\\:hidden { display: none !important; }
           nav, header, footer, button, aside { display: none !important; }
           .hidden.print\\:block { display: block !important; }

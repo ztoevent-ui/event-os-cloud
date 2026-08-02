@@ -379,6 +379,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
             color: black !important;
             box-shadow: none !important;
             border-radius: 0 !important;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif !important;
           }
 
           /* Compact table styling */
