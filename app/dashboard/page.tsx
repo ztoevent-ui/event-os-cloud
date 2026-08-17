@@ -74,6 +74,15 @@ const tools = [
         accent: '#10b981',
         tag: 'ADMIN',
     },
+    {
+        id: 'visitors',
+        href: '/admin/visitors',
+        icon: 'fa-solid fa-id-badge',
+        label: 'Visitor Leads Studio',
+        desc: 'Live booth visitors & report exports',
+        accent: '#39FF14',
+        tag: 'ADMIN',
+    },
 ];
 
 const tagColors: Record<string, string> = {
