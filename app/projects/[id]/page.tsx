@@ -20,6 +20,7 @@ const MODULES = [
     { label: '3D Stage',       icon: 'fa-cube',                  path: '/stage-layout',   desc: 'Stage visualizer',           color: '#4da3ff', tag: 'SPACE'},
     { label: 'Registration',   icon: 'fa-id-card',               path: '/registration',   desc: 'Participant management',     color: '#a855f7', tag: 'REG'  },
     { label: 'Guests',         icon: 'fa-users',                 path: '/guests',         desc: 'Guest list & seating',       color: '#14b8a6', tag: 'REG'  },
+    { label: 'Visitor Leads',  icon: 'fa-id-badge',              path: '/visitor-leads',  desc: 'Booth check-in & lead data', color: '#39FF14', tag: 'REG'  },
     { label: 'Auction',        icon: 'fa-gavel',                 path: '/auction',        desc: 'Live auction control',       color: '#f59e0b', tag: 'LIVE' },
     { label: 'PTW',            icon: 'fa-file-signature',        path: '/ptw',            desc: 'Permit To Work documents',   color: '#ef4444', tag: 'DOC'  },
 ];
