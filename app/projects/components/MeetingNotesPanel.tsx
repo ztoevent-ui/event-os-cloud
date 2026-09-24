@@ -512,6 +512,7 @@ function NewSessionModal({
 
     return (
         <div
+            className="meeting-new-sheet-container"
             style={{
                 position: 'fixed', inset: 0, zIndex: 2000,
                 display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
@@ -525,6 +526,7 @@ function NewSessionModal({
             />
             {/* Sheet — slides up from bottom on mobile, centered on desktop */}
             <div
+                className="meeting-new-sheet"
                 style={{
                     position: 'relative', zIndex: 10,
                     width: '100%', maxWidth: 480,
@@ -689,6 +691,7 @@ export default function MeetingNotesPanel({ project }: { project: any }) {
 
     // ── Render ────────────────────────────────────────────────────────────
     return (
+        <>
         <div className="zto-card" style={{ padding: 0, overflow: 'hidden' }}>
             {/* Header */}
             <div style={{
@@ -795,7 +798,9 @@ export default function MeetingNotesPanel({ project }: { project: any }) {
                         ))}
                     </div>
                 )}
+                )}
             </div>
+        </div>
 
             {/* New session modal */}
             {showNewModal && (
@@ -818,12 +823,15 @@ export default function MeetingNotesPanel({ project }: { project: any }) {
                         margin: auto !important;
                         align-self: center !important;
                     }
+                    .meeting-new-sheet-container {
+                        align-items: center !important;
+                    }
                     .meeting-btn-label { display: inline; }
                 }
                 @media (max-width: 400px) {
                     .meeting-btn-label { display: none; }
                 }
             `}</style>
-        </div>
+        </>
     );
 }
