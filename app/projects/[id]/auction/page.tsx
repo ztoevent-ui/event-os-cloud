@@ -16,6 +16,7 @@ interface AuctionItem {
   minimum_increment: number;
   status: string;
   winner_name: string;
+  lot_number?: string;
 }
 
 export default function AuctionAdminPage({ params }: { params: Promise<{ id: string }> }) {
@@ -30,6 +31,7 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
   const [livePrice, setLivePrice] = useState<number>(0);
   const [liveWinner, setLiveWinner] = useState<string>('');
   const [isUpdating, setIsUpdating] = useState(false);
+  const [requireBidder, setRequireBidder] = useState<boolean>(true); // toggle: need paddle no. per bid?
 
   // Manage State
   const [isEditing, setIsEditing] = useState(false);
@@ -73,6 +75,7 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
             setActiveItemId(state.active_item_id);
             setLivePrice(state.current_price);
             setLiveWinner(state.current_winner || '');
+            if (state.require_bidder !== undefined) setRequireBidder(state.require_bidder);
           }
         }
       })
@@ -89,10 +92,26 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
           setActiveItemId(data.current_state.active_item_id);
           setLivePrice(data.current_state.current_price || 0);
           setLiveWinner(data.current_state.current_winner || '');
+          if (data.current_state.require_bidder !== undefined) {
+            setRequireBidder(data.current_state.require_bidder);
+          }
         }
       });
 
     return channel;
+  };
+
+  const toggleRequireBidder = async () => {
+    const newVal = !requireBidder;
+    setRequireBidder(newVal);
+    // Persist into tool_states so all operator sessions see the same setting
+    const { data: existing } = await supabase.from('tool_states').select('id, current_state').eq('project_id', projectId).eq('tool_name', 'auction').maybeSingle();
+    const merged = { ...(existing?.current_state ?? {}), require_bidder: newVal };
+    if (existing) {
+      await supabase.from('tool_states').update({ current_state: merged, updated_at: new Date().toISOString() }).eq('id', existing.id);
+    } else {
+      await supabase.from('tool_states').insert({ project_id: projectId, tool_name: 'auction', current_state: merged });
+    }
   };
 
   const updateLiveState = async (newState: any) => {
@@ -101,6 +120,7 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
       active_item_id: newState.active_item_id !== undefined ? newState.active_item_id : activeItemId,
       current_price: newState.current_price !== undefined ? newState.current_price : livePrice,
       current_winner: newState.current_winner !== undefined ? newState.current_winner : liveWinner,
+      require_bidder: requireBidder,
     };
 
     // Update tool_states for real-time
@@ -126,9 +146,15 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
     setIsUpdating(false);
   };
 
-  // Opens popover for an increment button click
-  const handleIncrementClick = (amount: number, buttonEl: HTMLButtonElement) => {
-    setPendingNewPrice(livePrice + amount);
+  // Opens popover for an increment button click — or commits directly if !requireBidder
+  const handleIncrementClick = (amount: number, _buttonEl: HTMLButtonElement) => {
+    const newPrice = livePrice + amount;
+    if (!requireBidder) {
+      // Skip popover: commit immediately, keep existing winner label
+      updateLiveState({ current_price: newPrice });
+      return;
+    }
+    setPendingNewPrice(newPrice);
     setPendingLabel(`+RM ${amount.toLocaleString()}`);
     setPopoverBidder('');
   };
@@ -217,13 +243,20 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
     fetchItems();
   };
 
+  const handleDeleteItem = async (itemId: string) => {
+    if (!confirm('Are you sure you want to delete this item?')) return;
+    const { error } = await supabase.from('auction_items').delete().eq('id', itemId);
+    if (error) alert(`Error deleting item: ${error.message}`);
+    else fetchItems();
+  };
+
   const exportResults = () => {
     const soldItems = items.filter(i => i.status === 'sold');
     if (soldItems.length === 0) return alert('No items have been sold yet.');
     
     const headers = ['Lot Number', 'Item Title', 'Winner', 'Final Price (RM)'];
     const rows = soldItems.map(item => {
-      const lotNum = items.findIndex(i => i.id === item.id) + 1;
+      const lotNum = item.lot_number || (items.findIndex(i => i.id === item.id) + 1);
       return [
         `Lot ${lotNum}`,
         `"${item.title.replace(/"/g, '""')}"`,
@@ -292,17 +325,55 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
           
           {/* Active Item Panel */}
           <div className="zto-card" style={{ padding: 32, border: '1px solid rgba(222, 255, 154, 0.4)', background: 'linear-gradient(145deg, rgba(222,255,154,0.05) 0%, rgba(0,0,0,0.5) 100%)' }}>
-            <h2 style={{ fontSize: 20, fontWeight: 700, color: '#DEFF9A', marginBottom: 24, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-              <i className="fa-solid fa-circle-dot" style={{ color: '#ef4444', animation: 'pulse 2s infinite', marginRight: 12 }} />
-              On Stage Now
-            </h2>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
+              <h2 style={{ fontSize: 20, fontWeight: 700, color: '#DEFF9A', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0 }}>
+                <i className="fa-solid fa-circle-dot" style={{ color: '#ef4444', animation: 'pulse 2s infinite', marginRight: 12 }} />
+                On Stage Now
+              </h2>
+
+              {/* ── Require Bidder No. Toggle ── */}
+              <button
+                onClick={toggleRequireBidder}
+                title={requireBidder ? 'Click to disable: bids commit instantly without entering paddle number' : 'Click to enable: each bid requires entering the paddle number'}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  background: requireBidder ? 'rgba(222,255,154,0.08)' : 'rgba(255,255,255,0.04)',
+                  border: requireBidder ? '1px solid rgba(222,255,154,0.35)' : '1px solid rgba(255,255,255,0.12)',
+                  borderRadius: 12, padding: '8px 16px',
+                  cursor: 'pointer', transition: 'all 0.2s ease',
+                  fontFamily: 'Urbanist, sans-serif',
+                }}
+              >
+                {/* Toggle pill */}
+                <div style={{
+                  width: 36, height: 20, borderRadius: 10, position: 'relative',
+                  background: requireBidder ? '#DEFF9A' : 'rgba(255,255,255,0.12)',
+                  transition: 'background 0.2s ease', flexShrink: 0,
+                }}>
+                  <div style={{
+                    position: 'absolute', top: 3, width: 14, height: 14, borderRadius: '50%',
+                    background: requireBidder ? '#000' : 'rgba(255,255,255,0.5)',
+                    left: requireBidder ? 19 : 3,
+                    transition: 'left 0.2s ease, background 0.2s ease',
+                  }} />
+                </div>
+                <div style={{ textAlign: 'left' }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: requireBidder ? '#DEFF9A' : 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                    {requireBidder ? 'Bidder No. Required' : 'Bidder No. Optional'}
+                  </div>
+                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginTop: 1 }}>
+                    {requireBidder ? 'Enter paddle no. before each bid' : 'Bids commit instantly'}
+                  </div>
+                </div>
+              </button>
+            </div>
 
             {activeItem ? (
               <div style={{ display: 'flex', gap: 48, flexWrap: 'wrap' }}>
                 <div style={{ flex: 1, minWidth: 280 }}>
                   <img src={activeItem.image_url || '/placeholder.png'} alt={activeItem.title} style={{ width: '100%', borderRadius: 16, aspectRatio: '4/3', objectFit: 'cover', border: '1px solid rgba(255,255,255,0.1)' }} />
                   <div style={{ fontSize: 14, fontWeight: 800, color: '#DEFF9A', marginTop: 24, letterSpacing: '0.1em' }}>
-                    LOT {items.findIndex(i => i.id === activeItem.id) + 1}
+                    LOT {activeItem.lot_number || (items.findIndex(i => i.id === activeItem.id) + 1)}
                   </div>
                   <h3 style={{ fontSize: 24, fontWeight: 800, marginTop: 8 }}>{activeItem.title}</h3>
                   <p style={{ color: 'rgba(255,255,255,0.6)', marginTop: 8 }}>{activeItem.description}</p>
@@ -494,7 +565,7 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
                     )}
                     <div>
                       <div style={{ fontSize: 12, color: '#DEFF9A', fontWeight: 800, letterSpacing: '0.1em', marginBottom: 4 }}>
-                        LOT {items.findIndex(i => i.id === item.id) + 1}
+                        LOT {item.lot_number || (items.findIndex(i => i.id === item.id) + 1)}
                       </div>
                       <div style={{ fontSize: 18, fontWeight: 700 }}>{item.title}</div>
                       <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>Starting: RM{item.starting_price}</div>
@@ -544,7 +615,7 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
                     <div style={{ position: 'absolute', top: 12, right: 12, background: '#10b981', color: 'black', padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 800 }}>SOLD</div>
                   )}
                   <div style={{ position: 'absolute', top: 12, left: 12, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', color: '#fff', padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 800 }}>
-                    LOT {items.findIndex(i => i.id === item.id) + 1}
+                    LOT {item.lot_number || (items.findIndex(i => i.id === item.id) + 1)}
                   </div>
                 </div>
                 <div>
@@ -553,9 +624,14 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.1)' }}>
                   <div style={{ fontSize: 14, fontWeight: 700, color: '#DEFF9A' }}>RM {item.current_price || item.starting_price}</div>
-                  <button onClick={() => { setEditingItem(item); setIsEditing(true); }} className="zto-btn zto-btn-ghost" style={{ padding: '6px 12px', fontSize: 12 }}>
-                    Edit
-                  </button>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button onClick={() => { setEditingItem(item); setIsEditing(true); }} className="zto-btn zto-btn-ghost" style={{ padding: '6px 12px', fontSize: 12 }}>
+                      Edit
+                    </button>
+                    <button onClick={() => handleDeleteItem(item.id)} className="zto-btn zto-btn-danger" style={{ padding: '6px 12px', fontSize: 12, background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.4)', color: '#ef4444' }}>
+                      Delete
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -570,9 +646,15 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
                   <button onClick={() => setIsEditing(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontSize: 20 }}><i className="fa-solid fa-xmark" /></button>
                 </div>
 
-                <div>
-                  <label className="zto-label">Item Title</label>
-                  <input type="text" className="zto-input" value={editingItem.title || ''} onChange={e => setEditingItem({...editingItem, title: e.target.value})} />
+                <div style={{ display: 'flex', gap: 16 }}>
+                  <div style={{ flex: 1 }}>
+                    <label className="zto-label">Lot Number</label>
+                    <input type="text" className="zto-input" value={editingItem.lot_number || ''} onChange={e => setEditingItem({...editingItem, lot_number: e.target.value})} placeholder="e.g. 1, 1A" />
+                  </div>
+                  <div style={{ flex: 2 }}>
+                    <label className="zto-label">Item Title</label>
+                    <input type="text" className="zto-input" value={editingItem.title || ''} onChange={e => setEditingItem({...editingItem, title: e.target.value})} />
+                  </div>
                 </div>
                 
                 <div>

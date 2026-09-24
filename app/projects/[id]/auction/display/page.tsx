@@ -16,6 +16,7 @@ interface AuctionItem {
   minimum_increment: number;
   status: string;
   winner_name: string;
+  lot_number?: string;
 }
 
 // ── Gold Particle Canvas Background ──────────────────────────
@@ -208,7 +209,7 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
     frame();
   };
 
-  const lotNum = items.length > 0 && activeItem ? items.findIndex(i => i.id === activeItem.id) + 1 : '';
+  const lotNum = items.length > 0 && activeItem ? (activeItem.lot_number || (items.findIndex(i => i.id === activeItem.id) + 1)) : '';
 
   /* ─── STANDBY ─── */
   if (!activeItem) {
@@ -319,10 +320,6 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
 
         {/* ── HEADER — Centered Event Name ── */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '6vh 8vw 0 8vw', flexShrink: 0, textAlign: 'center', position: 'relative' }}>
-          {/* Small LIVE AUCTION badge on left */}
-          <span style={{ position: 'absolute', left: '5vw', top: '50%', transform: 'translateY(-50%)', fontSize: 'clamp(9px, 0.8vw, 12px)', fontWeight: 700, color: 'rgba(212,175,55,0.5)', textTransform: 'uppercase', letterSpacing: '0.35em', fontFamily: '"Urbanist", sans-serif' }}>
-            Live Auction
-          </span>
           {/* Chinese name — 楷体 gold large */}
           {project?.name && (() => {
             const name = project.name as string;
@@ -411,11 +408,14 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
           </AnimatePresence>
 
           {/* RIGHT — Info Stack (ENLARGED PRICING SECTIONS) */}
-          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 'clamp(12px, 3vh, 32px)', overflow: 'hidden', flex: 1, minWidth: '40%' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 'clamp(12px, 3vh, 32px)', overflow: 'visible', flex: 1, minWidth: '40%' }}>
 
             {/* LOT + Title */}
             <AnimatePresence mode="wait">
               <motion.div key={activeItem.id + '-info'} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}>
+                <div style={{ fontSize: 'clamp(10px, 1vw, 14px)', fontWeight: 800, color: 'rgba(212,175,55,0.6)', textTransform: 'uppercase', letterSpacing: '0.35em', marginBottom: 'clamp(2px, 0.5vh, 6px)', fontFamily: '"Urbanist", sans-serif' }}>
+                  Live Auction
+                </div>
                 <div style={{ fontSize: 'clamp(12px, 1.3vw, 18px)', fontWeight: 800, color: '#d4af37', textTransform: 'uppercase', letterSpacing: '0.3em', marginBottom: 'clamp(4px, 0.8vh, 12px)', fontFamily: '"Urbanist", sans-serif', textShadow: '0 0 12px rgba(212,175,55,0.6)' }}>
                   LOT {lotNum}
                 </div>
@@ -451,8 +451,8 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
               <div style={{ fontSize: 'clamp(20px, 2.2vw, 32px)', fontWeight: 900, color: '#ffe066', letterSpacing: '0.25em', marginBottom: 'clamp(6px, 1.2vh, 16px)', fontFamily: '"Ma Shan Zheng", "Noto Serif SC", serif', filter: 'drop-shadow(0 0 10px rgba(212,175,55,0.6))' }}>
                 现价
               </div>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '1.2vw' }}>
-                <span style={{ fontSize: 'clamp(2.2rem, 4.5vw, 6rem)', fontWeight: 900, color: '#d4af37', lineHeight: 1, flexShrink: 0, textShadow: '0 0 25px rgba(212,175,55,0.9), 0 0 50px rgba(212,175,55,0.5)' }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '1vw' }}>
+                <span style={{ fontSize: 'clamp(1.8rem, 3.5vw, 4.5rem)', fontWeight: 900, color: '#d4af37', lineHeight: 1, flexShrink: 0, textShadow: '0 0 25px rgba(212,175,55,0.9), 0 0 50px rgba(212,175,55,0.5)' }}>
                   RM
                 </span>
                 
@@ -473,7 +473,7 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
                     initial={{ scale: 1.3, textShadow: '0 0 80px rgba(212,175,55,1)' }}
                     animate={{ scale: 1, textShadow: '0 0 25px rgba(212,175,55,0)' }}
                     transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                    style={{ fontSize: 'clamp(4.5rem, 12vw, 15rem)', fontWeight: 900, lineHeight: 1, letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums', fontFamily: '"Urbanist", "Noto Serif SC", sans-serif', background: 'linear-gradient(180deg, #ffffff 0%, #ffe58f 30%, #d4af37 65%, #aa7c11 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', filter: 'drop-shadow(3px 8px 16px rgba(0,0,0,0.9))' }}
+                    style={{ fontSize: 'clamp(3rem, 7.5vw, 9rem)', fontWeight: 900, lineHeight: 1, letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums', fontFamily: '"Urbanist", "Noto Serif SC", sans-serif', background: 'linear-gradient(180deg, #ffffff 0%, #ffe58f 30%, #d4af37 65%, #aa7c11 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', filter: 'drop-shadow(3px 8px 16px rgba(0,0,0,0.9))', whiteSpace: 'nowrap' }}
                   >
                     {livePrice.toLocaleString()}
                   </motion.span>
