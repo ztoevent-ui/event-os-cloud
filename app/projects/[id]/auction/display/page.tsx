@@ -413,15 +413,17 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
             {/* LOT + Title */}
             <AnimatePresence mode="wait">
               <motion.div key={activeItem.id + '-info'} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}>
-                <div style={{ fontSize: 'clamp(10px, 1vw, 14px)', fontWeight: 800, color: 'rgba(212,175,55,0.6)', textTransform: 'uppercase', letterSpacing: '0.35em', marginBottom: 'clamp(2px, 0.5vh, 6px)', fontFamily: '"Urbanist", sans-serif' }}>
-                  Live Auction
-                </div>
                 <div style={{ fontSize: 'clamp(12px, 1.3vw, 18px)', fontWeight: 800, color: '#d4af37', textTransform: 'uppercase', letterSpacing: '0.3em', marginBottom: 'clamp(4px, 0.8vh, 12px)', fontFamily: '"Urbanist", sans-serif', textShadow: '0 0 12px rgba(212,175,55,0.6)' }}>
                   LOT {lotNum}
                 </div>
                 <div style={{ fontSize: 'clamp(1.5rem, 3.5vw, 4.5rem)', fontWeight: 900, lineHeight: 1.15, letterSpacing: '0.02em', background: 'linear-gradient(135deg, #ffffff 0%, #fcf6ba 40%, #fff 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', filter: 'drop-shadow(0 2px 12px rgba(252,246,186,0.3))' }}>
                   {activeItem.title}
                 </div>
+                {activeItem.description && (
+                  <div style={{ fontSize: 'clamp(14px, 1.5vw, 22px)', color: 'rgba(252,246,186,0.7)', marginTop: 'clamp(8px, 1.5vh, 20px)', lineHeight: 1.6, fontFamily: '"Noto Serif SC", serif' }}>
+                    {activeItem.description}
+                  </div>
+                )}
               </motion.div>
             </AnimatePresence>
 
