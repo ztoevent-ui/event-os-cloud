@@ -75,6 +75,20 @@ export default function PTWWizard({ project, schedule, onClose }: PTWWizardProps
     });
   };
 
+  const toggleDayAll = (date: string) => {
+    const dayItems = dateGroups[date] || [];
+    const allSelected = dayItems.every(item => selectedItemIds.has(item.id));
+    setSelectedItemIds(prev => {
+      const n = new Set(prev);
+      if (allSelected) {
+        dayItems.forEach(item => n.delete(item.id));
+      } else {
+        dayItems.forEach(item => n.add(item.id));
+      }
+      return n;
+    });
+  };
+
   const toggleRisk = (id: string) => {
     setSelectedRiskIds(prev => {
       const n = new Set(prev);
@@ -217,15 +231,35 @@ export default function PTWWizard({ project, schedule, onClose }: PTWWizardProps
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxHeight: 400, overflowY: 'auto', paddingRight: 4 }}>
-              {Object.entries(dateGroups).map(([date, items]) => (
+              {Object.entries(dateGroups).map(([date, items]) => {
+                const allSelected = items.every(item => selectedItemIds.has(item.id));
+                const someSelected = items.some(item => selectedItemIds.has(item.id));
+                return (
                 <div key={date}>
                   <div style={{
-                    fontSize: 10, fontWeight: 700, color: '#0056B3',
-                    textTransform: 'uppercase', letterSpacing: '0.15em',
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                     marginBottom: 8, paddingBottom: 6,
                     borderBottom: '1px solid rgba(0,86,179,0.2)',
                   }}>
-                    {formatDate(date)}
+                    <span style={{
+                      fontSize: 10, fontWeight: 700, color: '#0056B3',
+                      textTransform: 'uppercase', letterSpacing: '0.15em',
+                    }}>
+                      {formatDate(date)}
+                    </span>
+                    <button
+                      onClick={() => toggleDayAll(date)}
+                      style={{
+                        padding: '3px 10px', borderRadius: 20, cursor: 'pointer',
+                        border: `1px solid ${allSelected ? 'rgba(0,86,179,0.6)' : 'rgba(255,255,255,0.15)'}`,
+                        background: allSelected ? 'rgba(0,86,179,0.25)' : someSelected ? 'rgba(0,86,179,0.1)' : 'rgba(255,255,255,0.04)',
+                        color: allSelected ? '#4da3ff' : 'rgba(255,255,255,0.45)',
+                        fontSize: 10, fontWeight: 700, letterSpacing: '0.08em',
+                        transition: 'all 0.2s',
+                      }}
+                    >
+                      {allSelected ? '✓ 全选' : someSelected ? `${items.filter(i => selectedItemIds.has(i.id)).length}/${items.length} 已选` : '全选此天'}
+                    </button>
                   </div>
                   {items.map(item => (
                     <label key={item.id} style={{
@@ -249,9 +283,10 @@ export default function PTWWizard({ project, schedule, onClose }: PTWWizardProps
                         </div>
                       </div>
                     </label>
-                  ))}
-                </div>
-              ))}
+                   ))}
+                 </div>
+                );
+              })}
               {schedule.length === 0 && (
                 <p style={{ color: 'rgba(255,255,255,0.3)', textAlign: 'center', padding: 32 }}>
                   No schedule items found. Add items to the schedule first.
