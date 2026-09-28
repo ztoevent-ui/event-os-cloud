@@ -709,6 +709,7 @@ export default function AdminScoreboard() {
                 { key:'organizer',      label:'Organiser / Company', placeholder:'Shell MDS Sarawak', hint:'Shown in broadcast header' },
                 { key:'event_title',    label:'Event Title',         placeholder:'Family Day 2026',   hint:'Main headline on all screens' },
                 { key:'event_subtitle', label:'Subtitle',            placeholder:'Live Scoreboard',   hint:'Secondary line below title' },
+                { key:'logo_url',       label:'Logo URL (Optional)', placeholder:'https://...',       hint:'Direct image link (PNG/SVG recommended)' },
               ].map(f=>(
                 <div key={f.key}>
                   <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest block mb-2">{f.label}</label>
@@ -718,11 +719,16 @@ export default function AdminScoreboard() {
                   <p className="text-[9px] text-zinc-700 mt-1.5">{f.hint}</p>
                 </div>
               ))}
-              <div className="p-5 rounded-2xl border border-white/[0.07] bg-white/[0.02]">
-                <div className="text-[9px] font-black text-zinc-700 uppercase tracking-widest mb-3">Preview</div>
-                <div className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.4em]">{configDraft.organizer||'—'}</div>
-                <div className="text-2xl font-black text-white uppercase tracking-tight">{configDraft.event_title||'—'}</div>
-                <div className="text-[10px] text-zinc-500 tracking-[0.3em] uppercase font-bold">{configDraft.event_subtitle||'—'}</div>
+              <div className="p-5 rounded-2xl border border-white/[0.07] bg-white/[0.02] flex items-center gap-6">
+                {configDraft.logo_url && (
+                  <img src={configDraft.logo_url} alt="Logo" className="w-20 h-20 object-contain shrink-0" />
+                )}
+                <div>
+                  <div className="text-[9px] font-black text-zinc-700 uppercase tracking-widest mb-3">Preview</div>
+                  <div className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.4em]">{configDraft.organizer||'—'}</div>
+                  <div className="text-2xl font-black text-white uppercase tracking-tight">{configDraft.event_title||'—'}</div>
+                  <div className="text-[10px] text-zinc-500 tracking-[0.3em] uppercase font-bold">{configDraft.event_subtitle||'—'}</div>
+                </div>
               </div>
               <button onClick={saveConfig} className="w-full py-4 rounded-2xl bg-white text-black font-black text-sm uppercase tracking-[0.3em] hover:bg-zinc-200 transition-all">
                 Save Event Config

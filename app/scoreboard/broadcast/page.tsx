@@ -177,10 +177,15 @@ export default function BroadcastScoreboard() {
 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <header className="relative z-10 flex items-center justify-between px-12 pt-7 pb-3 shrink-0">
-        <div>
-          {config.organizer && <div className="text-[9px] font-black tracking-[0.5em] text-zinc-600 uppercase mb-1">{config.organizer}</div>}
-          <h1 className="text-4xl font-black tracking-tight text-white uppercase leading-none">{config.event_title}</h1>
-          <p className="text-[10px] font-black tracking-[0.4em] text-zinc-600 uppercase mt-1.5">{config.event_subtitle}</p>
+        <div className="flex items-center gap-6">
+          {config.logo_url && (
+            <img src={config.logo_url} alt="Logo" className="h-16 w-auto object-contain shrink-0" />
+          )}
+          <div>
+            {config.organizer && <div className="text-[9px] font-black tracking-[0.5em] text-zinc-600 uppercase mb-1">{config.organizer}</div>}
+            <h1 className="text-4xl font-black tracking-tight text-white uppercase leading-none">{config.event_title}</h1>
+            <p className="text-[10px] font-black tracking-[0.4em] text-zinc-600 uppercase mt-1.5">{config.event_subtitle}</p>
+          </div>
         </div>
 
         <div className="flex-1 mx-10 h-px opacity-15"

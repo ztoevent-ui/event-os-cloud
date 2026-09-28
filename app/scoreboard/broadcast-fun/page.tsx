@@ -331,12 +331,17 @@ export default function BroadcastFun() {
         </div>
 
         {/* Title block */}
-        <div className="pt-10 pb-4 text-center px-8"
+        <div className="pt-10 pb-4 px-8 flex flex-col items-center justify-center"
           style={{ background:'linear-gradient(180deg, #0d9488 0%, #0891b2 100%)' }}>
+          
+          {config.logo_url && (
+            <img src={config.logo_url} alt="Logo" className="h-16 w-auto object-contain mb-3 drop-shadow-md" />
+          )}
+
           <div className="text-[10px] font-black tracking-[0.5em] text-teal-200 uppercase mb-1">
             {config.organizer || ''}
           </div>
-          <h1 className="text-5xl font-black text-white uppercase tracking-tight leading-none drop-shadow-lg"
+          <h1 className="text-5xl font-black text-white uppercase tracking-tight leading-none drop-shadow-lg text-center"
             style={{ textShadow:'0 3px 12px rgba(0,0,0,0.3)' }}>
             {config.event_title || 'Family Day'}
           </h1>
