@@ -144,7 +144,8 @@ export default function AdminScoreboard() {
     if (error) return showToast('error', error.message);
     await fetchAll();
     const tName = teams.find(t=>t.id===selTeam)?.name || '';
-    showToast(scoreMode==='award' ? 'success' : 'info', `${tName} ${scoreMode==='award'?'+'+''}${awardedPts} pts`);
+    const sign = scoreMode === 'award' ? '+' : '';
+    showToast(scoreMode === 'award' ? 'success' : 'info', `${tName} ${sign}${awardedPts} pts`);
     setSelTeam('');
     setCustomPts('');
   };
