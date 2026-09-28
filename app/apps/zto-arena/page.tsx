@@ -414,26 +414,40 @@ export default function ArenaHubRoot() {
               <div className="relative z-10">
                 <div className="flex items-center gap-3 mb-4">
                   <i className="fa-solid fa-flag-checkered text-orange-500" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-orange-400">Family Day 2026 Specials</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-orange-400">Family Day Specials</span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 gap-3 mb-3">
                   <Link href="/scoreboard/public" target="_blank"
                     className="p-4 bg-black/40 hover:bg-white/10 border border-white/5 hover:border-orange-500/30 rounded-xl transition-all group">
                     <div className="text-orange-400 mb-2 text-lg"><i className="fa-solid fa-mobile-screen" /></div>
                     <div className="text-[11px] font-black text-white uppercase tracking-wider mb-1">Public UI</div>
-                    <div className="text-[9px] text-zinc-500 font-bold leading-tight">3s Edge Cache</div>
-                  </Link>
-                  <Link href="/scoreboard/broadcast" target="_blank"
-                    className="p-4 bg-black/40 hover:bg-white/10 border border-white/5 hover:border-orange-500/30 rounded-xl transition-all group">
-                    <div className="text-orange-400 mb-2 text-lg"><i className="fa-solid fa-tv" /></div>
-                    <div className="text-[11px] font-black text-white uppercase tracking-wider mb-1">Broadcast</div>
-                    <div className="text-[9px] text-zinc-500 font-bold leading-tight">0ms Realtime</div>
+                    <div className="text-[9px] text-zinc-500 font-bold leading-tight">3s Edge Cache · Mobile</div>
                   </Link>
                   <Link href="/scoreboard/admin" target="_blank"
                     className="p-4 bg-black/40 hover:bg-white/10 border border-white/5 hover:border-orange-500/30 rounded-xl transition-all group">
                     <div className="text-orange-400 mb-2 text-lg"><i className="fa-solid fa-gavel" /></div>
                     <div className="text-[11px] font-black text-white uppercase tracking-wider mb-1">Ref Admin</div>
-                    <div className="text-[9px] text-zinc-500 font-bold leading-tight">Score Preset</div>
+                    <div className="text-[9px] text-zinc-500 font-bold leading-tight">6-tab Control Panel</div>
+                  </Link>
+                </div>
+                <div className="text-[9px] font-black text-zinc-600 uppercase tracking-widest mb-3">📺 Broadcast Themes</div>
+                <div className="grid grid-cols-2 gap-3">
+                  <Link href="/scoreboard/broadcast" target="_blank"
+                    className="p-4 bg-black/40 hover:bg-white/10 border border-white/[0.08] hover:border-zinc-500/30 rounded-xl transition-all group">
+                    <div className="text-2xl mb-2">🎬</div>
+                    <div className="text-[11px] font-black text-white uppercase tracking-wider mb-1">Cinematic Dark</div>
+                    <div className="text-[9px] text-zinc-600 font-bold leading-tight">Bar chart · Dark mode · Pro</div>
+                  </Link>
+                  <Link href="/scoreboard/broadcast-fun" target="_blank"
+                    className="p-4 border rounded-xl transition-all group relative overflow-hidden"
+                    style={{ borderColor: 'rgba(20,184,166,0.3)', background: 'linear-gradient(135deg, rgba(20,184,166,0.08), rgba(234,179,8,0.08))' }}>
+                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                      style={{ background: 'linear-gradient(135deg, rgba(20,184,166,0.15), rgba(234,179,8,0.15))' }} />
+                    <div className="relative z-10">
+                      <div className="text-2xl mb-2">🎪</div>
+                      <div className="text-[11px] font-black text-white uppercase tracking-wider mb-1">House Cup Fun</div>
+                      <div className="text-[9px] text-teal-500 font-bold leading-tight">Colorful · Family · Mascots</div>
+                    </div>
                   </Link>
                 </div>
               </div>
