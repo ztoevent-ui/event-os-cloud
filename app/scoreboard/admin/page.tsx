@@ -709,7 +709,6 @@ export default function AdminScoreboard() {
                 { key:'organizer',      label:'Organiser / Company', placeholder:'Shell MDS Sarawak', hint:'Shown in broadcast header' },
                 { key:'event_title',    label:'Event Title',         placeholder:'Family Day 2026',   hint:'Main headline on all screens' },
                 { key:'event_subtitle', label:'Subtitle',            placeholder:'Live Scoreboard',   hint:'Secondary line below title' },
-                { key:'logo_url',       label:'Logo URL (Optional)', placeholder:'https://...',       hint:'Direct image link (PNG/SVG recommended)' },
               ].map(f=>(
                 <div key={f.key}>
                   <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest block mb-2">{f.label}</label>
@@ -719,6 +718,33 @@ export default function AdminScoreboard() {
                   <p className="text-[9px] text-zinc-700 mt-1.5">{f.hint}</p>
                 </div>
               ))}
+
+              {/* Logo Upload */}
+              <div>
+                <label className="text-[9px] font-black text-zinc-600 uppercase tracking-widest block mb-2">Company Logo (Optional)</label>
+                <div className="flex items-center gap-4">
+                  <label className="cursor-pointer bg-black/60 border border-white/10 hover:border-white/30 rounded-2xl px-5 py-4 font-black text-white text-sm transition-all text-center flex-1">
+                    📁 Choose Image...
+                    <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      if (file.size > 2 * 1024 * 1024) return showToast('error', 'Image too large (max 2MB)');
+                      const reader = new FileReader();
+                      reader.onload = (ev) => {
+                        if (ev.target?.result) setConfigDraft(p => ({ ...p, logo_url: ev.target!.result as string }));
+                      };
+                      reader.readAsDataURL(file);
+                    }} />
+                  </label>
+                  {configDraft.logo_url && (
+                    <button onClick={() => setConfigDraft(p => ({...p, logo_url: ''}))} 
+                      className="px-5 py-4 rounded-2xl border border-red-500/30 text-red-500 font-black text-[10px] uppercase tracking-widest hover:bg-red-500/10 transition-all">
+                      Remove
+                    </button>
+                  )}
+                </div>
+                <p className="text-[9px] text-zinc-700 mt-1.5">PNG, SVG, or WebP. Max 2MB.</p>
+              </div>
               <div className="p-5 rounded-2xl border border-white/[0.07] bg-white/[0.02] flex items-center gap-6">
                 {configDraft.logo_url && (
                   <img src={configDraft.logo_url} alt="Logo" className="w-20 h-20 object-contain shrink-0" />
