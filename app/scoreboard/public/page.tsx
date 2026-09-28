@@ -1,6 +1,7 @@
 "use client";
 import useSWR from 'swr';
 import { Leaderboard } from '../components/Leaderboard';
+import { AnimatedNumber } from '../components/AnimatedNumber';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
@@ -9,6 +10,11 @@ export default function PublicScoreboard() {
     refreshInterval: 3000,
     revalidateOnFocus: true,
   });
+
+  const config = data?.config || {
+    organizer: 'Event OS',
+    event_title: 'Live Scoreboard'
+  };
 
   return (
     <div className="min-h-screen bg-[#080808] text-white selection:bg-white/20" style={{ fontFamily: "'Inter', sans-serif" }}>
@@ -19,9 +25,14 @@ export default function PublicScoreboard() {
       {/* Header */}
       <div className="sticky top-0 z-30 backdrop-blur-xl bg-[#080808]/80 border-b border-white/[0.05] px-6 py-5">
         <div className="max-w-xl mx-auto flex items-center justify-between">
-          <div>
-            <p className="text-[9px] font-black tracking-[0.4em] text-zinc-600 uppercase mb-0.5">Shell MDS Sarawak</p>
-            <h1 className="text-lg font-black text-white uppercase tracking-tight">Family Day 2026</h1>
+          <div className="flex items-center gap-4">
+            {config.logo_url && (
+              <img src={config.logo_url} alt="Logo" className="h-9 w-auto object-contain shrink-0" />
+            )}
+            <div>
+              <p className="text-[9px] font-black tracking-[0.4em] text-zinc-600 uppercase mb-0.5">{config.organizer}</p>
+              <h1 className="text-lg font-black text-white uppercase tracking-tight">{config.event_title}</h1>
+            </div>
           </div>
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -73,7 +84,7 @@ export default function PublicScoreboard() {
                       />
                     </div>
                     <span className="text-[10px] font-black text-zinc-400 tabular-nums w-12 text-right">
-                      {team.score.toLocaleString()}
+                      <AnimatedNumber value={team.score} />
                     </span>
                   </div>
                 );

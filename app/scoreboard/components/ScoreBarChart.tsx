@@ -1,5 +1,6 @@
 "use client";
 import { motion } from 'framer-motion';
+import { AnimatedNumber } from './AnimatedNumber';
 
 interface Team {
   id: string;
@@ -25,7 +26,7 @@ export function ScoreBarChart({ teams }: { teams: Team[] }) {
               className="text-3xl font-black mb-3 tabular-nums"
               style={{ color: team.color_hex, textShadow: `0 0 40px ${team.color_hex}80` }}
             >
-              {team.score.toLocaleString()}
+              <AnimatedNumber value={team.score} />
             </motion.div>
 
             {/* The bar */}
