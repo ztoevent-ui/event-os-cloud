@@ -404,6 +404,40 @@ export default function ArenaHubRoot() {
                 </div>
               </motion.div>
             )}
+
+            {/* Family Day Scoreboard Shortcuts */}
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
+              className="p-6 bg-gradient-to-br from-orange-500/10 to-red-500/5 border border-orange-500/20 rounded-2xl relative overflow-hidden">
+              <div className="absolute -right-4 -bottom-4 text-8xl opacity-[0.03] text-orange-500 pointer-events-none">
+                <i className="fa-solid fa-trophy" />
+              </div>
+              <div className="relative z-10">
+                <div className="flex items-center gap-3 mb-4">
+                  <i className="fa-solid fa-flag-checkered text-orange-500" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-orange-400">Family Day 2026 Specials</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <Link href="/scoreboard/public" target="_blank"
+                    className="p-4 bg-black/40 hover:bg-white/10 border border-white/5 hover:border-orange-500/30 rounded-xl transition-all group">
+                    <div className="text-orange-400 mb-2 text-lg"><i className="fa-solid fa-mobile-screen" /></div>
+                    <div className="text-[11px] font-black text-white uppercase tracking-wider mb-1">Public UI</div>
+                    <div className="text-[9px] text-zinc-500 font-bold leading-tight">3s Edge Cache</div>
+                  </Link>
+                  <Link href="/scoreboard/broadcast" target="_blank"
+                    className="p-4 bg-black/40 hover:bg-white/10 border border-white/5 hover:border-orange-500/30 rounded-xl transition-all group">
+                    <div className="text-orange-400 mb-2 text-lg"><i className="fa-solid fa-tv" /></div>
+                    <div className="text-[11px] font-black text-white uppercase tracking-wider mb-1">Broadcast</div>
+                    <div className="text-[9px] text-zinc-500 font-bold leading-tight">0ms Realtime</div>
+                  </Link>
+                  <Link href="/scoreboard/admin" target="_blank"
+                    className="p-4 bg-black/40 hover:bg-white/10 border border-white/5 hover:border-orange-500/30 rounded-xl transition-all group">
+                    <div className="text-orange-400 mb-2 text-lg"><i className="fa-solid fa-gavel" /></div>
+                    <div className="text-[11px] font-black text-white uppercase tracking-wider mb-1">Ref Admin</div>
+                    <div className="text-[9px] text-zinc-500 font-bold leading-tight">Score Preset</div>
+                  </Link>
+                </div>
+              </div>
+            </motion.div>
           </motion.div>
         </div>
       </div>
