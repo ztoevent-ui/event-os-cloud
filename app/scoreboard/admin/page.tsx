@@ -261,19 +261,34 @@ export default function AdminScoreboard() {
               <h1 className="text-lg font-black text-white uppercase tracking-tight leading-tight">{config.event_title || 'Scoreboard'} — Admin</h1>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
             {annActive && (
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-orange-500/10 border border-orange-500/30 text-[9px] font-black text-orange-400 uppercase tracking-widest">
                 <div className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />Announcing
               </div>
             )}
-            <Link href="/scoreboard/broadcast" target="_blank"
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/[0.08] text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-white transition-all">
-              📺 Broadcast
-            </Link>
+
+            {/* Broadcast Theme Picker */}
+            <div className="flex items-stretch rounded-xl border border-white/[0.08] overflow-hidden">
+              <div className="flex items-center px-3 text-[9px] font-black text-zinc-600 uppercase tracking-widest border-r border-white/[0.08] bg-white/[0.03]">
+                📺 Broadcast
+              </div>
+              <Link href="/scoreboard/broadcast" target="_blank"
+                className="flex items-center gap-1.5 px-3 py-2 bg-white/[0.03] hover:bg-white/10 border-r border-white/[0.08] text-[10px] font-black text-zinc-400 hover:text-white transition-all"
+                title="Cinematic Dark theme">
+                🎬 <span className="hidden sm:inline">Dark</span>
+              </Link>
+              <Link href="/scoreboard/broadcast-fun" target="_blank"
+                className="flex items-center gap-1.5 px-3 py-2 hover:bg-teal-500/10 text-[10px] font-black text-zinc-400 hover:text-teal-300 transition-all"
+                title="House Cup Fun theme"
+                style={{ background: 'linear-gradient(135deg, rgba(20,184,166,0.05), rgba(234,179,8,0.05))' }}>
+                🎪 <span className="hidden sm:inline">Fun</span>
+              </Link>
+            </div>
+
             <Link href="/scoreboard/public" target="_blank"
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/[0.08] text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-white transition-all">
-              📱 Public
+              className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/[0.08] text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-white transition-all">
+              📱
             </Link>
           </div>
         </div>
