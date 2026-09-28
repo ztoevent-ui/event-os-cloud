@@ -281,7 +281,7 @@ export default function BroadcastFun() {
 
   return (
     <div ref={containerRef}
-      className="w-screen h-screen overflow-hidden flex flex-col relative"
+      className="w-full h-full min-h-screen overflow-hidden flex flex-col relative"
       style={{ fontFamily:"'Inter', sans-serif", background:'linear-gradient(160deg, #e0f2fe 0%, #f0fdf4 50%, #fef9c3 100%)' }}>
 
       {/* Floating confetti */}
@@ -356,8 +356,8 @@ export default function BroadcastFun() {
       </div>
 
       {/* ── Team Columns ────────────────────────────────────────────────────── */}
-      <main className="relative z-10 flex-1 px-8 py-4 overflow-hidden flex flex-col justify-center">
-        <div className="w-full max-w-7xl mx-auto grid gap-6 items-end" style={{ gridTemplateColumns: `repeat(${Math.max(1, sorted.length)}, 1fr)` }}>
+      <main className="relative z-10 flex-1 px-12 py-4 overflow-hidden flex flex-col justify-center items-center w-full">
+        <div className="w-full grid gap-8 items-end max-w-[1800px]" style={{ gridTemplateColumns: `repeat(${Math.max(1, sorted.length)}, 1fr)` }}>
           {sorted.map((team, idx) => {
             const originalIdx = mergedTeams.findIndex(t=>t.id===team.id);
             return (
