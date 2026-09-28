@@ -345,17 +345,19 @@ export default function BroadcastFun() {
             style={{ textShadow:'0 3px 12px rgba(0,0,0,0.3)' }}>
             {config.event_title || 'Family Day'}
           </h1>
-          <div className="flex items-center justify-center gap-3 mt-2">
-            <div className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse" />
-            <span className="text-[10px] font-black text-teal-200 uppercase tracking-[0.4em]">Live Scoreboard · {timeStr}</span>
-            <div className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse" />
+          <div className="flex items-center justify-center gap-3 mt-3">
+            <div className="w-2.5 h-2.5 rounded-full bg-emerald-300 animate-pulse" />
+            <span className="text-sm font-black text-teal-200 uppercase tracking-[0.3em]">Live Scoreboard</span>
+            <span className="text-teal-400/50">|</span>
+            <span className="text-lg font-black tabular-nums tracking-widest text-white">{timeStr}</span>
+            <div className="w-2.5 h-2.5 rounded-full bg-emerald-300 animate-pulse" />
           </div>
         </div>
       </div>
 
       {/* ── Team Columns ────────────────────────────────────────────────────── */}
-      <main className="relative z-10 flex-1 px-8 py-4 overflow-hidden">
-        <div className="flex gap-6 h-full items-center justify-center max-w-7xl mx-auto">
+      <main className="relative z-10 flex-1 px-8 py-4 overflow-hidden flex flex-col justify-center">
+        <div className="w-full max-w-7xl mx-auto grid gap-6 items-end" style={{ gridTemplateColumns: `repeat(${Math.max(1, sorted.length)}, 1fr)` }}>
           {sorted.map((team, idx) => {
             const originalIdx = mergedTeams.findIndex(t=>t.id===team.id);
             return (
