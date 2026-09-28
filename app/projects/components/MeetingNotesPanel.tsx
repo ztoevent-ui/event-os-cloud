@@ -798,7 +798,6 @@ export default function MeetingNotesPanel({ project }: { project: any }) {
                         ))}
                     </div>
                 )}
-                )}
             </div>
         </div>
 
