@@ -408,7 +408,7 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
           </AnimatePresence>
 
           {/* RIGHT — Info Stack (ENLARGED PRICING SECTIONS) */}
-          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 'clamp(12px, 3vh, 32px)', overflow: 'visible', flex: 1, minWidth: '40%' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 'clamp(8px, 2vh, 24px)', overflow: 'visible', flex: 1, minWidth: '40%' }}>
 
             {/* LOT + Title */}
             <AnimatePresence mode="wait">
@@ -416,7 +416,7 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
                 <div style={{ fontSize: 'clamp(12px, 1.3vw, 18px)', fontWeight: 800, color: '#d4af37', textTransform: 'uppercase', letterSpacing: '0.3em', marginBottom: 'clamp(4px, 0.8vh, 12px)', fontFamily: '"Urbanist", sans-serif', textShadow: '0 0 12px rgba(212,175,55,0.6)' }}>
                   LOT {lotNum}
                 </div>
-                <div style={{ fontSize: 'clamp(1.5rem, 3.5vw, 4.5rem)', fontWeight: 900, lineHeight: 1.15, letterSpacing: '0.02em', background: 'linear-gradient(135deg, #ffffff 0%, #fcf6ba 40%, #fff 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', filter: 'drop-shadow(0 2px 12px rgba(252,246,186,0.3))' }}>
+                <div style={{ fontSize: activeItem.title.length > 30 ? 'clamp(1.2rem, 2.2vw, 2.8rem)' : activeItem.title.length > 15 ? 'clamp(1.5rem, 3vw, 3.8rem)' : 'clamp(1.5rem, 3.5vw, 4.5rem)', fontWeight: 900, lineHeight: 1.15, letterSpacing: '0.02em', background: 'linear-gradient(135deg, #ffffff 0%, #fcf6ba 40%, #fff 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', filter: 'drop-shadow(0 2px 12px rgba(252,246,186,0.3))' }}>
                   {activeItem.title}
                 </div>
                 {activeItem.description && (
