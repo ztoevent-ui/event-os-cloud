@@ -398,7 +398,7 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
               {/* White card with image */}
               <div className="gala-float" style={{ position: 'relative', width: '100%', height: '100%', background: '#ffffff', borderRadius: 'clamp(12px, 2.2vw, 30px)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, boxShadow: 'inset 0 0 20px rgba(0,0,0,0.1)' }}>
                 {activeItem.image_url
-                  ? <img src={activeItem.image_url} alt={activeItem.title} style={{ width: '92%', height: '92%', objectFit: 'contain', transform: 'scale(2.8)' }} />
+                  ? <img src={activeItem.image_url} alt={activeItem.title} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '4%' }} />
                   : <i className="fa-solid fa-image" style={{ fontSize: 56, color: 'rgba(0,0,0,0.12)' }} />
                 }
                 {/* Shimmer sweep */}
