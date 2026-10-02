@@ -241,10 +241,14 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
 
   const triggerSoldAnimation = () => {
     setIsSold(true);
-    const end = Date.now() + 4000;
+    // Initial massive burst
+    confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 }, colors: ['#d4af37', '#fcf6ba', '#bf953f', '#ffe066', '#ffffff'] });
+    
+    // Sustained side cannons
+    const end = Date.now() + 5000;
     const frame = () => {
-      confetti({ particleCount: 8, angle: 60, spread: 60, origin: { x: 0 }, colors: ['#d4af37', '#fcf6ba', '#bf953f', '#ffe066', '#fff'] });
-      confetti({ particleCount: 8, angle: 120, spread: 60, origin: { x: 1 }, colors: ['#d4af37', '#fcf6ba', '#bf953f', '#ffe066', '#fff'] });
+      confetti({ particleCount: 10, angle: 60, spread: 65, origin: { x: 0, y: 0.7 }, colors: ['#d4af37', '#fcf6ba', '#bf953f', '#ffe066', '#fff'] });
+      confetti({ particleCount: 10, angle: 120, spread: 65, origin: { x: 1, y: 0.7 }, colors: ['#d4af37', '#fcf6ba', '#bf953f', '#ffe066', '#fff'] });
       if (Date.now() < end) requestAnimationFrame(frame);
     };
     frame();
@@ -545,36 +549,79 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
           </div>
         </div>
 
-        {/* ── WINNING BID POPUP ── */}
+        {/* ── WINNING BID POPUP (PREMIUM REDESIGN) ── */}
         <AnimatePresence>
           {isSold && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.4 }}
-              style={{ position: 'absolute', inset: 0, zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(1, 20, 10, 0.92)', backdropFilter: 'blur(16px)', pointerEvents: 'none' }}
+              transition={{ duration: 0.6 }}
+              style={{ position: 'absolute', inset: 0, zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(2, 10, 5, 0.95)', backdropFilter: 'blur(20px)', pointerEvents: 'none', padding: '4vw' }}
             >
               <motion.div
-                initial={{ scale: 0.8, y: 60 }}
-                animate={{ scale: 1, y: 0 }}
-                transition={{ type: 'spring', damping: 18, stiffness: 100, delay: 0.08 }}
-                style={{ textAlign: 'center', background: 'linear-gradient(145deg, rgba(212,175,55,0.18) 0%, rgba(1,40,20,0.96) 100%)', border: '2px solid rgba(212,175,55,0.5)', padding: '7vh 9vw', borderRadius: 32, boxShadow: '0 0 80px rgba(212,175,55,0.4), 0 40px 120px rgba(0,10,5,0.95)' }}
+                initial={{ scale: 0.85, y: 40, opacity: 0 }}
+                animate={{ scale: 1, y: 0, opacity: 1 }}
+                transition={{ type: 'spring', damping: 25, stiffness: 100, delay: 0.15 }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  background: 'linear-gradient(145deg, rgba(20,30,22,0.95) 0%, rgba(5,15,8,0.98) 100%)',
+                  border: '1px solid rgba(212,175,55,0.4)',
+                  boxShadow: '0 0 120px rgba(212,175,55,0.15), inset 0 0 60px rgba(212,175,55,0.08)',
+                  borderRadius: 'clamp(20px, 3vw, 40px)',
+                  padding: 'clamp(24px, 4vw, 60px) clamp(30px, 5vw, 80px)',
+                  gap: 'clamp(40px, 6vw, 100px)',
+                  maxWidth: '92vw',
+                  maxHeight: '90vh',
+                  width: '100%'
+                }}
               >
-                <i className="fa-solid fa-gavel" style={{ fontSize: 'clamp(2rem, 3.5vw, 4.5rem)', color: '#d4af37', marginBottom: '2.5vh', display: 'block', textShadow: '0 0 30px rgba(212,175,55,0.8)' }} />
-                <div style={{ fontSize: 'clamp(12px, 1.5vw, 20px)', color: 'rgba(252,246,186,0.8)', textTransform: 'uppercase', letterSpacing: '0.35em', marginBottom: '2vh', fontFamily: '"Urbanist", sans-serif' }}>Successful Bid</div>
-                <div style={{ fontSize: 'clamp(3.5rem, 9vw, 12rem)', fontWeight: 900, color: '#fff', lineHeight: 1, marginBottom: '2.5vh', textShadow: '0 0 40px rgba(252,246,186,0.4)', fontFamily: '"Urbanist", sans-serif' }}>
-                  <span style={{ fontSize: '0.33em', color: '#d4af37', marginRight: '0.8vw', verticalAlign: 'super', textShadow: '0 0 20px rgba(212,175,55,0.8)' }}>RM</span>
-                  {livePrice.toLocaleString()}
+                {/* Left: Golden Frame Photo */}
+                <div style={{ flexShrink: 0, width: 'clamp(300px, 40vw, 750px)', height: 'clamp(300px, 40vw, 750px)', padding: 'clamp(8px, 1vw, 16px)', background: 'linear-gradient(135deg, #d4af37 0%, #bf953f 30%, #fcf6ba 50%, #b38728 70%, #aa7c11 100%)', borderRadius: 'clamp(16px, 2vw, 32px)', boxShadow: '0 30px 60px rgba(0,0,0,0.6), 0 0 40px rgba(212,175,55,0.3)' }}>
+                  <div style={{ width: '100%', height: '100%', background: '#fff', borderRadius: 'clamp(10px, 1.5vw, 24px)', overflow: 'hidden', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {activeItem.image_url ? (
+                      <img src={activeItem.image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                    ) : (
+                      <i className="fa-solid fa-image" style={{ fontSize: 80, color: 'rgba(0,0,0,0.1)' }} />
+                    )}
+                  </div>
                 </div>
-                {liveWinner && (
-                  <>
-                    <div style={{ fontSize: 'clamp(11px, 1.3vw, 18px)', color: 'rgba(212,175,55,0.5)', textTransform: 'uppercase', letterSpacing: '0.25em', marginBottom: '1.5vh', fontFamily: '"Urbanist", sans-serif' }}>Winning Bidder</div>
-                    <div style={{ fontSize: 'clamp(2rem, 5.5vw, 7.5rem)', fontWeight: 900, background: 'linear-gradient(135deg, #d4af37 0%, #fcf6ba 35%, #b38728 70%, #ffe066 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', letterSpacing: '-0.01em' }}>
-                      {liveWinner}
+
+                {/* Right: Sold Information */}
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 12, padding: 'clamp(8px, 1vh, 16px) clamp(20px, 2vw, 40px)', background: 'rgba(212,175,55,0.1)', border: '1px solid rgba(212,175,55,0.4)', borderRadius: 50, color: '#fcf6ba', fontSize: 'clamp(14px, 1.5vw, 24px)', fontWeight: 800, letterSpacing: '0.4em', marginBottom: '3vh', alignSelf: 'flex-start', boxShadow: '0 0 20px rgba(212,175,55,0.2)' }}>
+                    <i className="fa-solid fa-gavel" style={{ fontSize: '1.2em' }} /> SUCCESSFUL BID
+                  </div>
+
+                  <div style={{ fontSize: activeItem.title.length > 25 ? 'clamp(2rem, 3vw, 4rem)' : 'clamp(2.5rem, 4vw, 5.5rem)', fontWeight: 900, color: '#fff', lineHeight: 1.15, marginBottom: '1.5vh', fontFamily: '"Noto Serif SC", serif', textShadow: '0 4px 20px rgba(0,0,0,0.8)' }}>
+                    {activeItem.title}
+                  </div>
+
+                  {activeItem.sponsor && (
+                    <div style={{ fontSize: 'clamp(16px, 1.8vw, 28px)', color: 'rgba(252,246,186,0.8)', marginBottom: '5vh', fontFamily: '"Noto Serif SC", serif', display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <i className="fa-solid fa-hand-holding-heart" style={{ color: '#d4af37' }} />
+                      <span>赞助人 · {activeItem.sponsor}</span>
                     </div>
-                  </>
-                )}
+                  )}
+
+                  <div style={{ padding: 'clamp(2vh, 3vw, 4vh) 0', borderTop: '1px solid rgba(212,175,55,0.25)', borderBottom: '1px solid rgba(212,175,55,0.25)' }}>
+                    <div style={{ fontSize: 'clamp(14px, 1.5vw, 22px)', color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: '0.2em', marginBottom: '1vh', fontFamily: '"Urbanist", sans-serif' }}>Final Price</div>
+                    <div style={{ fontSize: 'clamp(4rem, 8vw, 11rem)', fontWeight: 900, background: 'linear-gradient(180deg, #ffffff 0%, #ffe58f 40%, #d4af37 75%, #aa7c11 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: 1, textShadow: '0 10px 40px rgba(212,175,55,0.25)', fontFamily: '"Urbanist", sans-serif' }}>
+                      <span style={{ fontSize: '0.35em', marginRight: '1vw', verticalAlign: 'super', color: '#d4af37', WebkitTextFillColor: '#d4af37' }}>RM</span>
+                      {livePrice.toLocaleString()}
+                    </div>
+                  </div>
+
+                  {liveWinner && (
+                    <div style={{ marginTop: '4vh' }}>
+                      <div style={{ fontSize: 'clamp(14px, 1.5vw, 22px)', color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: '0.2em', marginBottom: '1vh', fontFamily: '"Urbanist", sans-serif' }}>Winning Bidder</div>
+                      <div style={{ fontSize: 'clamp(2.5rem, 5vw, 7rem)', fontWeight: 900, color: '#fcf6ba', textShadow: '0 0 20px rgba(212,175,55,0.5)', fontFamily: '"Urbanist", sans-serif' }}>
+                        {liveWinner}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </motion.div>
             </motion.div>
           )}
