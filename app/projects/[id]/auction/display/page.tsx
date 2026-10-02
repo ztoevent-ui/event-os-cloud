@@ -124,6 +124,11 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
   const [priceImpact, setPriceImpact] = useState(0);  // increment to trigger animation
   const [bidderImpact, setBidderImpact] = useState(0);
 
+  const itemsRef = useRef<AuctionItem[]>([]);
+  useEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
+
   const activeItemIdRef = useRef<string | null>(null);
   const isSoldRef = useRef<boolean>(false);
 
@@ -144,8 +149,13 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
           const state = newRecord.current_state;
           if (!state) return;
           if (state.active_item_id && activeItemIdRef.current !== state.active_item_id) {
-            fetchItemDetails(state.active_item_id);
-            setIsSold(false);
+            const localItem = itemsRef.current.find(i => i.id === state.active_item_id);
+            if (localItem) {
+              setActiveItem(localItem);
+              setIsSold(localItem.status === 'sold');
+            } else {
+              fetchItemDetails(state.active_item_id);
+            }
           } else if (!state.active_item_id) {
             setActiveItem(null);
           }
@@ -371,8 +381,8 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
               key={activeItem.id}
               initial={{ opacity: 0, scale: 1.1 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.7, ease: 'easeOut' }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.5, exit: { duration: 0.15 }, ease: 'easeOut' }}
               style={{ flexShrink: 0, position: 'relative', width: 'clamp(240px, 36vw, 540px)', height: 'clamp(240px, 36vw, 540px)' }}
             >
               {/* Classical Wood & Gold Frame */}
@@ -412,7 +422,7 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
 
             {/* LOT + Title */}
             <AnimatePresence mode="wait">
-              <motion.div key={activeItem.id + '-info'} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}>
+              <motion.div key={activeItem.id + '-info'} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.4, exit: { duration: 0.1 } }}>
                 <div style={{ fontSize: 'clamp(12px, 1.3vw, 18px)', fontWeight: 800, color: '#d4af37', textTransform: 'uppercase', letterSpacing: '0.3em', marginBottom: 'clamp(4px, 0.8vh, 12px)', fontFamily: '"Urbanist", sans-serif', textShadow: '0 0 12px rgba(212,175,55,0.6)' }}>
                   LOT {lotNum}
                 </div>
@@ -432,7 +442,7 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
 
             {/* 起拍价 STARTING PRICE (ENLARGED) */}
             <AnimatePresence mode="wait">
-              <motion.div key={activeItem.id + '-start'} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <motion.div key={activeItem.id + '-start'} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ exit: { duration: 0.1 } }}>
                 <div style={{ fontSize: 'clamp(16px, 1.8vw, 26px)', fontWeight: 700, color: '#fcf6ba', letterSpacing: '0.2em', marginBottom: 'clamp(4px, 0.8vh, 10px)', fontFamily: '"Ma Shan Zheng", "Noto Serif SC", serif' }}>
                   起拍价
                 </div>
