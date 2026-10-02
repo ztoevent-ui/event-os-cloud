@@ -441,8 +441,18 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
             {/* LOT + Title */}
             <AnimatePresence mode="wait">
               <motion.div key={activeItem.id + '-info'} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.4, exit: { duration: 0.1 } }}>
-                <div style={{ fontSize: 'clamp(12px, 1.3vw, 18px)', fontWeight: 800, color: '#d4af37', textTransform: 'uppercase', letterSpacing: '0.3em', marginBottom: 'clamp(4px, 0.8vh, 12px)', fontFamily: '"Urbanist", sans-serif', textShadow: '0 0 12px rgba(212,175,55,0.6)' }}>
-                  LOT {lotNum}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(12px, 2vw, 28px)', marginBottom: 'clamp(4px, 0.8vh, 12px)', flexWrap: 'wrap' }}>
+                  <div style={{ fontSize: 'clamp(14px, 1.5vw, 22px)', fontWeight: 800, color: '#d4af37', textTransform: 'uppercase', letterSpacing: '0.3em', fontFamily: '"Urbanist", sans-serif', textShadow: '0 0 12px rgba(212,175,55,0.6)', flexShrink: 0 }}>
+                    LOT {lotNum}
+                  </div>
+                  {activeItem.sponsor && (
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'linear-gradient(90deg, rgba(212,175,55,0.18) 0%, rgba(212,175,55,0.06) 100%)', border: '1px solid rgba(212,175,55,0.35)', borderRadius: 40, padding: 'clamp(4px,0.5vh,7px) clamp(12px,1.5vw,20px)' }}>
+                      <i className="fa-solid fa-hand-holding-heart" style={{ color: '#d4af37', fontSize: 'clamp(13px,1.4vw,20px)', opacity: 0.9 }} />
+                      <span style={{ fontSize: 'clamp(13px, 1.4vw, 20px)', fontWeight: 700, color: 'rgba(252,246,186,0.85)', fontFamily: '"Noto Serif SC", serif', letterSpacing: '0.06em' }}>
+                        赞助人&nbsp;·&nbsp;{activeItem.sponsor}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <div style={{ fontSize: activeItem.title.length > 30 ? 'clamp(1.2rem, 2.2vw, 2.8rem)' : activeItem.title.length > 15 ? 'clamp(1.5rem, 3vw, 3.8rem)' : 'clamp(1.5rem, 3.5vw, 4.5rem)', fontWeight: 900, lineHeight: 1.15, letterSpacing: '0.02em', background: 'linear-gradient(135deg, #ffffff 0%, #fcf6ba 40%, #fff 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', filter: 'drop-shadow(0 2px 12px rgba(252,246,186,0.3))' }}>
                   {activeItem.title}
@@ -450,14 +460,6 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
                 {activeItem.description && (
                   <div style={{ fontSize: 'clamp(14px, 1.5vw, 22px)', color: 'rgba(252,246,186,0.7)', marginTop: 'clamp(8px, 1.5vh, 20px)', lineHeight: 1.6, fontFamily: '"Noto Serif SC", serif' }}>
                     {activeItem.description}
-                  </div>
-                )}
-                {activeItem.sponsor && (
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, marginTop: 'clamp(10px, 1.8vh, 24px)', background: 'linear-gradient(90deg, rgba(212,175,55,0.18) 0%, rgba(212,175,55,0.06) 100%)', border: '1px solid rgba(212,175,55,0.35)', borderRadius: 40, padding: 'clamp(6px,0.8vh,10px) clamp(14px,2vw,24px)' }}>
-                    <i className="fa-solid fa-hand-holding-heart" style={{ color: '#d4af37', fontSize: 'clamp(12px,1.2vw,18px)', opacity: 0.9 }} />
-                    <span style={{ fontSize: 'clamp(12px, 1.2vw, 18px)', fontWeight: 700, color: 'rgba(252,246,186,0.8)', fontFamily: '"Noto Serif SC", serif', letterSpacing: '0.08em' }}>
-                      赞助人&nbsp;·&nbsp;{activeItem.sponsor}
-                    </span>
                   </div>
                 )}
               </motion.div>
