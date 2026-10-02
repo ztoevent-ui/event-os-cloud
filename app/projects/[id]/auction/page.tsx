@@ -395,13 +395,23 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
                   <p style={{ color: 'rgba(255,255,255,0.6)', marginTop: 8 }}>{activeItem.description}</p>
                   
                   <div style={{ marginTop: 24, display: 'flex', gap: 16 }}>
-                    <button 
-                      onClick={() => handleSetStatus(activeItem.id, 'sold')}
-                      className="zto-btn zto-btn-primary"
-                      style={{ background: '#10b981', color: 'black', border: 'none', padding: '16px 32px', fontSize: 16, flex: 1 }}
-                    >
-                      <i className="fa-solid fa-gavel" /> MARK AS SOLD
-                    </button>
+                    {activeItem.status === 'sold' ? (
+                      <button 
+                        onClick={() => handleSetStatus(activeItem.id, 'pending')}
+                        className="zto-btn zto-btn-danger"
+                        style={{ padding: '16px 32px', fontSize: 16, flex: 1, background: '#b91c1c', border: 'none' }}
+                      >
+                        <i className="fa-solid fa-rotate-left" /> REVERT SOLD
+                      </button>
+                    ) : (
+                      <button 
+                        onClick={() => handleSetStatus(activeItem.id, 'sold')}
+                        className="zto-btn zto-btn-primary"
+                        style={{ background: '#10b981', color: 'black', border: 'none', padding: '16px 32px', fontSize: 16, flex: 1 }}
+                      >
+                        <i className="fa-solid fa-gavel" /> MARK AS SOLD
+                      </button>
+                    )}
                     <button 
                       onClick={() => updateLiveState({ active_item_id: null })}
                       className="zto-btn zto-btn-danger"
@@ -641,6 +651,11 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.1)' }}>
                   <div style={{ fontSize: 14, fontWeight: 700, color: '#DEFF9A' }}>RM {item.current_price || item.starting_price}</div>
                   <div style={{ display: 'flex', gap: 8 }}>
+                    {item.status === 'sold' && (
+                      <button onClick={() => handleSetStatus(item.id, 'pending')} className="zto-btn zto-btn-ghost" style={{ padding: '6px 12px', fontSize: 12, color: '#f59e0b' }}>
+                        Revert
+                      </button>
+                    )}
                     <button onClick={() => { setEditingItem(item); setIsEditing(true); }} className="zto-btn zto-btn-ghost" style={{ padding: '6px 12px', fontSize: 12 }}>
                       Edit
                     </button>

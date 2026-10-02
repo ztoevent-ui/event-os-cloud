@@ -401,7 +401,7 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.5, exit: { duration: 0.15 }, ease: 'easeOut' }}
-              style={{ flexShrink: 0, position: 'relative', width: 'clamp(240px, 36vw, 540px)', height: 'clamp(240px, 36vw, 540px)' }}
+              style={{ flexShrink: 0, position: 'relative', width: 'clamp(300px, 42vw, 850px)', height: 'clamp(300px, 42vw, 850px)' }}
             >
               {/* Classical Wood & Gold Frame */}
               <div style={{
@@ -426,7 +426,7 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
               {/* White card with image */}
               <div className="gala-float" style={{ position: 'relative', width: '100%', height: '100%', background: '#ffffff', borderRadius: 'clamp(12px, 2.2vw, 30px)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, boxShadow: 'inset 0 0 20px rgba(0,0,0,0.1)' }}>
                 {activeItem.image_url
-                  ? <img src={activeItem.image_url} alt={activeItem.title} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '4%' }} />
+                  ? <img src={activeItem.image_url} alt={activeItem.title} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                   : <i className="fa-solid fa-image" style={{ fontSize: 56, color: 'rgba(0,0,0,0.12)' }} />
                 }
                 {/* Shimmer sweep */}
