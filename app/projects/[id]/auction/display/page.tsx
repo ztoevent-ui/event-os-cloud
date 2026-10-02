@@ -216,6 +216,19 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
       }
       setLivePrice(p => { if (p !== (state.current_price || 0)) setPriceImpact(c => c + 1); return state.current_price || 0; });
       setLiveWinner(w => { if (w !== (state.current_winner || '')) setBidderImpact(c => c + 1); return state.current_winner || ''; });
+      
+      // Explicitly poll the status of the active item to catch "SOLD" events 
+      // without relying on Supabase Realtime (which requires publication config)
+      if (state.active_item_id) {
+        const { data: itemData } = await supabase.from('auction_items').select('status').eq('id', state.active_item_id).maybeSingle();
+        if (itemData) {
+          if (itemData.status === 'sold' && !isSoldRef.current) {
+            triggerSoldAnimation();
+          } else if (itemData.status !== 'sold' && isSoldRef.current) {
+            setIsSold(false);
+          }
+        }
+      }
     } else if (activeItemIdRef.current !== null) {
       setActiveItem(null);
     }
