@@ -67,9 +67,9 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
 
   const subscribeToLiveState = () => {
     const channel = supabase.channel(`auction_${projectId}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'tool_states', filter: `tool_name=eq.auction` }, payload => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tool_states' }, payload => {
         const newRecord = payload.new as any;
-        if (newRecord && newRecord.project_id === projectId) {
+        if (newRecord && newRecord.project_id === projectId && newRecord.tool_name === 'auction') {
           const state = newRecord.current_state;
           if (state) {
             setActiveItemId(state.active_item_id);
