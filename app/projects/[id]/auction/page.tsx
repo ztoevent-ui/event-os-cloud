@@ -17,6 +17,7 @@ interface AuctionItem {
   status: string;
   winner_name: string;
   lot_number?: string;
+  sponsor?: string;
 }
 
 export default function AuctionAdminPage({ params }: { params: Promise<{ id: string }> }) {
@@ -667,6 +668,11 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
                     <label className="zto-label">Starting Price (RM)</label>
                     <input type="number" className="zto-input" value={editingItem.starting_price || 0} onChange={e => setEditingItem({...editingItem, starting_price: Number(e.target.value)})} />
                   </div>
+                </div>
+
+                <div>
+                  <label className="zto-label">赞助人 Sponsor</label>
+                  <input type="text" className="zto-input" value={editingItem.sponsor || ''} onChange={e => setEditingItem({...editingItem, sponsor: e.target.value})} placeholder="e.g. 李大明先生 Mr. Lee" />
                 </div>
 
                 <div>

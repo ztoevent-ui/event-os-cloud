@@ -17,6 +17,7 @@ interface AuctionItem {
   status: string;
   winner_name: string;
   lot_number?: string;
+  sponsor?: string;
 }
 
 // ── Gold Particle Canvas Background ──────────────────────────
@@ -449,6 +450,14 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
                 {activeItem.description && (
                   <div style={{ fontSize: 'clamp(14px, 1.5vw, 22px)', color: 'rgba(252,246,186,0.7)', marginTop: 'clamp(8px, 1.5vh, 20px)', lineHeight: 1.6, fontFamily: '"Noto Serif SC", serif' }}>
                     {activeItem.description}
+                  </div>
+                )}
+                {activeItem.sponsor && (
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, marginTop: 'clamp(10px, 1.8vh, 24px)', background: 'linear-gradient(90deg, rgba(212,175,55,0.18) 0%, rgba(212,175,55,0.06) 100%)', border: '1px solid rgba(212,175,55,0.35)', borderRadius: 40, padding: 'clamp(6px,0.8vh,10px) clamp(14px,2vw,24px)' }}>
+                    <i className="fa-solid fa-hand-holding-heart" style={{ color: '#d4af37', fontSize: 'clamp(12px,1.2vw,18px)', opacity: 0.9 }} />
+                    <span style={{ fontSize: 'clamp(12px, 1.2vw, 18px)', fontWeight: 700, color: 'rgba(252,246,186,0.8)', fontFamily: '"Noto Serif SC", serif', letterSpacing: '0.08em' }}>
+                      赞助人&nbsp;·&nbsp;{activeItem.sponsor}
+                    </span>
                   </div>
                 )}
               </motion.div>
