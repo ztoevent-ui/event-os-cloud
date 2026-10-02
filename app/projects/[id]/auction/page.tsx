@@ -61,8 +61,23 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
 
   const fetchItems = async () => {
     setLoading(true);
-    const { data, error } = await supabase.from('auction_items').select('*').eq('project_id', projectId).order('sort_order');
-    if (!error && data) setItems(data);
+    const { data, error } = await supabase.from('auction_items').select('*').eq('project_id', projectId);
+    if (!error && data) {
+      const sorted = [...data].sort((a, b) => {
+        const lotA = (a.lot_number || '').toString();
+        const lotB = (b.lot_number || '').toString();
+        // Natural sort: extract prefix letters and numeric part
+        const parse = (s: string) => {
+          const m = s.match(/^([A-Za-z]*)(\d+)(.*)$/);
+          return m ? { prefix: m[1].toUpperCase(), num: parseInt(m[2], 10), suffix: m[3] } : { prefix: s.toUpperCase(), num: 0, suffix: '' };
+        };
+        const pa = parse(lotA), pb = parse(lotB);
+        if (pa.prefix !== pb.prefix) return pa.prefix.localeCompare(pb.prefix);
+        if (pa.num !== pb.num) return pa.num - pb.num;
+        return pa.suffix.localeCompare(pb.suffix);
+      });
+      setItems(sorted);
+    }
     setLoading(false);
   };
 
