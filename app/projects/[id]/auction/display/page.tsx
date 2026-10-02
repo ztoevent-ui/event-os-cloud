@@ -175,7 +175,10 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
       })
       .subscribe();
 
-    return () => { channel.unsubscribe(); };
+    // Polling fallback — guarantees updates even if Supabase realtime is not configured
+    const pollInterval = setInterval(() => fetchLiveState(), 2000);
+
+    return () => { channel.unsubscribe(); clearInterval(pollInterval); };
   }, [projectId]);
 
   useEffect(() => {
@@ -197,9 +200,23 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
   const fetchLiveState = async () => {
     const { data } = await supabase.from('tool_states').select('current_state').eq('project_id', projectId).eq('tool_name', 'auction').maybeSingle();
     if (data?.current_state) {
-      if (data.current_state.active_item_id) await fetchItemDetails(data.current_state.active_item_id);
-      setLivePrice(data.current_state.current_price || 0);
-      setLiveWinner(data.current_state.current_winner || '');
+      const state = data.current_state;
+      // Switch item only if it changed
+      if (state.active_item_id && activeItemIdRef.current !== state.active_item_id) {
+        const localItem = itemsRef.current.find(i => i.id === state.active_item_id);
+        if (localItem) {
+          setActiveItem(localItem);
+          setIsSold(localItem.status === 'sold');
+        } else {
+          await fetchItemDetails(state.active_item_id);
+        }
+      } else if (!state.active_item_id && activeItemIdRef.current !== null) {
+        setActiveItem(null);
+      }
+      setLivePrice(p => { if (p !== (state.current_price || 0)) setPriceImpact(c => c + 1); return state.current_price || 0; });
+      setLiveWinner(w => { if (w !== (state.current_winner || '')) setBidderImpact(c => c + 1); return state.current_winner || ''; });
+    } else if (activeItemIdRef.current !== null) {
+      setActiveItem(null);
     }
   };
 
