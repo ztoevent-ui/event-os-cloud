@@ -450,37 +450,45 @@ export default function AuctionDisplayPage({ params }: { params: Promise<{ id: s
 
             {/* 现价 CURRENT PRICE (MUCH LARGER & PROMINENT) */}
             <div>
-              <div style={{ fontSize: 'clamp(20px, 2.2vw, 32px)', fontWeight: 900, color: '#ffe066', letterSpacing: '0.25em', marginBottom: 'clamp(6px, 1.2vh, 16px)', fontFamily: '"Ma Shan Zheng", "Noto Serif SC", serif', filter: 'drop-shadow(0 0 10px rgba(212,175,55,0.6))' }}>
-                现价
-              </div>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '1vw' }}>
-                <span style={{ fontSize: 'clamp(1.8rem, 3.5vw, 4.5rem)', fontWeight: 900, color: '#d4af37', lineHeight: 1, flexShrink: 0, textShadow: '0 0 25px rgba(212,175,55,0.9), 0 0 50px rgba(212,175,55,0.5)' }}>
-                  RM
-                </span>
-                
-                <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
-                  {/* Golden Ripple Effect for Impact */}
-                  <AnimatePresence mode="popLayout">
-                    <motion.div
-                      key={'ripple-' + priceImpact}
-                      initial={{ opacity: 0.8, scale: 1 }}
-                      animate={{ opacity: 0, scale: 1.4 }}
-                      transition={{ duration: 0.4, ease: "easeOut" }}
-                      style={{ position: 'absolute', inset: -10, borderRadius: 20, border: '4px solid rgba(212,175,55,0.9)', pointerEvents: 'none', filter: 'blur(4px)' }}
-                    />
-                  </AnimatePresence>
-                  
-                  <motion.span
-                    key={'price-' + priceImpact}
-                    initial={{ scale: 1.3, textShadow: '0 0 80px rgba(212,175,55,1)' }}
-                    animate={{ scale: 1, textShadow: '0 0 25px rgba(212,175,55,0)' }}
-                    transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                    style={{ fontSize: 'clamp(3rem, 7.5vw, 9rem)', fontWeight: 900, lineHeight: 1, letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums', fontFamily: '"Urbanist", "Noto Serif SC", sans-serif', background: 'linear-gradient(180deg, #ffffff 0%, #ffe58f 30%, #d4af37 65%, #aa7c11 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', filter: 'drop-shadow(3px 8px 16px rgba(0,0,0,0.9))', whiteSpace: 'nowrap' }}
-                  >
-                    {livePrice.toLocaleString()}
-                  </motion.span>
+              {livePrice > activeItem.starting_price || liveWinner ? (
+                <>
+                  <div style={{ fontSize: 'clamp(20px, 2.2vw, 32px)', fontWeight: 900, color: '#ffe066', letterSpacing: '0.25em', marginBottom: 'clamp(6px, 1.2vh, 16px)', fontFamily: '"Ma Shan Zheng", "Noto Serif SC", serif', filter: 'drop-shadow(0 0 10px rgba(212,175,55,0.6))' }}>
+                    现价
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '1vw' }}>
+                    <span style={{ fontSize: 'clamp(1.8rem, 3.5vw, 4.5rem)', fontWeight: 900, color: '#d4af37', lineHeight: 1, flexShrink: 0, textShadow: '0 0 25px rgba(212,175,55,0.9), 0 0 50px rgba(212,175,55,0.5)' }}>
+                      RM
+                    </span>
+                    
+                    <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
+                      {/* Golden Ripple Effect for Impact */}
+                      <AnimatePresence mode="popLayout">
+                        <motion.div
+                          key={'ripple-' + priceImpact}
+                          initial={{ opacity: 0.8, scale: 1 }}
+                          animate={{ opacity: 0, scale: 1.4 }}
+                          transition={{ duration: 0.4, ease: "easeOut" }}
+                          style={{ position: 'absolute', inset: -10, borderRadius: 20, border: '4px solid rgba(212,175,55,0.9)', pointerEvents: 'none', filter: 'blur(4px)' }}
+                        />
+                      </AnimatePresence>
+                      
+                      <motion.span
+                        key={'price-' + priceImpact}
+                        initial={{ scale: 1.3, textShadow: '0 0 80px rgba(212,175,55,1)' }}
+                        animate={{ scale: 1, textShadow: '0 0 25px rgba(212,175,55,0)' }}
+                        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                        style={{ fontSize: 'clamp(3rem, 7.5vw, 9rem)', fontWeight: 900, lineHeight: 1, letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums', fontFamily: '"Urbanist", "Noto Serif SC", sans-serif', background: 'linear-gradient(180deg, #ffffff 0%, #ffe58f 30%, #d4af37 65%, #aa7c11 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', filter: 'drop-shadow(3px 8px 16px rgba(0,0,0,0.9))', whiteSpace: 'nowrap' }}
+                      >
+                        {livePrice.toLocaleString()}
+                      </motion.span>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div style={{ fontSize: 'clamp(20px, 2.5vw, 36px)', fontWeight: 800, color: 'rgba(212,175,55,0.5)', fontFamily: '"Noto Serif SC", serif', letterSpacing: '0.15em', marginTop: '1vh', paddingLeft: '4px' }}>
+                  等待出价...
                 </div>
-              </div>
+              )}
             </div>
 
           </div>
