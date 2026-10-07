@@ -62,6 +62,18 @@ const PRINT_CSS = `
 }
 `;
 
+/**
+ * iPad Kiosk strict touch locks
+ */
+const KIOSK_GLOBAL_CSS = `
+html, body {
+  touch-action: none !important;
+  -webkit-user-select: none !important;
+  -webkit-touch-callout: none !important;
+  overscroll-behavior: none !important;
+}
+`;
+
 /** Crop the live frame exactly like `object-fit: cover` does in the preview (WYSIWYG). */
 function captureFrame(video: HTMLVideoElement, aspect: number, mirror: boolean): HTMLCanvasElement {
     const vw = video.videoWidth, vh = video.videoHeight;
@@ -350,11 +362,23 @@ export default function PhotoboothKioskPage() {
         setUpload('idle');
     }, [clearTimers]);
 
-    const printPhoto = useCallback(() => {
-        if (phase !== 'result') return;
+    const printPhoto = useCallback(async () => {
+        if (phase !== 'result' || !photoUrl) return;
         setResetIn(AUTO_RESET_SEC);
-        window.print();
-    }, [phase]);
+        showToast('Sending to printer... 🖨️');
+        try {
+            const res = await fetch('/api/photobooth/print', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ photoUrl, eventId }),
+            });
+            if (!res.ok) throw new Error('Print server failed');
+            showToast('Printing started! Please wait... ✅');
+        } catch (e) {
+            console.error('[photobooth] print failed', e);
+            showToast('Printer offline or error. Please check the printer.');
+        }
+    }, [phase, photoUrl, eventId, showToast]);
 
     // ── Auto reset in result phase ──────────────────────────────────────────
     useEffect(() => {
@@ -404,7 +428,7 @@ export default function PhotoboothKioskPage() {
             className={styles.root}
             onPointerDown={() => phase === 'result' && setResetIn(AUTO_RESET_SEC)}
         >
-            <style dangerouslySetInnerHTML={{ __html: PRINT_CSS }} />
+            <style dangerouslySetInnerHTML={{ __html: PRINT_CSS + KIOSK_GLOBAL_CSS }} />
             <div className={styles.aurora} aria-hidden />
             <div className={styles.grain} aria-hidden />
 
@@ -656,7 +680,7 @@ export default function PhotoboothKioskPage() {
 
                         <p className={styles.hint}>
                             Shortcuts: <kbd>Space</kbd> start · <kbd>P</kbd> print · <kbd>Esc</kbd> back.<br />
-                            For silent one-click printing launch Chrome with <code>--kiosk --kiosk-printing</code>.
+                            Printing is routed via Cloud Print API to bypass iOS AirPrint dialog.
                         </p>
 
                         <Link className={styles.ghostBtn} href="/apps/photobooth">
