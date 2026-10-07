@@ -2,7 +2,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
-import { createTask, updateTask, deleteTask, createTimeline, deleteTimeline, createBudget, updateBudget, deleteBudget, createVendor, deleteVendor, copyBudget, copyProgram } from '../actions';
+import { createTask, updateTask, deleteTask, createTimeline, deleteTimeline, createBudget, updateBudget, deleteBudget, createVendor, updateVendor, deleteVendor, copyBudget, copyProgram } from '../actions';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import { PrintOptionsModal } from './PrintOptionsModal';
@@ -602,6 +602,97 @@ export function DeleteVendorButton({ id, projectId }: { id: string, projectId: s
                 <i className="fa-solid fa-trash text-xs"></i>
             </button>
         </form>
+    );
+}
+
+export function EditVendorModal({
+    vendor,
+    projectId,
+    isOpen,
+    onClose,
+    onSuccess,
+}: {
+    vendor: any;
+    projectId: string;
+    isOpen: boolean;
+    onClose: () => void;
+    onSuccess?: () => void;
+}) {
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    if (!isOpen || !vendor) return null;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md p-6 shadow-2xl relative animate-in zoom-in-95">
+                <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-lg font-black text-white uppercase tracking-tight">Edit Vendor</h3>
+                    <button onClick={onClose} className="text-zinc-500 hover:text-white transition-colors">
+                        <i className="fa-solid fa-xmark text-lg" />
+                    </button>
+                </div>
+
+                <form action={async (formData) => {
+                    setIsSubmitting(true);
+                    await updateVendor(formData);
+                    setIsSubmitting(false);
+                    onClose();
+                    onSuccess?.();
+                }} className="space-y-4">
+                    <input type="hidden" name="id" value={vendor.id} />
+                    <input type="hidden" name="project_id" value={projectId} />
+                    
+                    <div>
+                        <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Vendor Name</label>
+                        <input name="name" defaultValue={vendor.name} required className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-[#0056B3]/50" placeholder="Company Name" />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Category</label>
+                        <input name="category" list="edit-vendor-categories" defaultValue={vendor.category} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-[#0056B3]/50" placeholder="e.g. Catering" />
+                        <datalist id="edit-vendor-categories">
+                            <option value="Venue" />
+                            <option value="Catering" />
+                            <option value="Photography" />
+                            <option value="AV & Sound" />
+                            <option value="Decor" />
+                        </datalist>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Status</label>
+                            <select name="status" defaultValue={vendor.status} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-[#0056B3]/50">
+                                <option value="potential">Potential</option>
+                                <option value="contacted">Contacted</option>
+                                <option value="confirmed">Confirmed</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Contact Person</label>
+                            <input name="contact_person" defaultValue={vendor.contact_person} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-[#0056B3]/50" placeholder="Name" />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Phone</label>
+                            <input name="phone" defaultValue={vendor.phone} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-[#0056B3]/50" placeholder="+60..." />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Email</label>
+                            <input name="email" defaultValue={vendor.email} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-[#0056B3]/50" placeholder="email@example.com" />
+                        </div>
+                    </div>
+                    
+                    <div className="flex gap-3 pt-2">
+                        <button type="button" onClick={onClose} className="flex-1 py-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-400 font-bold text-sm transition-colors">
+                            Cancel
+                        </button>
+                        <button type="submit" disabled={isSubmitting} className="flex-1 py-3 rounded-xl bg-[#0056B3] hover:bg-[#0069d9] text-white font-bold text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
+                            {isSubmitting && <i className="fa-solid fa-circle-notch fa-spin" />}
+                            {isSubmitting ? 'Saving...' : 'Save Changes'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     );
 }
 

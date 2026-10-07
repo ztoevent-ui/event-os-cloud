@@ -48,6 +48,15 @@ const tools = [
         tag: 'DISPLAY',
     },
     {
+        id: 'photobooth',
+        href: '/apps/photobooth',
+        icon: 'fa-solid fa-camera-retro',
+        label: 'AI Photobooth',
+        desc: 'AI cut-out, branded templates, QR softcopy & print',
+        accent: '#ec4899',
+        tag: 'DISPLAY',
+    },
+    {
         id: 'registration',
         href: '/admin/registration',
         icon: 'fa-solid fa-sliders',

@@ -219,6 +219,30 @@ export async function deleteVendor(formData: FormData) {
     revalidatePath(`/projects/${project_id}`);
 }
 
+export async function updateVendor(formData: FormData) {
+    const id = formData.get('id') as string;
+    const project_id = formData.get('project_id') as string;
+    const name = formData.get('name') as string;
+    const category = formData.get('category') as string;
+    const status = formData.get('status') as string;
+    const contact_person = formData.get('contact_person') as string;
+    const phone = formData.get('phone') as string;
+    const email = formData.get('email') as string;
+
+    const { error } = await supabase.from('vendors').update({
+        name,
+        category,
+        status,
+        contact_person,
+        phone,
+        email
+    }).eq('id', id);
+
+    if (error) console.error('Error updating vendor:', error);
+    revalidatePath(`/projects/${project_id}/vendors`);
+    revalidatePath(`/projects/${project_id}`);
+}
+
 export async function copyProgram(formData: FormData) {
     const fromProjectId = formData.get('fromProjectId') as string;
     const toProjectId = formData.get('toProjectId') as string;

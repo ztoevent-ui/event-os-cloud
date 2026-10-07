@@ -1,13 +1,14 @@
 'use client';
 import React, { useState, useEffect, use } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { AddVendorButton, DeleteVendorButton, PrintReportButton } from '../../components/ProjectModals';
+import { AddVendorButton, DeleteVendorButton, PrintReportButton, EditVendorModal } from '../../components/ProjectModals';
 import { PrintBreakTrigger } from '../../components/PrintBreakTrigger';
 import { usePrint } from '../../components/PrintContext';
 
 export default function VendorsPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
     const [vendors, setVendors] = useState<any[]>([]);
+    const [editingVendor, setEditingVendor] = useState<any>(null);
     const [project, setProject] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const { pageBreakIds, layoutType } = usePrint();
@@ -107,6 +108,13 @@ export default function VendorsPage({ params }: { params: Promise<{ id: string }
                                 </div>
 
                                 <DeleteVendorButton id={vendor.id} projectId={id} />
+                                <button
+                                    onClick={() => setEditingVendor(vendor)}
+                                    className="absolute top-4 right-28 print:hidden text-zinc-600 hover:text-[#0056B3] transition-colors bg-zinc-900 rounded-full w-8 h-8 flex items-center justify-center border border-zinc-700"
+                                    title="Edit"
+                                >
+                                    <i className="fa-solid fa-pen text-xs"></i>
+                                </button>
 
                                 <div className="mb-8">
                                     <div className="w-14 h-14 bg-zinc-900 border border-white/5 rounded-2xl flex items-center justify-center text-[#0056B3] text-xl mb-6 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(0,86,179,0.1)]">
@@ -161,6 +169,14 @@ export default function VendorsPage({ params }: { params: Promise<{ id: string }
                 )}
             </div>
             </div>
+
+            <EditVendorModal
+                vendor={editingVendor}
+                projectId={id}
+                isOpen={!!editingVendor}
+                onClose={() => setEditingVendor(null)}
+                onSuccess={() => fetchData()}
+            />
 
             {/* ── Compact Table (Print Only) ── */}
             {layoutType === 'table' && (
