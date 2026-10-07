@@ -116,10 +116,15 @@ export function composite({ canvas, subject, assets, eventName, style, transpare
     // ── 2. Subject ───────────────────────────────────────────────────────────
     if (subject) {
         ctx.save();
+        // Studio beauty filter: bump brightness, contrast, and saturation slightly
+        // to make the subject pop against vibrant AI backgrounds
+        ctx.filter = 'brightness(1.15) contrast(1.1) saturate(1.15)';
+        
         // soft contact shadow so the cut-out sits naturally on the scene
-        ctx.shadowColor = 'rgba(0,0,0,0.35)';
-        ctx.shadowBlur = 40;
-        ctx.shadowOffsetY = 12;
+        ctx.shadowColor = 'rgba(0,0,0,0.5)';
+        ctx.shadowBlur = 50;
+        ctx.shadowOffsetY = 15;
+        
         drawCover(ctx, subject, W, H, Math.max(0.5, style.subject_scale || 1), 'bottom');
         ctx.restore();
     }
