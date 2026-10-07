@@ -278,8 +278,23 @@ export default function PhotoboothKioskPage() {
 
             let aiBg = assetsRef.current.background;
             if (style.bg_type === 'ai' && style.theme_prompt) {
+                let finalPrompt = style.theme_prompt;
+                try {
+                    const res = await fetch('/api/photobooth/enhance-prompt', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ theme: style.theme_prompt })
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.enhancedPrompt) finalPrompt = data.enhancedPrompt;
+                    }
+                } catch (e) {
+                    console.warn('[photobooth] Gemini enhance failed, falling back to base prompt', e);
+                }
+
                 const seed = Math.floor(Math.random() * 1000000000);
-                const bgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(style.theme_prompt)}?width=${OW}&height=${OH}&nologo=true&seed=${seed}`;
+                const bgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(finalPrompt)}?width=${OW}&height=${OH}&nologo=true&seed=${seed}`;
                 
                 const img = new Image();
                 img.crossOrigin = 'anonymous';
