@@ -292,17 +292,21 @@ export default function PhotoboothKioskPage() {
             if (style.bg_type === 'ai' && style.theme_prompt) {
                 let finalPrompt = style.theme_prompt;
                 try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 4000); // 4s timeout for Gemini
                     const res = await fetch('/api/photobooth/enhance-prompt', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ theme: style.theme_prompt })
+                        body: JSON.stringify({ theme: style.theme_prompt }),
+                        signal: controller.signal
                     });
+                    clearTimeout(timeoutId);
                     if (res.ok) {
                         const data = await res.json();
                         if (data.enhancedPrompt) finalPrompt = data.enhancedPrompt;
                     }
                 } catch (e) {
-                    console.warn('[photobooth] Gemini enhance failed, falling back to base prompt', e);
+                    console.warn('[photobooth] Gemini enhance failed or timed out, falling back to base prompt', e);
                 }
 
                 const seed = Math.floor(Math.random() * 1000000000);
@@ -310,12 +314,21 @@ export default function PhotoboothKioskPage() {
                 
                 const img = new Image();
                 img.crossOrigin = 'anonymous';
-                await new Promise((resolve, reject) => {
-                    img.onload = resolve;
-                    img.onerror = reject;
-                    img.src = bgUrl;
-                });
-                aiBg = img;
+                
+                try {
+                    await Promise.race([
+                        new Promise((resolve, reject) => {
+                            img.onload = resolve;
+                            img.onerror = () => reject(new Error('Pollinations image failed to load'));
+                            img.src = bgUrl;
+                        }),
+                        new Promise((_, reject) => setTimeout(() => reject(new Error('AI generation timeout')), 12000)) // 12s timeout
+                    ]);
+                    aiBg = img;
+                } catch (e) {
+                    console.warn('[photobooth] Pollinations AI failed or timed out, falling back to empty background', e);
+                    aiBg = null; // Fallback to gradient/empty
+                }
             }
 
             composite({

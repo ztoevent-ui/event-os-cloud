@@ -19,7 +19,7 @@ Focus on lighting, atmosphere, style, and high quality (e.g. 4k, hyperrealistic,
 Do NOT include the person or subject in the prompt, ONLY the background/environment.
 Respond ONLY with the generated prompt, nothing else.`;
 
-        const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent', {
+        const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
