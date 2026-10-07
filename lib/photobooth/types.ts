@@ -5,6 +5,7 @@
 export type Orientation = 'portrait' | 'landscape';
 export type LogoPosition = 'top-right' | 'top-left';
 export type BgRemovalMode = 'auto' | 'removebg' | 'local' | 'off';
+export type BgType = 'static' | 'ai';
 
 export interface FrameStyle {
     orientation: Orientation;
@@ -19,6 +20,8 @@ export interface FrameStyle {
     subject_scale: number;
     bg_removal: BgRemovalMode;
     countdown: number;
+    bg_type: BgType;
+    theme_prompt: string;
 }
 
 export interface PhotoboothTemplate {
@@ -52,6 +55,8 @@ export const DEFAULT_FRAME_STYLE: FrameStyle = {
     subject_scale: 1,
     bg_removal: 'auto',
     countdown: 3,
+    bg_type: 'static',
+    theme_prompt: '',
 };
 
 export function resolveFrameStyle(fs?: Partial<FrameStyle> | null): FrameStyle {

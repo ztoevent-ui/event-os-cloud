@@ -275,10 +275,26 @@ export default function PhotoboothKioskPage() {
         try {
             const { cutout, engine: used } = await removeBackground(raw, style.bg_removal, template.event_id);
             setEngine(used);
+
+            let aiBg = assetsRef.current.background;
+            if (style.bg_type === 'ai' && style.theme_prompt) {
+                const seed = Math.floor(Math.random() * 1000000000);
+                const bgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(style.theme_prompt)}?width=${OW}&height=${OH}&nologo=true&seed=${seed}`;
+                
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                await new Promise((resolve, reject) => {
+                    img.onload = resolve;
+                    img.onerror = reject;
+                    img.src = bgUrl;
+                });
+                aiBg = img;
+            }
+
             composite({
                 canvas: finalRef.current!,
                 subject: cutout ?? raw,
-                assets: assetsRef.current,
+                assets: { ...assetsRef.current, background: aiBg },
                 eventName: template.event_name,
                 style,
             });

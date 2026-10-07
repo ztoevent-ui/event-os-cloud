@@ -245,7 +245,26 @@ export default function PhotoboothStudioPage() {
                         <input id="pb-subtitle" className="zto-input" value={fs.subtitle} onChange={e => set('subtitle', e.target.value)} placeholder="#ACMENight · 12.12.2026" />
                     </div>
 
-                    <ImageUploadField label="Theme background" value={bgUrl} onChange={setBgUrl} folder="photobooth/backgrounds" preview="banner" className={styles.field} />
+                    <div className={styles.field}>
+                        <span className={styles.label}>Background Type</span>
+                        <div className={styles.segment}>
+                            {(['static', 'ai'] as const).map(type => (
+                                <button key={type} id={`pb-bg-type-${type}`} data-active={fs.bg_type === type} onClick={() => set('bg_type', type)}>
+                                    {type === 'static' ? 'Static Image' : 'AI Generated (Theme)'}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {fs.bg_type === 'ai' ? (
+                        <div className={styles.field}>
+                            <label className={styles.label} htmlFor="pb-theme-prompt">AI Theme Prompt</label>
+                            <textarea id="pb-theme-prompt" className="zto-input" style={{ minHeight: '80px', resize: 'vertical' }} value={fs.theme_prompt} onChange={e => set('theme_prompt', e.target.value)} placeholder="e.g. Cyberpunk city street, neon lights, 4k, hyperrealistic" />
+                            <small className={styles.help}>A unique AI image will be generated for each guest based on this theme.</small>
+                        </div>
+                    ) : (
+                        <ImageUploadField label="Theme background (Static)" value={bgUrl} onChange={setBgUrl} folder="photobooth/backgrounds" preview="banner" className={styles.field} />
+                    )}
                     <ImageUploadField label="Client logo (PNG with transparency)" value={logoUrl} onChange={setLogoUrl} folder="photobooth/logos" className={styles.field} />
                     <ImageUploadField label="Frame overlay PNG (optional)" value={fs.overlay_url} onChange={v => set('overlay_url', v)} folder="photobooth/frames" accept="image/png" className={styles.field} />
 
@@ -329,7 +348,7 @@ export default function PhotoboothStudioPage() {
                         <li><span>4</span>Event title &amp; subtitle</li>
                         <li><span>3</span>Client logo ({fs.logo_position})</li>
                         <li><span>2</span>Guest (AI cut-out)</li>
-                        <li><span>1</span>Theme background</li>
+                        <li><span>1</span>{fs.bg_type === 'ai' ? `AI Background (${fs.theme_prompt || 'empty prompt'})` : 'Static Theme background'}</li>
                     </ol>
                 </section>
             </main>
