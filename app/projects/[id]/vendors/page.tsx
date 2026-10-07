@@ -11,6 +11,9 @@ export default function VendorsPage({ params }: { params: Promise<{ id: string }
     const [editingVendor, setEditingVendor] = useState<any>(null);
     const [project, setProject] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+    const [sortBy, setSortBy] = useState<'name' | 'category' | 'status'>('name');
+    const [searchQuery, setSearchQuery] = useState('');
     const { pageBreakIds, layoutType } = usePrint();
 
     useEffect(() => {
@@ -46,6 +49,18 @@ export default function VendorsPage({ params }: { params: Promise<{ id: string }
         primary: 'text-[#0056B3]',
         hover: 'group-hover:text-[#0056B3]'
     };
+
+    const filteredVendors = vendors
+        .filter(v => 
+            v.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+            (v.category || '').toLowerCase().includes(searchQuery.toLowerCase())
+        )
+        .sort((a, b) => {
+            if (sortBy === 'name') return a.name.localeCompare(b.name);
+            if (sortBy === 'category') return (a.category || '').localeCompare(b.category || '');
+            if (sortBy === 'status') return (a.status || '').localeCompare(b.status || '');
+            return 0;
+        });
 
     return (
         <div className="flex flex-col flex-1 animate-in fade-in duration-700">
@@ -84,16 +99,56 @@ export default function VendorsPage({ params }: { params: Promise<{ id: string }
                 </div>
             </div>
 
-            {/* ── Vendor Card Grid ── */}
+            {/* ── Toolbar ── */}
+            <div className="print:hidden flex flex-col md:flex-row gap-4 mb-8">
+                <div className="flex-1 relative">
+                    <i className="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500"></i>
+                    <input
+                        type="text"
+                        placeholder="Search vendors by name or category..."
+                        value={searchQuery}
+                        onChange={e => setSearchQuery(e.target.value)}
+                        className="w-full bg-[#050505] border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-sm font-bold text-white placeholder-zinc-600 focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3] transition-all"
+                    />
+                </div>
+                <div className="flex gap-4">
+                    <select
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value as any)}
+                        className="bg-[#050505] border border-white/10 rounded-2xl px-4 py-3 text-sm font-bold text-white focus:outline-none focus:border-[#0056B3] appearance-none"
+                        style={{ WebkitAppearance: 'none', backgroundImage: 'url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3E%3Cpath stroke=\'%23fff\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'m6 8 4 4 4-4\'/%3E%3C/svg%3E")', backgroundPosition: 'right .5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em', paddingRight: '2.5rem' }}
+                    >
+                        <option value="name">Sort by Name</option>
+                        <option value="category">Sort by Category</option>
+                        <option value="status">Sort by Status</option>
+                    </select>
+                    <div className="flex bg-[#050505] border border-white/10 rounded-2xl p-1">
+                        <button
+                            onClick={() => setViewMode('grid')}
+                            className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all ${viewMode === 'grid' ? 'bg-white/10 text-white' : 'text-zinc-600 hover:text-white'}`}
+                        >
+                            <i className="fa-solid fa-border-all"></i>
+                        </button>
+                        <button
+                            onClick={() => setViewMode('list')}
+                            className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all ${viewMode === 'list' ? 'bg-white/10 text-white' : 'text-zinc-600 hover:text-white'}`}
+                        >
+                            <i className="fa-solid fa-list"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* ── Vendor Card Grid / List ── */}
             <div className={layoutType === 'table' ? 'print:hidden' : ''}>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {vendors.length === 0 ? (
+                {filteredVendors.length === 0 ? (
                     <div className="col-span-full py-32 border border-dashed border-white/5 rounded-[32px] bg-white/[0.02] flex flex-col items-center justify-center opacity-30">
                         <i className="fa-solid fa-store-slash text-4xl mb-4" />
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em]">No vendors registered</p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em]">No vendors found</p>
                     </div>
-                ) : (
-                    vendors.map((vendor) => (
+                ) : viewMode === 'grid' ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {filteredVendors.map((vendor) => (
                         <div key={vendor.id} className={`${pageBreakIds.includes(vendor.id) ? 'print:break-before-page' : ''}`}>
                             <div className="bg-white/[0.03] border border-white/5 p-8 rounded-[32px] hover:border-[#0056B3]/40 hover:shadow-[0_8px_32px_rgba(0,86,179,0.15)] transition-all group relative overflow-hidden h-full flex flex-col">
                                 {/* Status Pill */}
@@ -165,9 +220,58 @@ export default function VendorsPage({ params }: { params: Promise<{ id: string }
                             </div>
                             <PrintBreakTrigger id={vendor.id} />
                         </div>
-                    ))
+                        ))}
+                    </div>
+                ) : (
+                    <div className="bg-white/[0.02] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
+                        <table className="w-full text-left">
+                            <thead className="bg-white/5 text-[10px] font-black uppercase tracking-widest text-zinc-500">
+                                <tr>
+                                    <th className="px-6 py-4 border-b border-white/5">Vendor</th>
+                                    <th className="px-6 py-4 border-b border-white/5">Category</th>
+                                    <th className="px-6 py-4 border-b border-white/5">Contact</th>
+                                    <th className="px-6 py-4 border-b border-white/5">Status</th>
+                                    <th className="px-6 py-4 border-b border-white/5 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/5">
+                                {filteredVendors.map(vendor => (
+                                    <tr key={vendor.id} className="hover:bg-white/[0.02] transition-colors group">
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/10 flex items-center justify-center text-[#0056B3]">
+                                                    <i className="fa-solid fa-store text-xs" />
+                                                </div>
+                                                <span className="font-bold text-white font-['Urbanist'] tracking-tight">{vendor.name}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-sm font-bold text-zinc-400">{vendor.category}</td>
+                                        <td className="px-6 py-4 text-xs font-bold text-zinc-400 space-y-1">
+                                            {vendor.contact_person && <div><i className="fa-regular fa-user mr-2 text-zinc-600"/>{vendor.contact_person}</div>}
+                                            {vendor.phone && <div><i className="fa-solid fa-phone mr-2 text-zinc-600"/>{vendor.phone}</div>}
+                                            {vendor.email && <div><i className="fa-regular fa-envelope mr-2 text-zinc-600"/>{vendor.email}</div>}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className={`text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest border backdrop-blur-md ${
+                                                vendor.status === 'confirmed' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
+                                                vendor.status === 'contacted' ? 'bg-[#0056B3]/10 text-[#4da3ff] border-[#0056B3]/20' :
+                                                'bg-white/5 text-zinc-500 border-white/10'
+                                            }`}>
+                                                {vendor.status}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button onClick={() => setEditingVendor(vendor)} className="w-8 h-8 rounded-lg bg-zinc-900 border border-white/10 text-zinc-500 hover:text-[#0056B3] hover:border-[#0056B3]/50 transition-colors flex items-center justify-center">
+                                                <i className="fa-solid fa-pen text-[10px]" />
+                                            </button>
+                                            <DeleteVendorButton id={vendor.id} projectId={id} />
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 )}
-            </div>
             </div>
 
             <EditVendorModal
