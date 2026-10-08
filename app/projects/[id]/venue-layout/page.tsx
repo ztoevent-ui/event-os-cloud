@@ -882,7 +882,7 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
     return (
         <div className="flex flex-col flex-1 animate-in fade-in duration-700 -mt-4">
             {/* ── Page Header + Action Bar ── */}
-            <div className="print:hidden flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12 px-6">
+            <div className="print:hidden flex flex-wrap items-end justify-between gap-8 mb-12 px-6">
                 <div className="flex flex-col">
                     <p className="text-xs font-black uppercase tracking-[0.2em] text-accent mb-2">Spatial Architecture</p>
                     <h1 className="text-4xl md:text-5xl font-black text-ink uppercase tracking-tight leading-none font-display">
