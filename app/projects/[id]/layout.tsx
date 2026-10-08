@@ -20,6 +20,7 @@ export default async function ProjectLayout({
         .single();
 
     const isTournament = project?.type === 'sports' || project?.type === 'tournament';
+    const isWedding = project?.type === 'wedding' || project?.type === 'wedding_fair';
 
     return (
         <PrintProvider>
@@ -31,7 +32,7 @@ export default async function ProjectLayout({
               │  zto-guardrail: max-width 1400px centered safe-zone         │
               └─────────────────────────────────────────────────────────────┘
             */}
-            <div className="zto-shell print:block">
+            <div className="zto-shell print:block" data-theme={isWedding ? 'wedding' : 'dark'}>
                 {/* Layer 1 — Sidebar */}
                 <ProjectSidebar
                     projectId={projectId}

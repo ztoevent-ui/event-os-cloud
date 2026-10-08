@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800;900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
 @import "tailwindcss";
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -117,8 +118,8 @@ body {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  background: #050505;
-  border-right: 1px solid rgba(0, 86, 179, 0.25);
+  background: var(--zto-bg-card);
+  border-right: 1px solid var(--zto-card-border);
   box-shadow: 4px 0 24px -8px rgba(0, 86, 179, 0.15);
   z-index: 40;
 }
@@ -571,6 +572,92 @@ body {
 @keyframes ztoFadeIn {
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   WEDDING THEME (LIGHT & ELEGANT) OVERRIDES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+[data-theme="wedding"] {
+  --zto-bg:           #FDFBF7;
+  --zto-bg-card:      #FFFFFF;
+  --zto-fg:           #4A433D;
+  
+  --zto-blue:         #D4A373; 
+  --zto-blue-bright:  #E6CCB2;
+  --zto-blue-glow:    rgba(212, 163, 115, 0.2);
+  --zto-lime:         #9D8189;
+  --zto-lime-glow:    rgba(157, 129, 137, 0.2);
+  --zto-card-border:  rgba(212, 163, 115, 0.2);
+}
+
+[data-theme="wedding"] .bg-\\[\\#050505\\] { background-color: var(--zto-bg) !important; }
+[data-theme="wedding"] .bg-zinc-900, [data-theme="wedding"] .bg-zinc-950 { background-color: var(--zto-bg-card) !important; border: 1px solid rgba(0,0,0,0.05) !important; box-shadow: 0 4px 15px rgba(0,0,0,0.02) !important; }
+[data-theme="wedding"] .text-white { color: var(--zto-fg) !important; }
+[data-theme="wedding"] .text-zinc-400, [data-theme="wedding"] .text-zinc-500, [data-theme="wedding"] .text-zinc-600 { color: #8C857B !important; }
+[data-theme="wedding"] .border-white\\/5, [data-theme="wedding"] .border-white\\/10 { border-color: rgba(0,0,0,0.06) !important; }
+[data-theme="wedding"] .bg-white\\/\\[0\\.02\\], [data-theme="wedding"] .bg-white\\/\\[0\\.03\\], [data-theme="wedding"] .bg-white\\/5, [data-theme="wedding"] .bg-white\\/10 { background-color: #fff !important; border-color: rgba(0,0,0,0.04) !important; box-shadow: 0 4px 20px rgba(0,0,0,0.03) !important; }
+
+/* Typography Overrides to make it soft and elegant */
+[data-theme="wedding"] h1, 
+[data-theme="wedding"] h2, 
+[data-theme="wedding"] h3, 
+[data-theme="wedding"] .font-\\[\\'Urbanist\\'\\] { 
+  font-family: 'Playfair Display', serif !important; 
+  font-weight: 600 !important; 
+  text-transform: none !important; 
+  letter-spacing: 0 !important; 
+  color: #332F2A !important;
+}
+
+[data-theme="wedding"] .font-black {
+  font-weight: 600 !important;
+}
+
+[data-theme="wedding"] .uppercase {
+  text-transform: capitalize !important;
+  letter-spacing: normal !important;
+}
+
+[data-theme="wedding"] .zto-sidebar {
+  background: var(--zto-bg-card) !important;
+  border-right: 1px solid rgba(0,0,0,0.05) !important;
+  box-shadow: 4px 0 24px -8px rgba(0,0,0,0.03) !important;
+}
+
+[data-theme="wedding"] .zto-nav-item {
+  color: #8C857B !important;
+}
+
+[data-theme="wedding"] .zto-nav-item:hover {
+  background: #FDFBF7 !important;
+  color: #D4A373 !important;
+}
+
+[data-theme="wedding"] .zto-nav-item.active {
+  background: #FDFBF7 !important;
+  color: #D4A373 !important;
+  box-shadow: none !important;
+  font-weight: 700 !important;
+  border-right: 3px solid #D4A373 !important;
+  border-radius: 12px 0 0 12px !important;
+}
+
+[data-theme="wedding"] .zto-nav-item.active .zto-nav-icon {
+  color: #D4A373 !important;
+  filter: none !important;
+}
+
+[data-theme="wedding"] .zto-btn-ghost {
+  color: #D4A373 !important;
+  border-color: #D4A373 !important;
+  background: transparent !important;
+}
+
+[data-theme="wedding"] .zto-btn-primary, [data-theme="wedding"] .btn-royal, [data-theme="wedding"] .zto-btn-glow {
+  background: #D4A373 !important;
+  color: white !important;
+  box-shadow: 0 4px 15px rgba(212, 163, 115, 0.3) !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
