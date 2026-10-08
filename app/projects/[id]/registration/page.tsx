@@ -190,7 +190,7 @@ export default function RegistrationStudio() {
                 }, { onConflict: 'project_id' });
 
             if (error) throw error;
-            Swal.fire({ title: 'Saved!', icon: 'success', timer: 1500, showConfirmButton: false, background: '#18181b', color: '#fff' });
+            Swal.fire({ title: 'Saved!', icon: 'success', timer: 1500, showConfirmButton: false, background: '#18181b', color: 'var(--c-on-accent)' });
         } catch (e: any) {
             Swal.fire('Error', e.message, 'error');
         }
@@ -204,7 +204,7 @@ export default function RegistrationStudio() {
             inputValue: settings.linked_tournament_id || '',
             showCancelButton: true,
             background: '#18181b',
-            color: '#fff',
+            color: 'var(--c-on-accent)',
             confirmButtonColor: '#f59e0b',
             inputPlaceholder: '00000000-0000-0000-0000-000000000000'
         });
@@ -255,13 +255,13 @@ export default function RegistrationStudio() {
     return (
         <div className="space-y-10">
             {/* Action Floating Group */}
-            <div className="print:hidden fixed top-6 right-8 z-[9999] pointer-events-auto flex items-center gap-3 bg-[#050505]/90 backdrop-blur-xl border border-[#0056B3]/40 p-2 rounded-2xl shadow-[0_8px_32px_rgba(0,86,179,0.2)]">
+            <div className="print:hidden fixed top-6 right-8 z-[9999] pointer-events-auto flex items-center gap-3 bg-canvas/90 backdrop-blur-xl border border-accent/40 p-2 rounded-2xl shadow-[0_8px_32px_rgb(var(--c-accent-rgb)/0.2)]">
                 {activeTab === 'submissions' && (
-                    <div className="px-2 border-r border-white/10 mr-2">
+                    <div className="px-2 border-r border-ink/10 mr-2">
                         <PrintReportButton title="Registration Submissions" />
                     </div>
                 )}
-                <button onClick={handleSave} className="btn-royal h-10 px-6 shadow-[0_0_15px_rgba(0,86,179,0.3)]">
+                <button onClick={handleSave} className="btn-royal h-10 px-6 shadow-[0_0_15px_rgb(var(--c-accent-rgb)/0.3)]">
                     <i className="fa-solid fa-save text-[10px]" /> SAVE SETTINGS
                 </button>
             </div>
@@ -269,8 +269,8 @@ export default function RegistrationStudio() {
             {/* Page Header */}
             <div className="print:hidden flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
                 <div className="flex flex-col">
-                    <p className="text-xs font-black uppercase tracking-[0.2em] text-[#0056B3] mb-2">Project Registration</p>
-                    <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tight leading-none font-['Urbanist']">
+                    <p className="text-xs font-black uppercase tracking-[0.2em] text-accent mb-2">Project Registration</p>
+                    <h1 className="text-4xl md:text-5xl font-black text-ink uppercase tracking-tight leading-none font-display">
                         Registration Studio
                     </h1>
                     <p className="text-zinc-500 text-sm mt-3 font-medium tracking-wide">Design your form, build tournament page & manage submissions</p>
@@ -279,24 +279,24 @@ export default function RegistrationStudio() {
                 {/* ── Stats + Actions Hub ── */}
                 <div className="flex flex-wrap items-center gap-4">
                     {/* Premium Stats Pill */}
-                    <div className="h-12 px-6 flex items-center gap-6 rounded-2xl bg-[#050505] border border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+                    <div className="h-12 px-6 flex items-center gap-6 rounded-2xl bg-canvas border border-ink/10 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
                         <div className="flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#DEFF9A] shadow-[0_0_10px_rgba(222,255,154,0.5)]" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-accent-2 shadow-[0_0_10px_rgb(var(--c-accent-2-rgb)/0.5)]" />
                             <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Total Teams</span>
-                            <span className="text-xs font-black text-[#DEFF9A] font-mono ml-2">{submissions.length}</span>
+                            <span className="text-xs font-black text-accent-2 font-mono ml-2">{submissions.length}</span>
                         </div>
-                        <div className="w-px h-4 bg-white/10" />
+                        <div className="w-px h-4 bg-ink/10" />
                         <div className="flex items-center gap-2">
-                            <i className="fa-solid fa-users text-[10px] text-[#0056B3]"></i>
+                            <i className="fa-solid fa-users text-[10px] text-accent"></i>
                             <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Total Players</span>
-                            <span className="text-xs font-black text-white font-mono ml-2">
+                            <span className="text-xs font-black text-ink font-mono ml-2">
                                 {submissions.reduce((acc, sub) => acc + (sub.players?.length || 0), 0)}
                             </span>
                         </div>
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <button onClick={handleSave} className="h-12 px-6 rounded-2xl bg-[#0056B3] text-white font-black text-xs tracking-widest uppercase shadow-[0_0_20px_rgba(0,86,179,0.4)] hover:shadow-[0_0_30px_rgba(0,86,179,0.8)] transition-all flex items-center gap-2.5 hover:-translate-y-0.5 active:translate-y-0">
+                        <button onClick={handleSave} className="h-12 px-6 rounded-2xl bg-accent text-white font-black text-xs tracking-widest uppercase shadow-[0_0_20px_rgb(var(--c-accent-rgb)/0.4)] hover:shadow-[0_0_30px_rgb(var(--c-accent-rgb)/0.8)] transition-all flex items-center gap-2.5 hover:-translate-y-0.5 active:translate-y-0">
                             <i className="fa-solid fa-save text-lg" /> Save
                         </button>
                         {activeTab === 'submissions' && (
@@ -307,7 +307,7 @@ export default function RegistrationStudio() {
             </div>
 
             {/* ── Tabs ──────────────────────────────────────────────── */}
-            <div className="flex gap-2 border-b border-white/5 pb-0 mb-8">
+            <div className="flex gap-2 border-b border-ink/5 pb-0 mb-8">
                 {[
                     { id: 'settings',    label: 'Design & Settings',  icon: 'fa-sliders' },
                     { id: 'tournament',  label: 'Tournament Page',     icon: 'fa-globe' },
@@ -318,8 +318,8 @@ export default function RegistrationStudio() {
                         onClick={() => setActiveTab(tab.id as any)}
                         className={`pb-4 px-6 font-black text-[10px] tracking-widest uppercase transition-all flex items-center gap-2.5 border-b-2 ${
                             activeTab === tab.id
-                                ? 'text-[#0056B3] border-[#0056B3]'
-                                : 'text-zinc-500 hover:text-white border-transparent'
+                                ? 'text-accent border-accent'
+                                : 'text-zinc-500 hover:text-ink border-transparent'
                         }`}
                     >
                         <i className={`fa-solid ${tab.icon} text-xs`} />
@@ -330,7 +330,7 @@ export default function RegistrationStudio() {
 
             {isLoading ? (
                 <div className="h-64 flex flex-col items-center justify-center text-zinc-500">
-                    <i className="fa-solid fa-circle-notch animate-spin text-3xl mb-4 text-[#0056B3]" />
+                    <i className="fa-solid fa-circle-notch animate-spin text-3xl mb-4 text-accent" />
                     <p className="text-[10px] font-black uppercase tracking-widest">Loading Studio...</p>
                 </div>
             ) : activeTab === 'settings' ? (
@@ -339,12 +339,12 @@ export default function RegistrationStudio() {
                 ════════════════════════════════════════════════════════ */
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2 space-y-6">
-                        <div className="bg-white/[0.03] border border-white/5 backdrop-blur-xl p-8 rounded-[32px] space-y-8">
+                        <div className="bg-ink/[0.03] border border-ink/5 backdrop-blur-xl p-8 rounded-[32px] space-y-8">
                             {/* Template */}
                             <div>
                                 <label className="block text-[10px] font-black tracking-widest uppercase text-zinc-500 mb-3">Registration Template</label>
                                 <select
-                                    className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-[#0056B3]/50 focus:ring-1 focus:ring-[#0056B3]/30 font-bold text-sm appearance-none cursor-pointer"
+                                    className="w-full bg-black/40 border border-ink/5 rounded-2xl px-5 py-4 text-ink focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/30 font-bold text-sm appearance-none cursor-pointer"
                                     value={settings.template_type}
                                     onChange={e => setSettings({ ...settings, template_type: e.target.value })}
                                 >
@@ -374,10 +374,10 @@ export default function RegistrationStudio() {
                                         <div 
                                             key={field.key} 
                                             onClick={() => setSettings({ ...settings, fields_config: { ...settings.fields_config, [field.key]: !settings.fields_config[field.key] } })}
-                                            className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between group ${settings.fields_config[field.key] ? 'bg-[#0056B3]/5 border-[#0056B3]/30' : 'bg-black/20 border-white/5 hover:border-white/10'}`}
+                                            className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between group ${settings.fields_config[field.key] ? 'bg-accent/5 border-accent/30' : 'bg-black/20 border-ink/5 hover:border-ink/10'}`}
                                         >
-                                            <span className={`text-[11px] font-black uppercase tracking-wider ${settings.fields_config[field.key] ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-400'}`}>{field.label}</span>
-                                            <div className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${settings.fields_config[field.key] ? 'bg-[#0056B3] border-[#0056B3] text-white' : 'border-white/10 text-transparent'}`}>
+                                            <span className={`text-[11px] font-black uppercase tracking-wider ${settings.fields_config[field.key] ? 'text-ink' : 'text-zinc-500 group-hover:text-zinc-400'}`}>{field.label}</span>
+                                            <div className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${settings.fields_config[field.key] ? 'bg-accent border-accent text-white' : 'border-ink/10 text-transparent'}`}>
                                                 <i className="fa-solid fa-check text-[10px]" />
                                             </div>
                                         </div>
@@ -389,17 +389,17 @@ export default function RegistrationStudio() {
                             <AnimatePresence>
                                 {settings.fields_config.show_medical && (
                                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-                                        <div className="bg-black/20 border border-white/5 p-6 rounded-2xl">
+                                        <div className="bg-black/20 border border-ink/5 p-6 rounded-2xl">
                                             <div className="flex items-center justify-between mb-4">
-                                                <label className="text-[9px] font-black tracking-widest uppercase text-[#4da3ff]">Medical Conditions List</label>
-                                                <button onClick={() => setSettings({ ...settings, medical_options: [...settings.medical_options, 'New Condition'] })} className="px-3 py-1.5 bg-[#0056B3]/10 text-[#4da3ff] hover:bg-[#0056B3] hover:text-white rounded-lg text-[9px] font-black uppercase tracking-widest transition-colors">
+                                                <label className="text-[9px] font-black tracking-widest uppercase text-accent-bright">Medical Conditions List</label>
+                                                <button onClick={() => setSettings({ ...settings, medical_options: [...settings.medical_options, 'New Condition'] })} className="px-3 py-1.5 bg-accent/10 text-accent-bright hover:bg-accent hover:text-white rounded-lg text-[9px] font-black uppercase tracking-widest transition-colors">
                                                     <i className="fa-solid fa-plus mr-2" />Add Option
                                                 </button>
                                             </div>
                                             <div className="space-y-2">
                                                 {settings.medical_options.map((opt: string, i: number) => (
                                                     <div key={i} className="flex items-center gap-2">
-                                                        <input value={opt} onChange={e => { const n = [...settings.medical_options]; n[i] = e.target.value; setSettings({ ...settings, medical_options: n }); }} className="flex-1 bg-black/40 border border-white/5 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#0056B3]/40" />
+                                                        <input value={opt} onChange={e => { const n = [...settings.medical_options]; n[i] = e.target.value; setSettings({ ...settings, medical_options: n }); }} className="flex-1 bg-black/40 border border-ink/5 rounded-xl px-4 py-2.5 text-xs text-ink focus:outline-none focus:border-accent/40" />
                                                         <button onClick={() => setSettings({ ...settings, medical_options: settings.medical_options.filter((_: any, idx: number) => idx !== i) })} className="w-9 h-9 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-colors"><i className="fa-solid fa-minus" /></button>
                                                     </div>
                                                 ))}
@@ -410,10 +410,10 @@ export default function RegistrationStudio() {
                             </AnimatePresence>
 
                             {/* Slogan & Branding */}
-                            <div className="space-y-6 pt-4 border-t border-white/5">
+                            <div className="space-y-6 pt-4 border-t border-ink/5">
                                 <div>
                                     <label className="block text-[10px] font-black tracking-widest uppercase text-zinc-500 mb-3">Tournament Slogan / Name</label>
-                                    <input type="text" className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white font-bold text-sm focus:outline-none focus:border-[#0056B3]/40" value={settings.slogan || ''} onChange={e => setSettings({ ...settings, slogan: e.target.value })} placeholder="e.g. Bintulu Inter-Surname Clan Championship" />
+                                    <input type="text" className="w-full bg-black/40 border border-ink/5 rounded-2xl px-5 py-4 text-ink font-bold text-sm focus:outline-none focus:border-accent/40" value={settings.slogan || ''} onChange={e => setSettings({ ...settings, slogan: e.target.value })} placeholder="e.g. Bintulu Inter-Surname Clan Championship" />
                                 </div>
 
                                 <ImageUploadField
@@ -429,11 +429,11 @@ export default function RegistrationStudio() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-[10px] font-black tracking-widest uppercase text-zinc-500 mb-2">Sponsor Label</label>
-                                        <input type="text" className="w-full bg-black/40 border border-white/5 rounded-2xl px-4 py-3 text-white text-xs focus:outline-none focus:border-[#0056B3]/40" value={settings.title_sponsor_label || ''} onChange={e => setSettings({ ...settings, title_sponsor_label: e.target.value })} placeholder="e.g. Official Sponsorship" />
+                                        <input type="text" className="w-full bg-black/40 border border-ink/5 rounded-2xl px-4 py-3 text-ink text-xs focus:outline-none focus:border-accent/40" value={settings.title_sponsor_label || ''} onChange={e => setSettings({ ...settings, title_sponsor_label: e.target.value })} placeholder="e.g. Official Sponsorship" />
                                     </div>
                                     <div>
                                         <label className="block text-[10px] font-black tracking-widest uppercase text-zinc-500 mb-2">Sponsor Name</label>
-                                        <input type="text" className="w-full bg-black/40 border border-white/5 rounded-2xl px-4 py-3 text-white text-xs focus:outline-none focus:border-[#0056B3]/40" value={settings.title_sponsor || ''} onChange={e => setSettings({ ...settings, title_sponsor: e.target.value })} placeholder="Enter Name" />
+                                        <input type="text" className="w-full bg-black/40 border border-ink/5 rounded-2xl px-4 py-3 text-ink text-xs focus:outline-none focus:border-accent/40" value={settings.title_sponsor || ''} onChange={e => setSettings({ ...settings, title_sponsor: e.target.value })} placeholder="Enter Name" />
                                     </div>
                                 </div>
                             </div>
@@ -442,7 +442,7 @@ export default function RegistrationStudio() {
 
                     {/* QR + Link sidebar */}
                     <div className="space-y-6">
-                        <div className="bg-white/[0.03] border border-white/5 backdrop-blur-xl p-8 rounded-[32px] text-center shadow-xl">
+                        <div className="bg-ink/[0.03] border border-ink/5 backdrop-blur-xl p-8 rounded-[32px] text-center shadow-xl">
                             <h3 className="text-[10px] font-black tracking-widest uppercase text-zinc-500 mb-8">Scan to Register</h3>
                             <div className="bg-white p-5 rounded-3xl inline-block mx-auto mb-8 shadow-2xl">
                                 <QRCodeSVG value={publicRegUrl || 'placeholder'} size={180} />
@@ -451,44 +451,44 @@ export default function RegistrationStudio() {
                                 <div>
                                     <label className="block text-[9px] font-black tracking-widest uppercase text-zinc-600 mb-2">Registration URL</label>
                                     <div className="flex gap-2">
-                                        <input type="text" readOnly value={publicRegUrl} className="w-full bg-black/40 border border-white/5 rounded-xl px-4 py-3 text-[10px] text-zinc-400 font-mono" />
-                                        <button onClick={() => { navigator.clipboard.writeText(publicRegUrl); Swal.fire({ title: 'Copied!', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, background: '#18181b', color: '#fff' }); }} className="h-11 w-11 bg-zinc-900 border border-white/5 rounded-xl text-zinc-400 hover:text-white transition-colors flex items-center justify-center shrink-0">
+                                        <input type="text" readOnly value={publicRegUrl} className="w-full bg-black/40 border border-ink/5 rounded-xl px-4 py-3 text-[10px] text-zinc-400 font-mono" />
+                                        <button onClick={() => { navigator.clipboard.writeText(publicRegUrl); Swal.fire({ title: 'Copied!', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, background: '#18181b', color: 'var(--c-on-accent)' }); }} className="h-11 w-11 bg-zinc-900 border border-ink/5 rounded-xl text-zinc-400 hover:text-ink transition-colors flex items-center justify-center shrink-0">
                                             <i className="fa-solid fa-copy" />
                                         </button>
                                     </div>
                                 </div>
                                 {publicPageUrl && (
-                                    <Link href={publicPageUrl} target="_blank" className="flex items-center gap-3 w-full bg-[#0056B3]/5 border border-[#0056B3]/20 rounded-2xl px-5 py-4 hover:bg-[#0056B3]/10 transition-all group">
-                                        <i className="fa-solid fa-globe text-[#4da3ff] text-base" />
+                                    <Link href={publicPageUrl} target="_blank" className="flex items-center gap-3 w-full bg-accent/5 border border-accent/20 rounded-2xl px-5 py-4 hover:bg-accent/10 transition-all group">
+                                        <i className="fa-solid fa-globe text-accent-bright text-base" />
                                         <div className="flex-1 overflow-hidden">
                                             <div className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-0.5">Info Page</div>
-                                            <div className="text-[11px] font-bold text-white truncate">{publicPageUrl}</div>
+                                            <div className="text-[11px] font-bold text-ink truncate">{publicPageUrl}</div>
                                         </div>
-                                        <i className="fa-solid fa-external-link text-zinc-600 group-hover:text-[#4da3ff] transition-colors" />
+                                        <i className="fa-solid fa-external-link text-zinc-600 group-hover:text-accent-bright transition-colors" />
                                     </Link>
                                 )}
                             </div>
                         </div>
 
                         {/* Arena Connection */}
-                        <div className="bg-white/[0.03] border border-white/5 backdrop-blur-xl p-8 rounded-[32px]">
+                        <div className="bg-ink/[0.03] border border-ink/5 backdrop-blur-xl p-8 rounded-[32px]">
                             <div className="flex items-center gap-3 mb-6">
-                                <div className="w-10 h-10 bg-[#0056B3]/10 border border-[#0056B3]/20 rounded-xl flex items-center justify-center text-[#4da3ff]">
+                                <div className="w-10 h-10 bg-accent/10 border border-accent/20 rounded-xl flex items-center justify-center text-accent-bright">
                                     <i className="fa-solid fa-link" />
                                 </div>
-                                <h3 className="text-[10px] font-black tracking-widest uppercase text-white">Arena Sync</h3>
+                                <h3 className="text-[10px] font-black tracking-widest uppercase text-ink">Arena Sync</h3>
                             </div>
                             
                             {settings.linked_tournament_id ? (
                                 <div className="space-y-4">
-                                    <div className="bg-[#0056B3]/5 border border-[#0056B3]/20 p-5 rounded-2xl">
-                                        <div className="text-[9px] font-black uppercase text-[#4da3ff] mb-2 tracking-[0.2em]">CONNECTED</div>
+                                    <div className="bg-accent/5 border border-accent/20 p-5 rounded-2xl">
+                                        <div className="text-[9px] font-black uppercase text-accent-bright mb-2 tracking-[0.2em]">CONNECTED</div>
                                         <div className="text-[10px] text-zinc-400 font-mono truncate">{settings.linked_tournament_id}</div>
                                     </div>
                                     <button 
                                         onClick={handleLinkArena}
                                         disabled={isLinking}
-                                        className="w-full h-12 bg-zinc-900 border border-white/5 text-zinc-500 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                                        className="w-full h-12 bg-zinc-900 border border-ink/5 text-zinc-500 hover:text-ink rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
                                     >
                                         Switch Connection
                                     </button>
@@ -497,7 +497,7 @@ export default function RegistrationStudio() {
                                 <button 
                                     onClick={handleLinkArena}
                                     disabled={isLinking}
-                                    className="w-full py-8 border-2 border-dashed border-white/5 hover:border-[#0056B3]/40 hover:bg-[#0056B3]/5 text-zinc-600 hover:text-[#4da3ff] rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex flex-col items-center gap-3"
+                                    className="w-full py-8 border-2 border-dashed border-ink/5 hover:border-accent/40 hover:bg-accent/5 text-zinc-600 hover:text-accent-bright rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex flex-col items-center gap-3"
                                 >
                                     <i className="fa-solid fa-circle-plus text-2xl" />
                                     {isLinking ? 'Linking...' : 'Link Arena Tournament'}
@@ -513,15 +513,15 @@ export default function RegistrationStudio() {
                 ════════════════════════════════════════════════════════ */
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2 space-y-6">
-                        <div className="bg-white/[0.03] border border-white/5 backdrop-blur-xl p-8 rounded-[32px] space-y-10">
+                        <div className="bg-ink/[0.03] border border-ink/5 backdrop-blur-xl p-8 rounded-[32px] space-y-10">
                             {/* URL Slug */}
                             <div>
-                                <label className="block text-[10px] font-black tracking-widest uppercase text-[#0056B3] mb-2">Public URL Slug</label>
+                                <label className="block text-[10px] font-black tracking-widest uppercase text-accent mb-2">Public URL Slug</label>
                                 <div className="relative">
                                     <span className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-600 text-sm font-bold pointer-events-none">ztoevent.com/t/</span>
                                     <input
                                         type="text"
-                                        className={`w-full bg-black/40 border rounded-2xl pl-[138px] pr-12 py-4 text-white font-black text-sm focus:outline-none transition-all ${slugTaken ? 'border-red-500' : settings.page_slug ? 'border-[#0056B3]/40' : 'border-white/5 focus:border-[#0056B3]/40'}`}
+                                        className={`w-full bg-black/40 border rounded-2xl pl-[138px] pr-12 py-4 text-ink font-black text-sm focus:outline-none transition-all ${slugTaken ? 'border-red-500' : settings.page_slug ? 'border-accent/40' : 'border-ink/5 focus:border-accent/40'}`}
                                         value={settings.page_slug || ''}
                                         onChange={e => handleSlugChange(e.target.value)}
                                         placeholder="sipc2026"
@@ -539,24 +539,24 @@ export default function RegistrationStudio() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <label className="block text-[10px] font-black tracking-widest uppercase text-zinc-500 mb-3">Registration Opens</label>
-                                    <input type="date" value={settings.reg_open_date?.split('T')[0] || ''} onChange={e => setSettings({ ...settings, reg_open_date: e.target.value })} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white text-sm focus:outline-none focus:border-[#0056B3]/40" />
+                                    <input type="date" value={settings.reg_open_date?.split('T')[0] || ''} onChange={e => setSettings({ ...settings, reg_open_date: e.target.value })} className="w-full bg-black/40 border border-ink/5 rounded-2xl px-5 py-4 text-ink text-sm focus:outline-none focus:border-accent/40" />
                                 </div>
                                 <div>
                                     <label className="block text-[10px] font-black tracking-widest uppercase text-zinc-500 mb-3">Registration Closes</label>
-                                    <input type="date" value={settings.reg_close_date?.split('T')[0] || ''} onChange={e => setSettings({ ...settings, reg_close_date: e.target.value })} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white text-sm focus:outline-none focus:border-[#0056B3]/40" />
+                                    <input type="date" value={settings.reg_close_date?.split('T')[0] || ''} onChange={e => setSettings({ ...settings, reg_close_date: e.target.value })} className="w-full bg-black/40 border border-ink/5 rounded-2xl px-5 py-4 text-ink text-sm focus:outline-none focus:border-accent/40" />
                                 </div>
                             </div>
 
                             {/* Theme & Banner */}
-                            <div className="space-y-6 pt-10 border-t border-white/5">
+                            <div className="space-y-6 pt-10 border-t border-ink/5">
                                 <div>
                                     <label className="block text-[10px] font-black tracking-widest uppercase text-zinc-500 mb-4">Branding Theme Color</label>
                                     <div className="flex flex-wrap gap-3">
                                         {THEME_PRESETS.map(p => (
                                             <button key={p.value} onClick={() => setSettings({ ...settings, theme_color: p.value })} className={`w-11 h-11 rounded-xl transition-all hover:scale-110 ${settings.theme_color === p.value ? 'ring-2 ring-white ring-offset-4 ring-offset-black scale-110' : 'opacity-60 hover:opacity-100'}`} style={{ backgroundColor: p.value }} />
                                         ))}
-                                        <div className="relative w-11 h-11 rounded-xl border-2 border-dashed border-zinc-800 flex items-center justify-center text-zinc-600 hover:border-white/20 transition-all cursor-pointer">
-                                            <input type="color" value={settings.theme_color || '#0056B3'} onChange={e => setSettings({ ...settings, theme_color: e.target.value })} className="absolute inset-0 opacity-0 cursor-pointer" />
+                                        <div className="relative w-11 h-11 rounded-xl border-2 border-dashed border-zinc-800 flex items-center justify-center text-zinc-600 hover:border-ink/20 transition-all cursor-pointer">
+                                            <input type="color" value={settings.theme_color || 'var(--c-accent)'} onChange={e => setSettings({ ...settings, theme_color: e.target.value })} className="absolute inset-0 opacity-0 cursor-pointer" />
                                             <i className="fa-solid fa-plus text-xs" />
                                         </div>
                                     </div>
@@ -575,20 +575,20 @@ export default function RegistrationStudio() {
                         </div>
 
                         {/* Event Details Content */}
-                        <div className="bg-white/[0.03] border border-white/5 backdrop-blur-xl p-8 rounded-[32px] space-y-8">
+                        <div className="bg-ink/[0.03] border border-ink/5 backdrop-blur-xl p-8 rounded-[32px] space-y-8">
                             <div>
                                 <label className="block text-[10px] font-black tracking-widest uppercase text-zinc-500 mb-4">Event Description</label>
-                                <textarea rows={6} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-[#0056B3]/40 resize-none text-sm leading-relaxed" value={settings.event_description || ''} onChange={e => setSettings({ ...settings, event_description: e.target.value })} placeholder="Describe your tournament — mission, vibe, expectations…" />
+                                <textarea rows={6} className="w-full bg-black/40 border border-ink/5 rounded-2xl px-5 py-4 text-ink focus:outline-none focus:border-accent/40 resize-none text-sm leading-relaxed" value={settings.event_description || ''} onChange={e => setSettings({ ...settings, event_description: e.target.value })} placeholder="Describe your tournament — mission, vibe, expectations…" />
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 <div>
                                     <label className="block text-[10px] font-black tracking-widest uppercase text-zinc-500 mb-4">Rules & Regulations</label>
-                                    <textarea rows={8} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-[#0056B3]/40 text-xs leading-relaxed" value={settings.rules || ''} onChange={e => setSettings({ ...settings, rules: e.target.value })} placeholder="Enter formal rules list…" />
+                                    <textarea rows={8} className="w-full bg-black/40 border border-ink/5 rounded-2xl px-5 py-4 text-ink focus:outline-none focus:border-accent/40 text-xs leading-relaxed" value={settings.rules || ''} onChange={e => setSettings({ ...settings, rules: e.target.value })} placeholder="Enter formal rules list…" />
                                 </div>
                                 <div>
                                     <label className="block text-[10px] font-black tracking-widest uppercase text-zinc-500 mb-4">Tournament Format</label>
-                                    <textarea rows={8} className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-[#0056B3]/40 text-xs leading-relaxed" value={settings.format_description || ''} onChange={e => setSettings({ ...settings, format_description: e.target.value })} placeholder="Explain stages, groups, scoring…" />
+                                    <textarea rows={8} className="w-full bg-black/40 border border-ink/5 rounded-2xl px-5 py-4 text-ink focus:outline-none focus:border-accent/40 text-xs leading-relaxed" value={settings.format_description || ''} onChange={e => setSettings({ ...settings, format_description: e.target.value })} placeholder="Explain stages, groups, scoring…" />
                                 </div>
                             </div>
                         </div>
@@ -596,7 +596,7 @@ export default function RegistrationStudio() {
 
                     {/* Preview sidebar */}
                     <div className="space-y-6">
-                        <div className="bg-white/[0.03] border border-white/5 backdrop-blur-xl p-8 rounded-[32px] sticky top-24 shadow-xl">
+                        <div className="bg-ink/[0.03] border border-ink/5 backdrop-blur-xl p-8 rounded-[32px] sticky top-24 shadow-xl">
                             <h3 className="text-[10px] font-black tracking-widest uppercase text-zinc-500 mb-8">Page Preview</h3>
 
                             {publicPageUrl ? (
@@ -604,15 +604,15 @@ export default function RegistrationStudio() {
                                     <div className="bg-white p-5 rounded-3xl inline-block mx-auto w-full flex justify-center shadow-2xl">
                                         <QRCodeSVG value={publicPageUrl} size={160} />
                                     </div>
-                                    <Link href={publicPageUrl} target="_blank" className="flex items-center gap-3 w-full bg-[#0056B3] text-white rounded-2xl px-6 py-4 font-black text-[10px] tracking-widest uppercase shadow-lg shadow-blue-900/20 hover:scale-[1.02] transition-all">
+                                    <Link href={publicPageUrl} target="_blank" className="flex items-center gap-3 w-full bg-accent text-white rounded-2xl px-6 py-4 font-black text-[10px] tracking-widest uppercase shadow-lg shadow-blue-900/20 hover:scale-[1.02] transition-all">
                                         <i className="fa-solid fa-external-link" />
                                         Launch Public Page
                                     </Link>
-                                    <div className="pt-8 border-t border-white/5">
+                                    <div className="pt-8 border-t border-ink/5">
                                         <p className="text-[9px] font-black tracking-widest uppercase text-zinc-600 mb-4">Registration Link</p>
                                         <div className="flex gap-2">
-                                            <div className="flex-1 bg-black/40 border border-white/5 rounded-xl px-4 py-3 text-[10px] text-zinc-400 truncate font-mono">{publicRegUrl}</div>
-                                            <button onClick={() => { navigator.clipboard.writeText(publicRegUrl); Swal.fire({ title: 'Copied!', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, background: '#18181b', color: '#fff' }); }} className="h-11 w-11 bg-zinc-900 border border-white/5 rounded-xl text-zinc-400 hover:text-white transition-colors flex items-center justify-center shrink-0">
+                                            <div className="flex-1 bg-black/40 border border-ink/5 rounded-xl px-4 py-3 text-[10px] text-zinc-400 truncate font-mono">{publicRegUrl}</div>
+                                            <button onClick={() => { navigator.clipboard.writeText(publicRegUrl); Swal.fire({ title: 'Copied!', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, background: '#18181b', color: 'var(--c-on-accent)' }); }} className="h-11 w-11 bg-zinc-900 border border-ink/5 rounded-xl text-zinc-400 hover:text-ink transition-colors flex items-center justify-center shrink-0">
                                                 <i className="fa-solid fa-copy" />
                                             </button>
                                         </div>
@@ -634,7 +634,7 @@ export default function RegistrationStudio() {
                 ════════════════════════════════════════════════════════ */
                 <div className="flex flex-col gap-4">
                     {submissions.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-32 border-2 border-dashed border-white/5 rounded-[32px] bg-white/[0.02]">
+                        <div className="flex flex-col items-center justify-center py-32 border-2 border-dashed border-ink/5 rounded-[32px] bg-ink/[0.02]">
                             <i className="fa-solid fa-users text-5xl text-zinc-800 mb-6" />
                             <h3 className="text-lg font-black text-zinc-600 uppercase tracking-widest">No Submissions Yet</h3>
                             <p className="text-zinc-700 text-[10px] font-black uppercase mt-2 tracking-widest">Waiting for participants to sign up...</p>
@@ -646,33 +646,33 @@ export default function RegistrationStudio() {
                             {submissions.map(sub => (
                                 <div 
                                     key={sub.id} 
-                                    className={`bg-white/[0.03] border border-white/5 p-6 rounded-[24px] hover:border-[#0056B3]/40 hover:shadow-[0_8px_32px_rgba(0,86,179,0.15)] transition-all flex flex-col justify-between group ${pageBreakIds.includes(sub.id) ? 'print:break-before-page' : ''}`}
+                                    className={`bg-ink/[0.03] border border-ink/5 p-6 rounded-[24px] hover:border-accent/40 hover:shadow-[0_8px_32px_rgb(var(--c-accent-rgb)/0.15)] transition-all flex flex-col justify-between group ${pageBreakIds.includes(sub.id) ? 'print:break-before-page' : ''}`}
                                 >
                                     <div className="space-y-4">
                                         <div className="flex justify-between items-start">
-                                            <div className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[9px] font-black text-zinc-500 uppercase tracking-widest">
+                                            <div className="px-3 py-1 bg-ink/5 border border-ink/10 rounded-full text-[9px] font-black text-zinc-500 uppercase tracking-widest">
                                                 {new Date(sub.created_at).toLocaleDateString()}
                                             </div>
-                                            <div className="w-8 h-8 rounded-full bg-[#0056B3]/10 flex items-center justify-center text-[#4da3ff] opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center text-accent-bright opacity-0 group-hover:opacity-100 transition-opacity">
                                                 <i className="fa-solid fa-chevron-right text-[10px]" />
                                             </div>
                                         </div>
                                         
                                         <div>
-                                            <div className="text-[10px] font-black text-[#0056B3] uppercase tracking-[0.2em] mb-1">Organization</div>
-                                            <h4 className="text-lg font-black text-white leading-tight uppercase font-['Urbanist']">
+                                            <div className="text-[10px] font-black text-accent uppercase tracking-[0.2em] mb-1">Organization</div>
+                                            <h4 className="text-lg font-black text-ink leading-tight uppercase font-display">
                                                 {sub.organization_name}
                                             </h4>
                                         </div>
 
-                                        <div className="flex items-center gap-4 py-4 border-y border-white/5">
+                                        <div className="flex items-center gap-4 py-4 border-y border-ink/5">
                                             <div className="flex-1">
                                                 <div className="text-[9px] font-black text-zinc-600 uppercase tracking-widest mb-1">Captain</div>
                                                 <div className="text-xs font-bold text-zinc-300">{sub.captain_name}</div>
                                             </div>
                                             <div className="text-right">
                                                 <div className="text-[9px] font-black text-zinc-600 uppercase tracking-widest mb-1">Pairs</div>
-                                                <div className="text-xs font-bold text-white">{(sub.players?.length / 2) || 0}</div>
+                                                <div className="text-xs font-bold text-ink">{(sub.players?.length / 2) || 0}</div>
                                             </div>
                                         </div>
                                     </div>
@@ -685,7 +685,7 @@ export default function RegistrationStudio() {
                                                 </div>
                                             ))}
                                             {(sub.players?.length / 2) > 4 && (
-                                                <div className="w-7 h-7 rounded-full border-2 border-zinc-900 bg-[#0056B3]/20 flex items-center justify-center text-[9px] font-black text-[#4da3ff]">
+                                                <div className="w-7 h-7 rounded-full border-2 border-zinc-900 bg-accent/20 flex items-center justify-center text-[9px] font-black text-accent-bright">
                                                     +{(sub.players?.length / 2) - 4}
                                                 </div>
                                             )}

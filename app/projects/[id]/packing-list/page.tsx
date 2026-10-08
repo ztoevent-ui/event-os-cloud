@@ -13,8 +13,8 @@ const Modal = ({ isOpen, onClose, title, children }: { isOpen: boolean, onClose:
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in">
             <div className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md p-6 shadow-2xl relative animate-in zoom-in-95 max-h-[90vh] overflow-y-auto">
                 <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-bold text-white">{title}</h3>
-                    <button onClick={onClose} className="text-zinc-500 hover:text-white transition-colors">
+                    <h3 className="text-xl font-bold text-ink">{title}</h3>
+                    <button onClick={onClose} className="text-zinc-500 hover:text-ink transition-colors">
                         <i className="fa-solid fa-xmark text-lg"></i>
                     </button>
                 </div>
@@ -29,8 +29,8 @@ const Modal = ({ isOpen, onClose, title, children }: { isOpen: boolean, onClose:
 function PackingItemForm({ item, projectId, onClose, isWedding }: { item?: any, projectId: string, onClose: () => void, isWedding?: boolean }) {
     const isEdit = !!item;
     const [isLoading, setIsLoading] = useState(false);
-    const focusClass = isWedding ? 'focus:border-pink-500' : 'focus:border-[#0056B3]/30';
-    const btnClass = isWedding ? 'bg-pink-500 hover:bg-pink-400 shadow-pink-500/20' : 'bg-[#0056B3] hover:bg-[#0056B3] shadow-blue-900/20';
+    const focusClass = isWedding ? 'focus:border-accent' : 'focus:border-accent/30';
+    const btnClass = isWedding ? 'bg-accent hover:bg-accent-hover shadow-accent/20' : 'bg-accent hover:bg-accent shadow-accent/20';
 
     const CATEGORIES = ['Audio', 'Lighting', 'Video', 'Structure/Truss', 'Power/Cables', 'Props', 'Tools', 'Misc'];
 
@@ -50,26 +50,26 @@ function PackingItemForm({ item, projectId, onClose, isWedding }: { item?: any, 
             
             <div>
                 <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Item Name</label>
-                <input name="name" defaultValue={item?.name} required className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass} transition-colors`} placeholder="e.g. Wireless Mic, Extension Cord..." />
+                <input name="name" defaultValue={item?.name} required className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none ${focusClass} transition-colors`} placeholder="e.g. Wireless Mic, Extension Cord..." />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
                 <div>
                     <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Category</label>
-                    <select name="category" defaultValue={item?.category || 'Misc'} className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass}`}>
+                    <select name="category" defaultValue={item?.category || 'Misc'} className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none ${focusClass}`}>
                         {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                 </div>
                 <div>
                     <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Quantity</label>
-                    <input type="number" name="quantity" defaultValue={item?.quantity || 1} min="1" className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass}`} />
+                    <input type="number" name="quantity" defaultValue={item?.quantity || 1} min="1" className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none ${focusClass}`} />
                 </div>
             </div>
 
             <div className="grid grid-cols-1 gap-4">
                 <div>
                     <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Status</label>
-                    <select name="status" defaultValue={item?.status || 'pending'} className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass}`}>
+                    <select name="status" defaultValue={item?.status || 'pending'} className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none ${focusClass}`}>
                         <option value="pending">Pending</option>
                         <option value="packed">Packed</option>
                         <option value="returned">Returned</option>
@@ -79,10 +79,10 @@ function PackingItemForm({ item, projectId, onClose, isWedding }: { item?: any, 
 
             <div>
                 <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Remarks (Optional)</label>
-                <textarea name="remarks" defaultValue={item?.remarks} className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass} min-h-[80px] resize-none`} placeholder="Specific notes..." />
+                <textarea name="remarks" defaultValue={item?.remarks} className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none ${focusClass} min-h-[80px] resize-none`} placeholder="Specific notes..." />
             </div>
 
-            <button type="submit" disabled={isLoading} className={`w-full py-3 rounded-lg text-white font-bold transition-all ${btnClass}`}>
+            <button type="submit" disabled={isLoading} className={`w-full py-3 rounded-lg text-ink font-bold transition-all ${btnClass}`}>
                 {isLoading ? <i className="fa-solid fa-spinner fa-spin"></i> : isEdit ? 'Save Changes' : 'Add Item'}
             </button>
         </form>
@@ -136,7 +136,7 @@ export default function PackingListPage({ params }: { params: Promise<{ id: stri
     if (loading) return <div className="p-20 text-center animate-pulse">Loading Packing List...</div>;
 
     const isWedding = project?.type === 'wedding' || project?.type === 'wedding_fair';
-    const accentColor = isWedding ? 'pink-500' : '[#0056B3]';
+    const accentColor = isWedding ? 'accent' : '[#0056B3]';
 
     // Group items by category
     const groupedItems = items.reduce((acc, item) => {
@@ -156,14 +156,14 @@ export default function PackingListPage({ params }: { params: Promise<{ id: stri
             <div className="print:hidden flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
                 <div className="flex flex-col">
                     <p className={`text-xs font-black uppercase tracking-[0.2em] text-${accentColor} mb-2`}>Operations Hub</p>
-                    <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tight leading-none font-['Urbanist']">
+                    <h1 className="text-4xl md:text-5xl font-black text-ink uppercase tracking-tight leading-none font-display">
                         Packing List
                     </h1>
                 </div>
 
                 <div className="flex items-center gap-3">
                     <PrintReportButton title="Packing List" />
-                    <button onClick={() => setIsAddOpen(true)} className={`px-6 py-2.5 bg-${accentColor} text-white font-bold rounded-full transition-all flex items-center gap-2 transform hover:scale-105 shadow-lg`}>
+                    <button onClick={() => setIsAddOpen(true)} className={`px-6 py-2.5 bg-${accentColor} text-ink font-bold rounded-full transition-all flex items-center gap-2 transform hover:scale-105 shadow-lg`}>
                         <i className="fa-solid fa-plus"></i> Add Item
                     </button>
                 </div>
@@ -181,7 +181,7 @@ export default function PackingListPage({ params }: { params: Promise<{ id: stri
                         <div key={category} className="bg-zinc-900/50 border border-zinc-800/50 rounded-2xl overflow-hidden print:bg-transparent print:border-zinc-300">
                             <div className={`bg-zinc-900 border-b border-zinc-800 px-6 py-4 flex items-center gap-3 print:bg-zinc-100 print:border-zinc-300`}>
                                 <i className="fa-solid fa-layer-group text-zinc-500 print:text-black"></i>
-                                <h2 className="text-lg font-bold text-white uppercase tracking-wide print:text-black">{category}</h2>
+                                <h2 className="text-lg font-bold text-ink uppercase tracking-wide print:text-black">{category}</h2>
                                 <span className="ml-auto bg-zinc-800 text-zinc-400 text-xs px-2 py-1 rounded-full print:bg-white print:border print:border-zinc-300 print:text-black">
                                     {groupedItems[category].length} items
                                 </span>
@@ -213,7 +213,7 @@ export default function PackingListPage({ params }: { params: Promise<{ id: stri
                                                         {item.name}
                                                     </span>
                                                     {item.quantity > 1 && (
-                                                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${isWedding ? 'bg-pink-500/20 text-pink-400' : 'bg-blue-500/20 text-blue-400'} print:bg-black/10 print:text-black`}>
+                                                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${isWedding ? 'bg-accent/20 text-accent-hover' : 'bg-blue-500/20 text-blue-400'} print:bg-black/10 print:text-black`}>
                                                             x{item.quantity}
                                                         </span>
                                                     )}
@@ -233,7 +233,7 @@ export default function PackingListPage({ params }: { params: Promise<{ id: stri
                                         <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 print:hidden ml-4">
                                             <button 
                                                 onClick={() => setEditItem(item)}
-                                                className="w-8 h-8 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white flex items-center justify-center transition-colors"
+                                                className="w-8 h-8 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-ink flex items-center justify-center transition-colors"
                                             >
                                                 <i className="fa-solid fa-pen-to-square text-xs"></i>
                                             </button>

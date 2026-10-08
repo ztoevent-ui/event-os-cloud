@@ -12,12 +12,12 @@ const fmt = (d?: string) =>
 const MODULES = [
     { label: 'Tasks',          icon: 'fa-check-double',          path: '/tasks',          desc: 'Deliverables & board',        color: '#3b82f6', tag: 'EXEC' },
     { label: 'Timeline',       icon: 'fa-timeline',              path: '/timelines',      desc: 'Project milestones',          color: '#8b5cf6', tag: 'PLAN' },
-    { label: 'Schedule',       icon: 'fa-calendar-days',         path: '/schedule',       desc: 'Day-of dispatch cues',        color: '#0056B3', tag: 'OPS'  },
+    { label: 'Schedule',       icon: 'fa-calendar-days',         path: '/schedule',       desc: 'Day-of dispatch cues',        color: 'var(--c-accent)', tag: 'OPS'  },
     { label: 'Live Program',   icon: 'fa-list-ol',               path: '/program',        desc: 'Sequence & production cues',  color: '#10b981', tag: 'LIVE' },
-    { label: 'Budget',         icon: 'fa-file-invoice-dollar',   path: '/budget',         desc: 'P&L & expense tracking',     color: '#DEFF9A', tag: 'FIN'  },
+    { label: 'Budget',         icon: 'fa-file-invoice-dollar',   path: '/budget',         desc: 'P&L & expense tracking',     color: 'var(--c-accent-2)', tag: 'FIN'  },
     { label: 'Vendors',        icon: 'fa-truck-fast',            path: '/vendors',        desc: 'Supplier contacts',           color: '#06b6d4', tag: 'OPS'  },
     { label: 'Venue Layout',   icon: 'fa-map',                   path: '/venue-layout',   desc: '2D floor plan',              color: '#ec4899', tag: 'SPACE'},
-    { label: '3D Stage',       icon: 'fa-cube',                  path: '/stage-layout',   desc: 'Stage visualizer',           color: '#4da3ff', tag: 'SPACE'},
+    { label: '3D Stage',       icon: 'fa-cube',                  path: '/stage-layout',   desc: 'Stage visualizer',           color: 'var(--c-accent-bright)', tag: 'SPACE'},
     { label: 'Registration',   icon: 'fa-id-card',               path: '/registration',   desc: 'Participant management',     color: '#a855f7', tag: 'REG'  },
     { label: 'Guests',         icon: 'fa-users',                 path: '/guests',         desc: 'Guest list & seating',       color: '#14b8a6', tag: 'REG'  },
     { label: 'Visitor Leads',  icon: 'fa-id-badge',              path: '/visitor-leads',  desc: 'Booth check-in & lead data', color: '#39FF14', tag: 'REG'  },
@@ -101,12 +101,12 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 400, gap: 12 }}>
             <div style={{
                 width: 32, height: 32,
-                border: '2px solid rgba(0,86,179,0.15)',
-                borderTopColor: '#0056B3',
+                border: '2px solid rgb(var(--c-accent-rgb) / 0.15)',
+                borderTopColor: 'var(--c-accent)',
                 borderRadius: '50%',
                 animation: 'spin 0.8s linear infinite',
             }} />
-            <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 14 }}>Loading...</span>
+            <span style={{ color: 'rgb(var(--c-ink-rgb) / 0.3)', fontSize: 14 }}>Loading...</span>
             <style jsx>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
     );
@@ -124,7 +124,7 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
             val: stats.pending,
             sub: stats.critical > 0 ? `${stats.critical} Critical` : 'All Clear',
             icon: 'fa-check-double',
-            color: '#4da3ff',
+            color: 'var(--c-accent-bright)',
             href: `/projects/${id}/tasks`,
         },
         userRole === 'intern' ? null : {
@@ -132,7 +132,7 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
             val: `RM ${stats.expenses.toLocaleString()}`,
             sub: 'Capital Allocated',
             icon: 'fa-receipt',
-            color: '#DEFF9A',
+            color: 'var(--c-accent-2)',
             href: `/projects/${id}/budget`,
         },
         {
@@ -140,7 +140,7 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
             val: diffDays != null && !isEnded ? diffDays : isEnded ? '—' : 'TBD',
             sub: isEnded ? 'Mission Complete' : 'Cycle Time',
             icon: 'fa-hourglass-half',
-            color: '#4da3ff',
+            color: 'var(--c-accent-bright)',
             href: null,
         },
         {
@@ -166,7 +166,7 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
                 <div style={{
                     position: 'absolute', top: -60, right: -60,
                     width: 300, height: 300,
-                    background: '#0056B3', filter: 'blur(100px)', opacity: 0.08,
+                    background: 'var(--c-accent)', filter: 'blur(100px)', opacity: 0.08,
                     borderRadius: '50%', pointerEvents: 'none',
                 }} />
 
@@ -178,7 +178,7 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
                             {project?.status || 'PLANNING'}
                         </span>
                         {project?.type === 'wedding' && (
-                            <span className="zto-badge" style={{ background: 'rgba(236,72,153,0.08)', border: '1px solid rgba(236,72,153,0.25)', color: '#ec4899' }}>
+                            <span className="zto-badge" style={{ background: 'rgb(var(--c-accent-2-rgb) / 0.08)', border: '1px solid rgb(var(--c-accent-2-rgb) / 0.3)', color: 'var(--c-accent-2)' }}>
                                 <i className="fa-solid fa-rings-wedding" style={{ fontSize: 8 }} /> Wedding
                             </span>
                         )}
@@ -200,7 +200,7 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
                 <h1 style={{
                     fontSize: 'clamp(2rem, 5vw, 3.5rem)',
                     fontWeight: 800,
-                    color: '#fff',
+                    color: 'var(--c-ink)',
                     letterSpacing: '-0.02em',
                     lineHeight: 1,
                     textTransform: 'uppercase',
@@ -214,22 +214,22 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
                     {project?.venue && (
                         <div>
                             <div className="zto-label" style={{ marginBottom: 4 }}>Location</div>
-                            <div style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.8)' }}>
+                            <div style={{ fontSize: 14, fontWeight: 600, color: 'rgb(var(--c-ink-rgb) / 0.8)' }}>
                                 📍 {project.venue}
                             </div>
                         </div>
                     )}
                     <div>
                         <div className="zto-label" style={{ marginBottom: 4 }}>Execution Period</div>
-                        <div style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.8)' }}>
+                        <div style={{ fontSize: 14, fontWeight: 600, color: 'rgb(var(--c-ink-rgb) / 0.8)' }}>
                             {fmt(project?.start_date)} — {fmt(project?.end_date)}
                         </div>
                     </div>
                     {diffDays != null && !isEnded && (
                         <div>
                             <div className="zto-label" style={{ marginBottom: 4 }}>T-Minus</div>
-                            <div style={{ fontSize: 28, fontWeight: 800, color: '#DEFF9A', lineHeight: 1 }}>
-                                {diffDays} <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', fontWeight: 700 }}>DAYS</span>
+                            <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--c-accent-2)', lineHeight: 1 }}>
+                                {diffDays} <span style={{ fontSize: 11, color: 'rgb(var(--c-ink-rgb) / 0.3)', fontWeight: 700 }}>DAYS</span>
                             </div>
                         </div>
                     )}
@@ -240,15 +240,15 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
                     <div style={{ position: 'relative' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
                             <div className="zto-label">Operational Readiness</div>
-                            <span style={{ fontSize: 12, fontWeight: 700, color: '#DEFF9A' }}>{progress}% — {stats.done}/{total} Tasks</span>
+                            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--c-accent-2)' }}>{progress}% — {stats.done}/{total} Tasks</span>
                         </div>
-                        <div style={{ height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 999, overflow: 'hidden' }}>
+                        <div style={{ height: 6, background: 'rgb(var(--c-ink-rgb) / 0.06)', borderRadius: 999, overflow: 'hidden' }}>
                             <div style={{
                                 height: '100%',
                                 width: `${progress}%`,
-                                background: 'linear-gradient(90deg, #0056B3, #4da3ff)',
+                                background: 'linear-gradient(90deg, var(--c-accent), var(--c-accent-bright))',
                                 borderRadius: 999,
-                                boxShadow: '0 0 16px rgba(0,86,179,0.5)',
+                                boxShadow: '0 0 16px rgb(var(--c-accent-rgb) / 0.5)',
                                 transition: 'width 1s ease-out',
                             }} />
                         </div>
@@ -275,7 +275,7 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
                                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: card.color, boxShadow: `0 0 8px ${card.color}`, flexShrink: 0 }} />
                                 <span className="zto-label">{card.label}</span>
                             </div>
-                            <div style={{ fontSize: '2rem', fontWeight: 800, color: '#fff', lineHeight: 1, marginBottom: 6, letterSpacing: '-0.02em' }}>
+                            <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--c-ink)', lineHeight: 1, marginBottom: 6, letterSpacing: '-0.02em' }}>
                                 {card.val}
                             </div>
                             <div className="zto-desc" style={{ fontSize: 11, marginTop: 'auto' }}>{card.sub}</div>
@@ -294,12 +294,12 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
 
             {/* ── Mission Modules ── */}
             <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, paddingBottom: 16, borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, paddingBottom: 16, borderBottom: '1px solid rgb(var(--c-ink-rgb) / 0.05)' }}>
                     <h2 className="zto-label">Mission Command Center</h2>
                     <span style={{
                         fontSize: 9, fontWeight: 700,
-                        background: 'rgba(0,86,179,0.1)', border: '1px solid rgba(0,86,179,0.25)',
-                        color: '#6BB8FF', padding: '2px 8px', borderRadius: 999,
+                        background: 'rgb(var(--c-accent-rgb) / 0.1)', border: '1px solid rgb(var(--c-accent-rgb) / 0.25)',
+                        color: 'var(--c-accent-bright)', padding: '2px 8px', borderRadius: 999,
                     }}>{visibleModules.length}</span>
                 </div>
 
@@ -316,7 +316,7 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
                             }}
                                 onMouseEnter={e => {
                                     (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-3px)';
-                                    (e.currentTarget as HTMLDivElement).style.borderColor = `${mod.color}50`;
+                                    (e.currentTarget as HTMLDivElement).style.borderColor = `color-mix(in srgb, ${mod.color} 31%, transparent)`;
                                 }}
                                 onMouseLeave={e => {
                                     (e.currentTarget as HTMLDivElement).style.transform = '';
@@ -325,8 +325,8 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
                             >
                                 <div style={{
                                     width: 40, height: 40, borderRadius: 12,
-                                    background: `${mod.color}10`,
-                                    border: `1px solid ${mod.color}25`,
+                                    background: `color-mix(in srgb, ${mod.color} 6%, transparent)`,
+                                    border: `1px solid color-mix(in srgb, ${mod.color} 15%, transparent)`,
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                                     fontSize: 16, color: mod.color,
                                     marginBottom: 16,
@@ -334,21 +334,21 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
                                     <i className={`fa-solid ${mod.icon}`} />
                                 </div>
 
-                                <div style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 6 }}>{mod.label}</div>
+                                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--c-ink)', marginBottom: 6 }}>{mod.label}</div>
                                 <div className="zto-desc" style={{ fontSize: 11 }}>{mod.desc}</div>
 
                                 <div style={{ marginTop: 'auto', paddingTop: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <span style={{
                                         fontSize: 8, fontWeight: 700,
                                         padding: '2px 7px', borderRadius: 999,
-                                        background: 'rgba(255,255,255,0.04)',
-                                        border: '1px solid rgba(255,255,255,0.08)',
-                                        color: 'rgba(255,255,255,0.3)',
+                                        background: 'rgb(var(--c-ink-rgb) / 0.04)',
+                                        border: '1px solid rgb(var(--c-ink-rgb) / 0.08)',
+                                        color: 'rgb(var(--c-ink-rgb) / 0.3)',
                                         textTransform: 'uppercase', letterSpacing: '0.1em',
                                     }}>
                                         {mod.tag}
                                     </span>
-                                    <i className="fa-solid fa-chevron-right" style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)' }} />
+                                    <i className="fa-solid fa-chevron-right" style={{ fontSize: 10, color: 'rgb(var(--c-ink-rgb) / 0.2)' }} />
                                 </div>
                             </div>
                         </Link>
@@ -359,13 +359,13 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
             {/* ── Edit Modal ── */}
             {editOpen && editData && (
                 <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-                    <div onClick={() => setEditOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(5,5,5,0.85)', backdropFilter: 'blur(8px)' }} />
+                    <div onClick={() => setEditOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgb(var(--c-canvas-rgb) / 0.85)', backdropFilter: 'blur(8px)' }} />
                     <div className="zto-card page-transition" style={{ position: 'relative', width: '100%', maxWidth: 520, zIndex: 10 }}>
                         <button onClick={() => setEditOpen(false)} className="zto-btn zto-btn-ghost" style={{ position: 'absolute', top: 16, right: 16, padding: '6px 10px' }}>
                             <i className="fa-solid fa-xmark" />
                         </button>
-                        <h2 style={{ fontSize: 18, fontWeight: 700, color: '#fff', marginBottom: 4 }}>Edit Project</h2>
-                        <p className="zto-desc" style={{ marginBottom: 24, paddingBottom: 20, borderBottom: '1px solid rgba(255,255,255,0.07)' }}>Update basic project information.</p>
+                        <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--c-ink)', marginBottom: 4 }}>Edit Project</h2>
+                        <p className="zto-desc" style={{ marginBottom: 24, paddingBottom: 20, borderBottom: '1px solid rgb(var(--c-ink-rgb) / 0.07)' }}>Update basic project information.</p>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                             <div>
@@ -375,20 +375,20 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
                             <div>
                                 <label className="zto-label" style={{ display: 'block', marginBottom: 6 }}>Type</label>
                                 <select className="zto-select" value={editData.type} onChange={e => setEditData({ ...editData, type: e.target.value })}>
-                                    <option value="corporate" style={{ background: '#0a0a0a' }}>Corporate</option>
-                                    <option value="wedding" style={{ background: '#0a0a0a' }}>Wedding</option>
-                                    <option value="wedding_fair" style={{ background: '#0a0a0a' }}>Wedding Fair</option>
-                                    <option value="sports" style={{ background: '#0a0a0a' }}>Sports / Tournament</option>
-                                    <option value="dinner" style={{ background: '#0a0a0a' }}>Gala Banquet</option>
-                                    <option value="other" style={{ background: '#0a0a0a' }}>Other</option>
+                                    <option value="corporate" style={{ background: 'var(--c-surface-solid)' }}>Corporate</option>
+                                    <option value="wedding" style={{ background: 'var(--c-surface-solid)' }}>Wedding</option>
+                                    <option value="wedding_fair" style={{ background: 'var(--c-surface-solid)' }}>Wedding Fair</option>
+                                    <option value="sports" style={{ background: 'var(--c-surface-solid)' }}>Sports / Tournament</option>
+                                    <option value="dinner" style={{ background: 'var(--c-surface-solid)' }}>Gala Banquet</option>
+                                    <option value="other" style={{ background: 'var(--c-surface-solid)' }}>Other</option>
                                 </select>
                             </div>
                             <div>
                                 <label className="zto-label" style={{ display: 'block', marginBottom: 6 }}>Status</label>
                                 <select className="zto-select" value={editData.status} onChange={e => setEditData({ ...editData, status: e.target.value })}>
-                                    <option value="planning" style={{ background: '#0a0a0a' }}>Planning</option>
-                                    <option value="active" style={{ background: '#0a0a0a' }}>Active</option>
-                                    <option value="completed" style={{ background: '#0a0a0a' }}>Completed</option>
+                                    <option value="planning" style={{ background: 'var(--c-surface-solid)' }}>Planning</option>
+                                    <option value="active" style={{ background: 'var(--c-surface-solid)' }}>Active</option>
+                                    <option value="completed" style={{ background: 'var(--c-surface-solid)' }}>Completed</option>
                                 </select>
                             </div>
                             <div>

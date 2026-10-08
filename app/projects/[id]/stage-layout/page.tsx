@@ -490,7 +490,7 @@ function LEDVisualizer({ width, height, label }: { width: number; height: number
   return (
     <div className="w-full">
       {/* Preview box - strictly constrained, no stretch */}
-      <div className="relative w-full flex items-center justify-center bg-black/40 rounded-xl overflow-hidden border border-[#0056B3]/20" style={{ minHeight: 64, maxHeight: 160, padding: '12px' }}>
+      <div className="relative w-full flex items-center justify-center bg-black/40 rounded-xl overflow-hidden border border-accent/20" style={{ minHeight: 64, maxHeight: 160, padding: '12px' }}>
         <div style={{
           aspectRatio: `${w} / ${h}`,
           maxWidth: '100%',
@@ -524,7 +524,7 @@ function LEDVisualizer({ width, height, label }: { width: number; height: number
       {/* Info row */}
       <div className="flex items-center justify-between mt-2 px-1">
         <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Aspect Ratio</span>
-        <span className="text-[10px] font-black text-[#4da3ff] font-mono">{ratioLabel}</span>
+        <span className="text-[10px] font-black text-accent-bright font-mono">{ratioLabel}</span>
       </div>
     </div>
   );
@@ -902,23 +902,23 @@ export default function StageLayoutPage({ params }: { params: Promise<{ id: stri
         {/* ── Page Header + Action Bar ── */}
         <div className="print:hidden flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12 px-6">
             <div className="flex flex-col">
-                <p className="text-xs font-black uppercase tracking-[0.2em] text-[#0056B3] mb-2">Stage Engineering</p>
-                <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tight leading-none font-['Urbanist']">
+                <p className="text-xs font-black uppercase tracking-[0.2em] text-accent mb-2">Stage Engineering</p>
+                <h1 className="text-4xl md:text-5xl font-black text-ink uppercase tracking-tight leading-none font-display">
                     Production Studio <span className="text-zinc-600 font-black ml-2 text-2xl uppercase">3D</span>
                 </h1>
             </div>
 
             {/* Action Hub */}
             <div className="flex flex-wrap items-center gap-3">
-                <div className="hidden lg:flex flex-col items-end mr-6 border-r border-white/5 pr-6">
+                <div className="hidden lg:flex flex-col items-end mr-6 border-r border-ink/5 pr-6">
                     <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-1">Estimated Load-Out</p>
-                    <p className="text-lg font-black text-[#0056B3] font-mono">RM {totalEquipmentCost.toLocaleString()}</p>
+                    <p className="text-lg font-black text-accent font-mono">RM {totalEquipmentCost.toLocaleString()}</p>
                 </div>
                 
                 <button 
                     onClick={captureScreenshot}
                     disabled={capturing || !isActive}
-                    className="h-11 px-6 rounded-xl bg-white/[0.03] border border-white/10 text-white font-black text-[10px] tracking-widest uppercase hover:bg-white/[0.08] transition-all flex items-center gap-2.5 disabled:opacity-40"
+                    className="h-11 px-6 rounded-xl bg-ink/[0.03] border border-ink/10 text-ink font-black text-[10px] tracking-widest uppercase hover:bg-ink/[0.08] transition-all flex items-center gap-2.5 disabled:opacity-40"
                 >
                     <i className={`fa-solid ${capturing ? 'fa-spinner fa-spin' : 'fa-camera'}`} />
                     {capturing ? 'Processing...' : 'Capture'}
@@ -927,7 +927,7 @@ export default function StageLayoutPage({ params }: { params: Promise<{ id: stri
                 <button 
                     onClick={exportToBudget}
                     disabled={equipment.length === 0}
-                    className="h-11 px-6 rounded-xl bg-[#0056B3]/10 border border-[#0056B3]/20 text-[#4da3ff] font-black text-[10px] tracking-widest uppercase hover:bg-[#0056B3]/20 transition-all flex items-center gap-2.5 disabled:opacity-40"
+                    className="h-11 px-6 rounded-xl bg-accent/10 border border-accent/20 text-accent-bright font-black text-[10px] tracking-widest uppercase hover:bg-accent/20 transition-all flex items-center gap-2.5 disabled:opacity-40"
                 >
                     <i className="fa-solid fa-file-invoice-dollar" />
                     Sync Budget
@@ -946,12 +946,12 @@ export default function StageLayoutPage({ params }: { params: Promise<{ id: stri
             {/* ── Production Console (Left) ── */}
             <div className="w-full xl:w-80 flex flex-col gap-6 print:hidden">
                 {/* Navigation Tabs */}
-                <div className="flex gap-1 bg-white/[0.03] border border-white/5 rounded-2xl p-1.5">
+                <div className="flex gap-1 bg-ink/[0.03] border border-ink/5 rounded-2xl p-1.5">
                     {(['assets', 'equipment', 'settings'] as const).map(tab => (
                         <button 
                             key={tab} 
                             onClick={() => setSidebarTab(tab)}
-                            className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${sidebarTab === tab ? 'bg-white/10 text-white shadow-xl' : 'text-zinc-600 hover:text-zinc-400'}`}
+                            className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${sidebarTab === tab ? 'bg-ink/10 text-ink shadow-xl' : 'text-zinc-600 hover:text-zinc-400'}`}
                         >
                             {tab}
                         </button>
@@ -966,10 +966,10 @@ export default function StageLayoutPage({ params }: { params: Promise<{ id: stri
                     <div className="flex flex-col gap-4">
                         {/* Selected asset inspector */}
                         {selectedAsset && (
-                            <div className="bg-white/[0.03] border border-white/5 rounded-2xl p-4 flex flex-col gap-4">
+                            <div className="bg-ink/[0.03] border border-ink/5 rounded-2xl p-4 flex flex-col gap-4">
                                 <div className="flex items-center justify-between">
                                     <p className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Selected Asset</p>
-                                    <span className="text-[9px] font-black text-[#0056B3] uppercase tracking-widest">{selectedAsset.type}</span>
+                                    <span className="text-[9px] font-black text-accent uppercase tracking-widest">{selectedAsset.type}</span>
                                 </div>
 
                                 {/* Label */}
@@ -979,7 +979,7 @@ export default function StageLayoutPage({ params }: { params: Promise<{ id: stri
                                         type="text"
                                         value={selectedAsset.label}
                                         onChange={e => updateAssetProp(selectedAsset.id, 'label', e.target.value)}
-                                        className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-xs font-bold text-white focus:outline-none focus:border-[#0056B3]/50"
+                                        className="w-full bg-canvas border border-ink/10 rounded-lg px-3 py-2 text-xs font-bold text-ink focus:outline-none focus:border-accent/50"
                                     />
                                 </div>
 
@@ -994,7 +994,7 @@ export default function StageLayoutPage({ params }: { params: Promise<{ id: stri
                                                 step={0.1}
                                                 value={selectedAsset[prop]}
                                                 onChange={e => updateAssetProp(selectedAsset.id, prop, Math.max(0.1, parseFloat(e.target.value) || 0.1))}
-                                                className="w-full bg-black border border-white/10 rounded-lg px-2 py-2 text-xs font-bold text-white focus:outline-none focus:border-[#0056B3]/50 text-center"
+                                                className="w-full bg-canvas border border-ink/10 rounded-lg px-2 py-2 text-xs font-bold text-ink focus:outline-none focus:border-accent/50 text-center"
                                             />
                                         </div>
                                     ))}
@@ -1003,7 +1003,7 @@ export default function StageLayoutPage({ params }: { params: Promise<{ id: stri
                                 {/* LED Visualizer — only for LED types */}
                                 {(selectedAsset.type === 'led-wall' || selectedAsset.type === 'led-tile') && (
                                     <div>
-                                        <p className="text-[9px] font-black uppercase tracking-widest text-[#0056B3] mb-2">LED Screen Visualizer</p>
+                                        <p className="text-[9px] font-black uppercase tracking-widest text-accent mb-2">LED Screen Visualizer</p>
                                         <LEDVisualizer width={selectedAsset.w} height={selectedAsset.h} label={selectedAsset.label} />
                                     </div>
                                 )}
@@ -1018,7 +1018,7 @@ export default function StageLayoutPage({ params }: { params: Promise<{ id: stri
                                                 step={0.5}
                                                 value={selectedAsset[prop]}
                                                 onChange={e => updateAssetProp(selectedAsset.id, prop, parseFloat(e.target.value) || 0)}
-                                                className="w-full bg-black border border-white/10 rounded-lg px-2 py-2 text-xs font-bold text-white focus:outline-none focus:border-[#0056B3]/50 text-center"
+                                                className="w-full bg-canvas border border-ink/10 rounded-lg px-2 py-2 text-xs font-bold text-ink focus:outline-none focus:border-accent/50 text-center"
                                             />
                                         </div>
                                     ))}
@@ -1027,19 +1027,19 @@ export default function StageLayoutPage({ params }: { params: Promise<{ id: stri
                         )}
 
                         {/* Asset Library */}
-                        <div className="bg-white/[0.03] border border-white/5 rounded-2xl p-4 flex flex-col gap-3">
+                        <div className="bg-ink/[0.03] border border-ink/5 rounded-2xl p-4 flex flex-col gap-3">
                             <p className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Asset Library</p>
                             <input
                                 type="text"
                                 placeholder="Search assets..."
                                 value={searchQuery}
                                 onChange={e => setSearchQuery(e.target.value)}
-                                className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-xs font-bold text-white focus:outline-none focus:border-[#0056B3]/50 placeholder:text-zinc-600"
+                                className="w-full bg-canvas border border-ink/10 rounded-lg px-3 py-2 text-xs font-bold text-ink focus:outline-none focus:border-accent/50 placeholder:text-zinc-600"
                             />
                             <div className="flex flex-wrap gap-1">
                                 {categories.map(cat => (
                                     <button key={cat} onClick={() => setActiveCategory(cat)}
-                                        className={`px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeCategory === cat ? 'bg-[#0056B3]/20 text-[#4da3ff] border border-[#0056B3]/30' : 'bg-white/[0.03] text-zinc-500 border border-white/5 hover:text-white'}`}>
+                                        className={`px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeCategory === cat ? 'bg-accent/20 text-accent-bright border border-accent/30' : 'bg-ink/[0.03] text-zinc-500 border border-ink/5 hover:text-ink'}`}>
                                         {cat}
                                     </button>
                                 ))}
@@ -1047,13 +1047,13 @@ export default function StageLayoutPage({ params }: { params: Promise<{ id: stri
                             <div className="max-h-64 overflow-y-auto flex flex-col gap-1 pr-1">
                                 {filteredLibrary.map(entry => (
                                     <button key={entry.type} onClick={() => addAsset(entry)}
-                                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-[#0056B3]/30 transition-all text-left group">
+                                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-ink/[0.02] border border-ink/5 hover:bg-ink/[0.05] hover:border-accent/30 transition-all text-left group">
                                         <i className={`fa-solid ${entry.icon} text-xs`} style={{ color: entry.color }} />
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-[10px] font-bold text-white truncate">{entry.name}</p>
+                                            <p className="text-[10px] font-bold text-ink truncate">{entry.name}</p>
                                             <p className="text-[8px] text-zinc-600 uppercase tracking-widest">{entry.category}</p>
                                         </div>
-                                        <i className="fa-solid fa-plus text-[8px] text-zinc-600 group-hover:text-[#4da3ff] transition-colors" />
+                                        <i className="fa-solid fa-plus text-[8px] text-zinc-600 group-hover:text-accent-bright transition-colors" />
                                     </button>
                                 ))}
                             </div>
@@ -1064,10 +1064,10 @@ export default function StageLayoutPage({ params }: { params: Promise<{ id: stri
                 {/* ── Equipment Tab ── */}
                 {sidebarTab === 'equipment' && (
                     <div className="flex flex-col gap-4">
-                        <div className="bg-white/[0.03] border border-white/5 rounded-2xl p-4 flex flex-col gap-3">
+                        <div className="bg-ink/[0.03] border border-ink/5 rounded-2xl p-4 flex flex-col gap-3">
                             <div className="flex items-center justify-between">
                                 <p className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Equipment List ({equipment.length})</p>
-                                <span className="text-[9px] font-black text-[#4da3ff] font-mono">RM {totalEquipmentCost.toLocaleString()}</span>
+                                <span className="text-[9px] font-black text-accent-bright font-mono">RM {totalEquipmentCost.toLocaleString()}</span>
                             </div>
 
                             <div className="max-h-96 overflow-y-auto flex flex-col gap-2 pr-1">
@@ -1082,19 +1082,19 @@ export default function StageLayoutPage({ params }: { params: Promise<{ id: stri
                                     const ledH = isLED ? (linkedAsset!.h || 1) : 1;
 
                                     return (
-                                        <div key={item.id} className="bg-black/30 border border-white/5 rounded-xl p-3 flex flex-col gap-2">
+                                        <div key={item.id} className="bg-black/30 border border-ink/5 rounded-xl p-3 flex flex-col gap-2">
                                             <div className="flex items-start gap-2">
                                                 <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: isLED ? 'rgba(0,86,179,0.15)' : 'rgba(255,255,255,0.03)', border: isLED ? '1px solid rgba(0,86,179,0.3)' : '1px solid rgba(255,255,255,0.05)' }}>
                                                     <i className={`fa-solid ${isLED ? 'fa-tv' : 'fa-cube'} text-[9px]`} style={{ color: isLED ? '#4da3ff' : '#666' }} />
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <p className="text-[10px] font-bold text-white truncate">{item.name}</p>
+                                                    <p className="text-[10px] font-bold text-ink truncate">{item.name}</p>
                                                     <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                                                         <span className="text-[8px] text-zinc-600 uppercase tracking-widest">{item.category}</span>
                                                         {/* LED Ratio Badge */}
                                                         {isLED && (
                                                             <>
-                                                                <span className="text-[8px] font-black text-[#4da3ff] font-mono bg-[#0056B3]/10 border border-[#0056B3]/20 px-1.5 py-0.5 rounded">
+                                                                <span className="text-[8px] font-black text-accent-bright font-mono bg-accent/10 border border-accent/20 px-1.5 py-0.5 rounded">
                                                                     {ledW}×{ledH}M
                                                                 </span>
                                                                 {/* Mini ratio bar */}
@@ -1117,21 +1117,21 @@ export default function StageLayoutPage({ params }: { params: Promise<{ id: stri
 
                                             {/* LED W/H inline edit */}
                                             {isLED && linkedAsset && (
-                                                <div className="grid grid-cols-2 gap-2 pt-1 border-t border-white/5">
+                                                <div className="grid grid-cols-2 gap-2 pt-1 border-t border-ink/5">
                                                     <div>
-                                                        <label className="block text-[8px] font-black uppercase tracking-widest text-[#0056B3] mb-1">Width (M)</label>
+                                                        <label className="block text-[8px] font-black uppercase tracking-widest text-accent mb-1">Width (M)</label>
                                                         <input type="number" min={0.1} step={0.1}
                                                             value={linkedAsset.w}
                                                             onChange={e => updateAssetProp(linkedAsset.id, 'w', Math.max(0.1, parseFloat(e.target.value) || 0.1))}
-                                                            className="w-full bg-black border border-[#0056B3]/30 rounded-lg px-2 py-1.5 text-xs font-bold text-white focus:outline-none focus:border-[#0056B3] text-center"
+                                                            className="w-full bg-canvas border border-accent/30 rounded-lg px-2 py-1.5 text-xs font-bold text-ink focus:outline-none focus:border-accent text-center"
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-[8px] font-black uppercase tracking-widest text-[#0056B3] mb-1">Height (M)</label>
+                                                        <label className="block text-[8px] font-black uppercase tracking-widest text-accent mb-1">Height (M)</label>
                                                         <input type="number" min={0.1} step={0.1}
                                                             value={linkedAsset.h}
                                                             onChange={e => updateAssetProp(linkedAsset.id, 'h', Math.max(0.1, parseFloat(e.target.value) || 0.1))}
-                                                            className="w-full bg-black border border-[#0056B3]/30 rounded-lg px-2 py-1.5 text-xs font-bold text-white focus:outline-none focus:border-[#0056B3] text-center"
+                                                            className="w-full bg-canvas border border-accent/30 rounded-lg px-2 py-1.5 text-xs font-bold text-ink focus:outline-none focus:border-accent text-center"
                                                         />
                                                     </div>
                                                     <div className="col-span-2">
@@ -1146,19 +1146,19 @@ export default function StageLayoutPage({ params }: { params: Promise<{ id: stri
                                                     <label className="block text-[8px] font-black uppercase tracking-widest text-zinc-600 mb-1">Qty</label>
                                                     <input type="number" min={1} value={item.qty}
                                                         onChange={e => updateEquipment(item.id, 'qty', parseInt(e.target.value) || 1)}
-                                                        className="w-full bg-black border border-white/10 rounded-lg px-2 py-1.5 text-xs font-bold text-white focus:outline-none focus:border-[#0056B3]/50 text-center"
+                                                        className="w-full bg-canvas border border-ink/10 rounded-lg px-2 py-1.5 text-xs font-bold text-ink focus:outline-none focus:border-accent/50 text-center"
                                                     />
                                                 </div>
                                                 <div className="col-span-2">
                                                     <label className="block text-[8px] font-black uppercase tracking-widest text-zinc-600 mb-1">Unit Price (RM)</label>
                                                     <input type="number" min={0} value={item.unit_price}
                                                         onChange={e => updateEquipment(item.id, 'unit_price', parseFloat(e.target.value) || 0)}
-                                                        className="w-full bg-black border border-white/10 rounded-lg px-2 py-1.5 text-xs font-bold text-white focus:outline-none focus:border-[#0056B3]/50 text-center"
+                                                        className="w-full bg-canvas border border-ink/10 rounded-lg px-2 py-1.5 text-xs font-bold text-ink focus:outline-none focus:border-accent/50 text-center"
                                                     />
                                                 </div>
                                             </div>
                                             <div className="flex items-center justify-between">
-                                                <span className="text-[9px] font-black text-[#4da3ff] font-mono">RM {(item.qty * item.unit_price).toLocaleString()}</span>
+                                                <span className="text-[9px] font-black text-accent-bright font-mono">RM {(item.qty * item.unit_price).toLocaleString()}</span>
                                                 <button onClick={() => deleteEquipment(item.id)} className="text-[8px] font-black text-red-500/60 hover:text-red-400 transition-colors uppercase tracking-widest">
                                                     Remove
                                                 </button>
@@ -1173,13 +1173,13 @@ export default function StageLayoutPage({ params }: { params: Promise<{ id: stri
 
                 {/* ── Settings Tab ── */}
                 {sidebarTab === 'settings' && (
-                    <div className="bg-white/[0.03] border border-white/5 rounded-2xl p-4 flex flex-col gap-4">
+                    <div className="bg-ink/[0.03] border border-ink/5 rounded-2xl p-4 flex flex-col gap-4">
                         <p className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Scene Settings</p>
                         <div>
                             <label className="block text-[9px] font-black uppercase tracking-widest text-zinc-500 mb-1">Venue Name</label>
                             <input type="text" value={scene.venueName}
                                 onChange={e => updateSceneSetting('venueName', e.target.value)}
-                                className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-xs font-bold text-white focus:outline-none focus:border-[#0056B3]/50"
+                                className="w-full bg-canvas border border-ink/10 rounded-lg px-3 py-2 text-xs font-bold text-ink focus:outline-none focus:border-accent/50"
                             />
                         </div>
                         <div className="grid grid-cols-3 gap-2">
@@ -1189,7 +1189,7 @@ export default function StageLayoutPage({ params }: { params: Promise<{ id: stri
                                     <input type="number" min={1} step={1}
                                         value={scene.venueBounds[dim]}
                                         onChange={e => updateSceneSetting('venueBounds', { ...scene.venueBounds, [dim]: parseFloat(e.target.value) || 1 })}
-                                        className="w-full bg-black border border-white/10 rounded-lg px-2 py-2 text-xs font-bold text-white focus:outline-none focus:border-[#0056B3]/50 text-center"
+                                        className="w-full bg-canvas border border-ink/10 rounded-lg px-2 py-2 text-xs font-bold text-ink focus:outline-none focus:border-accent/50 text-center"
                                     />
                                 </div>
                             ))}
@@ -1197,7 +1197,7 @@ export default function StageLayoutPage({ params }: { params: Promise<{ id: stri
                         <div className="flex items-center justify-between">
                             <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Show Grid</span>
                             <button onClick={() => updateSceneSetting('showGrid', !scene.showGrid)}
-                                className={`w-10 h-5 rounded-full transition-all ${scene.showGrid ? 'bg-[#0056B3]' : 'bg-zinc-800'} relative`}>
+                                className={`w-10 h-5 rounded-full transition-all ${scene.showGrid ? 'bg-accent' : 'bg-zinc-800'} relative`}>
                                 <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${scene.showGrid ? 'left-5' : 'left-0.5'}`} />
                             </button>
                         </div>

@@ -202,7 +202,7 @@ export default function ConsultingForm({ projectId }: WizardProps) {
 
                             <div className="space-y-4">
                                 {formData.booked_vendors.map((vendor, index) => (
-                                    <div key={index} className={`p-4 rounded-xl border transition-all ${vendor.isBooked ? 'border-[#D4AF37] bg-[#0056B3]/30' : 'border-zinc-200 bg-white'}`}>
+                                    <div key={index} className={`p-4 rounded-xl border transition-all ${vendor.isBooked ? 'border-[#D4AF37] bg-accent/30' : 'border-zinc-200 bg-white'}`}>
                                         <div className="flex items-center gap-3 mb-2">
                                             <input
                                                 type="checkbox"
@@ -288,9 +288,9 @@ export default function ConsultingForm({ projectId }: WizardProps) {
                                     placeholder="Tell us a little about how you met..."
                                 ></textarea>
                             </div>
-                            <div className="bg-[#0056B3]/20 p-4 rounded-lg border border-[#0056B3]/50 mt-4">
+                            <div className="bg-accent/20 p-4 rounded-lg border border-accent/50 mt-4">
                                 <div className="flex gap-3">
-                                    <i className="fa-solid fa-wand-magic-sparkles text-[#DEFF9A] mt-1"></i>
+                                    <i className="fa-solid fa-wand-magic-sparkles text-accent-2 mt-1"></i>
                                     <div>
                                         <h4 className="text-sm font-bold text-zinc-800 mb-1">AI Powered Profile</h4>
                                         <p className="text-xs text-zinc-600">Our system will automatically generate a summary of your requirements to help our team serve you better.</p>
@@ -322,7 +322,7 @@ export default function ConsultingForm({ projectId }: WizardProps) {
                     ) : (
                         <button
                             onClick={handleSubmit}
-                            className="bg-zinc-900 hover:bg-black text-white px-8 py-3 rounded-full font-bold shadow-lg transition-all transform hover:scale-105 flex items-center gap-2"
+                            className="bg-zinc-900 hover:bg-canvas text-ink px-8 py-3 rounded-full font-bold shadow-lg transition-all transform hover:scale-105 flex items-center gap-2"
                         >
                             <i className="fa-regular fa-paper-plane"></i> Submit Consultation
                         </button>

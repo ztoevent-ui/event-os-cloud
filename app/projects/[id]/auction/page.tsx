@@ -300,7 +300,7 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16 }}>
         <div>
           <div className="zto-label" style={{ marginBottom: 8 }}>Auction System</div>
-          <h1 style={{ fontSize: 'clamp(1.8rem, 4vw, 3rem)', fontWeight: 800, color: '#fff', textTransform: 'uppercase', letterSpacing: '-0.02em', lineHeight: 1 }}>
+          <h1 style={{ fontSize: 'clamp(1.8rem, 4vw, 3rem)', fontWeight: 800, color: 'var(--c-ink)', textTransform: 'uppercase', letterSpacing: '-0.02em', lineHeight: 1 }}>
             {project?.name || 'Loading...'}
           </h1>
         </div>
@@ -324,11 +324,11 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
         </div>
         
         <div style={{ display: 'flex', gap: 12 }}>
-          <button onClick={exportResults} className="zto-btn zto-btn-ghost" style={{ fontSize: 13, color: '#fff' }}>
+          <button onClick={exportResults} className="zto-btn zto-btn-ghost" style={{ fontSize: 13, color: 'var(--c-ink)' }}>
             <i className="fa-solid fa-file-csv" /> Export Results
           </button>
           <Link href={`/projects/${projectId}/auction/display`} target="_blank">
-            <button className="zto-btn zto-btn-ghost" style={{ fontSize: 13, color: '#DEFF9A', border: '1px solid rgba(222,255,154,0.3)' }}>
+            <button className="zto-btn zto-btn-ghost" style={{ fontSize: 13, color: 'var(--c-accent-2)', border: '1px solid rgb(var(--c-accent-2-rgb) / 0.3)' }}>
               <i className="fa-solid fa-display" /> Open Big Screen
             </button>
           </Link>
@@ -340,9 +340,9 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
         <div style={{ display: 'flex', gap: 24, flexDirection: 'column' }}>
           
           {/* Active Item Panel */}
-          <div className="zto-card" style={{ padding: 32, border: '1px solid rgba(222, 255, 154, 0.4)', background: 'linear-gradient(145deg, rgba(222,255,154,0.05) 0%, rgba(0,0,0,0.5) 100%)' }}>
+          <div className="zto-card" style={{ padding: 32, border: '1px solid rgb(var(--c-accent-2-rgb) / 0.4)', background: 'linear-gradient(145deg, rgb(var(--c-accent-2-rgb) / 0.05) 0%, rgba(0,0,0,0.5) 100%)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
-              <h2 style={{ fontSize: 20, fontWeight: 700, color: '#DEFF9A', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0 }}>
+              <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--c-accent-2)', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0 }}>
                 <i className="fa-solid fa-circle-dot" style={{ color: '#ef4444', animation: 'pulse 2s infinite', marginRight: 12 }} />
                 On Stage Now
               </h2>
@@ -353,8 +353,8 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
                 title={requireBidder ? 'Click to disable: bids commit instantly without entering paddle number' : 'Click to enable: each bid requires entering the paddle number'}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 10,
-                  background: requireBidder ? 'rgba(222,255,154,0.08)' : 'rgba(255,255,255,0.04)',
-                  border: requireBidder ? '1px solid rgba(222,255,154,0.35)' : '1px solid rgba(255,255,255,0.12)',
+                  background: requireBidder ? 'rgb(var(--c-accent-2-rgb) / 0.08)' : 'rgb(var(--c-ink-rgb) / 0.04)',
+                  border: requireBidder ? '1px solid rgb(var(--c-accent-2-rgb) / 0.35)' : '1px solid rgb(var(--c-ink-rgb) / 0.12)',
                   borderRadius: 12, padding: '8px 16px',
                   cursor: 'pointer', transition: 'all 0.2s ease',
                   fontFamily: 'Urbanist, sans-serif',
@@ -363,21 +363,21 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
                 {/* Toggle pill */}
                 <div style={{
                   width: 36, height: 20, borderRadius: 10, position: 'relative',
-                  background: requireBidder ? '#DEFF9A' : 'rgba(255,255,255,0.12)',
+                  background: requireBidder ? 'var(--c-accent-2)' : 'rgb(var(--c-ink-rgb) / 0.12)',
                   transition: 'background 0.2s ease', flexShrink: 0,
                 }}>
                   <div style={{
                     position: 'absolute', top: 3, width: 14, height: 14, borderRadius: '50%',
-                    background: requireBidder ? '#000' : 'rgba(255,255,255,0.5)',
+                    background: requireBidder ? '#000' : 'rgb(var(--c-ink-rgb) / 0.5)',
                     left: requireBidder ? 19 : 3,
                     transition: 'left 0.2s ease, background 0.2s ease',
                   }} />
                 </div>
                 <div style={{ textAlign: 'left' }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: requireBidder ? '#DEFF9A' : 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: requireBidder ? 'var(--c-accent-2)' : 'rgb(var(--c-ink-rgb) / 0.35)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                     {requireBidder ? 'Bidder No. Required' : 'Bidder No. Optional'}
                   </div>
-                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginTop: 1 }}>
+                  <div style={{ fontSize: 10, color: 'rgb(var(--c-ink-rgb) / 0.3)', marginTop: 1 }}>
                     {requireBidder ? 'Enter paddle no. before each bid' : 'Bids commit instantly'}
                   </div>
                 </div>
@@ -387,12 +387,12 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
             {activeItem ? (
               <div style={{ display: 'flex', gap: 48, flexWrap: 'wrap' }}>
                 <div style={{ flex: 1, minWidth: 280 }}>
-                  <img src={activeItem.image_url || '/placeholder.png'} alt={activeItem.title} style={{ width: '100%', borderRadius: 16, aspectRatio: '4/3', objectFit: 'cover', border: '1px solid rgba(255,255,255,0.1)' }} />
-                  <div style={{ fontSize: 14, fontWeight: 800, color: '#DEFF9A', marginTop: 24, letterSpacing: '0.1em' }}>
+                  <img src={activeItem.image_url || '/placeholder.png'} alt={activeItem.title} style={{ width: '100%', borderRadius: 16, aspectRatio: '4/3', objectFit: 'cover', border: '1px solid rgb(var(--c-ink-rgb) / 0.1)' }} />
+                  <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--c-accent-2)', marginTop: 24, letterSpacing: '0.1em' }}>
                     LOT {activeItem.lot_number || (items.findIndex(i => i.id === activeItem.id) + 1)}
                   </div>
                   <h3 style={{ fontSize: 24, fontWeight: 800, marginTop: 8 }}>{activeItem.title}</h3>
-                  <p style={{ color: 'rgba(255,255,255,0.6)', marginTop: 8 }}>{activeItem.description}</p>
+                  <p style={{ color: 'rgb(var(--c-ink-rgb) / 0.6)', marginTop: 8 }}>{activeItem.description}</p>
                   
                   <div style={{ marginTop: 24, display: 'flex', gap: 16 }}>
                     {activeItem.status === 'sold' ? (
@@ -423,10 +423,10 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
 
                 <div style={{ flex: 1, minWidth: 320, display: 'flex', flexDirection: 'column', gap: 24 }}>
                   {/* Price Display & Sync Control */}
-                  <div style={{ background: 'rgba(0,0,0,0.4)', borderRadius: 16, padding: 24, border: '1px solid rgba(222,255,154,0.2)' }}>
+                  <div style={{ background: 'rgba(0,0,0,0.4)', borderRadius: 16, padding: 24, border: '1px solid rgb(var(--c-accent-2-rgb) / 0.2)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                      <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Current Price (RM)</div>
-                      <span style={{ fontSize: 11, color: '#DEFF9A', opacity: 0.8 }}>按 Enter 或点击右侧按键同步大屏</span>
+                      <div style={{ fontSize: 12, color: 'rgb(var(--c-ink-rgb) / 0.6)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Current Price (RM)</div>
+                      <span style={{ fontSize: 11, color: 'var(--c-accent-2)', opacity: 0.8 }}>按 Enter 或点击右侧按键同步大屏</span>
                     </div>
                     <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                       <input 
@@ -439,7 +439,7 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
                             updateLiveState({ current_price: Number(livePrice) });
                           }
                         }}
-                        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 12, color: '#fff', fontSize: 36, fontWeight: 800, padding: '8px 16px', flex: 1, outline: 'none', fontFamily: 'Urbanist' }}
+                        style={{ background: 'rgb(var(--c-ink-rgb) / 0.05)', border: '1px solid rgb(var(--c-ink-rgb) / 0.15)', borderRadius: 12, color: 'var(--c-ink)', fontSize: 36, fontWeight: 800, padding: '8px 16px', flex: 1, outline: 'none', fontFamily: 'Urbanist' }}
                       />
                       <button
                         onClick={() => updateLiveState({ current_price: Number(livePrice) })}
@@ -460,7 +460,7 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
                         onClick={(e) => handleIncrementClick(amount, e.currentTarget)}
                         disabled={isUpdating}
                         className="zto-btn zto-btn-ghost"
-                        style={{ padding: '16px 0', fontSize: 18, fontWeight: 700, border: `1px solid ${pendingNewPrice === livePrice + amount ? 'rgba(222,255,154,0.8)' : 'rgba(77,163,255,0.3)'}`, color: pendingNewPrice === livePrice + amount ? '#DEFF9A' : '#4da3ff', transition: 'all 0.15s', position: 'relative' }}
+                        style={{ padding: '16px 0', fontSize: 18, fontWeight: 700, border: `1px solid ${pendingNewPrice === livePrice + amount ? 'rgb(var(--c-accent-2-rgb) / 0.8)' : 'rgb(var(--c-accent-bright-rgb) / 0.3)'}`, color: pendingNewPrice === livePrice + amount ? 'var(--c-accent-2)' : 'var(--c-accent-bright)', transition: 'all 0.15s', position: 'relative' }}
                       >
                         +{amount.toLocaleString()}
                       </button>
@@ -479,27 +479,27 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
                         position: 'relative',
                         zIndex: 999,
                         background: 'rgba(15,15,20,0.98)',
-                        border: '1px solid rgba(222,255,154,0.3)',
+                        border: '1px solid rgb(var(--c-accent-2-rgb) / 0.3)',
                         borderRadius: 20,
                         padding: 24,
-                        boxShadow: '0 24px 80px rgba(0,0,0,0.8), 0 0 0 1px rgba(222,255,154,0.1)',
+                        boxShadow: '0 24px 80px rgba(0,0,0,0.8), 0 0 0 1px rgb(var(--c-accent-2-rgb) / 0.1)',
                         backdropFilter: 'blur(20px)',
                       }}>
                         {/* Header */}
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                           <div>
-                            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.15em' }}>Bidding</div>
-                            <div style={{ fontSize: 20, fontWeight: 800, color: '#DEFF9A', marginTop: 2 }}>
+                            <div style={{ fontSize: 11, color: 'rgb(var(--c-ink-rgb) / 0.4)', textTransform: 'uppercase', letterSpacing: '0.15em' }}>Bidding</div>
+                            <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--c-accent-2)', marginTop: 2 }}>
                               {pendingLabel} → RM {pendingNewPrice.toLocaleString()}
                             </div>
                           </div>
-                          <button onClick={closePopover} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: 18, padding: 4 }}>
+                          <button onClick={closePopover} style={{ background: 'none', border: 'none', color: 'rgb(var(--c-ink-rgb) / 0.4)', cursor: 'pointer', fontSize: 18, padding: 4 }}>
                             <i className="fa-solid fa-xmark" />
                           </button>
                         </div>
 
                         {/* Quick Paddle Number Grid (1-12) */}
-                        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 10 }}>Select Bidder No.</div>
+                        <div style={{ fontSize: 11, color: 'rgb(var(--c-ink-rgb) / 0.4)', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 10 }}>Select Bidder No.</div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 8, marginBottom: 16 }}>
                           {[1,2,3,4,5,6,7,8,9,10,11,12].map(n => (
                             <button
@@ -508,16 +508,16 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
                               style={{
                                 padding: '12px 0',
                                 borderRadius: 10,
-                                border: '1px solid rgba(255,255,255,0.12)',
-                                background: popoverBidder === String(n) ? 'rgba(222,255,154,0.15)' : 'rgba(255,255,255,0.04)',
-                                color: popoverBidder === String(n) ? '#DEFF9A' : '#fff',
+                                border: '1px solid rgb(var(--c-ink-rgb) / 0.12)',
+                                background: popoverBidder === String(n) ? 'rgb(var(--c-accent-2-rgb) / 0.15)' : 'rgb(var(--c-ink-rgb) / 0.04)',
+                                color: popoverBidder === String(n) ? 'var(--c-accent-2)' : '#fff',
                                 fontSize: 20,
                                 fontWeight: 800,
                                 cursor: 'pointer',
                                 transition: 'all 0.1s',
                               }}
-                              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(222,255,154,0.15)'; e.currentTarget.style.color = '#DEFF9A'; }}
-                              onMouseLeave={(e) => { e.currentTarget.style.background = popoverBidder === String(n) ? 'rgba(222,255,154,0.15)' : 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = popoverBidder === String(n) ? '#DEFF9A' : '#fff'; }}
+                              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgb(var(--c-accent-2-rgb) / 0.15)'; e.currentTarget.style.color = 'var(--c-accent-2)'; }}
+                              onMouseLeave={(e) => { e.currentTarget.style.background = popoverBidder === String(n) ? 'rgb(var(--c-accent-2-rgb) / 0.15)' : 'rgb(var(--c-ink-rgb) / 0.04)'; e.currentTarget.style.color = popoverBidder === String(n) ? 'var(--c-accent-2)' : '#fff'; }}
                             >
                               {n}
                             </button>
@@ -535,10 +535,10 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
                             onKeyDown={handlePopoverKeyDown}
                             style={{
                               flex: 1,
-                              background: 'rgba(255,255,255,0.06)',
-                              border: '1px solid rgba(255,255,255,0.2)',
+                              background: 'rgb(var(--c-ink-rgb) / 0.06)',
+                              border: '1px solid rgb(var(--c-ink-rgb) / 0.2)',
                               borderRadius: 10,
-                              color: '#fff',
+                              color: 'var(--c-ink)',
                               fontSize: 20,
                               fontWeight: 700,
                               padding: '10px 16px',
@@ -553,7 +553,7 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
                               padding: '10px 20px',
                               borderRadius: 10,
                               border: 'none',
-                              background: isUpdating ? 'rgba(222,255,154,0.3)' : '#DEFF9A',
+                              background: isUpdating ? 'rgb(var(--c-accent-2-rgb) / 0.3)' : 'var(--c-accent-2)',
                               color: '#000',
                               fontSize: 16,
                               fontWeight: 800,
@@ -570,7 +570,7 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
                 </div>
               </div>
             ) : (
-              <div style={{ textAlign: 'center', padding: '48px 0', color: 'rgba(255,255,255,0.4)' }}>
+              <div style={{ textAlign: 'center', padding: '48px 0', color: 'rgb(var(--c-ink-rgb) / 0.4)' }}>
                 <i className="fa-solid fa-tv" style={{ fontSize: 48, marginBottom: 16, opacity: 0.5 }} />
                 <p>No item is currently active. Select an item below to project it to the big screen.</p>
               </div>
@@ -579,22 +579,22 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
 
           {/* Queue List */}
           <div className="zto-card" style={{ padding: 32 }}>
-            <h3 style={{ fontSize: 16, fontWeight: 700, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 24 }}>Upcoming & Pending Items</h3>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: 'rgb(var(--c-ink-rgb) / 0.6)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 24 }}>Upcoming & Pending Items</h3>
             <div style={{ display: 'grid', gap: 16 }}>
               {items.filter(i => i.status !== 'sold').map((item) => (
-                <div key={item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 20, background: 'rgba(255,255,255,0.02)', borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)' }}>
+                <div key={item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 20, background: 'rgb(var(--c-ink-rgb) / 0.02)', borderRadius: 12, border: '1px solid rgb(var(--c-ink-rgb) / 0.1)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
                     {item.image_url ? (
                       <img src={item.image_url} alt="" style={{ width: 64, height: 64, borderRadius: 8, objectFit: 'cover' }} />
                     ) : (
-                      <div style={{ width: 64, height: 64, borderRadius: 8, background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><i className="fa-solid fa-image" /></div>
+                      <div style={{ width: 64, height: 64, borderRadius: 8, background: 'rgb(var(--c-ink-rgb) / 0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><i className="fa-solid fa-image" /></div>
                     )}
                     <div>
-                      <div style={{ fontSize: 12, color: '#DEFF9A', fontWeight: 800, letterSpacing: '0.1em', marginBottom: 4 }}>
+                      <div style={{ fontSize: 12, color: 'var(--c-accent-2)', fontWeight: 800, letterSpacing: '0.1em', marginBottom: 4 }}>
                         LOT {item.lot_number || (items.findIndex(i => i.id === item.id) + 1)}
                       </div>
                       <div style={{ fontSize: 18, fontWeight: 700 }}>{item.title}</div>
-                      <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>Starting: RM{item.starting_price}</div>
+                      <div style={{ fontSize: 13, color: 'rgb(var(--c-ink-rgb) / 0.5)', marginTop: 4 }}>Starting: RM{item.starting_price}</div>
                     </div>
                   </div>
                   <div>
@@ -631,25 +631,25 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 24 }}>
             {items.map(item => (
               <div key={item.id} className="zto-card" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <div style={{ height: 200, borderRadius: 12, overflow: 'hidden', background: 'rgba(255,255,255,0.05)', position: 'relative' }}>
+                <div style={{ height: 200, borderRadius: 12, overflow: 'hidden', background: 'rgb(var(--c-ink-rgb) / 0.05)', position: 'relative' }}>
                   {item.image_url ? (
                     <img src={item.image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'rgba(255,255,255,0.2)' }}><i className="fa-solid fa-image fa-2x" /></div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'rgb(var(--c-ink-rgb) / 0.2)' }}><i className="fa-solid fa-image fa-2x" /></div>
                   )}
                   {item.status === 'sold' && (
                     <div style={{ position: 'absolute', top: 12, right: 12, background: '#10b981', color: 'black', padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 800 }}>SOLD</div>
                   )}
-                  <div style={{ position: 'absolute', top: 12, left: 12, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', color: '#fff', padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 800 }}>
+                  <div style={{ position: 'absolute', top: 12, left: 12, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', color: 'var(--c-ink)', padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 800 }}>
                     LOT {item.lot_number || (items.findIndex(i => i.id === item.id) + 1)}
                   </div>
                 </div>
                 <div>
                   <h3 style={{ fontSize: 18, fontWeight: 700 }}>{item.title}</h3>
-                  <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginTop: 8, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{item.description}</p>
+                  <p style={{ fontSize: 13, color: 'rgb(var(--c-ink-rgb) / 0.5)', marginTop: 8, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{item.description}</p>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: '#DEFF9A' }}>RM {item.current_price || item.starting_price}</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: 16, borderTop: '1px solid rgb(var(--c-ink-rgb) / 0.1)' }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--c-accent-2)' }}>RM {item.current_price || item.starting_price}</div>
                   <div style={{ display: 'flex', gap: 8 }}>
                     {item.status === 'sold' && (
                       <button onClick={() => handleSetStatus(item.id, 'pending')} className="zto-btn zto-btn-ghost" style={{ padding: '6px 12px', fontSize: 12, color: '#f59e0b' }}>
@@ -674,7 +674,7 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
               <div className="zto-card" style={{ width: '100%', maxWidth: 600, padding: 32, display: 'flex', flexDirection: 'column', gap: 20 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <h2 style={{ fontSize: 20, fontWeight: 700 }}>{editingItem.id ? 'Edit Item' : 'New Auction Item'}</h2>
-                  <button onClick={() => setIsEditing(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontSize: 20 }}><i className="fa-solid fa-xmark" /></button>
+                  <button onClick={() => setIsEditing(false)} style={{ background: 'none', border: 'none', color: 'rgb(var(--c-ink-rgb) / 0.5)', cursor: 'pointer', fontSize: 20 }}><i className="fa-solid fa-xmark" /></button>
                 </div>
 
                 <div style={{ display: 'flex', gap: 16 }}>
@@ -709,8 +709,8 @@ export default function AuctionAdminPage({ params }: { params: Promise<{ id: str
                   <label className="zto-label">Item Image</label>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                     {editingItem.image_url && <img src={editingItem.image_url} alt="" style={{ width: 80, height: 80, borderRadius: 8, objectFit: 'cover' }} />}
-                    <input type="file" accept="image/*" onChange={handleImageUpload} disabled={uploadingImage} style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14 }} />
-                    {uploadingImage && <span style={{ fontSize: 12, color: '#4da3ff' }}>Uploading...</span>}
+                    <input type="file" accept="image/*" onChange={handleImageUpload} disabled={uploadingImage} style={{ color: 'rgb(var(--c-ink-rgb) / 0.7)', fontSize: 14 }} />
+                    {uploadingImage && <span style={{ fontSize: 12, color: 'var(--c-accent-bright)' }}>Uploading...</span>}
                   </div>
                 </div>
 

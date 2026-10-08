@@ -148,16 +148,16 @@ export default function GlobalCalendarPage() {
   });
 
   return (
-    <div className="page-transition" style={{ minHeight: '100vh', background: '#050505', fontFamily: 'Urbanist, sans-serif', color: '#E5E5E5' }}>
+    <div className="page-transition" style={{ minHeight: '100vh', background: 'var(--c-canvas)', fontFamily: 'Urbanist, sans-serif', color: '#E5E5E5' }}>
       {/* Header */}
       <header style={{
           maxWidth: 1400, margin: '0 auto', padding: 'clamp(16px, 4vw, 40px)', paddingBottom: 32,
           display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start',
-          flexWrap: 'wrap', gap: 16, borderBottom: '1px solid rgba(255,255,255,0.06)'
+          flexWrap: 'wrap', gap: 16, borderBottom: '1px solid rgb(var(--c-ink-rgb) / 0.06)'
       }}>
           <div>
               <div className="zto-label" style={{ marginBottom: 8 }}>Company Overview</div>
-              <h1 style={{ fontSize: 'clamp(20px, 5vw, 28px)', fontWeight: 800, color: '#fff', letterSpacing: '-0.01em' }}>
+              <h1 style={{ fontSize: 'clamp(20px, 5vw, 28px)', fontWeight: 800, color: 'var(--c-ink)', letterSpacing: '-0.01em' }}>
                   Global Schedule
               </h1>
               <p className="zto-desc" style={{ marginTop: 6 }}>All tasks across active deployments.</p>
@@ -183,7 +183,7 @@ export default function GlobalCalendarPage() {
             <button onClick={() => changeMonth(-1)} className="zto-btn zto-btn-ghost" style={{ padding: '8px 16px' }}>
               <i className="fa-solid fa-chevron-left" />
             </button>
-            <h2 className="text-2xl font-black text-white uppercase tracking-widest">
+            <h2 className="text-2xl font-black text-ink uppercase tracking-widest">
               {currentMonthDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
             </h2>
             <button onClick={() => changeMonth(1)} className="zto-btn zto-btn-ghost" style={{ padding: '8px 16px' }}>
@@ -192,9 +192,9 @@ export default function GlobalCalendarPage() {
           </div>
 
           {/* Grid */}
-          <div className="grid grid-cols-7 gap-px bg-white/10 border border-white/10 rounded-xl overflow-hidden shadow-2xl">
+          <div className="grid grid-cols-7 gap-px bg-ink/10 border border-ink/10 rounded-xl overflow-hidden shadow-2xl">
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
-              <div key={d} className="bg-[#1C1C1E] text-center py-2 text-[11px] font-medium text-white/50">
+              <div key={d} className="bg-[#1C1C1E] text-center py-2 text-[11px] font-medium text-ink/50">
                 {d}
               </div>
             ))}
@@ -207,9 +207,9 @@ export default function GlobalCalendarPage() {
               const isToday = dateString === new Date().toISOString().split('T')[0];
 
               return (
-                <div key={dateString} className={`bg-[#1C1C1E] min-h-[120px] p-1.5 flex flex-col gap-0.5 border-t border-white/5 transition-all hover:bg-white/[0.04]`}>
+                <div key={dateString} className={`bg-[#1C1C1E] min-h-[120px] p-1.5 flex flex-col gap-0.5 border-t border-ink/5 transition-all hover:bg-ink/[0.04]`}>
                   <div className={`text-right mb-1 pr-1 pt-1`}>
-                    <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-[13px] tabular-nums ${isToday ? 'bg-[#FF3B30] text-white font-semibold' : 'text-white/80'}`}>
+                    <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-[13px] tabular-nums ${isToday ? 'bg-[#FF3B30] text-white font-semibold' : 'text-ink/80'}`}>
                       {day}
                     </span>
                   </div>
@@ -225,14 +225,14 @@ export default function GlobalCalendarPage() {
                       <div
                         key={item.id}
                         onClick={() => openEditModal(item)}
-                        className="px-1.5 py-0.5 rounded-[4px] flex items-center gap-1.5 cursor-pointer transition-all hover:bg-white/10 group"
+                        className="px-1.5 py-0.5 rounded-[4px] flex items-center gap-1.5 cursor-pointer transition-all hover:bg-ink/10 group"
                         title={`${projName}\n${item.time} - ${item.title}`}
                       >
                         <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: col }}></div>
-                        <div className="text-[10px] font-medium text-white/50 tabular-nums shrink-0 group-hover:text-white/80 transition-colors">
+                        <div className="text-[10px] font-medium text-ink/50 tabular-nums shrink-0 group-hover:text-ink/80 transition-colors">
                           {item.time?.replace(/ - .*/, '')} {/* Show only start time for compactness if it's a range */}
                         </div>
-                        <div className="text-[11px] font-medium text-white/90 truncate group-hover:text-white transition-colors">
+                        <div className="text-[11px] font-medium text-ink/90 truncate group-hover:text-ink transition-colors">
                           {item.title}
                         </div>
                       </div>
@@ -256,7 +256,7 @@ export default function GlobalCalendarPage() {
                 onClick={() => setEditingItem(null)}
                 style={{
                     position: 'absolute', inset: 0,
-                    background: 'rgba(5,5,5,0.85)',
+                    background: 'rgb(var(--c-canvas-rgb) / 0.85)',
                     backdropFilter: 'blur(8px)',
                 }}
             />
@@ -275,7 +275,7 @@ export default function GlobalCalendarPage() {
                     <i className="fa-solid fa-xmark" />
                 </button>
 
-                <h2 style={{ fontSize: 18, fontWeight: 700, color: '#fff', marginBottom: 6 }}>Edit Schedule</h2>
+                <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--c-ink)', marginBottom: 6 }}>Edit Schedule</h2>
                 <p className="zto-desc" style={{ marginBottom: 24, fontSize: 12 }}>
                   {editingItem.title}
                 </p>
@@ -339,7 +339,7 @@ export default function GlobalCalendarPage() {
                 onClick={() => setAddingGlobal(false)}
                 style={{
                     position: 'absolute', inset: 0,
-                    background: 'rgba(5,5,5,0.85)',
+                    background: 'rgb(var(--c-canvas-rgb) / 0.85)',
                     backdropFilter: 'blur(8px)',
                 }}
             />
@@ -358,7 +358,7 @@ export default function GlobalCalendarPage() {
                     <i className="fa-solid fa-xmark" />
                 </button>
 
-                <h2 style={{ fontSize: 18, fontWeight: 700, color: '#fff', marginBottom: 6 }}>Add Global Task</h2>
+                <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--c-ink)', marginBottom: 6 }}>Add Global Task</h2>
                 <p className="zto-desc" style={{ marginBottom: 24, fontSize: 12 }}>
                   This task will not be attached to any specific event.
                 </p>

@@ -3,6 +3,7 @@ import { ReactNode } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { PrintProvider } from '../components/PrintContext';
 import ProjectSidebar from '../components/ProjectSidebar';
+import { resolveTheme } from '@/lib/theme';
 
 export default async function ProjectLayout({
     children,
@@ -20,7 +21,7 @@ export default async function ProjectLayout({
         .single();
 
     const isTournament = project?.type === 'sports' || project?.type === 'tournament';
-    const isWedding = project?.type === 'wedding' || project?.type === 'wedding_fair';
+    const theme = resolveTheme(project?.type);
 
     return (
         <PrintProvider>
@@ -30,9 +31,10 @@ export default async function ProjectLayout({
               │  zto-sidebar: 280px, fixed-width, never shrinks             │
               │  zto-main: flex:1, scrollable, min-width:0                  │
               │  zto-guardrail: max-width 1400px centered safe-zone         │
+              │  data-theme: colour tokens scope (see lib/theme.ts)         │
               └─────────────────────────────────────────────────────────────┘
             */}
-            <div className="zto-shell print:block" data-theme={isWedding ? 'wedding' : 'dark'}>
+            <div className="zto-shell print:block" data-theme={theme}>
                 {/* Layer 1 — Sidebar */}
                 <ProjectSidebar
                     projectId={projectId}

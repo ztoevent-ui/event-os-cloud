@@ -46,13 +46,13 @@ function DroppableDayButton({ dateString, isSelected, hasTasks, allDone, day, on
         isOver
           ? 'bg-emerald-500/20 ring-2 ring-emerald-500 text-emerald-400'
           : isSelected
-          ? 'bg-[#0056B3] text-white shadow-[0_0_15px_rgba(0,86,179,0.5)]'
-          : 'hover:bg-white/5 text-zinc-400 hover:text-white'
+          ? 'bg-accent text-white shadow-[0_0_15px_rgb(var(--c-accent-rgb)/0.5)]'
+          : 'hover:bg-ink/5 text-zinc-400 hover:text-ink'
       }`}
     >
-      <span className="text-sm font-black font-['Urbanist'] tabular-nums pointer-events-none">{day}</span>
+      <span className="text-sm font-black font-display tabular-nums pointer-events-none">{day}</span>
       {hasTasks && (
-        <div className={`absolute bottom-1.5 w-1 h-1 rounded-full pointer-events-none ${isSelected ? 'bg-white' : allDone ? 'bg-emerald-500' : 'bg-[#4da3ff]'}`}></div>
+        <div className={`absolute bottom-1.5 w-1 h-1 rounded-full pointer-events-none ${isSelected ? 'bg-white' : allDone ? 'bg-emerald-500' : 'bg-accent-bright'}`}></div>
       )}
     </button>
   );
@@ -72,20 +72,20 @@ function SortableScheduleRow({ item, editMode, handleFieldChange, removeItem, cy
     <div
       ref={setNodeRef}
       style={style as any}
-      className={`group grid grid-cols-[130px_1.5fr_1fr_100px_100px_110px] gap-0 px-4 py-3 items-center transition-all hover:bg-white/[0.03] border-b border-white/[0.04] last:border-b-0 ${item.status === 'DONE' && !editMode ? 'opacity-40' : ''}`}
+      className={`group grid grid-cols-[130px_1.5fr_1fr_100px_100px_110px] gap-0 px-4 py-3 items-center transition-all hover:bg-ink/[0.03] border-b border-ink/[0.04] last:border-b-0 ${item.status === 'DONE' && !editMode ? 'opacity-40' : ''}`}
     >
       {/* Time with drag handle */}
       <div className="shrink-0 flex items-center">
         {editMode && (
-          <div {...attributes} {...listeners} className="shrink-0 w-6 h-6 mr-2 flex items-center justify-center text-zinc-600 hover:text-white cursor-grab active:cursor-grabbing rounded">
+          <div {...attributes} {...listeners} className="shrink-0 w-6 h-6 mr-2 flex items-center justify-center text-zinc-600 hover:text-ink cursor-grab active:cursor-grabbing rounded">
             <i className="fa-solid fa-grip-vertical"></i>
           </div>
         )}
         {editMode ? (
           <input type="text" defaultValue={item.time} onBlur={e => handleFieldChange(item.id, 'time', e.target.value)}
-            className="bg-transparent border-b border-white/10 text-xs font-black text-[#4da3ff] outline-none py-0.5 focus:border-[#0056B3] w-full" placeholder="09:00 - 10:00" />
+            className="bg-transparent border-b border-ink/10 text-xs font-black text-accent-bright outline-none py-0.5 focus:border-accent w-full" placeholder="09:00 - 10:00" />
         ) : (
-          <span className="text-sm font-black text-[#4da3ff] font-['Urbanist'] tabular-nums tracking-tight whitespace-nowrap">{item.time || '—'}</span>
+          <span className="text-sm font-black text-accent-bright font-display tabular-nums tracking-tight whitespace-nowrap">{item.time || '—'}</span>
         )}
       </div>
 
@@ -93,9 +93,9 @@ function SortableScheduleRow({ item, editMode, handleFieldChange, removeItem, cy
       <div className="min-w-0 pr-3">
         {editMode ? (
           <input type="text" defaultValue={item.title} onBlur={e => handleFieldChange(item.id, 'title', e.target.value)}
-            className="bg-transparent border-b border-white/10 text-xs font-black text-white outline-none py-0.5 focus:border-[#0056B3] w-full" placeholder="Task Name" />
+            className="bg-transparent border-b border-ink/10 text-xs font-black text-ink outline-none py-0.5 focus:border-accent w-full" placeholder="Task Name" />
         ) : (
-          <span className="text-xs font-black text-white tracking-tight truncate block">{item.title || '—'}</span>
+          <span className="text-xs font-black text-ink tracking-tight truncate block">{item.title || '—'}</span>
         )}
       </div>
 
@@ -103,7 +103,7 @@ function SortableScheduleRow({ item, editMode, handleFieldChange, removeItem, cy
       <div className="min-w-0 pr-3">
         {editMode ? (
           <input type="text" defaultValue={item.note} onBlur={e => handleFieldChange(item.id, 'note', e.target.value)}
-            className="bg-transparent border-b border-white/10 text-xs text-zinc-400 outline-none py-0.5 focus:border-[#0056B3] w-full" placeholder="Remarks..." />
+            className="bg-transparent border-b border-ink/10 text-xs text-zinc-400 outline-none py-0.5 focus:border-accent w-full" placeholder="Remarks..." />
         ) : (
           <span className="text-xs text-zinc-500 truncate block">{item.note || '—'}</span>
         )}
@@ -113,7 +113,7 @@ function SortableScheduleRow({ item, editMode, handleFieldChange, removeItem, cy
       <div className="shrink-0">
         {editMode ? (
           <input type="text" defaultValue={item.assignee} onBlur={e => handleFieldChange(item.id, 'assignee', e.target.value)}
-            className="bg-transparent border-b border-white/10 text-[10px] font-black text-zinc-300 uppercase outline-none py-0.5 focus:border-[#0056B3] w-full" placeholder="Assignee" />
+            className="bg-transparent border-b border-ink/10 text-[10px] font-black text-zinc-300 uppercase outline-none py-0.5 focus:border-accent w-full" placeholder="Assignee" />
         ) : (
           <span className="text-[10px] font-black text-zinc-400 uppercase tracking-wider truncate block">{item.assignee || '—'}</span>
         )}
@@ -123,7 +123,7 @@ function SortableScheduleRow({ item, editMode, handleFieldChange, removeItem, cy
       <div className="shrink-0">
         {editMode ? (
           <input type="text" defaultValue={item.transport} onBlur={e => handleFieldChange(item.id, 'transport', e.target.value)}
-            className="bg-transparent border-b border-white/10 text-[10px] font-black text-zinc-300 uppercase outline-none py-0.5 focus:border-[#0056B3] w-full" placeholder="Transport" />
+            className="bg-transparent border-b border-ink/10 text-[10px] font-black text-zinc-300 uppercase outline-none py-0.5 focus:border-accent w-full" placeholder="Transport" />
         ) : (
           <span className="text-[10px] font-black text-zinc-400 uppercase tracking-wider truncate block">{item.transport || '—'}</span>
         )}
@@ -142,7 +142,7 @@ function SortableScheduleRow({ item, editMode, handleFieldChange, removeItem, cy
             item.status === 'DONE'
               ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
               : item.status === 'IN_PROGRESS'
-              ? 'bg-[#0056B3]/20 text-[#4da3ff] border-[#0056B3]/30'
+              ? 'bg-accent/20 text-accent-bright border-accent/30'
               : 'bg-zinc-800/50 text-zinc-500 border-zinc-700/50'
           }`}
         >
@@ -393,7 +393,7 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
   }
 
   const isWedding = project?.type === 'wedding' || project?.type === 'wedding_fair';
-  const theme = isWedding ? { text: 'text-pink-500', bg: 'bg-pink-500' } : { text: 'text-[#0056B3]', bg: 'bg-[#0056B3]' };
+  const theme = isWedding ? { text: 'text-accent', bg: 'bg-accent' } : { text: 'text-accent', bg: 'bg-accent' };
 
   return (
     <>
@@ -416,7 +416,7 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
 
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10 }}>
           <thead>
-            <tr style={{ background: '#111', color: '#fff' }}>
+            <tr style={{ background: '#111', color: 'var(--c-on-accent)' }}>
               <th style={{ padding: '6px 10px', textAlign: 'left', fontWeight: 900, fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', whiteSpace: 'nowrap', width: 110 }}>Time</th>
               <th style={{ padding: '6px 10px', textAlign: 'left', fontWeight: 900, fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Task</th>
               <th style={{ padding: '6px 10px', textAlign: 'left', fontWeight: 900, fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Note</th>
@@ -439,7 +439,7 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
                   {/* Items for this date */}
                   {dayItems.map((item, idx) => (
                     <tr key={item.id} style={{ background: idx % 2 === 0 ? '#fff' : '#fafafa', pageBreakInside: 'avoid', borderBottom: '1px solid #e8e8e8' }}>
-                      <td style={{ padding: '5px 10px', fontWeight: 700, color: '#0056B3', whiteSpace: 'nowrap', fontSize: 10 }}>{item.time || '—'}</td>
+                      <td style={{ padding: '5px 10px', fontWeight: 700, color: 'var(--c-accent)', whiteSpace: 'nowrap', fontSize: 10 }}>{item.time || '—'}</td>
                       <td style={{ padding: '5px 10px', fontWeight: 700, color: '#000', fontSize: 10 }}>{item.title || '—'}</td>
                       <td style={{ padding: '5px 10px', color: '#555', fontSize: 9 }}>{item.note || '—'}</td>
                       <td style={{ padding: '5px 10px', fontSize: 9, fontWeight: 700, color: '#333', whiteSpace: 'nowrap' }}>{item.assignee || '—'}</td>
@@ -469,21 +469,21 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
           <div className="flex flex-col">
             <p className={`text-xs font-black uppercase tracking-[0.2em] ${theme.text} mb-2`}>Operations Hub</p>
-            <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tight leading-none font-['Urbanist']">
+            <h1 className="text-4xl md:text-5xl font-black text-ink uppercase tracking-tight leading-none font-display">
               Strategic Schedule
             </h1>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <div className="flex flex-col items-end mr-4 px-4 border-r border-white/5">
+            <div className="flex flex-col items-end mr-4 px-4 border-r border-ink/5">
               <span className="text-[9px] font-black text-zinc-600 uppercase tracking-[0.3em] mb-1">Day Completion</span>
-              <div className={`text-2xl font-black ${theme.text} font-['Urbanist'] tracking-tight leading-none`}>{densityPercent}%</div>
+              <div className={`text-2xl font-black ${theme.text} font-display tracking-tight leading-none`}>{densityPercent}%</div>
             </div>
             <button
               onClick={() => setShowPTW(true)}
-              className="h-11 px-6 rounded-xl font-black text-[10px] tracking-widest uppercase transition-all flex items-center gap-2 text-white"
-              style={{ background: 'transparent', border: '1.5px solid #0056B3', color: '#4da3ff', boxShadow: '0 0 12px rgba(0,86,179,0.25)' }}
-              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,86,179,0.15)'; }}
+              className="h-11 px-6 rounded-xl font-black text-[10px] tracking-widest uppercase transition-all flex items-center gap-2 text-ink"
+              style={{ background: 'transparent', border: '1.5px solid var(--c-accent)', color: 'var(--c-accent-bright)', boxShadow: '0 0 12px rgb(var(--c-accent-rgb) / 0.25)' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgb(var(--c-accent-rgb) / 0.15)'; }}
               onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
             >
               <i className="fa-solid fa-file-signature text-[10px]" />
@@ -491,7 +491,7 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
             </button>
             <button
               onClick={() => setEditMode(!editMode)}
-              className={`h-11 px-6 rounded-xl font-black text-[10px] tracking-widest uppercase transition-all flex items-center gap-2 ${editMode ? 'bg-[#0056B3] text-white' : 'bg-white text-black hover:bg-zinc-200'}`}
+              className={`h-11 px-6 rounded-xl font-black text-[10px] tracking-widest uppercase transition-all flex items-center gap-2 ${editMode ? 'bg-accent text-white' : 'bg-white text-black hover:bg-zinc-200'}`}
             >
               <i className={`fa-solid ${editMode ? 'fa-check-double' : 'fa-pen-to-square'} text-[10px]`} />
               {editMode ? 'Finalize' : 'Edit'}
@@ -511,10 +511,10 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
           <div className="mb-8 bg-zinc-900 border border-zinc-800 rounded-2xl p-6 animate-in slide-in-from-top-4 duration-300">
             <div className="flex items-center justify-between mb-5">
               <div>
-                <h3 className="font-black text-white uppercase tracking-widest text-sm">Select Days to Print</h3>
+                <h3 className="font-black text-ink uppercase tracking-widest text-sm">Select Days to Print</h3>
                 <p className="text-zinc-500 text-xs mt-1">Choose which days to include in the printed schedule table.</p>
               </div>
-              <button onClick={() => setShowPrintPanel(false)} className="text-zinc-600 hover:text-white transition-colors">
+              <button onClick={() => setShowPrintPanel(false)} className="text-zinc-600 hover:text-ink transition-colors">
                 <i className="fa-solid fa-xmark text-lg"></i>
               </button>
             </div>
@@ -524,9 +524,9 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
             ) : (
               <>
                 <div className="flex gap-2 mb-4">
-                  <button onClick={selectAllDates} className="text-xs font-black text-[#4da3ff] hover:text-white transition-colors uppercase tracking-wider">Select All</button>
+                  <button onClick={selectAllDates} className="text-xs font-black text-accent-bright hover:text-ink transition-colors uppercase tracking-wider">Select All</button>
                   <span className="text-zinc-700">·</span>
-                  <button onClick={clearAllDates} className="text-xs font-black text-zinc-500 hover:text-white transition-colors uppercase tracking-wider">Clear</button>
+                  <button onClick={clearAllDates} className="text-xs font-black text-zinc-500 hover:text-ink transition-colors uppercase tracking-wider">Clear</button>
                   <span className="text-zinc-700 ml-auto text-xs font-bold text-zinc-500">{selectedPrintDates.size} selected</span>
                 </div>
                 <div className="flex flex-wrap gap-2 mb-6">
@@ -539,8 +539,8 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
                         onClick={() => togglePrintDate(date)}
                         className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border font-black text-[11px] uppercase tracking-wider transition-all ${
                           isChecked
-                            ? 'bg-[#0056B3] border-[#0056B3] text-white shadow-[0_0_12px_rgba(0,86,179,0.4)]'
-                            : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-white'
+                            ? 'bg-accent border-accent text-white shadow-[0_0_12px_rgb(var(--c-accent-rgb)/0.4)]'
+                            : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-ink'
                         }`}
                       >
                         <i className={`fa-solid ${isChecked ? 'fa-check-square' : 'fa-square'} text-[10px]`}></i>
@@ -572,15 +572,15 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
 
           {/* Calendar */}
           <div className="xl:w-[350px] shrink-0 flex flex-col gap-6">
-            <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-6">
+            <div className="bg-ink/[0.02] border border-ink/5 rounded-3xl p-6">
               <div className="flex items-center justify-between mb-6">
-                <button onClick={() => changeMonth(-1)} className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition-all">
+                <button onClick={() => changeMonth(-1)} className="w-8 h-8 rounded-full hover:bg-ink/10 flex items-center justify-center text-zinc-400 hover:text-ink transition-all">
                   <i className="fa-solid fa-chevron-left text-xs"></i>
                 </button>
-                <h3 className="font-black text-white uppercase tracking-widest text-sm font-['Urbanist']">
+                <h3 className="font-black text-ink uppercase tracking-widest text-sm font-display">
                   {currentMonthDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
                 </h3>
-                <button onClick={() => changeMonth(1)} className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition-all">
+                <button onClick={() => changeMonth(1)} className="w-8 h-8 rounded-full hover:bg-ink/10 flex items-center justify-center text-zinc-400 hover:text-ink transition-all">
                   <i className="fa-solid fa-chevron-right text-xs"></i>
                 </button>
               </div>
@@ -618,7 +618,7 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
           <div className="flex-1 flex flex-col min-w-0">
             <div className="mb-6 flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-black text-white uppercase tracking-tight font-['Urbanist']">{selectedDate}</h2>
+                <h2 className="text-2xl font-black text-ink uppercase tracking-tight font-display">{selectedDate}</h2>
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mt-1">Daily Itinerary — {displayedSchedule.length} items</p>
               </div>
               {editMode && (
@@ -629,19 +629,19 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
             </div>
 
             {displayedSchedule.length === 0 ? (
-              <div className="py-24 border border-dashed border-white/5 rounded-[32px] bg-white/[0.01] flex flex-col items-center justify-center opacity-40">
+              <div className="py-24 border border-dashed border-ink/5 rounded-[32px] bg-ink/[0.01] flex flex-col items-center justify-center opacity-40">
                 <i className="fa-solid fa-mug-hot text-4xl mb-4 text-zinc-600" />
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">No tasks for this day</p>
                 {editMode && (
-                  <button onClick={addItem} className="mt-6 text-[#4da3ff] hover:text-white text-xs font-black uppercase tracking-widest transition-colors">
+                  <button onClick={addItem} className="mt-6 text-accent-bright hover:text-ink text-xs font-black uppercase tracking-widest transition-colors">
                     Create First Task
                   </button>
                 )}
               </div>
             ) : (
-              <div className="flex flex-col gap-0 rounded-2xl overflow-hidden border border-white/5">
+              <div className="flex flex-col gap-0 rounded-2xl overflow-hidden border border-ink/5">
                 {/* Table Header */}
-                <div className="grid grid-cols-[130px_1.5fr_1fr_100px_100px_110px] gap-0 bg-zinc-900 px-4 py-2.5 text-[9px] font-black text-zinc-500 uppercase tracking-widest border-b border-white/5">
+                <div className="grid grid-cols-[130px_1.5fr_1fr_100px_100px_110px] gap-0 bg-zinc-900 px-4 py-2.5 text-[9px] font-black text-zinc-500 uppercase tracking-widest border-b border-ink/5">
                   <div>Time</div>
                   <div>Task</div>
                   <div>Note</div>
@@ -665,7 +665,7 @@ export default function EventSchedulePage({ params }: { params: Promise<{ id: st
                 </SortableContext>
                 <DragOverlay>
                   {activeId ? (
-                    <div className="bg-zinc-900 border border-[#0056B3] rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] opacity-90 scale-105" style={{ padding: '0' }}>
+                    <div className="bg-zinc-900 border border-accent rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] opacity-90 scale-105" style={{ padding: '0' }}>
                       <SortableScheduleRow
                         item={schedule.find(s => s.id === activeId)}
                         editMode={editMode}

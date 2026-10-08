@@ -35,20 +35,20 @@ export default function ConsultationPage({ params }: { params: Promise<{ id: str
 
     const isWedding = project?.type === 'wedding' || project?.type === 'wedding_fair';
     const theme = isWedding ? {
-        border: 'border-pink-500/30',
-        primary: 'bg-pink-500 hover:bg-pink-400 text-black',
-        text: 'text-pink-500'
+        border: 'border-accent/30',
+        primary: 'bg-accent hover:bg-accent-hover text-black',
+        text: 'text-accent'
     } : {
-        border: 'border-white/10',
+        border: 'border-ink/10',
         primary: 'bg-white hover:bg-zinc-200 text-black',
-        text: 'text-white'
+        text: 'text-ink'
     };
 
     if (!consultations || consultations.length === 0) {
         return (
             <div className="space-y-8 animate-in fade-in duration-500 pb-20">
                 <div className="text-center max-w-2xl mx-auto mb-12">
-                    <h1 className="text-4xl font-serif text-white mb-4">No Consultations Yet</h1>
+                    <h1 className="text-4xl font-serif text-ink mb-4">No Consultations Yet</h1>
                     <p className="text-zinc-500 text-lg">No consultation reports found for this project. You can add one manually below.</p>
                 </div>
                 <ConsultingForm projectId={id} />
@@ -60,7 +60,7 @@ export default function ConsultationPage({ params }: { params: Promise<{ id: str
         <div className="space-y-8 animate-in fade-in duration-500 pb-20 max-w-7xl mx-auto">
             <div className={`flex justify-between items-end mb-8 border-b ${theme.border} pb-4 print:hidden`}>
                 <div>
-                    <h1 className="text-3xl font-serif text-white mb-2">Consultation Reports</h1>
+                    <h1 className="text-3xl font-serif text-ink mb-2">Consultation Reports</h1>
                     <p className="text-zinc-400 font-medium">AI-Powered summaries and client details.</p>
                 </div>
                 <div className="flex gap-4">

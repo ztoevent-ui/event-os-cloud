@@ -174,37 +174,37 @@ export default function PTWWizard({ project, schedule, onClose }: PTWWizardProps
         maxWidth: step === 4 ? 520 : 720,
         maxHeight: '90vh',
         overflowY: 'auto',
-        background: '#0a0a0a',
-        border: '1px solid rgba(0,86,179,0.4)',
+        background: 'var(--c-surface-solid)',
+        border: '1px solid rgb(var(--c-accent-rgb) / 0.4)',
         borderRadius: 20,
-        boxShadow: '0 30px 80px rgba(0,86,179,0.2)',
+        boxShadow: '0 30px 80px rgb(var(--c-accent-rgb) / 0.2)',
         padding: 32,
       }}>
         {/* Close */}
         {step < 4 && (
           <button onClick={onClose} style={{
             position: 'absolute', top: 20, right: 20,
-            background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: 8, color: '#fff', padding: '6px 10px', cursor: 'pointer', fontSize: 14,
+            background: 'rgb(var(--c-ink-rgb) / 0.05)', border: '1px solid rgb(var(--c-ink-rgb) / 0.1)',
+            borderRadius: 8, color: 'var(--c-ink)', padding: '6px 10px', cursor: 'pointer', fontSize: 14,
           }}>✕</button>
         )}
 
         {/* Header */}
-        <div style={{ marginBottom: 28, paddingBottom: 20, borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+        <div style={{ marginBottom: 28, paddingBottom: 20, borderBottom: '1px solid rgb(var(--c-ink-rgb) / 0.07)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
             <div style={{
               width: 8, height: 8, borderRadius: '50%',
-              background: '#0056B3',
-              boxShadow: '0 0 10px #0056B3',
+              background: 'var(--c-accent)',
+              boxShadow: '0 0 10px var(--c-accent)',
             }} />
-            <span style={{ fontSize: 10, fontWeight: 700, color: '#0056B3', textTransform: 'uppercase', letterSpacing: '0.2em' }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--c-accent)', textTransform: 'uppercase', letterSpacing: '0.2em' }}>
               ZTOBase Protocol
             </span>
           </div>
-          <h2 style={{ fontSize: 22, fontWeight: 800, color: '#fff', marginBottom: 4 }}>
+          <h2 style={{ fontSize: 22, fontWeight: 800, color: 'var(--c-ink)', marginBottom: 4 }}>
             PTW Generation Engine
           </h2>
-          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>
+          <p style={{ color: 'rgb(var(--c-ink-rgb) / 0.4)', fontSize: 12 }}>
             {project.name} · {project.venue || 'Venue TBD'}
           </p>
 
@@ -214,7 +214,7 @@ export default function PTWWizard({ project, schedule, onClose }: PTWWizardProps
               {[1, 2, 3].map(s => (
                 <div key={s} style={{
                   height: 4, flex: 1, borderRadius: 99,
-                  background: s <= step ? '#0056B3' : 'rgba(255,255,255,0.08)',
+                  background: s <= step ? 'var(--c-accent)' : 'rgb(var(--c-ink-rgb) / 0.08)',
                   transition: 'background 0.3s',
                 }} />
               ))}
@@ -225,8 +225,8 @@ export default function PTWWizard({ project, schedule, onClose }: PTWWizardProps
         {/* ── STEP 1: Select Tasks ── */}
         {step === 1 && (
           <div>
-            <h3 style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 4 }}>Step 1 — Select Schedule Items</h3>
-            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 20 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--c-ink)', marginBottom: 4 }}>Step 1 — Select Schedule Items</h3>
+            <p style={{ color: 'rgb(var(--c-ink-rgb) / 0.4)', fontSize: 12, marginBottom: 20 }}>
               Select the tasks to be included in this Permit to Work document.
             </p>
 
@@ -239,10 +239,10 @@ export default function PTWWizard({ project, schedule, onClose }: PTWWizardProps
                   <div style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                     marginBottom: 8, paddingBottom: 6,
-                    borderBottom: '1px solid rgba(0,86,179,0.2)',
+                    borderBottom: '1px solid rgb(var(--c-accent-rgb) / 0.2)',
                   }}>
                     <span style={{
-                      fontSize: 10, fontWeight: 700, color: '#0056B3',
+                      fontSize: 10, fontWeight: 700, color: 'var(--c-accent)',
                       textTransform: 'uppercase', letterSpacing: '0.15em',
                     }}>
                       {formatDate(date)}
@@ -251,9 +251,9 @@ export default function PTWWizard({ project, schedule, onClose }: PTWWizardProps
                       onClick={() => toggleDayAll(date)}
                       style={{
                         padding: '3px 10px', borderRadius: 20, cursor: 'pointer',
-                        border: `1px solid ${allSelected ? 'rgba(0,86,179,0.6)' : 'rgba(255,255,255,0.15)'}`,
-                        background: allSelected ? 'rgba(0,86,179,0.25)' : someSelected ? 'rgba(0,86,179,0.1)' : 'rgba(255,255,255,0.04)',
-                        color: allSelected ? '#4da3ff' : 'rgba(255,255,255,0.45)',
+                        border: `1px solid ${allSelected ? 'rgb(var(--c-accent-rgb) / 0.6)' : 'rgb(var(--c-ink-rgb) / 0.15)'}`,
+                        background: allSelected ? 'rgb(var(--c-accent-rgb) / 0.25)' : someSelected ? 'rgb(var(--c-accent-rgb) / 0.1)' : 'rgb(var(--c-ink-rgb) / 0.04)',
+                        color: allSelected ? 'var(--c-accent-bright)' : 'rgb(var(--c-ink-rgb) / 0.45)',
                         fontSize: 10, fontWeight: 700, letterSpacing: '0.08em',
                         transition: 'all 0.2s',
                       }}
@@ -265,19 +265,19 @@ export default function PTWWizard({ project, schedule, onClose }: PTWWizardProps
                     <label key={item.id} style={{
                       display: 'flex', alignItems: 'flex-start', gap: 12,
                       padding: '10px 12px', marginBottom: 4,
-                      background: selectedItemIds.has(item.id) ? 'rgba(0,86,179,0.12)' : 'rgba(255,255,255,0.03)',
-                      border: `1px solid ${selectedItemIds.has(item.id) ? 'rgba(0,86,179,0.4)' : 'rgba(255,255,255,0.06)'}`,
+                      background: selectedItemIds.has(item.id) ? 'rgb(var(--c-accent-rgb) / 0.12)' : 'rgb(var(--c-ink-rgb) / 0.03)',
+                      border: `1px solid ${selectedItemIds.has(item.id) ? 'rgb(var(--c-accent-rgb) / 0.4)' : 'rgb(var(--c-ink-rgb) / 0.06)'}`,
                       borderRadius: 10, cursor: 'pointer', transition: 'all 0.2s',
                     }}>
                       <input
                         type="checkbox"
                         checked={selectedItemIds.has(item.id)}
                         onChange={() => toggleItem(item.id)}
-                        style={{ accentColor: '#0056B3', marginTop: 2 }}
+                        style={{ accentColor: 'var(--c-accent)', marginTop: 2 }}
                       />
                       <div>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>{item.title}</div>
-                        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--c-ink)' }}>{item.title}</div>
+                        <div style={{ fontSize: 11, color: 'rgb(var(--c-ink-rgb) / 0.4)', marginTop: 2 }}>
                           {item.time || 'Time TBD'} · {item.assignee || 'Assignee TBD'}
                           {item.note && ` · ${item.note}`}
                         </div>
@@ -288,14 +288,14 @@ export default function PTWWizard({ project, schedule, onClose }: PTWWizardProps
                 );
               })}
               {schedule.length === 0 && (
-                <p style={{ color: 'rgba(255,255,255,0.3)', textAlign: 'center', padding: 32 }}>
+                <p style={{ color: 'rgb(var(--c-ink-rgb) / 0.3)', textAlign: 'center', padding: 32 }}>
                   No schedule items found. Add items to the schedule first.
                 </p>
               )}
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 24, alignItems: 'center' }}>
-              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>
+              <span style={{ fontSize: 12, color: 'rgb(var(--c-ink-rgb) / 0.4)' }}>
                 {selectedItemIds.size} item{selectedItemIds.size !== 1 ? 's' : ''} selected
               </span>
               <button
@@ -303,8 +303,8 @@ export default function PTWWizard({ project, schedule, onClose }: PTWWizardProps
                 disabled={selectedItemIds.size === 0}
                 style={{
                   padding: '10px 24px', borderRadius: 10, border: 'none', cursor: 'pointer',
-                  background: selectedItemIds.size > 0 ? '#0056B3' : 'rgba(255,255,255,0.05)',
-                  color: selectedItemIds.size > 0 ? '#fff' : 'rgba(255,255,255,0.2)',
+                  background: selectedItemIds.size > 0 ? 'var(--c-accent)' : 'rgb(var(--c-ink-rgb) / 0.05)',
+                  color: selectedItemIds.size > 0 ? '#fff' : 'rgb(var(--c-ink-rgb) / 0.2)',
                   fontWeight: 700, fontSize: 12, letterSpacing: '0.05em', textTransform: 'uppercase',
                   transition: 'all 0.2s',
                 }}
@@ -318,8 +318,8 @@ export default function PTWWizard({ project, schedule, onClose }: PTWWizardProps
         {/* ── STEP 2: Risk Assessment ── */}
         {step === 2 && (
           <div>
-            <h3 style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 4 }}>Step 2 — Risk & Impact Assessment</h3>
-            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 20 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--c-ink)', marginBottom: 4 }}>Step 2 — Risk & Impact Assessment</h3>
+            <p style={{ color: 'rgb(var(--c-ink-rgb) / 0.4)', fontSize: 12, marginBottom: 20 }}>
               Select applicable risks and client impact notices for this work period.
             </p>
 
@@ -328,19 +328,19 @@ export default function PTWWizard({ project, schedule, onClose }: PTWWizardProps
                 <label key={risk.id} style={{
                   display: 'flex', alignItems: 'flex-start', gap: 12,
                   padding: '12px 14px',
-                  background: selectedRiskIds.has(risk.id) ? 'rgba(0,86,179,0.12)' : 'rgba(255,255,255,0.03)',
-                  border: `1px solid ${selectedRiskIds.has(risk.id) ? 'rgba(0,86,179,0.4)' : 'rgba(255,255,255,0.06)'}`,
+                  background: selectedRiskIds.has(risk.id) ? 'rgb(var(--c-accent-rgb) / 0.12)' : 'rgb(var(--c-ink-rgb) / 0.03)',
+                  border: `1px solid ${selectedRiskIds.has(risk.id) ? 'rgb(var(--c-accent-rgb) / 0.4)' : 'rgb(var(--c-ink-rgb) / 0.06)'}`,
                   borderRadius: 10, cursor: 'pointer', transition: 'all 0.2s',
                 }}>
                   <input
                     type="checkbox"
                     checked={selectedRiskIds.has(risk.id)}
                     onChange={() => toggleRisk(risk.id)}
-                    style={{ accentColor: '#0056B3', marginTop: 2, flexShrink: 0 }}
+                    style={{ accentColor: 'var(--c-accent)', marginTop: 2, flexShrink: 0 }}
                   />
                   <div>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: '#fff', marginBottom: 3 }}>{risk.label}</div>
-                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', lineHeight: 1.5 }}>{risk.description}</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--c-ink)', marginBottom: 3 }}>{risk.label}</div>
+                    <div style={{ fontSize: 11, color: 'rgb(var(--c-ink-rgb) / 0.4)', lineHeight: 1.5 }}>{risk.description}</div>
                   </div>
                 </label>
               ))}
@@ -348,7 +348,7 @@ export default function PTWWizard({ project, schedule, onClose }: PTWWizardProps
 
             {/* Custom Risk */}
             <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'rgb(var(--c-ink-rgb) / 0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>
                 Add Custom Notice
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
@@ -360,21 +360,21 @@ export default function PTWWizard({ project, schedule, onClose }: PTWWizardProps
                   placeholder="e.g. Client to provide dedicated power outlet for LED control..."
                   style={{
                     flex: 1, padding: '9px 14px', borderRadius: 10,
-                    background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-                    color: '#fff', fontSize: 12, outline: 'none',
+                    background: 'rgb(var(--c-ink-rgb) / 0.05)', border: '1px solid rgb(var(--c-ink-rgb) / 0.1)',
+                    color: 'var(--c-ink)', fontSize: 12, outline: 'none',
                   }}
                 />
                 <button onClick={addCustomRisk} style={{
-                  padding: '9px 16px', borderRadius: 10, background: 'rgba(0,86,179,0.2)',
-                  border: '1px solid rgba(0,86,179,0.3)', color: '#4da3ff', cursor: 'pointer',
+                  padding: '9px 16px', borderRadius: 10, background: 'rgb(var(--c-accent-rgb) / 0.2)',
+                  border: '1px solid rgb(var(--c-accent-rgb) / 0.3)', color: 'var(--c-accent-bright)', cursor: 'pointer',
                   fontWeight: 700, fontSize: 12,
                 }}>Add</button>
               </div>
               {customRisks.map((r, i) => (
                 <div key={i} style={{
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                  marginTop: 6, padding: '8px 12px', background: 'rgba(0,86,179,0.08)',
-                  borderRadius: 8, fontSize: 12, color: '#4da3ff',
+                  marginTop: 6, padding: '8px 12px', background: 'rgb(var(--c-accent-rgb) / 0.08)',
+                  borderRadius: 8, fontSize: 12, color: 'var(--c-accent-bright)',
                 }}>
                   <span>{r}</span>
                   <button onClick={() => setCustomRisks(prev => prev.filter((_, j) => j !== i))}
@@ -385,13 +385,13 @@ export default function PTWWizard({ project, schedule, onClose }: PTWWizardProps
 
             <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
               <button onClick={() => setStep(1)} style={{
-                padding: '10px 20px', borderRadius: 10, background: 'rgba(255,255,255,0.05)',
-                border: '1px solid rgba(255,255,255,0.1)', color: '#fff', cursor: 'pointer',
+                padding: '10px 20px', borderRadius: 10, background: 'rgb(var(--c-ink-rgb) / 0.05)',
+                border: '1px solid rgb(var(--c-ink-rgb) / 0.1)', color: 'var(--c-ink)', cursor: 'pointer',
                 fontWeight: 600, fontSize: 12,
               }}>← Back</button>
               <button onClick={() => setStep(3)} style={{
                 flex: 1, padding: '10px 24px', borderRadius: 10, border: 'none', cursor: 'pointer',
-                background: '#0056B3', color: '#fff', fontWeight: 700, fontSize: 12,
+                background: 'var(--c-accent)', color: 'var(--c-on-accent)', fontWeight: 700, fontSize: 12,
                 letterSpacing: '0.05em', textTransform: 'uppercase',
               }}>
                 Next: Review & Issue →
@@ -403,30 +403,30 @@ export default function PTWWizard({ project, schedule, onClose }: PTWWizardProps
         {/* ── STEP 3: Review & Issue ── */}
         {step === 3 && (
           <div>
-            <h3 style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 4 }}>Step 3 — Review & Issue PTW</h3>
-            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 20 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--c-ink)', marginBottom: 4 }}>Step 3 — Review & Issue PTW</h3>
+            <p style={{ color: 'rgb(var(--c-ink-rgb) / 0.4)', fontSize: 12, marginBottom: 20 }}>
               Enter the Work Leader details and issue the permit.
             </p>
 
             {/* Summary */}
             <div style={{
-              background: 'rgba(0,86,179,0.08)', border: '1px solid rgba(0,86,179,0.2)',
+              background: 'rgb(var(--c-accent-rgb) / 0.08)', border: '1px solid rgb(var(--c-accent-rgb) / 0.2)',
               borderRadius: 12, padding: 16, marginBottom: 20,
             }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#0056B3', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--c-accent)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>
                 Document Summary
               </div>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>
-                <div>📋 <strong style={{ color: '#fff' }}>{selectedItems.length}</strong> work items selected</div>
-                <div style={{ marginTop: 4 }}>⚠️ <strong style={{ color: '#fff' }}>{selectedRiskIds.size + customRisks.length}</strong> risk / impact notices</div>
-                <div style={{ marginTop: 4 }}>📍 <strong style={{ color: '#fff' }}>{project.venue || 'Venue TBD'}</strong></div>
+              <div style={{ fontSize: 12, color: 'rgb(var(--c-ink-rgb) / 0.7)' }}>
+                <div>📋 <strong style={{ color: 'var(--c-ink)' }}>{selectedItems.length}</strong> work items selected</div>
+                <div style={{ marginTop: 4 }}>⚠️ <strong style={{ color: 'var(--c-ink)' }}>{selectedRiskIds.size + customRisks.length}</strong> risk / impact notices</div>
+                <div style={{ marginTop: 4 }}>📍 <strong style={{ color: 'var(--c-ink)' }}>{project.venue || 'Venue TBD'}</strong></div>
               </div>
             </div>
 
             {/* Work Leader form */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 20 }}>
               <div>
-                <label style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>
+                <label style={{ fontSize: 11, fontWeight: 700, color: 'rgb(var(--c-ink-rgb) / 0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>
                   Work Leader Name *
                 </label>
                 <input
@@ -436,13 +436,13 @@ export default function PTWWizard({ project, schedule, onClose }: PTWWizardProps
                   placeholder="e.g. Ahmad bin Razali"
                   style={{
                     width: '100%', padding: '10px 14px', borderRadius: 10,
-                    background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-                    color: '#fff', fontSize: 13, outline: 'none', boxSizing: 'border-box',
+                    background: 'rgb(var(--c-ink-rgb) / 0.05)', border: '1px solid rgb(var(--c-ink-rgb) / 0.1)',
+                    color: 'var(--c-ink)', fontSize: 13, outline: 'none', boxSizing: 'border-box',
                   }}
                 />
               </div>
               <div>
-                <label style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>
+                <label style={{ fontSize: 11, fontWeight: 700, color: 'rgb(var(--c-ink-rgb) / 0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>
                   Emergency Contact
                 </label>
                 <input
@@ -452,41 +452,41 @@ export default function PTWWizard({ project, schedule, onClose }: PTWWizardProps
                   placeholder="e.g. +60 12-345 6789"
                   style={{
                     width: '100%', padding: '10px 14px', borderRadius: 10,
-                    background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-                    color: '#fff', fontSize: 13, outline: 'none', boxSizing: 'border-box',
+                    background: 'rgb(var(--c-ink-rgb) / 0.05)', border: '1px solid rgb(var(--c-ink-rgb) / 0.1)',
+                    color: 'var(--c-ink)', fontSize: 13, outline: 'none', boxSizing: 'border-box',
                   }}
                 />
               </div>
               <div>
-                <label style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>
+                <label style={{ fontSize: 11, fontWeight: 700, color: 'rgb(var(--c-ink-rgb) / 0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>
                   Personnel Allocation / Teams (Optional)
                 </label>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 8 }}>
                   {teams.map((team, idx) => (
                     <div key={team.id} style={{
-                      background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)',
+                      background: 'rgb(var(--c-ink-rgb) / 0.03)', border: '1px solid rgb(var(--c-ink-rgb) / 0.06)',
                       borderRadius: 12, padding: 12, display: 'flex', flexDirection: 'column', gap: 10
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: '#DEFF9A' }}>Team {idx + 1}</div>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--c-accent-2)' }}>Team {idx + 1}</div>
                         <button onClick={() => setTeams(prev => prev.filter(t => t.id !== team.id))} style={{ background: 'none', border: 'none', color: 'rgba(255,100,100,0.7)', cursor: 'pointer', fontSize: 14 }}>✕</button>
                       </div>
                       <div style={{ display: 'flex', gap: 10 }}>
                         <input
                           type="text" placeholder="Team Name (e.g. Rigging)"
                           value={team.name} onChange={e => setTeams(prev => prev.map(t => t.id === team.id ? { ...t, name: e.target.value } : t))}
-                          style={{ flex: 1, padding: '8px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: 12, outline: 'none', boxSizing: 'border-box' }}
+                          style={{ flex: 1, padding: '8px 12px', borderRadius: 8, background: 'rgb(var(--c-ink-rgb) / 0.05)', border: '1px solid rgb(var(--c-ink-rgb) / 0.1)', color: 'var(--c-ink)', fontSize: 12, outline: 'none', boxSizing: 'border-box' }}
                         />
                         <input
                           type="text" placeholder="Team Leader"
                           value={team.leader} onChange={e => setTeams(prev => prev.map(t => t.id === team.id ? { ...t, leader: e.target.value } : t))}
-                          style={{ flex: 1, padding: '8px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: 12, outline: 'none', boxSizing: 'border-box' }}
+                          style={{ flex: 1, padding: '8px 12px', borderRadius: 8, background: 'rgb(var(--c-ink-rgb) / 0.05)', border: '1px solid rgb(var(--c-ink-rgb) / 0.1)', color: 'var(--c-ink)', fontSize: 12, outline: 'none', boxSizing: 'border-box' }}
                         />
                       </div>
                       <input
                         type="text" placeholder="Members (comma separated)"
                         value={team.members} onChange={e => setTeams(prev => prev.map(t => t.id === team.id ? { ...t, members: e.target.value } : t))}
-                        style={{ width: '100%', padding: '8px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: 12, outline: 'none', boxSizing: 'border-box' }}
+                        style={{ width: '100%', padding: '8px 12px', borderRadius: 8, background: 'rgb(var(--c-ink-rgb) / 0.05)', border: '1px solid rgb(var(--c-ink-rgb) / 0.1)', color: 'var(--c-ink)', fontSize: 12, outline: 'none', boxSizing: 'border-box' }}
                       />
                     </div>
                   ))}
@@ -494,15 +494,15 @@ export default function PTWWizard({ project, schedule, onClose }: PTWWizardProps
                 <button
                   onClick={() => setTeams(prev => [...prev, { id: `team-${Date.now()}`, name: '', leader: '', members: '' }])}
                   style={{
-                    padding: '8px 16px', borderRadius: 10, background: 'rgba(0,86,179,0.2)', border: '1px solid rgba(0,86,179,0.3)',
-                    color: '#4da3ff', fontSize: 12, fontWeight: 700, cursor: 'pointer', width: '100%', textAlign: 'center', marginBottom: 16
+                    padding: '8px 16px', borderRadius: 10, background: 'rgb(var(--c-accent-rgb) / 0.2)', border: '1px solid rgb(var(--c-accent-rgb) / 0.3)',
+                    color: 'var(--c-accent-bright)', fontSize: 12, fontWeight: 700, cursor: 'pointer', width: '100%', textAlign: 'center', marginBottom: 16
                   }}
                 >
                   + Add Team
                 </button>
               </div>
               <div>
-                <label style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>
+                <label style={{ fontSize: 11, fontWeight: 700, color: 'rgb(var(--c-ink-rgb) / 0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: 6 }}>
                   Additional Notes (Optional)
                 </label>
                 <textarea
@@ -512,8 +512,8 @@ export default function PTWWizard({ project, schedule, onClose }: PTWWizardProps
                   rows={3}
                   style={{
                     width: '100%', padding: '10px 14px', borderRadius: 10,
-                    background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-                    color: '#fff', fontSize: 13, outline: 'none', resize: 'vertical', boxSizing: 'border-box',
+                    background: 'rgb(var(--c-ink-rgb) / 0.05)', border: '1px solid rgb(var(--c-ink-rgb) / 0.1)',
+                    color: 'var(--c-ink)', fontSize: 13, outline: 'none', resize: 'vertical', boxSizing: 'border-box',
                   }}
                 />
               </div>
@@ -521,8 +521,8 @@ export default function PTWWizard({ project, schedule, onClose }: PTWWizardProps
 
             <div style={{ display: 'flex', gap: 12 }}>
               <button onClick={() => setStep(2)} style={{
-                padding: '10px 20px', borderRadius: 10, background: 'rgba(255,255,255,0.05)',
-                border: '1px solid rgba(255,255,255,0.1)', color: '#fff', cursor: 'pointer',
+                padding: '10px 20px', borderRadius: 10, background: 'rgb(var(--c-ink-rgb) / 0.05)',
+                border: '1px solid rgb(var(--c-ink-rgb) / 0.1)', color: 'var(--c-ink)', cursor: 'pointer',
                 fontWeight: 600, fontSize: 12,
               }}>← Back</button>
               <button
@@ -530,10 +530,10 @@ export default function PTWWizard({ project, schedule, onClose }: PTWWizardProps
                 disabled={!workLeader.trim() || generating}
                 style={{
                   flex: 1, padding: '12px 24px', borderRadius: 10, border: 'none', cursor: 'pointer',
-                  background: workLeader.trim() ? '#0056B3' : 'rgba(255,255,255,0.05)',
-                  color: workLeader.trim() ? '#fff' : 'rgba(255,255,255,0.2)',
+                  background: workLeader.trim() ? 'var(--c-accent)' : 'rgb(var(--c-ink-rgb) / 0.05)',
+                  color: workLeader.trim() ? '#fff' : 'rgb(var(--c-ink-rgb) / 0.2)',
                   fontWeight: 800, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase',
-                  boxShadow: workLeader.trim() ? '0 0 20px rgba(0,86,179,0.4)' : 'none',
+                  boxShadow: workLeader.trim() ? '0 0 20px rgb(var(--c-accent-rgb) / 0.4)' : 'none',
                   transition: 'all 0.2s',
                 }}
               >
@@ -548,27 +548,27 @@ export default function PTWWizard({ project, schedule, onClose }: PTWWizardProps
           <div style={{ textAlign: 'center' }}>
             <div style={{
               width: 64, height: 64, borderRadius: 20,
-              background: 'rgba(0,86,179,0.15)', border: '1px solid rgba(0,86,179,0.3)',
+              background: 'rgb(var(--c-accent-rgb) / 0.15)', border: '1px solid rgb(var(--c-accent-rgb) / 0.3)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 28, margin: '0 auto 20px',
             }}>🔖</div>
-            <h3 style={{ fontSize: 20, fontWeight: 800, color: '#fff', marginBottom: 8 }}>PTW Issued Successfully</h3>
-            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginBottom: 28 }}>
+            <h3 style={{ fontSize: 20, fontWeight: 800, color: 'var(--c-ink)', marginBottom: 8 }}>PTW Issued Successfully</h3>
+            <p style={{ color: 'rgb(var(--c-ink-rgb) / 0.5)', fontSize: 13, marginBottom: 28 }}>
               Your Permit to Work document is ready. Share the link below via WhatsApp or open to print / save as PDF.
             </p>
 
             <div style={{
-              background: 'rgba(0,86,179,0.08)', border: '1px solid rgba(0,86,179,0.25)',
+              background: 'rgb(var(--c-accent-rgb) / 0.08)', border: '1px solid rgb(var(--c-accent-rgb) / 0.25)',
               borderRadius: 12, padding: 16, marginBottom: 20, textAlign: 'left',
             }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: '#0056B3', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--c-accent)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>
                 Shareable Link
               </div>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                 <div style={{
                   flex: 1, padding: '9px 12px', borderRadius: 8,
-                  background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-                  fontSize: 12, color: '#4da3ff', wordBreak: 'break-all',
+                  background: 'rgb(var(--c-ink-rgb) / 0.05)', border: '1px solid rgb(var(--c-ink-rgb) / 0.1)',
+                  fontSize: 12, color: 'var(--c-accent-bright)', wordBreak: 'break-all',
                 }}>
                   {ptwUrl}
                 </div>
@@ -576,8 +576,8 @@ export default function PTWWizard({ project, schedule, onClose }: PTWWizardProps
                   onClick={() => navigator.clipboard.writeText(ptwUrl)}
                   style={{
                     padding: '9px 16px', borderRadius: 8, cursor: 'pointer',
-                    background: 'rgba(0,86,179,0.2)', border: '1px solid rgba(0,86,179,0.3)',
-                    color: '#4da3ff', fontWeight: 700, fontSize: 11, whiteSpace: 'nowrap',
+                    background: 'rgb(var(--c-accent-rgb) / 0.2)', border: '1px solid rgb(var(--c-accent-rgb) / 0.3)',
+                    color: 'var(--c-accent-bright)', fontWeight: 700, fontSize: 11, whiteSpace: 'nowrap',
                   }}
                 >
                   Copy Link
@@ -590,7 +590,7 @@ export default function PTWWizard({ project, schedule, onClose }: PTWWizardProps
                 onClick={() => window.open(ptwUrl, '_blank')}
                 style={{
                   flex: 1, padding: '12px', borderRadius: 10, cursor: 'pointer',
-                  background: '#0056B3', border: 'none', color: '#fff',
+                  background: 'var(--c-accent)', border: 'none', color: 'var(--c-on-accent)',
                   fontWeight: 700, fontSize: 12, letterSpacing: '0.05em',
                 }}
               >
@@ -600,8 +600,8 @@ export default function PTWWizard({ project, schedule, onClose }: PTWWizardProps
                 onClick={onClose}
                 style={{
                   padding: '12px 20px', borderRadius: 10, cursor: 'pointer',
-                  background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-                  color: '#fff', fontWeight: 600, fontSize: 12,
+                  background: 'rgb(var(--c-ink-rgb) / 0.05)', border: '1px solid rgb(var(--c-ink-rgb) / 0.1)',
+                  color: 'var(--c-ink)', fontWeight: 600, fontSize: 12,
                 }}
               >
                 Close

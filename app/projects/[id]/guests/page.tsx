@@ -27,21 +27,21 @@ export default function GuestListPage() {
 
     const isWedding = project?.type === 'wedding' || project?.type === 'wedding_fair';
     const theme = isWedding ? {
-        primary: 'text-pink-500',
-        bg: 'bg-pink-500',
-        hover: 'hover:bg-pink-400',
-        border: 'border-pink-500/30',
-        accentBg: 'bg-pink-500/10',
-        accentText: 'text-pink-500',
-        accentBorder: 'border-pink-500/20'
+        primary: 'text-accent',
+        bg: 'bg-accent',
+        hover: 'hover:bg-accent-hover',
+        border: 'border-accent/30',
+        accentBg: 'bg-accent/10',
+        accentText: 'text-accent',
+        accentBorder: 'border-accent/20'
     } : {
-        primary: 'text-[#0056B3]',
-        bg: 'bg-[#0056B3]',
-        hover: 'hover:bg-[#0056B3]',
-        border: 'border-white/10',
-        accentBg: 'bg-[#0056B3]/10',
-        accentText: 'text-[#0056B3]',
-        accentBorder: 'border-[#0056B3]/30'
+        primary: 'text-accent',
+        bg: 'bg-accent',
+        hover: 'hover:bg-accent',
+        border: 'border-ink/10',
+        accentBg: 'bg-accent/10',
+        accentText: 'text-accent',
+        accentBorder: 'border-accent/30'
     };
 
     const fetchAttendees = async () => {
@@ -88,8 +88,8 @@ export default function GuestListPage() {
             {/* ── Page Header + Action Bar ── */}
             <div className="print:hidden flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
                 <div className="flex flex-col">
-                    <p className="text-xs font-black uppercase tracking-[0.2em] text-[#0056B3] mb-2">Participant Hub</p>
-                    <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tight leading-none font-['Urbanist']">
+                    <p className="text-xs font-black uppercase tracking-[0.2em] text-accent mb-2">Participant Hub</p>
+                    <h1 className="text-4xl md:text-5xl font-black text-ink uppercase tracking-tight leading-none font-display">
                         Guest Registry
                     </h1>
                 </div>
@@ -97,17 +97,17 @@ export default function GuestListPage() {
                 {/* ── Stats + Actions Hub ── */}
                 <div className="flex flex-wrap items-center gap-4">
                     {/* Premium Stats Pill */}
-                    <div className="h-12 px-6 flex items-center gap-6 rounded-2xl bg-[#050505] border border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+                    <div className="h-12 px-6 flex items-center gap-6 rounded-2xl bg-canvas border border-ink/10 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
                         <div className="flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#DEFF9A] shadow-[0_0_10px_rgba(222,255,154,0.5)]" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-accent-2 shadow-[0_0_10px_rgb(var(--c-accent-2-rgb)/0.5)]" />
                             <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Total Registered</span>
-                            <span className="text-xs font-black text-[#DEFF9A] font-mono ml-2">{attendees.length}</span>
+                            <span className="text-xs font-black text-accent-2 font-mono ml-2">{attendees.length}</span>
                         </div>
-                        <div className="w-px h-4 bg-white/10" />
+                        <div className="w-px h-4 bg-ink/10" />
                         <div className="flex items-center gap-2">
                             <i className="fa-solid fa-user-check text-[10px] text-emerald-500"></i>
                             <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Checked In</span>
-                            <span className="text-xs font-black text-white font-mono ml-2">
+                            <span className="text-xs font-black text-ink font-mono ml-2">
                                 {attendees.filter(a => a.checked_in).length}
                             </span>
                         </div>
@@ -118,7 +118,7 @@ export default function GuestListPage() {
                         <a 
                             href={`/apps/ticketing/registration?project_id=${projectId}`} 
                             target="_blank" 
-                            className="h-12 px-6 rounded-2xl bg-[#0056B3] border border-[#0056B3]/30 text-white font-black text-xs uppercase tracking-widest shadow-[0_0_20px_rgba(0,86,179,0.4)] hover:shadow-[0_0_30px_rgba(0,86,179,0.8)] transition-all flex items-center gap-2.5 hover:-translate-y-0.5 active:translate-y-0"
+                            className="h-12 px-6 rounded-2xl bg-accent border border-accent/30 text-white font-black text-xs uppercase tracking-widest shadow-[0_0_20px_rgb(var(--c-accent-rgb)/0.4)] hover:shadow-[0_0_30px_rgb(var(--c-accent-rgb)/0.8)] transition-all flex items-center gap-2.5 hover:-translate-y-0.5 active:translate-y-0"
                         >
                             <i className="fa-solid fa-link text-lg" /> Registration Link
                         </a>
@@ -128,9 +128,9 @@ export default function GuestListPage() {
 
             {/* ── Guest List ── */}
             <div className="flex flex-col gap-8">
-                <div className="flex items-center gap-3 border-b border-white/5 pb-4 px-2 print:hidden">
+                <div className="flex items-center gap-3 border-b border-ink/5 pb-4 px-2 print:hidden">
                     <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-600">Verified Attendees</h2>
-                    <span className="text-[9px] font-black bg-white/5 text-zinc-600 px-3 py-1 rounded-full border border-white/5 font-mono">
+                    <span className="text-[9px] font-black bg-ink/5 text-zinc-600 px-3 py-1 rounded-full border border-ink/5 font-mono">
                         {attendees.length}
                     </span>
                 </div>
@@ -143,23 +143,23 @@ export default function GuestListPage() {
                             <p className="text-[10px] font-black uppercase tracking-[0.2em]">Synchronizing Registry...</p>
                         </div>
                     ) : attendees.length === 0 ? (
-                        <div className="col-span-full py-32 border border-dashed border-white/5 rounded-[32px] bg-white/[0.02] flex flex-col items-center justify-center opacity-30">
+                        <div className="col-span-full py-32 border border-dashed border-ink/5 rounded-[32px] bg-ink/[0.02] flex flex-col items-center justify-center opacity-30">
                             <i className="fa-solid fa-users-slash text-4xl mb-4" />
                             <p className="text-[10px] font-black uppercase tracking-[0.2em]">No participants detected</p>
                         </div>
                     ) : (
                         attendees.map((guest) => (
                             <React.Fragment key={guest.id}>
-                                <div className={`bg-white/[0.03] border border-white/5 p-8 rounded-[32px] flex flex-col hover:border-[#0056B3]/40 transition-all group relative overflow-hidden print:bg-white print:border-zinc-200 print:text-black ${pageBreakIds.includes(guest.id) ? 'print:break-before-page pt-8' : ''}`}>
+                                <div className={`bg-ink/[0.03] border border-ink/5 p-8 rounded-[32px] flex flex-col hover:border-accent/40 transition-all group relative overflow-hidden print:bg-white print:border-zinc-200 print:text-black ${pageBreakIds.includes(guest.id) ? 'print:break-before-page pt-8' : ''}`}>
                                     {/* Status Badge */}
                                     <div className="mb-6 flex justify-between items-start">
-                                        <div className={`w-10 h-10 rounded-xl bg-zinc-900 border border-white/5 flex items-center justify-center text-lg ${guest.checked_in ? 'text-emerald-500' : 'text-[#0056B3]'} group-hover:scale-110 transition-transform`}>
+                                        <div className={`w-10 h-10 rounded-xl bg-zinc-900 border border-ink/5 flex items-center justify-center text-lg ${guest.checked_in ? 'text-emerald-500' : 'text-accent'} group-hover:scale-110 transition-transform`}>
                                             <i className={`fa-solid ${guest.checked_in ? 'fa-user-check' : 'fa-user'}`} />
                                         </div>
                                         <span className={`text-[8px] font-black px-2.5 py-1 rounded-md uppercase tracking-widest border ${
                                             guest.checked_in 
                                             ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
-                                            : 'bg-white/5 text-zinc-500 border-white/10'
+                                            : 'bg-ink/5 text-zinc-500 border-ink/10'
                                         }`}>
                                             {guest.checked_in ? 'Checked In' : 'Registered'}
                                         </span>
@@ -167,17 +167,17 @@ export default function GuestListPage() {
 
                                     {/* Identity */}
                                     <div className="flex-1">
-                                        <h3 className="text-xl font-black text-white uppercase tracking-tight leading-none mb-3 font-['Urbanist'] group-hover:text-[#4da3ff] transition-colors">
+                                        <h3 className="text-xl font-black text-ink uppercase tracking-tight leading-none mb-3 font-display group-hover:text-accent-bright transition-colors">
                                             {guest.name}
                                         </h3>
                                         <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest mb-6">
                                             {guest.phone || 'No Contact'}
                                         </p>
                                         
-                                        <div className="bg-black/20 border border-white/5 rounded-2xl p-4 flex items-center justify-between">
+                                        <div className="bg-black/20 border border-ink/5 rounded-2xl p-4 flex items-center justify-between">
                                             <div className="flex flex-col">
                                                 <span className="text-[8px] font-black text-zinc-700 uppercase tracking-widest mb-1">Access Code</span>
-                                                <span className="text-xs font-mono font-black text-[#4da3ff] tracking-widest">
+                                                <span className="text-xs font-mono font-black text-accent-bright tracking-widest">
                                                     {guest.ticket_code}
                                                 </span>
                                             </div>
@@ -186,7 +186,7 @@ export default function GuestListPage() {
                                     </div>
 
                                     {/* Action Hub */}
-                                    <div className="mt-8 pt-6 border-t border-white/5 flex justify-end gap-2">
+                                    <div className="mt-8 pt-6 border-t border-ink/5 flex justify-end gap-2">
                                         <button onClick={() => handleDelete(guest.id)} className="w-10 h-10 rounded-xl bg-red-500/5 text-red-500/30 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center print:hidden">
                                             <i className="fa-solid fa-trash-can text-sm" />
                                         </button>

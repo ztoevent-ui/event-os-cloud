@@ -27,6 +27,31 @@ export async function createTask(formData: FormData) {
     revalidatePath(`/projects/${project_id}`);
 }
 
+export async function quickCreateTask(project_id: string, title: string, assignee_type: string = 'team') {
+    const { data, error } = await supabase.from('tasks').insert({
+        project_id,
+        title,
+        priority: 'medium',
+        status: 'todo',
+        access_level: 'staff',
+        assignee_type
+    }).select().single();
+
+    if (error) {
+        console.error('Error quick creating task:', error);
+        return { error: error.message };
+    }
+    revalidatePath(`/projects/${project_id}/tasks`);
+    return { data };
+}
+
+export async function toggleTaskStatus(id: string, currentStatus: string, project_id: string) {
+    const newStatus = currentStatus === 'done' ? 'todo' : 'done';
+    const { error } = await supabase.from('tasks').update({ status: newStatus }).eq('id', id);
+    if (error) console.error('Error toggling task:', error);
+    revalidatePath(`/projects/${project_id}/tasks`);
+}
+
 export async function updateTask(formData: FormData) {
     const id = formData.get('id') as string;
     const project_id = formData.get('project_id') as string;

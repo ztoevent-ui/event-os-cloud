@@ -8,58 +8,154 @@
    Global CSS Foundation
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* ─── Design Tokens ───────────────────────────────────────────────────────── */
+/* ─── Semantic Theme Tokens ──────────────────────────────────────────────────
+   SINGLE SOURCE OF TRUTH for colour. Components must use these tokens
+   (Tailwind: bg-canvas / text-ink / bg-ink/5 / text-accent ...;
+    inline: var(--c-ink), rgb(var(--c-ink-rgb) / 0.4) ...).
+   A theme = one block that redefines the --c-* values. Theme is chosen by
+   lib/theme.ts → data-theme on .zto-shell.
+   "ink" = the foreground colour. On dark it is white, so the legacy
+   `white/5` overlays map 1:1 to `ink/5`.
+   ─────────────────────────────────────────────────────────────────────────── */
 :root {
-  /* Core */
-  --zto-bg:           #050505;
-  --zto-bg-card:      #0a0a0a;
-  --zto-fg:           #E5E5E5;
-
-  /* Brand */
-  --zto-blue:         #0056B3;
-  --zto-blue-bright:  #4da3ff;
-  --zto-blue-glow:    rgba(0, 86, 179, 0.5);
-  --zto-lime:         #DEFF9A;
-  --zto-lime-glow:    rgba(222, 255, 154, 0.5);
-
-  /* Glass Card */
-  --zto-card-bg:      rgba(255, 255, 255, 0.03);
-  --zto-card-border:  rgba(0, 86, 179, 0.3);
-  --zto-card-radius:  24px;
-  --zto-card-pad:     48px;
-
-  /* Input */
-  --zto-input-bg:     rgba(255, 255, 255, 0.04);
-  --zto-input-border: rgba(255, 255, 255, 0.1);
+  --c-canvas:           #050505;
+  --c-canvas-rgb:       5 5 5;
+  --c-surface:          rgba(255, 255, 255, 0.03);
+  --c-surface-solid:    #0a0a0a;
+  --c-ink:              #ffffff;
+  --c-ink-rgb:          255 255 255;
+  --c-ink-soft:         #E5E5E5;
+  --c-accent:           #0056B3;
+  --c-accent-rgb:       0 86 179;
+  --c-accent-hover:     #0069d9;
+  --c-accent-bright:    #4da3ff;
+  --c-accent-bright-rgb: 77 163 255;
+  --c-accent-2:         #DEFF9A;
+  --c-accent-2-rgb:     222 255 154;
+  --c-on-accent:        #ffffff;
+  --c-card-border:      rgba(0, 86, 179, 0.3);
+  --c-card-shadow:      none;
+  --c-shadow-rgb:       0 0 0;
+  --c-backdrop-blur:    blur(20px);
+  --c-shell-bg:         #050505;
+  --font-display:       'Urbanist', -apple-system, "Noto Sans SC", sans-serif;
 
   /* Sidebar */
   --zto-sidebar-w:    280px;
+  --zto-card-radius:  24px;
+  --zto-card-pad:     48px;
 
   /* Transitions */
   --zto-ease:         cubic-bezier(0.25, 0.8, 0.25, 1);
-
-  /* Tailwind compat */
-  --background:       #050505;
-  --foreground:       #E5E5E5;
-  --primary:          #0056B3;
-  --primary-foreground: #ffffff;
-  --destructive:      #ef4444;
-  --border:           rgba(255, 255, 255, 0.08);
-  --ring:             #0056B3;
   --radius:           0.75rem;
+  --destructive:      #ef4444;
 }
 
-@theme {
-  --color-background:   var(--background);
-  --color-foreground:   var(--foreground);
-  --color-primary:      var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
+/* Legacy aliases — declared on every theme root so var() re-resolves
+   against that scope's --c-* values (custom props resolve where declared). */
+:root, [data-theme] {
+  --zto-bg:           var(--c-canvas);
+  --zto-bg-card:      var(--c-surface-solid);
+  --zto-fg:           var(--c-ink-soft);
+  --zto-blue:         var(--c-accent);
+  --zto-blue-bright:  var(--c-accent-bright);
+  --zto-blue-glow:    rgb(var(--c-accent-rgb) / 0.5);
+  --zto-lime:         var(--c-accent-2);
+  --zto-lime-glow:    rgb(var(--c-accent-2-rgb) / 0.5);
+  --zto-card-bg:      var(--c-surface);
+  --zto-card-border:  var(--c-card-border);
+  --zto-input-bg:     rgb(var(--c-ink-rgb) / 0.04);
+  --zto-input-border: rgb(var(--c-ink-rgb) / 0.1);
+  --background:       var(--c-canvas);
+  --foreground:       var(--c-ink-soft);
+  --primary:          var(--c-accent);
+  --primary-foreground: var(--c-on-accent);
+  --border:           rgb(var(--c-ink-rgb) / 0.08);
+  --ring:             var(--c-accent);
+}
+
+/* `inline` → utilities reference var(--c-*) directly, so they follow the
+   nearest [data-theme] scope instead of being frozen at :root. */
+@theme inline {
+  --color-background:   var(--c-canvas);
+  --color-foreground:   var(--c-ink-soft);
+  --color-primary:      var(--c-accent);
+  --color-primary-foreground: var(--c-on-accent);
   --color-destructive:  var(--destructive);
-  --color-border:       var(--border);
-  --color-ring:         var(--ring);
+  --color-border:       rgb(var(--c-ink-rgb) / 0.08);
+  --color-ring:         var(--c-accent);
+
+  --color-canvas:        var(--c-canvas);
+  --color-surface:       var(--c-surface);
+  --color-surface-solid: var(--c-surface-solid);
+  --color-ink:           var(--c-ink);
+  --color-ink-soft:      var(--c-ink-soft);
+  --color-accent:        var(--c-accent);
+  --color-accent-hover:  var(--c-accent-hover);
+  --color-accent-bright: var(--c-accent-bright);
+  --color-accent-2:      var(--c-accent-2);
+  --color-on-accent:     var(--c-on-accent);
+
   --font-sans:          'Urbanist', sans-serif;
   --font-mono:          'Geist Mono', monospace;
+  --font-display:       var(--font-display);
 }
+
+/* ─── Theme: Wedding (ivory · champagne · rose) ────────────────────────────
+   Only token values change here. The neutral zinc scale is the app's
+   "tonal ramp" (100-300 = strong text, 400-600 = muted, 800-950 = surfaces),
+   so it is re-toned rather than overridden per class.
+   ─────────────────────────────────────────────────────────────────────────── */
+[data-theme="wedding"] {
+  color-scheme: light;
+  --c-canvas:           #FAF6F0;
+  --c-canvas-rgb:       250 246 240;
+  --c-surface:          #FFFFFF;
+  --c-surface-solid:    #FFFFFF;
+  --c-ink:              #3A322B;
+  --c-ink-rgb:          58 50 43;
+  --c-ink-soft:         #4A4038;
+  --c-accent:           #A67C52;
+  --c-accent-rgb:       166 124 82;
+  --c-accent-hover:     #8F6A44;
+  --c-accent-bright:    #B48A5F;
+  --c-accent-bright-rgb: 180 138 95;
+  --c-accent-2:         #B5706A;
+  --c-accent-2-rgb:     181 112 106;
+  --c-on-accent:        #ffffff;
+  --c-card-border:      #EADFD1;
+  --c-card-shadow:      0 1px 2px rgba(58, 50, 43, 0.04), 0 8px 28px -12px rgba(120, 90, 60, 0.18);
+  --c-shadow-rgb:       120 90 60;
+  --c-backdrop-blur:    none;
+  --font-display:       'Playfair Display', 'Noto Serif SC', Georgia, serif;
+
+  --color-zinc-50:  #2A241F;
+  --color-zinc-100: #332C26;
+  --color-zinc-200: #3F3730;
+  --color-zinc-300: #574D44;
+  --color-zinc-400: #786C61;
+  --color-zinc-500: #8A7E72;
+  --color-zinc-600: #998D80;
+  --color-zinc-700: #CDC1B3;
+  --color-zinc-800: #E8DED1;
+  --color-zinc-900: #F4EEE6;
+  --color-zinc-950: #FAF6F0;
+
+  --c-shell-bg:
+    radial-gradient(1200px 600px at 100% -10%, rgba(214, 186, 150, 0.18), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgba(201, 150, 145, 0.12), transparent 60%),
+    #FAF6F0;
+}
+
+[data-theme="wedding"] :where(h1, h2, h3) {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+[data-theme="wedding"] .zto-main { background: transparent; }
+[data-theme="wedding"] .zto-sidebar { box-shadow: 4px 0 30px -12px rgba(120, 90, 60, 0.15); }
+[data-theme="wedding"] .zto-action-bar { background: rgb(255 255 255 / 0.85); box-shadow: 0 8px 30px -10px rgba(120, 90, 60, 0.25); }
+[data-theme="wedding"] .zto-badge-blue { color: var(--c-accent); }
 
 /* ─── Reset ───────────────────────────────────────────────────────────────── */
 *, *::before, *::after {
@@ -83,12 +179,12 @@ body {
 
 /* ─── Scrollbar ───────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: #050505; }
-::-webkit-scrollbar-thumb { background: rgba(0, 86, 179, 0.4); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(0, 86, 179, 0.7); }
+::-webkit-scrollbar-track { background: var(--c-canvas); }
+::-webkit-scrollbar-thumb { background: rgb(var(--c-accent-rgb) / 0.4); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgb(var(--c-accent-rgb) / 0.7); }
 
 /* ─── Selection ───────────────────────────────────────────────────────────── */
-::selection { background: rgba(0, 86, 179, 0.35); color: #fff; }
+::selection { background: rgb(var(--c-accent-rgb) / 0.35); color: var(--c-ink); }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    TRIPLE-LAYER SKELETON — THE CANONICAL INTERNAL LAYOUT
@@ -104,7 +200,7 @@ body {
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  background: var(--zto-bg);
+  background: var(--c-shell-bg);
   font-family: 'Urbanist', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
   color: var(--zto-fg);
 }
@@ -120,7 +216,7 @@ body {
   flex-direction: column;
   background: var(--zto-bg-card);
   border-right: 1px solid var(--zto-card-border);
-  box-shadow: 4px 0 24px -8px rgba(0, 86, 179, 0.15);
+  box-shadow: 4px 0 24px -8px rgb(var(--c-accent-rgb) / 0.15);
   z-index: 40;
 }
 
@@ -224,8 +320,9 @@ body {
   border: 1px solid var(--zto-card-border);
   border-radius: var(--zto-card-radius);
   padding: var(--zto-card-pad);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: var(--c-backdrop-blur);
+  -webkit-backdrop-filter: var(--c-backdrop-blur);
+  box-shadow: var(--c-card-shadow);
   box-sizing: border-box;
   position: relative;
   overflow: hidden;
@@ -233,8 +330,8 @@ body {
 }
 
 .zto-card:hover {
-  border-color: rgba(0, 86, 179, 0.55);
-  box-shadow: 0 8px 40px -10px rgba(0, 86, 179, 0.2);
+  border-color: rgb(var(--c-accent-rgb) / 0.55);
+  box-shadow: 0 8px 40px -10px rgb(var(--c-accent-rgb) / 0.2);
 }
 
 .zto-card-sm {
@@ -248,13 +345,13 @@ body {
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgb(var(--c-ink-rgb) / 0.4);
 }
 
 .zto-title {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--c-ink);
   line-height: 1.2;
 }
 
@@ -264,7 +361,7 @@ body {
 }
 
 .zto-desc {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgb(var(--c-ink-rgb) / 0.6);
   font-size: 0.875rem;
   line-height: 1.6;
 }
@@ -294,13 +391,13 @@ body {
 
 .zto-btn-primary {
   background: var(--zto-blue);
-  color: #ffffff;
-  box-shadow: 0 0 16px rgba(0, 86, 179, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3);
+  color: var(--c-on-accent);
+  box-shadow: 0 0 16px rgb(var(--c-accent-rgb) / 0.5), 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .zto-btn-primary:hover {
-  background: #0069d9;
-  box-shadow: 0 0 28px rgba(0, 86, 179, 0.8), 0 4px 16px rgba(0, 0, 0, 0.4);
+  background: var(--c-accent-hover);
+  box-shadow: 0 0 28px rgb(var(--c-accent-rgb) / 0.8), 0 4px 16px rgba(0, 0, 0, 0.4);
   transform: translateY(-2px);
 }
 
@@ -314,15 +411,15 @@ body {
 }
 
 .zto-btn-ghost {
-  background: rgba(255, 255, 255, 0.04);
-  color: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgb(var(--c-ink-rgb) / 0.04);
+  color: rgb(var(--c-ink-rgb) / 0.6);
+  border: 1px solid rgb(var(--c-ink-rgb) / 0.1);
 }
 
 .zto-btn-ghost:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.2);
+  background: rgb(var(--c-ink-rgb) / 0.08);
+  color: var(--c-ink);
+  border-color: rgb(var(--c-ink-rgb) / 0.2);
 }
 
 .zto-btn-danger {
@@ -345,7 +442,7 @@ body {
   padding: 0.625rem 1.25rem;
   border-radius: 12px;
   background: var(--zto-blue);
-  color: #ffffff;
+  color: var(--c-on-accent);
   font-family: 'Urbanist', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
   font-weight: 700;
   font-size: 0.75rem;
@@ -353,14 +450,14 @@ body {
   text-transform: uppercase;
   cursor: pointer;
   border: none;
-  box-shadow: 0 0 16px rgba(0, 86, 179, 0.5);
+  box-shadow: 0 0 16px rgb(var(--c-accent-rgb) / 0.5);
   transition: all 0.25s var(--zto-ease);
   white-space: nowrap;
   flex-shrink: 0;
 }
 
 .zto-btn-glow:hover {
-  box-shadow: 0 0 28px rgba(0, 86, 179, 0.8);
+  box-shadow: 0 0 28px rgb(var(--c-accent-rgb) / 0.8);
   transform: translateY(-2px);
 }
 
@@ -380,7 +477,7 @@ body {
   padding: 0.625rem 1.25rem;
   border-radius: 12px;
   background: var(--zto-blue);
-  color: #ffffff;
+  color: var(--c-on-accent);
   font-family: 'Urbanist', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
   font-weight: 700;
   font-size: 0.75rem;
@@ -388,12 +485,12 @@ body {
   text-transform: uppercase;
   cursor: pointer;
   border: none;
-  box-shadow: 0 0 16px rgba(0, 86, 179, 0.5);
+  box-shadow: 0 0 16px rgb(var(--c-accent-rgb) / 0.5);
   transition: all 0.25s var(--zto-ease);
 }
 
 .btn-royal:hover {
-  box-shadow: 0 0 28px rgba(0, 86, 179, 0.8);
+  box-shadow: 0 0 28px rgb(var(--c-accent-rgb) / 0.8);
   transform: translateY(-2px);
 }
 
@@ -404,10 +501,10 @@ body {
 .zto-input {
   width: 100%;
   padding: 0.75rem 1rem;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgb(var(--c-ink-rgb) / 0.04);
+  border: 1px solid rgb(var(--c-ink-rgb) / 0.1);
   border-radius: 12px;
-  color: #ffffff;
+  color: var(--c-ink);
   font-family: 'Urbanist', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
   font-size: 0.875rem;
   outline: none;
@@ -416,18 +513,18 @@ body {
 
 .zto-input:focus {
   border-color: var(--zto-blue);
-  box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.15);
+  box-shadow: 0 0 0 3px rgb(var(--c-accent-rgb) / 0.15);
 }
 
-.zto-input::placeholder { color: rgba(255, 255, 255, 0.2); }
+.zto-input::placeholder { color: rgb(var(--c-ink-rgb) / 0.2); }
 
 .zto-select {
   width: 100%;
   padding: 0.75rem 1rem;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgb(var(--c-ink-rgb) / 0.04);
+  border: 1px solid rgb(var(--c-ink-rgb) / 0.1);
   border-radius: 12px;
-  color: #ffffff;
+  color: var(--c-ink);
   font-family: 'Urbanist', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
   font-size: 0.875rem;
   outline: none;
@@ -451,7 +548,7 @@ body {
   margin-bottom: 3px;
   text-decoration: none;
   transition: all 0.18s ease;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgb(var(--c-ink-rgb) / 0.45);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -459,19 +556,19 @@ body {
 }
 
 .zto-nav-item:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.9);
+  background: rgb(var(--c-ink-rgb) / 0.05);
+  color: rgb(var(--c-ink-rgb) / 0.9);
 }
 
 .zto-nav-item:hover .zto-nav-icon {
   color: var(--zto-blue-bright);
-  filter: drop-shadow(0 0 6px rgba(77, 163, 255, 0.7));
+  filter: drop-shadow(0 0 6px rgb(var(--c-accent-bright-rgb) / 0.7));
 }
 
 .zto-nav-item.active {
   background: var(--zto-blue);
-  color: #ffffff;
-  box-shadow: 0 0 18px rgba(0, 86, 179, 0.45);
+  color: var(--c-on-accent);
+  box-shadow: 0 0 18px rgb(var(--c-accent-rgb) / 0.45);
 }
 
 .zto-nav-icon {
@@ -494,9 +591,9 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: rgba(5, 5, 5, 0.85);
+  background: rgb(var(--c-canvas-rgb) / 0.85);
   backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgb(var(--c-ink-rgb) / 0.08);
   border-radius: 16px;
   padding: 10px 14px;
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
@@ -519,14 +616,14 @@ body {
 }
 
 .zto-badge-blue {
-  background: rgba(0, 86, 179, 0.1);
-  border: 1px solid rgba(0, 86, 179, 0.35);
-  color: #6BB8FF;
+  background: rgb(var(--c-accent-rgb) / 0.1);
+  border: 1px solid rgb(var(--c-accent-rgb) / 0.35);
+  color: var(--c-accent-bright);
 }
 
 .zto-badge-lime {
-  background: rgba(222, 255, 154, 0.06);
-  border: 1px solid rgba(222, 255, 154, 0.3);
+  background: rgb(var(--c-accent-2-rgb) / 0.06);
+  border: 1px solid rgb(var(--c-accent-2-rgb) / 0.3);
   color: var(--zto-lime);
 }
 
@@ -572,92 +669,6 @@ body {
 @keyframes ztoFadeIn {
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   WEDDING THEME (LIGHT & ELEGANT) OVERRIDES
-   ═══════════════════════════════════════════════════════════════════════════ */
-
-[data-theme="wedding"] {
-  --zto-bg:           #FDFBF7;
-  --zto-bg-card:      #FFFFFF;
-  --zto-fg:           #4A433D;
-  
-  --zto-blue:         #D4A373; 
-  --zto-blue-bright:  #E6CCB2;
-  --zto-blue-glow:    rgba(212, 163, 115, 0.2);
-  --zto-lime:         #9D8189;
-  --zto-lime-glow:    rgba(157, 129, 137, 0.2);
-  --zto-card-border:  rgba(212, 163, 115, 0.2);
-}
-
-[data-theme="wedding"] .bg-\\[\\#050505\\] { background-color: var(--zto-bg) !important; }
-[data-theme="wedding"] .bg-zinc-900, [data-theme="wedding"] .bg-zinc-950 { background-color: var(--zto-bg-card) !important; border: 1px solid rgba(0,0,0,0.05) !important; box-shadow: 0 4px 15px rgba(0,0,0,0.02) !important; }
-[data-theme="wedding"] .text-white { color: var(--zto-fg) !important; }
-[data-theme="wedding"] .text-zinc-400, [data-theme="wedding"] .text-zinc-500, [data-theme="wedding"] .text-zinc-600 { color: #8C857B !important; }
-[data-theme="wedding"] .border-white\\/5, [data-theme="wedding"] .border-white\\/10 { border-color: rgba(0,0,0,0.06) !important; }
-[data-theme="wedding"] .bg-white\\/\\[0\\.02\\], [data-theme="wedding"] .bg-white\\/\\[0\\.03\\], [data-theme="wedding"] .bg-white\\/5, [data-theme="wedding"] .bg-white\\/10 { background-color: #fff !important; border-color: rgba(0,0,0,0.04) !important; box-shadow: 0 4px 20px rgba(0,0,0,0.03) !important; }
-
-/* Typography Overrides to make it soft and elegant */
-[data-theme="wedding"] h1, 
-[data-theme="wedding"] h2, 
-[data-theme="wedding"] h3, 
-[data-theme="wedding"] .font-\\[\\'Urbanist\\'\\] { 
-  font-family: 'Playfair Display', serif !important; 
-  font-weight: 600 !important; 
-  text-transform: none !important; 
-  letter-spacing: 0 !important; 
-  color: #332F2A !important;
-}
-
-[data-theme="wedding"] .font-black {
-  font-weight: 600 !important;
-}
-
-[data-theme="wedding"] .uppercase {
-  text-transform: capitalize !important;
-  letter-spacing: normal !important;
-}
-
-[data-theme="wedding"] .zto-sidebar {
-  background: var(--zto-bg-card) !important;
-  border-right: 1px solid rgba(0,0,0,0.05) !important;
-  box-shadow: 4px 0 24px -8px rgba(0,0,0,0.03) !important;
-}
-
-[data-theme="wedding"] .zto-nav-item {
-  color: #8C857B !important;
-}
-
-[data-theme="wedding"] .zto-nav-item:hover {
-  background: #FDFBF7 !important;
-  color: #D4A373 !important;
-}
-
-[data-theme="wedding"] .zto-nav-item.active {
-  background: #FDFBF7 !important;
-  color: #D4A373 !important;
-  box-shadow: none !important;
-  font-weight: 700 !important;
-  border-right: 3px solid #D4A373 !important;
-  border-radius: 12px 0 0 12px !important;
-}
-
-[data-theme="wedding"] .zto-nav-item.active .zto-nav-icon {
-  color: #D4A373 !important;
-  filter: none !important;
-}
-
-[data-theme="wedding"] .zto-btn-ghost {
-  color: #D4A373 !important;
-  border-color: #D4A373 !important;
-  background: transparent !important;
-}
-
-[data-theme="wedding"] .zto-btn-primary, [data-theme="wedding"] .btn-royal, [data-theme="wedding"] .zto-btn-glow {
-  background: #D4A373 !important;
-  color: white !important;
-  box-shadow: 0 4px 15px rgba(212, 163, 115, 0.3) !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

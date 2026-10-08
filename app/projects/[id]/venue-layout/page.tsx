@@ -875,7 +875,7 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
 
   const [searchQuery, setSearchQuery] = useState('');
   
-  if (loading) return <div className="flex items-center justify-center h-[60vh]"><i className="fa-solid fa-spinner fa-spin text-3xl text-[#0056B3]" /></div>;
+  if (loading) return <div className="flex items-center justify-center h-[60vh]"><i className="fa-solid fa-spinner fa-spin text-3xl text-accent" /></div>;
 
   const selectedCount = selectedIds.length;
 
@@ -884,8 +884,8 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
             {/* ── Page Header + Action Bar ── */}
             <div className="print:hidden flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12 px-6">
                 <div className="flex flex-col">
-                    <p className="text-xs font-black uppercase tracking-[0.2em] text-[#0056B3] mb-2">Spatial Architecture</p>
-                    <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tight leading-none font-['Urbanist']">
+                    <p className="text-xs font-black uppercase tracking-[0.2em] text-accent mb-2">Spatial Architecture</p>
+                    <h1 className="text-4xl md:text-5xl font-black text-ink uppercase tracking-tight leading-none font-display">
                         Venue Studio <span className="text-zinc-600 font-black ml-2 text-2xl uppercase">3D</span>
                     </h1>
                 </div>
@@ -913,8 +913,8 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
                 {/* ── Designer Console (Left) ── */}
                 <div className="w-full xl:w-72 flex flex-col gap-6 print:hidden">
                     {/* Primary Layout Engine */}
-                    <div className="bg-white/[0.03] border border-white/5 rounded-[32px] p-8 flex flex-col gap-6">
-                        <h3 className="text-[10px] font-black text-[#0056B3] uppercase tracking-[0.4em] mb-2">Structural Base</h3>
+                    <div className="bg-ink/[0.03] border border-ink/5 rounded-[32px] p-8 flex flex-col gap-6">
+                        <h3 className="text-[10px] font-black text-accent uppercase tracking-[0.4em] mb-2">Structural Base</h3>
                         <div className="flex flex-col gap-2">
                             {PRESETS.map((p) => (
                                 <button
@@ -922,8 +922,8 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
                                     onClick={() => switchPreset(p.key)}
                                     className={`px-4 py-3 rounded-2xl text-[9px] font-black uppercase tracking-widest text-left transition-all border ${
                                         layoutData?.selectedPreset === p.key
-                                            ? 'bg-[#0056B3]/10 border-[#0056B3]/40 text-[#4da3ff] shadow-[0_0_20px_rgba(0,86,179,0.1)]'
-                                            : 'bg-white/5 border-white/5 text-zinc-600 hover:bg-white/[0.08] hover:border-white/10'
+                                            ? 'bg-accent/10 border-accent/40 text-accent-bright shadow-[0_0_20px_rgba(0,86,179,0.1)]'
+                                            : 'bg-ink/5 border-ink/5 text-zinc-600 hover:bg-ink/[0.08] hover:border-ink/10'
                                     }`}
                                 >
                                     {p.name}
@@ -933,7 +933,7 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
                     </div>
 
                     {/* Studio Identity */}
-                    <div className="bg-white/[0.03] border border-white/5 rounded-[32px] p-8 flex flex-col gap-6">
+                    <div className="bg-ink/[0.03] border border-ink/5 rounded-[32px] p-8 flex flex-col gap-6">
                         <h3 className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.4em] mb-2">Venue Signature</h3>
                         <div>
                             <input 
@@ -941,13 +941,13 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
                                 value={layoutData?.venueName || ''} 
                                 onChange={(e) => setLayoutData(prev => prev ? { ...prev, venueName: e.target.value.toUpperCase() } : null)}
                                 placeholder="STUDIO TITLE..."
-                                className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-[10px] font-black text-white focus:border-[#0056B3]/40 outline-none transition-all uppercase placeholder:text-zinc-800"
+                                className="w-full bg-black/40 border border-ink/5 rounded-2xl px-5 py-4 text-[10px] font-black text-ink focus:border-accent/40 outline-none transition-all uppercase placeholder:text-zinc-800"
                             />
                         </div>
                     </div>
 
                     {/* Material Palette */}
-                    <div className="bg-white/[0.03] border border-white/5 rounded-[32px] p-8 flex flex-col gap-8">
+                    <div className="bg-ink/[0.03] border border-ink/5 rounded-[32px] p-8 flex flex-col gap-8">
                         <div>
                             <h3 className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.4em] mb-6">Material — Guests</h3>
                             <div className="space-y-6">
@@ -955,7 +955,7 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
                                     <label className="text-[8px] font-black text-zinc-700 uppercase tracking-widest mb-3 block">Surface Fabric</label>
                                     <div className="flex flex-wrap gap-2">
                                         {CLOTH_OPTIONS.map((c) => (
-                                            <button key={c.hex} onClick={() => updateGlobalColor('guestTable', c.hex)} className={`w-8 h-8 rounded-xl border-2 transition-all ${layoutData?.globalColors?.guestTable === c.hex ? 'border-[#0056B3] scale-110 shadow-[0_0_15px_rgba(0,86,179,0.3)]' : 'border-transparent hover:border-white/20'}`} style={{ backgroundColor: c.hex }} title={c.name} />
+                                            <button key={c.hex} onClick={() => updateGlobalColor('guestTable', c.hex)} className={`w-8 h-8 rounded-xl border-2 transition-all ${layoutData?.globalColors?.guestTable === c.hex ? 'border-accent scale-110 shadow-[0_0_15px_rgba(0,86,179,0.3)]' : 'border-transparent hover:border-ink/20'}`} style={{ backgroundColor: c.hex }} title={c.name} />
                                         ))}
                                     </div>
                                 </div>
@@ -963,14 +963,14 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
                                     <label className="text-[8px] font-black text-zinc-700 uppercase tracking-widest mb-3 block">Seating Architecture</label>
                                     <div className="flex flex-wrap gap-2">
                                         {CHAIR_OPTIONS.map((c) => (
-                                            <button key={c.hex} onClick={() => updateGlobalColor('guestChair', c.hex)} className={`w-8 h-8 rounded-xl border-2 transition-all ${layoutData?.globalColors?.guestChair === c.hex ? 'border-[#0056B3] scale-110 shadow-[0_0_15px_rgba(0,86,179,0.3)]' : 'border-transparent hover:border-white/20'}`} style={{ backgroundColor: c.hex }} title={c.name} />
+                                            <button key={c.hex} onClick={() => updateGlobalColor('guestChair', c.hex)} className={`w-8 h-8 rounded-xl border-2 transition-all ${layoutData?.globalColors?.guestChair === c.hex ? 'border-accent scale-110 shadow-[0_0_15px_rgba(0,86,179,0.3)]' : 'border-transparent hover:border-ink/20'}`} style={{ backgroundColor: c.hex }} title={c.name} />
                                         ))}
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="w-full h-px bg-white/5" />
+                        <div className="w-full h-px bg-ink/5" />
 
                         <div>
                             <h3 className="text-[10px] font-black text-pink-500/50 uppercase tracking-[0.4em] mb-6">Material — Bridal</h3>
@@ -996,7 +996,7 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
                     </div>
 
                     {/* Neural Assets */}
-                    <div className="bg-white/[0.03] border border-white/5 rounded-[32px] p-8 flex flex-col gap-6">
+                    <div className="bg-ink/[0.03] border border-ink/5 rounded-[32px] p-8 flex flex-col gap-6">
                         <h3 className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.4em] mb-2">Asset Intelligence</h3>
                         <div className="relative">
                             <i className="fa-solid fa-magnifying-glass absolute left-5 top-1/2 -translate-y-1/2 text-zinc-700 text-[10px]" />
@@ -1005,7 +1005,7 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
                                 placeholder="DECRYPT ASSETS..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value.toUpperCase())}
-                                className="w-full bg-black/40 border border-white/5 rounded-2xl pl-12 pr-5 py-3.5 text-[10px] font-black text-white focus:border-[#0056B3]/40 outline-none transition-all uppercase placeholder:text-zinc-800"
+                                className="w-full bg-black/40 border border-ink/5 rounded-2xl pl-12 pr-5 py-3.5 text-[10px] font-black text-ink focus:border-accent/40 outline-none transition-all uppercase placeholder:text-zinc-800"
                             />
                         </div>
                         <div className="flex flex-col gap-6 max-h-[400px] overflow-y-auto pr-4 custom-scrollbar">
@@ -1021,10 +1021,10 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
                                                 <button 
                                                     key={a.type} 
                                                     onClick={() => addAsset(a.type)}
-                                                    className="group flex items-center justify-between p-3.5 bg-white/5 border border-white/5 rounded-2xl hover:border-[#0056B3]/40 hover:bg-white/[0.08] transition-all"
+                                                    className="group flex items-center justify-between p-3.5 bg-ink/5 border border-ink/5 rounded-2xl hover:border-accent/40 hover:bg-ink/[0.08] transition-all"
                                                 >
-                                                    <span className="text-[10px] font-black text-zinc-500 uppercase tracking-tight group-hover:text-white">{a.name}</span>
-                                                    <i className="fa-solid fa-plus text-[9px] text-zinc-700 group-hover:text-[#4da3ff]" />
+                                                    <span className="text-[10px] font-black text-zinc-500 uppercase tracking-tight group-hover:text-ink">{a.name}</span>
+                                                    <i className="fa-solid fa-plus text-[9px] text-zinc-700 group-hover:text-accent-bright" />
                                                 </button>
                                             ))}
                                         </div>
@@ -1037,7 +1037,7 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
 
                 {/* ── Studio Viewport (Center) ── */}
                 <div className="flex-1 flex gap-8 relative">
-                    <div className="flex-1 relative h-[80vh] bg-black rounded-[48px] border border-white/5 overflow-hidden shadow-[0_0_80px_rgba(0,0,0,0.5)]">
+                    <div className="flex-1 relative h-[80vh] bg-canvas rounded-[48px] border border-ink/5 overflow-hidden shadow-[0_0_80px_rgba(0,0,0,0.5)]">
                         {isDragging && (
                             <div className="absolute top-8 left-1/2 -translate-x-1/2 z-20 px-6 py-2.5 bg-emerald-500/20 text-emerald-400 rounded-full text-[10px] font-black uppercase tracking-[0.3em] border border-emerald-500/30 backdrop-blur-xl shadow-[0_0_30px_rgba(16,185,129,0.2)]">
                                 Spatial Realignment Active
@@ -1077,9 +1077,9 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
 
                     {/* ── Property Editor (Right) ── */}
                     {selectedIds.length > 0 && (
-                        <div className="w-80 bg-white/[0.03] border border-white/5 rounded-[48px] p-10 flex flex-col gap-10 shrink-0 animate-in slide-in-from-right duration-500 backdrop-blur-xl">
+                        <div className="w-80 bg-ink/[0.03] border border-ink/5 rounded-[48px] p-10 flex flex-col gap-10 shrink-0 animate-in slide-in-from-right duration-500 backdrop-blur-xl">
                             <div className="flex justify-between items-center">
-                                <h3 className="text-[11px] font-black text-[#0056B3] uppercase tracking-[0.4em]">Properties</h3>
+                                <h3 className="text-[11px] font-black text-accent uppercase tracking-[0.4em]">Properties</h3>
                                 <button onClick={removeSelected} className="w-10 h-10 rounded-2xl bg-red-500/5 text-red-500/40 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center">
                                     <i className="fa-solid fa-trash-can text-sm" />
                                 </button>
@@ -1097,8 +1097,8 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
                                         <div className="flex flex-col gap-10">
                                             <div className="flex flex-col gap-3">
                                                 <label className="text-[9px] font-black text-zinc-700 uppercase tracking-widest">Entity Signature</label>
-                                                <div className="bg-black/40 border border-white/5 rounded-2xl p-5">
-                                                    <p className="text-xs font-black text-white font-mono tracking-widest uppercase">{asset.id}</p>
+                                                <div className="bg-black/40 border border-ink/5 rounded-2xl p-5">
+                                                    <p className="text-xs font-black text-ink font-mono tracking-widest uppercase">{asset.id}</p>
                                                     <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest mt-2">Class: {asset.type}</p>
                                                 </div>
                                             </div>
@@ -1113,7 +1113,7 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
                                                                 type="number" step="0.1" 
                                                                 value={asset.w || 0} 
                                                                 onChange={(e) => updateAssetProp(asset.id, 'w', parseFloat(e.target.value))}
-                                                                className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-3 text-xs font-black text-white outline-none focus:border-[#0056B3]/40"
+                                                                className="w-full bg-black/40 border border-ink/5 rounded-2xl px-5 py-3 text-xs font-black text-ink outline-none focus:border-accent/40"
                                                             />
                                                         </div>
                                                         <div className="flex flex-col gap-3">
@@ -1122,7 +1122,7 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
                                                                 type="number" step="0.1" 
                                                                 value={asset.d || 0} 
                                                                 onChange={(e) => updateAssetProp(asset.id, 'd', parseFloat(e.target.value))}
-                                                                className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-3 text-xs font-black text-white outline-none focus:border-[#0056B3]/40"
+                                                                className="w-full bg-black/40 border border-ink/5 rounded-2xl px-5 py-3 text-xs font-black text-ink outline-none focus:border-accent/40"
                                                             />
                                                         </div>
                                                     </div>
@@ -1133,7 +1133,7 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
                                                                 type="number" step="0.1" 
                                                                 value={asset.h || 0} 
                                                                 onChange={(e) => updateAssetProp(asset.id, 'h', parseFloat(e.target.value))}
-                                                                className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-3 text-xs font-black text-white outline-none focus:border-[#0056B3]/40"
+                                                                className="w-full bg-black/40 border border-ink/5 rounded-2xl px-5 py-3 text-xs font-black text-ink outline-none focus:border-accent/40"
                                                             />
                                                         </div>
                                                     )}
@@ -1144,10 +1144,10 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
                                             {(!isTable && ['marquee-tent', 'transparent-marquee', 'arabian-canopy'].includes(asset.type)) && (
                                                 <div className="flex flex-col gap-4">
                                                     <label className="text-[9px] font-black text-zinc-700 uppercase tracking-widest">Modular Sequence</label>
-                                                    <div className="flex items-center justify-between bg-black/40 border border-white/5 rounded-2xl p-4">
-                                                        <button onClick={() => updateAssetProp(asset.id, 'segments', Math.max(1, (asset.segments || 1) - 1))} className="w-10 h-10 rounded-xl bg-white/5 text-white hover:bg-[#0056B3] transition-all flex items-center justify-center font-black">-</button>
-                                                        <span className="text-2xl font-black text-white font-['Urbanist']">{asset.segments || 1}</span>
-                                                        <button onClick={() => updateAssetProp(asset.id, 'segments', (asset.segments || 1) + 1)} className="w-10 h-10 rounded-xl bg-white/5 text-white hover:bg-[#0056B3] transition-all flex items-center justify-center font-black">+</button>
+                                                    <div className="flex items-center justify-between bg-black/40 border border-ink/5 rounded-2xl p-4">
+                                                        <button onClick={() => updateAssetProp(asset.id, 'segments', Math.max(1, (asset.segments || 1) - 1))} className="w-10 h-10 rounded-xl bg-ink/5 text-white hover:bg-accent transition-all flex items-center justify-center font-black">-</button>
+                                                        <span className="text-2xl font-black text-ink font-display">{asset.segments || 1}</span>
+                                                        <button onClick={() => updateAssetProp(asset.id, 'segments', (asset.segments || 1) + 1)} className="w-10 h-10 rounded-xl bg-ink/5 text-white hover:bg-accent transition-all flex items-center justify-center font-black">+</button>
                                                     </div>
                                                 </div>
                                             )}
@@ -1156,13 +1156,13 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
                                             <div className="flex flex-col gap-4">
                                                 <div className="flex justify-between items-center">
                                                     <label className="text-[9px] font-black text-zinc-700 uppercase tracking-widest">Azimuth (Deg)</label>
-                                                    <span className="text-[10px] font-black text-[#4da3ff] font-mono">{((asset.r || 0) * (180/Math.PI)).toFixed(0)}°</span>
+                                                    <span className="text-[10px] font-black text-accent-bright font-mono">{((asset.r || 0) * (180/Math.PI)).toFixed(0)}°</span>
                                                 </div>
                                                 <input 
                                                     type="range" min="0" max={Math.PI * 2} step="0.01"
                                                     value={asset.r || 0} 
                                                     onChange={(e) => updateAssetProp(asset.id, 'r', parseFloat(e.target.value))}
-                                                    className="w-full h-1.5 bg-white/5 rounded-full appearance-none accent-[#0056B3] cursor-pointer"
+                                                    className="w-full h-1.5 bg-ink/5 rounded-full appearance-none accent-accent cursor-pointer"
                                                 />
                                             </div>
 
@@ -1172,10 +1172,10 @@ export default function VenueLayoutPage({ params }: { params: Promise<{ id: stri
                                                     <label className="text-[9px] font-black text-zinc-700 uppercase tracking-widest">Individual Material</label>
                                                     <div className="flex flex-wrap gap-2.5">
                                                         {CLOTH_OPTIONS.map(c => (
-                                                            <button key={c.hex} onClick={() => updateAssetProp(asset.id, 'color', c.hex)} className={`w-7 h-7 rounded-lg border-2 ${asset.color === c.hex ? 'border-[#0056B3] scale-110' : 'border-transparent'}`} style={{ backgroundColor: c.hex }} />
+                                                            <button key={c.hex} onClick={() => updateAssetProp(asset.id, 'color', c.hex)} className={`w-7 h-7 rounded-lg border-2 ${asset.color === c.hex ? 'border-accent scale-110' : 'border-transparent'}`} style={{ backgroundColor: c.hex }} />
                                                         ))}
-                                                        <button onClick={() => updateAssetProp(asset.id, 'color', '#ffffff')} className={`w-7 h-7 rounded-lg border-2 bg-white ${asset.color === '#ffffff' ? 'border-[#0056B3]' : 'border-transparent'}`} />
-                                                        <button onClick={() => updateAssetProp(asset.id, 'color', '#111111')} className={`w-7 h-7 rounded-lg border-2 bg-zinc-900 ${asset.color === '#111111' ? 'border-[#0056B3]' : 'border-transparent'}`} />
+                                                        <button onClick={() => updateAssetProp(asset.id, 'color', '#ffffff')} className={`w-7 h-7 rounded-lg border-2 bg-white ${asset.color === '#ffffff' ? 'border-accent' : 'border-transparent'}`} />
+                                                        <button onClick={() => updateAssetProp(asset.id, 'color', '#111111')} className={`w-7 h-7 rounded-lg border-2 bg-zinc-900 ${asset.color === '#111111' ? 'border-accent' : 'border-transparent'}`} />
                                                     </div>
                                                 </div>
                                             )}

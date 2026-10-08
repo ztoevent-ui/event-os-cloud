@@ -188,8 +188,8 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
   // ── Loading ──────────────────────────────────────────────────────────────────
   if (loading) return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 300, gap: 16, opacity: 0.5 }}>
-      <div style={{ width: 36, height: 36, border: '2px solid rgba(0,86,179,0.2)', borderTopColor: '#0056B3', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-      <p style={{ color: '#0056B3', fontSize: 10, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase' }}>
+      <div style={{ width: 36, height: 36, border: '2px solid rgb(var(--c-accent-rgb) / 0.2)', borderTopColor: 'var(--c-accent)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+      <p style={{ color: 'var(--c-accent)', fontSize: 10, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase' }}>
         Syncing Sequence Data...
       </p>
       <style jsx>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
@@ -198,7 +198,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
 
   // ── Kiosk Mode ───────────────────────────────────────────────────────────────
   if (isKiosk) return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 2000, background: '#050505', overflowY: 'auto', padding: '48px 64px 120px' }}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 2000, background: 'var(--c-canvas)', overflowY: 'auto', padding: '48px 64px 120px' }}>
       <div style={{ position: 'fixed', bottom: 32, right: 32, zIndex: 2100 }}>
         <button
           onClick={() => setIsKiosk(false)}
@@ -208,9 +208,9 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
           <i className="fa-solid fa-compress" /> EXIT KIOSK
         </button>
       </div>
-      <div style={{ marginBottom: 32, paddingBottom: 20, borderBottom: '1px solid rgba(0,86,179,0.2)' }}>
+      <div style={{ marginBottom: 32, paddingBottom: 20, borderBottom: '1px solid rgb(var(--c-accent-rgb) / 0.2)' }}>
         <div className="zto-label" style={{ marginBottom: 8 }}>Tentative Program</div>
-        <h1 style={{ margin: 0, fontSize: 32, fontWeight: 800, color: '#fff', textTransform: 'uppercase', letterSpacing: '-0.02em' }}>
+        <h1 style={{ margin: 0, fontSize: 32, fontWeight: 800, color: 'var(--c-ink)', textTransform: 'uppercase', letterSpacing: '-0.02em' }}>
           {project?.name}
         </h1>
       </div>
@@ -222,7 +222,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
             ...(row.is_important ? { background: 'rgba(239,68,68,0.05)', borderColor: 'rgba(239,68,68,0.3)' } : {}),
           }}>
             <div style={{ minWidth: 120, flexShrink: 0 }}>
-              <span style={{ fontSize: 24, fontWeight: 800, color: '#DEFF9A', letterSpacing: '0.02em' }}>
+              <span style={{ fontSize: 24, fontWeight: 800, color: 'var(--c-accent-2)', letterSpacing: '0.02em' }}>
                 {row.time || '—'}
               </span>
             </div>
@@ -231,16 +231,16 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
                 {row.activities}
               </div>
               <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '4px' }}>
-                {row.pic && <div style={{ fontSize: 13, color: '#4da3ff', fontWeight: 600 }}><i className="fa-solid fa-user-tie" style={{ marginRight: 6 }} />{row.pic}</div>}
+                {row.pic && <div style={{ fontSize: 13, color: 'var(--c-accent-bright)', fontWeight: 600 }}><i className="fa-solid fa-user-tie" style={{ marginRight: 6 }} />{row.pic}</div>}
                 {row.course && <div style={{ fontSize: 13, color: '#f59e0b', fontWeight: 600 }}><i className="fa-solid fa-utensils" style={{ marginRight: 6 }} />{row.course}</div>}
               </div>
-              {row.movement && <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginBottom: 3 }}>{row.movement}</div>}
-              {row.cues && <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>{row.cues}</div>}
+              {row.movement && <div style={{ fontSize: 13, color: 'rgb(var(--c-ink-rgb) / 0.5)', marginBottom: 3 }}>{row.movement}</div>}
+              {row.cues && <div style={{ fontSize: 12, color: 'rgb(var(--c-ink-rgb) / 0.35)' }}>{row.cues}</div>}
             </div>
             {(row.song || row.volume) && (
               <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                {row.song && <div style={{ fontSize: 13, color: '#4da3ff', fontWeight: 600 }}><i className="fa-solid fa-music" style={{ marginRight: 6 }} />{row.song}</div>}
-                {row.volume && <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 4 }}>{row.volume}</div>}
+                {row.song && <div style={{ fontSize: 13, color: 'var(--c-accent-bright)', fontWeight: 600 }}><i className="fa-solid fa-music" style={{ marginRight: 6 }} />{row.song}</div>}
+                {row.volume && <div style={{ fontSize: 11, color: 'rgb(var(--c-ink-rgb) / 0.3)', marginTop: 4 }}>{row.volume}</div>}
               </div>
             )}
           </div>
@@ -265,7 +265,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16 }} className="print:hidden">
         <div>
           <div className="zto-label" style={{ marginBottom: 8 }}>Project Sequence</div>
-          <h1 style={{ fontSize: 'clamp(1.8rem, 4vw, 3rem)', fontWeight: 800, color: '#fff', textTransform: 'uppercase', letterSpacing: '-0.02em', lineHeight: 1 }}>
+          <h1 style={{ fontSize: 'clamp(1.8rem, 4vw, 3rem)', fontWeight: 800, color: 'var(--c-ink)', textTransform: 'uppercase', letterSpacing: '-0.02em', lineHeight: 1 }}>
             {project?.name || 'Tentative Program'}
           </h1>
         </div>
@@ -314,9 +314,9 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
         >
           <div
             style={{
-              background: '#0a0a0a', border: '1px solid rgba(0,86,179,0.3)',
+              background: 'var(--c-surface-solid)', border: '1px solid rgb(var(--c-accent-rgb) / 0.3)',
               borderRadius: 24, padding: 32, maxWidth: 520, width: '100%',
-              boxShadow: '0 0 80px rgba(0,86,179,0.2)',
+              boxShadow: '0 0 80px rgb(var(--c-accent-rgb) / 0.2)',
             }}
             onClick={e => e.stopPropagation()}
           >
@@ -326,19 +326,19 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
                   <div style={{
                     width: 36, height: 36, borderRadius: 12,
-                    background: 'linear-gradient(135deg, #0056B3, #003d82)',
+                    background: 'linear-gradient(135deg, var(--c-accent), #003d82)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    boxShadow: '0 0 16px rgba(0,86,179,0.5)',
+                    boxShadow: '0 0 16px rgb(var(--c-accent-rgb) / 0.5)',
                   }}>
-                    <i className="fa-solid fa-share-nodes" style={{ color: '#fff', fontSize: 14 }} />
+                    <i className="fa-solid fa-share-nodes" style={{ color: 'var(--c-ink)', fontSize: 14 }} />
                   </div>
-                  <h3 style={{ fontSize: 20, fontWeight: 900, color: '#fff', textTransform: 'uppercase', letterSpacing: '-0.01em' }}>Share Program</h3>
+                  <h3 style={{ fontSize: 20, fontWeight: 900, color: 'var(--c-ink)', textTransform: 'uppercase', letterSpacing: '-0.01em' }}>Share Program</h3>
                 </div>
-                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>Anyone with this link can view the latest program — no login required.</p>
+                <p style={{ fontSize: 12, color: 'rgb(var(--c-ink-rgb) / 0.4)', fontWeight: 600 }}>Anyone with this link can view the latest program — no login required.</p>
               </div>
               <button
                 onClick={() => setShowShareModal(false)}
-                style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: 18, padding: 4 }}
+                style={{ background: 'none', border: 'none', color: 'rgb(var(--c-ink-rgb) / 0.4)', cursor: 'pointer', fontSize: 18, padding: 4 }}
               >
                 <i className="fa-solid fa-xmark" />
               </button>
@@ -346,14 +346,14 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
 
             {/* Link Box */}
             <div style={{
-              background: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(255,255,255,0.1)',
+              background: 'rgb(var(--c-ink-rgb) / 0.03)',
+              border: '1px solid rgb(var(--c-ink-rgb) / 0.1)',
               borderRadius: 14, padding: '14px 16px', marginBottom: 16,
               display: 'flex', alignItems: 'center', gap: 12,
             }}>
-              <i className="fa-solid fa-link" style={{ color: '#4da3ff', fontSize: 12, flexShrink: 0 }} />
+              <i className="fa-solid fa-link" style={{ color: 'var(--c-accent-bright)', fontSize: 12, flexShrink: 0 }} />
               <span style={{
-                flex: 1, fontSize: 12, color: 'rgba(255,255,255,0.6)',
+                flex: 1, fontSize: 12, color: 'rgb(var(--c-ink-rgb) / 0.6)',
                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
               }}>
                 {typeof window !== 'undefined' ? `${window.location.origin}/share/program/${shareToken}` : ''}
@@ -365,21 +365,21 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
               onClick={copyShareLink}
               style={{
                 width: '100%', padding: '14px',
-                background: copySuccess ? 'rgba(222,255,154,0.1)' : '#0056B3',
-                border: copySuccess ? '1px solid rgba(222,255,154,0.4)' : 'none',
-                color: copySuccess ? '#DEFF9A' : '#fff',
+                background: copySuccess ? 'rgb(var(--c-accent-2-rgb) / 0.1)' : 'var(--c-accent)',
+                border: copySuccess ? '1px solid rgb(var(--c-accent-2-rgb) / 0.4)' : 'none',
+                color: copySuccess ? 'var(--c-accent-2)' : '#fff',
                 borderRadius: 14, fontSize: 13, fontWeight: 700,
                 cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                 transition: 'all 0.2s ease',
-                boxShadow: copySuccess ? '0 0 20px rgba(222,255,154,0.3)' : '0 0 20px rgba(0,86,179,0.4)',
+                boxShadow: copySuccess ? '0 0 20px rgb(var(--c-accent-2-rgb) / 0.3)' : '0 0 20px rgb(var(--c-accent-rgb) / 0.4)',
               }}
             >
               <i className={`fa-solid ${copySuccess ? 'fa-circle-check' : 'fa-copy'}`} />
               {copySuccess ? 'Copied!' : 'Copy Link'}
             </button>
 
-            <div style={{ marginTop: 16, fontSize: 10, color: 'rgba(255,255,255,0.2)', textAlign: 'center', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+            <div style={{ marginTop: 16, fontSize: 10, color: 'rgb(var(--c-ink-rgb) / 0.2)', textAlign: 'center', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
               Read-only · Live data · No account needed
             </div>
           </div>
@@ -390,8 +390,8 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
       <div className={layoutType === 'table' ? 'print:hidden' : ''} style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingTop: 4 }}>
         {rows.length === 0 ? (
           <div className="zto-card" style={{ textAlign: 'center', padding: 64 }}>
-            <i className="fa-solid fa-clipboard-list" style={{ fontSize: 40, color: 'rgba(255,255,255,0.08)', marginBottom: 20 }} />
-            <h3 style={{ fontSize: 16, fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 24 }}>
+            <i className="fa-solid fa-clipboard-list" style={{ fontSize: 40, color: 'rgb(var(--c-ink-rgb) / 0.08)', marginBottom: 20 }} />
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: 'rgb(var(--c-ink-rgb) / 0.4)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 24 }}>
               No Sequence Defined
             </h3>
             <button onClick={addRow} className="zto-btn zto-btn-primary">
@@ -549,7 +549,7 @@ function RowCard({ row, editMode, updateCell, removeRow, toggleImportant, isPlac
   const inputStyle: React.CSSProperties = {
     background: 'transparent',
     border: 'none',
-    borderBottom: '1px solid rgba(255,255,255,0.12)',
+    borderBottom: '1px solid rgb(var(--c-ink-rgb) / 0.12)',
     outline: 'none',
     color: 'inherit',
 
@@ -562,8 +562,8 @@ function RowCard({ row, editMode, updateCell, removeRow, toggleImportant, isPlac
   return (
       <div
         style={{
-          background: isPlaceholder ? 'rgba(255,255,255,0.02)' : (row.is_important ? 'rgba(239,68,68,0.05)' : 'rgba(255,255,255,0.025)'),
-          border: isPlaceholder ? '2px dashed rgba(222,255,154,0.4)' : (row.is_important ? '1px solid rgba(239,68,68,0.3)' : '1px solid rgba(0,86,179,0.25)'),
+          background: isPlaceholder ? 'rgb(var(--c-ink-rgb) / 0.02)' : (row.is_important ? 'rgba(239,68,68,0.05)' : 'rgb(var(--c-ink-rgb) / 0.025)'),
+          border: isPlaceholder ? '2px dashed rgb(var(--c-accent-2-rgb) / 0.4)' : (row.is_important ? '1px solid rgba(239,68,68,0.3)' : '1px solid rgb(var(--c-accent-rgb) / 0.25)'),
           borderRadius: 20,
           padding: '24px 28px',
           display: 'flex',
@@ -580,8 +580,8 @@ function RowCard({ row, editMode, updateCell, removeRow, toggleImportant, isPlac
             zIndex: 9999,
           } : {})
         }}
-        onMouseEnter={e => { if (!isPlaceholder && !isOverlay) (e.currentTarget as HTMLDivElement).style.borderColor = row.is_important ? 'rgba(239,68,68,0.5)' : 'rgba(0,86,179,0.5)'; }}
-        onMouseLeave={e => { if (!isPlaceholder && !isOverlay) (e.currentTarget as HTMLDivElement).style.borderColor = row.is_important ? 'rgba(239,68,68,0.3)' : 'rgba(0,86,179,0.25)'; }}
+        onMouseEnter={e => { if (!isPlaceholder && !isOverlay) (e.currentTarget as HTMLDivElement).style.borderColor = row.is_important ? 'rgba(239,68,68,0.5)' : 'rgb(var(--c-accent-rgb) / 0.5)'; }}
+        onMouseLeave={e => { if (!isPlaceholder && !isOverlay) (e.currentTarget as HTMLDivElement).style.borderColor = row.is_important ? 'rgba(239,68,68,0.3)' : 'rgb(var(--c-accent-rgb) / 0.25)'; }}
       >
         {/* Left accent line for important */}
         {row.is_important && !isPlaceholder && (
@@ -600,10 +600,10 @@ function RowCard({ row, editMode, updateCell, removeRow, toggleImportant, isPlac
               value={row.time}
               onChange={e => updateCell(row.id, 'time', e.target.value, false)}
               placeholder="08:00"
-              style={{ ...inputStyle, color: '#DEFF9A', fontSize: 20, fontWeight: 800, width: 100 }}
+              style={{ ...inputStyle, color: 'var(--c-accent-2)', fontSize: 20, fontWeight: 800, width: 100 }}
             />
           ) : (
-            <div style={{ fontSize: 20, fontWeight: 800, color: '#DEFF9A', letterSpacing: '0.02em' }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--c-accent-2)', letterSpacing: '0.02em' }}>
               {row.time || '—'}
             </div>
           )}
@@ -617,14 +617,14 @@ function RowCard({ row, editMode, updateCell, removeRow, toggleImportant, isPlac
               value={row.activities}
               onChange={e => updateCell(row.id, 'activities', e.target.value, false)}
               placeholder="Activity / Programme Title"
-              style={{ ...inputStyle, color: '#fff', fontSize: 16, fontWeight: 700 }}
+              style={{ ...inputStyle, color: 'var(--c-ink)', fontSize: 16, fontWeight: 700 }}
             />
           ) : (
             <div style={{
               fontSize: 16, fontWeight: 700,
               color: row.is_important ? '#f87171' : '#fff',
             }}>
-              {row.activities || <span style={{ color: 'rgba(255,255,255,0.15)' }}>—</span>}
+              {row.activities || <span style={{ color: 'rgb(var(--c-ink-rgb) / 0.15)' }}>—</span>}
             </div>
           )}
 
@@ -632,15 +632,15 @@ function RowCard({ row, editMode, updateCell, removeRow, toggleImportant, isPlac
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginTop: 4 }}>
             {editMode && !isOverlay ? (
               <>
-                <input value={row.pic} onChange={e => updateCell(row.id, 'pic', e.target.value, false)} placeholder="PIC" style={{ ...inputStyle, fontSize: 12, color: '#4da3ff', width: 100 }} />
+                <input value={row.pic} onChange={e => updateCell(row.id, 'pic', e.target.value, false)} placeholder="PIC" style={{ ...inputStyle, fontSize: 12, color: 'var(--c-accent-bright)', width: 100 }} />
                 <input value={row.course} onChange={e => updateCell(row.id, 'course', e.target.value, false)} placeholder="Course Seq" style={{ ...inputStyle, fontSize: 12, color: '#f59e0b', width: 100 }} />
-                <input value={row.movement} onChange={e => updateCell(row.id, 'movement', e.target.value, false)} placeholder="Movement" style={{ ...inputStyle, fontSize: 12, color: 'rgba(255,255,255,0.5)', width: 140 }} />
-                <input value={row.cues} onChange={e => updateCell(row.id, 'cues', e.target.value, false)} placeholder="Staff cue / note" style={{ ...inputStyle, fontSize: 12, color: 'rgba(255,255,255,0.5)', flex: 1, minWidth: 120 }} />
+                <input value={row.movement} onChange={e => updateCell(row.id, 'movement', e.target.value, false)} placeholder="Movement" style={{ ...inputStyle, fontSize: 12, color: 'rgb(var(--c-ink-rgb) / 0.5)', width: 140 }} />
+                <input value={row.cues} onChange={e => updateCell(row.id, 'cues', e.target.value, false)} placeholder="Staff cue / note" style={{ ...inputStyle, fontSize: 12, color: 'rgb(var(--c-ink-rgb) / 0.5)', flex: 1, minWidth: 120 }} />
               </>
             ) : (
               <>
                 {row.pic && (
-                  <span style={{ fontSize: 12, color: '#4da3ff', display: 'flex', alignItems: 'center', gap: 5, fontWeight: 600 }}>
+                  <span style={{ fontSize: 12, color: 'var(--c-accent-bright)', display: 'flex', alignItems: 'center', gap: 5, fontWeight: 600 }}>
                     <i className="fa-solid fa-user-tie" style={{ fontSize: 10 }} /> {row.pic}
                   </span>
                 )}
@@ -650,12 +650,12 @@ function RowCard({ row, editMode, updateCell, removeRow, toggleImportant, isPlac
                   </span>
                 )}
                 {row.movement && (
-                  <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <span style={{ fontSize: 12, color: 'rgb(var(--c-ink-rgb) / 0.45)', display: 'flex', alignItems: 'center', gap: 5 }}>
                     <i className="fa-solid fa-person-walking" style={{ fontSize: 10 }} /> {row.movement}
                   </span>
                 )}
                 {row.cues && (
-                  <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <span style={{ fontSize: 12, color: 'rgb(var(--c-ink-rgb) / 0.35)', display: 'flex', alignItems: 'center', gap: 5 }}>
                     <i className="fa-solid fa-comment-dots" style={{ fontSize: 10 }} /> {row.cues}
                   </span>
                 )}
@@ -668,18 +668,18 @@ function RowCard({ row, editMode, updateCell, removeRow, toggleImportant, isPlac
         <div style={{ minWidth: 130, flexShrink: 0, textAlign: 'right', opacity: isPlaceholder ? 0.3 : 1 }}>
           {editMode && !isOverlay ? (
             <>
-              <input value={row.song} onChange={e => updateCell(row.id, 'song', e.target.value, false)} placeholder="BGM" style={{ ...inputStyle, fontSize: 12, color: '#4da3ff', textAlign: 'right' }} />
-              <input value={row.volume} onChange={e => updateCell(row.id, 'volume', e.target.value, false)} placeholder="Vol" style={{ ...inputStyle, fontSize: 11, color: 'rgba(255,255,255,0.35)', textAlign: 'right', marginTop: 4 }} />
+              <input value={row.song} onChange={e => updateCell(row.id, 'song', e.target.value, false)} placeholder="BGM" style={{ ...inputStyle, fontSize: 12, color: 'var(--c-accent-bright)', textAlign: 'right' }} />
+              <input value={row.volume} onChange={e => updateCell(row.id, 'volume', e.target.value, false)} placeholder="Vol" style={{ ...inputStyle, fontSize: 11, color: 'rgb(var(--c-ink-rgb) / 0.35)', textAlign: 'right', marginTop: 4 }} />
             </>
           ) : (
             <>
               {row.song && (
-                <div style={{ fontSize: 12, color: '#4da3ff', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 5 }}>
+                <div style={{ fontSize: 12, color: 'var(--c-accent-bright)', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 5 }}>
                   <i className="fa-solid fa-music" style={{ fontSize: 10 }} /> {row.song}
                 </div>
               )}
               {row.volume && (
-                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 4 }}>{row.volume}</div>
+                <div style={{ fontSize: 11, color: 'rgb(var(--c-ink-rgb) / 0.3)', marginTop: 4 }}>{row.volume}</div>
               )}
             </>
           )}
@@ -689,7 +689,7 @@ function RowCard({ row, editMode, updateCell, removeRow, toggleImportant, isPlac
         {editMode && (
           <div style={{
             display: 'flex', flexDirection: 'column', gap: 8,
-            borderLeft: '1px solid rgba(255,255,255,0.07)',
+            borderLeft: '1px solid rgb(var(--c-ink-rgb) / 0.07)',
             paddingLeft: 20, marginLeft: 4, flexShrink: 0,
             opacity: isPlaceholder ? 0.3 : 1
           }}>
@@ -699,11 +699,11 @@ function RowCard({ row, editMode, updateCell, removeRow, toggleImportant, isPlac
               {...(dragAttributes || {})} {...(dragListeners || {})}
               title="Hold & drag to reorder"
               style={{
-                background: 'rgba(222,255,154,0.08)',
-                border: '1px solid rgba(222,255,154,0.2)',
+                background: 'rgb(var(--c-accent-2-rgb) / 0.08)',
+                border: '1px solid rgb(var(--c-accent-2-rgb) / 0.2)',
                 borderRadius: 10,
                 cursor: 'grab',
-                color: '#DEFF9A',
+                color: 'var(--c-accent-2)',
                 minWidth: 48,
                 minHeight: 48,
                 display: 'flex',
@@ -722,16 +722,16 @@ function RowCard({ row, editMode, updateCell, removeRow, toggleImportant, isPlac
                 <button
                   onClick={() => toggleImportant(row.id)}
                   title="Mark important"
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: row.is_important ? '#ef4444' : 'rgba(255,255,255,0.2)', padding: 4, fontSize: 14 }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: row.is_important ? '#ef4444' : 'rgb(var(--c-ink-rgb) / 0.2)', padding: 4, fontSize: 14 }}
                 >
                   <i className="fa-solid fa-flag" />
                 </button>
                 <button
                   onClick={() => removeRow(row.id)}
                   title="Delete row"
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.2)', padding: 4, fontSize: 13 }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgb(var(--c-ink-rgb) / 0.2)', padding: 4, fontSize: 13 }}
                   onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#ef4444'; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.2)'; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgb(var(--c-ink-rgb) / 0.2)'; }}
                 >
                   <i className="fa-solid fa-trash-can" />
                 </button>

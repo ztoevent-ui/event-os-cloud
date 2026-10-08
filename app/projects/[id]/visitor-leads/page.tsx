@@ -148,10 +148,10 @@ function VisitorLeadsContent() {
       {/* ── Header Row ── */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h2 style={{ fontSize: 22, fontWeight: 800, color: '#fff', letterSpacing: '-0.02em', marginBottom: 4 }}>
+          <h2 style={{ fontSize: 22, fontWeight: 800, color: 'var(--c-ink)', letterSpacing: '-0.02em', marginBottom: 4 }}>
             Visitor Leads
           </h2>
-          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)' }}>
+          <p style={{ fontSize: 13, color: 'rgb(var(--c-ink-rgb) / 0.4)' }}>
             Booth check-in & lead capture for this event
           </p>
         </div>
@@ -169,9 +169,9 @@ function VisitorLeadsContent() {
       {/* ── KPI Row ── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 14 }}>
         {[
-          { label: 'Total Leads', val: totalLeads, color: '#4da3ff' },
+          { label: 'Total Leads', val: totalLeads, color: 'var(--c-accent-bright)' },
           { label: 'Today', val: `+${todayLeads}`, color: '#39FF14' },
-          { label: 'Showing', val: filteredVisitors.length, color: '#fff' },
+          { label: 'Showing', val: filteredVisitors.length, color: 'var(--c-ink)' },
           { label: 'Intention Rate', val: `${intentionRate}%`, color: '#a855f7' },
         ].map(k => (
           <div key={k.label} className="zto-card zto-card-sm" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -197,11 +197,11 @@ function VisitorLeadsContent() {
           {/* Table */}
           <div className="zto-card" style={{ padding: 0, overflow: 'hidden' }}>
             {loading ? (
-              <div style={{ padding: '60px 20px', textAlign: 'center', color: 'rgba(255,255,255,0.3)' }}>Loading...</div>
+              <div style={{ padding: '60px 20px', textAlign: 'center', color: 'rgb(var(--c-ink-rgb) / 0.3)' }}>Loading...</div>
             ) : filteredVisitors.length === 0 ? (
-              <div style={{ padding: '60px 20px', textAlign: 'center', color: 'rgba(255,255,255,0.3)' }}>
+              <div style={{ padding: '60px 20px', textAlign: 'center', color: 'rgb(var(--c-ink-rgb) / 0.3)' }}>
                 No visitors yet.{' '}
-                <button onClick={() => setTab('register')} style={{ color: '#4da3ff', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700 }}>
+                <button onClick={() => setTab('register')} style={{ color: 'var(--c-accent-bright)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700 }}>
                   Add the first one →
                 </button>
               </div>
@@ -209,7 +209,7 @@ function VisitorLeadsContent() {
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
-                    <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                    <tr style={{ borderBottom: '1px solid rgb(var(--c-ink-rgb) / 0.06)' }}>
                       {['Time', 'Name', 'Phone', 'Company', 'Interests'].map(h => (
                         <th key={h} style={s.th}>{h}</th>
                       ))}
@@ -217,11 +217,11 @@ function VisitorLeadsContent() {
                   </thead>
                   <tbody>
                     {filteredVisitors.map((v, idx) => (
-                      <tr key={v.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)', background: idx % 2 === 1 ? 'rgba(255,255,255,0.01)' : 'transparent' }}>
+                      <tr key={v.id} style={{ borderBottom: '1px solid rgb(var(--c-ink-rgb) / 0.03)', background: idx % 2 === 1 ? 'rgb(var(--c-ink-rgb) / 0.01)' : 'transparent' }}>
                         <td style={{ ...s.td, color: '#666', fontSize: 12, whiteSpace: 'nowrap' }}>
                           {new Date(v.registered_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
                         </td>
-                        <td style={{ ...s.td }}><strong style={{ color: '#fff' }}>{v.visitor_name}</strong></td>
+                        <td style={{ ...s.td }}><strong style={{ color: 'var(--c-ink)' }}>{v.visitor_name}</strong></td>
                         <td style={s.td}>{v.phone}</td>
                         <td style={s.td}>{v.company || '-'}</td>
                         <td style={s.td}>
@@ -242,8 +242,8 @@ function VisitorLeadsContent() {
       ) : (
         /* ── Inline Register Form ── */
         <div className="zto-card" style={{ maxWidth: 560 }}>
-          <h3 style={{ fontSize: 16, fontWeight: 800, color: '#fff', marginBottom: 4 }}>Register Visitor</h3>
-          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', marginBottom: 28 }}>
+          <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--c-ink)', marginBottom: 4 }}>Register Visitor</h3>
+          <p style={{ fontSize: 13, color: 'rgb(var(--c-ink-rgb) / 0.4)', marginBottom: 28 }}>
             Walk-in check-in — linked to this project automatically.
           </p>
 
@@ -253,7 +253,7 @@ function VisitorLeadsContent() {
                 <CheckIcon className="w-7 h-7" style={{ width: 28, height: 28, color: '#39FF14', stroke: '#39FF14' } as React.CSSProperties} />
               </div>
               <span style={{ fontWeight: 800, color: '#39FF14', fontSize: 18 }}>Registered!</span>
-              <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>Ready for next visitor...</span>
+              <span style={{ color: 'rgb(var(--c-ink-rgb) / 0.4)', fontSize: 13 }}>Ready for next visitor...</span>
             </div>
           ) : (
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
@@ -271,24 +271,24 @@ function VisitorLeadsContent() {
                 <input required type="tel" value={phone} onChange={e => setPhone(e.target.value)} disabled={isSubmitting} className="zto-input" placeholder="+60 12 345 6789" />
               </div>
               <div>
-                <label style={s.label}>Company <span style={{ color: 'rgba(255,255,255,0.3)' }}>(Optional)</span></label>
+                <label style={s.label}>Company <span style={{ color: 'rgb(var(--c-ink-rgb) / 0.3)' }}>(Optional)</span></label>
                 <input value={company} onChange={e => setCompany(e.target.value)} disabled={isSubmitting} className="zto-input" placeholder="Acme Corp" />
               </div>
               <div>
                 <label style={{ ...s.label, marginBottom: 10 }}>Interested In</label>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                   {INTEREST_OPTIONS.map(opt => (
-                    <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 10, border: `1px solid ${interest.includes(opt) ? '#4169E1' : 'rgba(255,255,255,0.1)'}`, background: interest.includes(opt) ? 'rgba(65,105,225,0.1)' : 'rgba(255,255,255,0.02)', cursor: 'pointer', transition: 'all 0.15s' }}>
+                    <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 10, border: `1px solid ${interest.includes(opt) ? '#4169E1' : 'rgb(var(--c-ink-rgb) / 0.1)'}`, background: interest.includes(opt) ? 'rgba(65,105,225,0.1)' : 'rgb(var(--c-ink-rgb) / 0.02)', cursor: 'pointer', transition: 'all 0.15s' }}>
                       <input type="checkbox" checked={interest.includes(opt)} onChange={() => toggleInterest(opt)} disabled={isSubmitting} className="sr-only" />
-                      <div style={{ width: 16, height: 16, borderRadius: 4, border: `1px solid ${interest.includes(opt) ? '#4169E1' : 'rgba(255,255,255,0.3)'}`, background: interest.includes(opt) ? '#4169E1' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <div style={{ width: 16, height: 16, borderRadius: 4, border: `1px solid ${interest.includes(opt) ? '#4169E1' : 'rgb(var(--c-ink-rgb) / 0.3)'}`, background: interest.includes(opt) ? '#4169E1' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                         {interest.includes(opt) && <CheckIcon style={{ width: 10, height: 10, stroke: '#fff' } as React.CSSProperties} />}
                       </div>
-                      <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)' }}>{opt}</span>
+                      <span style={{ fontSize: 13, color: 'rgb(var(--c-ink-rgb) / 0.8)' }}>{opt}</span>
                     </label>
                   ))}
                 </div>
               </div>
-              <button type="submit" disabled={isSubmitting} style={{ ...s.btnPrimary, width: '100%', padding: '14px', opacity: isSubmitting ? 0.6 : 1, cursor: isSubmitting ? 'not-allowed' : 'pointer', background: '#39FF14', color: '#050505' }}>
+              <button type="submit" disabled={isSubmitting} style={{ ...s.btnPrimary, width: '100%', padding: '14px', opacity: isSubmitting ? 0.6 : 1, cursor: isSubmitting ? 'not-allowed' : 'pointer', background: '#39FF14', color: 'var(--c-canvas)' }}>
                 {isSubmitting ? 'Submitting...' : 'Register Visitor'}
               </button>
             </form>
@@ -301,19 +301,19 @@ function VisitorLeadsContent() {
 
 export default function VisitorLeadsPage() {
   return (
-    <Suspense fallback={<div style={{ padding: 40, color: 'rgba(255,255,255,0.3)' }}>Loading...</div>}>
+    <Suspense fallback={<div style={{ padding: 40, color: 'rgb(var(--c-ink-rgb) / 0.3)' }}>Loading...</div>}>
       <VisitorLeadsContent />
     </Suspense>
   );
 }
 
 const s: Record<string, React.CSSProperties> = {
-  btnPrimary: { display: 'flex', alignItems: 'center', gap: 8, padding: '8px 18px', borderRadius: 10, background: '#0056B3', color: '#fff', border: 'none', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'Urbanist, sans-serif' },
-  btnGhost: { display: 'flex', alignItems: 'center', gap: 8, padding: '8px 18px', borderRadius: 10, background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.1)', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'Urbanist, sans-serif' },
-  pill: { padding: '6px 14px', borderRadius: 999, background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.08)', fontSize: 12, fontWeight: 700, cursor: 'pointer' },
-  pillActive: { background: '#0056B3', color: '#fff', borderColor: '#0056B3' },
-  th: { padding: '14px 20px', fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.1em', textAlign: 'left' },
-  td: { padding: '14px 20px', fontSize: 13, color: 'rgba(255,255,255,0.65)' },
+  btnPrimary: { display: 'flex', alignItems: 'center', gap: 8, padding: '8px 18px', borderRadius: 10, background: 'var(--c-accent)', color: 'var(--c-on-accent)', border: 'none', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'Urbanist, sans-serif' },
+  btnGhost: { display: 'flex', alignItems: 'center', gap: 8, padding: '8px 18px', borderRadius: 10, background: 'rgb(var(--c-ink-rgb) / 0.04)', color: 'rgb(var(--c-ink-rgb) / 0.7)', border: '1px solid rgb(var(--c-ink-rgb) / 0.1)', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'Urbanist, sans-serif' },
+  pill: { padding: '6px 14px', borderRadius: 999, background: 'rgb(var(--c-ink-rgb) / 0.04)', color: 'rgb(var(--c-ink-rgb) / 0.5)', border: '1px solid rgb(var(--c-ink-rgb) / 0.08)', fontSize: 12, fontWeight: 700, cursor: 'pointer' },
+  pillActive: { background: 'var(--c-accent)', color: 'var(--c-on-accent)', borderColor: 'var(--c-accent)' },
+  th: { padding: '14px 20px', fontSize: 10, fontWeight: 700, color: 'rgb(var(--c-ink-rgb) / 0.35)', textTransform: 'uppercase', letterSpacing: '0.1em', textAlign: 'left' },
+  td: { padding: '14px 20px', fontSize: 13, color: 'rgb(var(--c-ink-rgb) / 0.65)' },
   tag: { background: 'rgba(65,105,225,0.15)', color: '#7ba3ff', padding: '3px 8px', borderRadius: 4, fontSize: 11, fontWeight: 600 },
-  label: { display: 'block', fontSize: 10, fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', marginBottom: 8 },
+  label: { display: 'block', fontSize: 10, fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgb(var(--c-ink-rgb) / 0.35)', marginBottom: 8 },
 };

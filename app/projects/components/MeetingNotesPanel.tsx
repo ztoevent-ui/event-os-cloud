@@ -142,11 +142,11 @@ function SessionCard({
             style={{
                 borderRadius: 16,
                 border: expanded
-                    ? '1px solid rgba(0,86,179,0.35)'
-                    : '1px solid rgba(255,255,255,0.07)',
+                    ? '1px solid rgb(var(--c-accent-rgb) / 0.35)'
+                    : '1px solid rgb(var(--c-ink-rgb) / 0.07)',
                 background: expanded
-                    ? 'rgba(0,86,179,0.04)'
-                    : 'rgba(255,255,255,0.02)',
+                    ? 'rgb(var(--c-accent-rgb) / 0.04)'
+                    : 'rgb(var(--c-ink-rgb) / 0.02)',
                 overflow: 'hidden',
                 transition: 'border-color 0.25s ease, background 0.25s ease',
             }}
@@ -167,10 +167,10 @@ function SessionCard({
                 {/* Expand icon */}
                 <div style={{
                     width: 28, height: 28, borderRadius: 8, flexShrink: 0,
-                    background: expanded ? 'rgba(0,86,179,0.15)' : 'rgba(255,255,255,0.04)',
-                    border: expanded ? '1px solid rgba(0,86,179,0.3)' : '1px solid rgba(255,255,255,0.07)',
+                    background: expanded ? 'rgb(var(--c-accent-rgb) / 0.15)' : 'rgb(var(--c-ink-rgb) / 0.04)',
+                    border: expanded ? '1px solid rgb(var(--c-accent-rgb) / 0.3)' : '1px solid rgb(var(--c-ink-rgb) / 0.07)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 11, color: expanded ? '#4da3ff' : 'rgba(255,255,255,0.3)',
+                    fontSize: 11, color: expanded ? 'var(--c-accent-bright)' : 'rgb(var(--c-ink-rgb) / 0.3)',
                     transition: 'all 0.25s ease',
                     transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)',
                 }}>
@@ -179,8 +179,8 @@ function SessionCard({
 
                 {/* Date badge */}
                 <span style={{
-                    fontSize: 10, fontWeight: 700, color: '#4da3ff',
-                    background: 'rgba(0,86,179,0.1)', border: '1px solid rgba(0,86,179,0.2)',
+                    fontSize: 10, fontWeight: 700, color: 'var(--c-accent-bright)',
+                    background: 'rgb(var(--c-accent-rgb) / 0.1)', border: '1px solid rgb(var(--c-accent-rgb) / 0.2)',
                     borderRadius: 6, padding: '2px 8px',
                     letterSpacing: '0.05em', flexShrink: 0,
                 }}>
@@ -189,7 +189,7 @@ function SessionCard({
 
                 {/* Title */}
                 <span style={{
-                    fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.85)',
+                    fontSize: 13, fontWeight: 600, color: 'rgb(var(--c-ink-rgb) / 0.85)',
                     flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                 }}>
                     {session.title}
@@ -201,15 +201,15 @@ function SessionCard({
                     {hasContent && (
                         <span style={{
                             width: 6, height: 6, borderRadius: '50%',
-                            background: '#DEFF9A', boxShadow: '0 0 6px #DEFF9A', flexShrink: 0,
+                            background: 'var(--c-accent-2)', boxShadow: '0 0 6px var(--c-accent-2)', flexShrink: 0,
                         }} />
                     )}
                     {/* Asset count */}
                     {assets.length > 0 && (
                         <span style={{
-                            fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.3)',
-                            background: 'rgba(255,255,255,0.05)',
-                            border: '1px solid rgba(255,255,255,0.07)',
+                            fontSize: 9, fontWeight: 700, color: 'rgb(var(--c-ink-rgb) / 0.3)',
+                            background: 'rgb(var(--c-ink-rgb) / 0.05)',
+                            border: '1px solid rgb(var(--c-ink-rgb) / 0.07)',
                             borderRadius: 5, padding: '1px 6px',
                         }}>
                             <i className="fa-solid fa-paperclip" style={{ marginRight: 3 }} />
@@ -220,14 +220,14 @@ function SessionCard({
                     {saveStatus === 'saving' && (
                         <span style={{
                             width: 6, height: 6, borderRadius: '50%',
-                            background: '#0056B3', boxShadow: '0 0 8px #0056B3',
+                            background: 'var(--c-accent)', boxShadow: '0 0 8px var(--c-accent)',
                             animation: 'ztoPulse 1s ease-in-out infinite', flexShrink: 0,
                         }} />
                     )}
                     {saveStatus === 'saved' && (
                         <span style={{
                             width: 6, height: 6, borderRadius: '50%',
-                            background: '#DEFF9A', boxShadow: '0 0 8px #DEFF9A',
+                            background: 'var(--c-accent-2)', boxShadow: '0 0 8px var(--c-accent-2)',
                             animation: 'ztoPulse 2s ease-in-out infinite', flexShrink: 0,
                         }} />
                     )}
@@ -241,9 +241,9 @@ function SessionCard({
                     onDragLeave={e => { e.preventDefault(); setIsDragging(false); }}
                     onDrop={handleDrop}
                     style={{
-                        borderTop: '1px solid rgba(255,255,255,0.05)',
+                        borderTop: '1px solid rgb(var(--c-ink-rgb) / 0.05)',
                         position: 'relative',
-                        background: isDragging ? 'rgba(0,86,179,0.06)' : 'transparent',
+                        background: isDragging ? 'rgb(var(--c-accent-rgb) / 0.06)' : 'transparent',
                         transition: 'background 0.3s ease',
                     }}
                 >
@@ -253,19 +253,19 @@ function SessionCard({
                             position: 'absolute', inset: 0, zIndex: 10,
                             display: 'flex', flexDirection: 'column',
                             alignItems: 'center', justifyContent: 'center',
-                            background: 'rgba(5,5,5,0.75)', backdropFilter: 'blur(6px)',
+                            background: 'rgb(var(--c-canvas-rgb) / 0.75)', backdropFilter: 'blur(6px)',
                             borderRadius: '0 0 16px 16px',
                         }}>
                             <div style={{
                                 width: 52, height: 52, borderRadius: '50%',
-                                background: '#0056B3',
+                                background: 'var(--c-accent)',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                fontSize: 22, color: '#fff', marginBottom: 10,
-                                boxShadow: '0 0 30px rgba(0,86,179,0.5)',
+                                fontSize: 22, color: 'var(--c-on-accent)', marginBottom: 10,
+                                boxShadow: '0 0 30px rgb(var(--c-accent-rgb) / 0.5)',
                             }}>
                                 <i className="fa-solid fa-cloud-arrow-up" />
                             </div>
-                            <span style={{ fontSize: 12, fontWeight: 700, color: '#4da3ff', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--c-accent-bright)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
                                 Drop Images Here
                             </span>
                         </div>
@@ -280,7 +280,7 @@ function SessionCard({
                             width: '100%', minHeight: 160,
                             background: 'transparent', border: 'none', outline: 'none',
                             resize: 'vertical', padding: '16px 16px',
-                            color: 'rgba(255,255,255,0.75)',
+                            color: 'rgb(var(--c-ink-rgb) / 0.75)',
                             fontFamily: 'Urbanist, sans-serif', fontSize: 14, lineHeight: 1.7,
                             boxSizing: 'border-box',
                         }}
@@ -290,7 +290,7 @@ function SessionCard({
                     <div style={{
                         display: 'flex', alignItems: 'center', gap: 8,
                         padding: '8px 16px 14px',
-                        borderTop: '1px solid rgba(255,255,255,0.04)',
+                        borderTop: '1px solid rgb(var(--c-ink-rgb) / 0.04)',
                     }}>
                         {/* Upload button (works on mobile + desktop) */}
                         <input
@@ -307,20 +307,20 @@ function SessionCard({
                             disabled={uploading}
                             style={{
                                 display: 'flex', alignItems: 'center', gap: 6,
-                                background: 'rgba(255,255,255,0.05)',
-                                border: '1px solid rgba(255,255,255,0.1)',
+                                background: 'rgb(var(--c-ink-rgb) / 0.05)',
+                                border: '1px solid rgb(var(--c-ink-rgb) / 0.1)',
                                 borderRadius: 8, padding: '6px 12px',
-                                color: 'rgba(255,255,255,0.5)', fontSize: 11,
+                                color: 'rgb(var(--c-ink-rgb) / 0.5)', fontSize: 11,
                                 fontWeight: 600, cursor: 'pointer', fontFamily: 'Urbanist, sans-serif',
                                 transition: 'all 0.2s ease',
                             }}
                             onMouseEnter={e => {
-                                (e.currentTarget as HTMLButtonElement).style.color = '#4da3ff';
-                                (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(0,86,179,0.3)';
+                                (e.currentTarget as HTMLButtonElement).style.color = 'var(--c-accent-bright)';
+                                (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgb(var(--c-accent-rgb) / 0.3)';
                             }}
                             onMouseLeave={e => {
-                                (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.5)';
-                                (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.1)';
+                                (e.currentTarget as HTMLButtonElement).style.color = 'rgb(var(--c-ink-rgb) / 0.5)';
+                                (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgb(var(--c-ink-rgb) / 0.1)';
                             }}
                         >
                             <i className={uploading ? 'fa-solid fa-circle-notch fa-spin' : 'fa-solid fa-camera'} />
@@ -329,12 +329,12 @@ function SessionCard({
 
                         {/* Autosave label */}
                         {saveStatus === 'saving' && (
-                            <span style={{ fontSize: 9, fontWeight: 700, color: '#4da3ff', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+                            <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--c-accent-bright)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
                                 Syncing...
                             </span>
                         )}
                         {saveStatus === 'saved' && (
-                            <span style={{ fontSize: 9, fontWeight: 700, color: '#DEFF9A', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+                            <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--c-accent-2)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
                                 Saved ✓
                             </span>
                         )}
@@ -355,7 +355,7 @@ function SessionCard({
                                 background: confirmDelete ? 'rgba(239,68,68,0.12)' : 'transparent',
                                 border: confirmDelete ? '1px solid rgba(239,68,68,0.3)' : '1px solid transparent',
                                 borderRadius: 8, padding: '6px 10px',
-                                color: confirmDelete ? '#ef4444' : 'rgba(255,255,255,0.2)',
+                                color: confirmDelete ? '#ef4444' : 'rgb(var(--c-ink-rgb) / 0.2)',
                                 fontSize: 11, fontWeight: 600,
                                 cursor: 'pointer', fontFamily: 'Urbanist, sans-serif',
                                 transition: 'all 0.2s ease',
@@ -365,7 +365,7 @@ function SessionCard({
                             }}
                             onMouseLeave={e => {
                                 if (!confirmDelete) {
-                                    (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.2)';
+                                    (e.currentTarget as HTMLButtonElement).style.color = 'rgb(var(--c-ink-rgb) / 0.2)';
                                     setConfirmDelete(false);
                                 }
                             }}
@@ -379,10 +379,10 @@ function SessionCard({
                     {assets.length > 0 && (
                         <div style={{ padding: '0 16px 16px' }}>
                             <div style={{
-                                borderTop: '1px solid rgba(0,86,179,0.12)', paddingTop: 12,
+                                borderTop: '1px solid rgb(var(--c-accent-rgb) / 0.12)', paddingTop: 12,
                             }}>
                                 <div style={{
-                                    fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.3)',
+                                    fontSize: 9, fontWeight: 700, color: 'rgb(var(--c-ink-rgb) / 0.3)',
                                     textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10,
                                 }}>
                                     Attached Media ({assets.length})
@@ -394,8 +394,8 @@ function SessionCard({
                                             style={{
                                                 position: 'relative', flexShrink: 0,
                                                 width: 100, height: 70, borderRadius: 10, overflow: 'hidden',
-                                                border: '1px solid rgba(0,86,179,0.2)',
-                                                background: '#0a0a0a', cursor: 'pointer'
+                                                border: '1px solid rgb(var(--c-accent-rgb) / 0.2)',
+                                                background: 'var(--c-surface-solid)', cursor: 'pointer'
                                             }}
                                             onClick={() => setPreviewImage(url)}
                                             onMouseEnter={e => {
@@ -419,7 +419,7 @@ function SessionCard({
                                                     background: 'rgba(239,68,68,0.85)',
                                                     border: 'none', cursor: 'pointer',
                                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                    fontSize: 8, color: '#fff',
+                                                    fontSize: 8, color: 'var(--c-ink)',
                                                     opacity: 0, transition: 'opacity 0.2s ease',
                                                 }}
                                             >
@@ -459,8 +459,8 @@ function SessionCard({
                         style={{
                             position: 'absolute', top: 24, right: 24,
                             width: 40, height: 40, borderRadius: '50%',
-                            background: 'rgba(255,255,255,0.1)', border: 'none',
-                            color: '#fff', fontSize: 20, cursor: 'pointer',
+                            background: 'rgb(var(--c-ink-rgb) / 0.1)', border: 'none',
+                            color: 'var(--c-ink)', fontSize: 20, cursor: 'pointer',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                         }}
                     >
@@ -522,7 +522,7 @@ function NewSessionModal({
             {/* Backdrop */}
             <div
                 onClick={onClose}
-                style={{ position: 'absolute', inset: 0, background: 'rgba(5,5,5,0.85)', backdropFilter: 'blur(8px)' }}
+                style={{ position: 'absolute', inset: 0, background: 'rgb(var(--c-canvas-rgb) / 0.85)', backdropFilter: 'blur(8px)' }}
             />
             {/* Sheet — slides up from bottom on mobile, centered on desktop */}
             <div
@@ -531,7 +531,7 @@ function NewSessionModal({
                     position: 'relative', zIndex: 10,
                     width: '100%', maxWidth: 480,
                     background: '#0f0f0f',
-                    border: '1px solid rgba(255,255,255,0.08)',
+                    border: '1px solid rgb(var(--c-ink-rgb) / 0.08)',
                     borderRadius: '24px 24px 0 0',
                     padding: '28px 24px 40px',
                     boxShadow: '0 -20px 80px rgba(0,0,0,0.5)',
@@ -541,17 +541,17 @@ function NewSessionModal({
                 {/* Drag handle */}
                 <div style={{
                     width: 40, height: 4, borderRadius: 2,
-                    background: 'rgba(255,255,255,0.1)', margin: '0 auto 24px',
+                    background: 'rgb(var(--c-ink-rgb) / 0.1)', margin: '0 auto 24px',
                 }} />
 
                 <h3 style={{
-                    fontSize: 17, fontWeight: 700, color: '#fff',
+                    fontSize: 17, fontWeight: 700, color: 'var(--c-ink)',
                     marginBottom: 6, fontFamily: 'Urbanist, sans-serif',
                 }}>
                     New Meeting
                 </h3>
                 <p style={{
-                    fontSize: 12, color: 'rgba(255,255,255,0.35)',
+                    fontSize: 12, color: 'rgb(var(--c-ink-rgb) / 0.35)',
                     marginBottom: 24, fontFamily: 'Urbanist, sans-serif',
                 }}>
                     Add a new session to this project's meeting log.
@@ -561,7 +561,7 @@ function NewSessionModal({
                     <div>
                         <label style={{
                             display: 'block', fontSize: 10, fontWeight: 700,
-                            color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase',
+                            color: 'rgb(var(--c-ink-rgb) / 0.4)', textTransform: 'uppercase',
                             letterSpacing: '0.1em', marginBottom: 6,
                         }}>
                             Meeting Title *
@@ -578,7 +578,7 @@ function NewSessionModal({
                     <div>
                         <label style={{
                             display: 'block', fontSize: 10, fontWeight: 700,
-                            color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase',
+                            color: 'rgb(var(--c-ink-rgb) / 0.4)', textTransform: 'uppercase',
                             letterSpacing: '0.1em', marginBottom: 6,
                         }}>
                             Date
@@ -697,28 +697,28 @@ export default function MeetingNotesPanel({ project }: { project: any }) {
             <div style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 padding: '18px 20px',
-                borderBottom: '1px solid rgba(255,255,255,0.06)',
+                borderBottom: '1px solid rgb(var(--c-ink-rgb) / 0.06)',
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <div style={{
                         width: 32, height: 32, borderRadius: 10,
-                        background: 'rgba(0,86,179,0.1)',
-                        border: '1px solid rgba(0,86,179,0.3)',
+                        background: 'rgb(var(--c-accent-rgb) / 0.1)',
+                        border: '1px solid rgb(var(--c-accent-rgb) / 0.3)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: 13, color: '#4da3ff', flexShrink: 0,
+                        fontSize: 13, color: 'var(--c-accent-bright)', flexShrink: 0,
                     }}>
                         <i className="fa-solid fa-clipboard-list" />
                     </div>
                     <div>
-                        <span style={{ fontSize: 13, fontWeight: 700, color: '#fff', letterSpacing: '0.02em' }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--c-ink)', letterSpacing: '0.02em' }}>
                             Meeting Logs &amp; Notes
                         </span>
                         {!loading && sessions.length > 0 && (
                             <span style={{
                                 marginLeft: 8, fontSize: 9, fontWeight: 700,
-                                color: 'rgba(255,255,255,0.3)',
-                                background: 'rgba(255,255,255,0.05)',
-                                border: '1px solid rgba(255,255,255,0.08)',
+                                color: 'rgb(var(--c-ink-rgb) / 0.3)',
+                                background: 'rgb(var(--c-ink-rgb) / 0.05)',
+                                border: '1px solid rgb(var(--c-ink-rgb) / 0.08)',
                                 borderRadius: 5, padding: '1px 7px',
                                 textTransform: 'uppercase', letterSpacing: '0.08em',
                             }}>
@@ -744,7 +744,7 @@ export default function MeetingNotesPanel({ project }: { project: any }) {
                 {loading ? (
                     <div style={{
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        gap: 10, padding: '32px 0', color: 'rgba(255,255,255,0.2)', fontSize: 13,
+                        gap: 10, padding: '32px 0', color: 'rgb(var(--c-ink-rgb) / 0.2)', fontSize: 13,
                     }}>
                         <i className="fa-solid fa-circle-notch fa-spin" style={{ fontSize: 14 }} />
                         Loading sessions...
@@ -758,22 +758,22 @@ export default function MeetingNotesPanel({ project }: { project: any }) {
                     }}>
                         <div style={{
                             width: 56, height: 56, borderRadius: 18,
-                            background: 'rgba(0,86,179,0.08)',
-                            border: '1px solid rgba(0,86,179,0.2)',
+                            background: 'rgb(var(--c-accent-rgb) / 0.08)',
+                            border: '1px solid rgb(var(--c-accent-rgb) / 0.2)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: 22, color: 'rgba(77,163,255,0.5)',
+                            fontSize: 22, color: 'rgb(var(--c-accent-bright-rgb) / 0.5)',
                             marginBottom: 4,
                         }}>
                             <i className="fa-solid fa-clipboard-list" />
                         </div>
                         <p style={{
-                            fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.4)',
+                            fontSize: 13, fontWeight: 600, color: 'rgb(var(--c-ink-rgb) / 0.4)',
                             fontFamily: 'Urbanist, sans-serif',
                         }}>
                             No meeting logs yet
                         </p>
                         <p style={{
-                            fontSize: 11, color: 'rgba(255,255,255,0.2)',
+                            fontSize: 11, color: 'rgb(var(--c-ink-rgb) / 0.2)',
                             fontFamily: 'Urbanist, sans-serif', maxWidth: 240,
                         }}>
                             Tap &quot;New Meeting&quot; to add your first session. Each meeting gets its own card — easy to read and find later.

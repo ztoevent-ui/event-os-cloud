@@ -18,8 +18,8 @@ const Modal = ({ isOpen, onClose, title, children }: { isOpen: boolean, onClose:
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in">
             <div className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md p-6 shadow-2xl relative animate-in zoom-in-95 max-h-[90vh] overflow-y-auto">
                 <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-bold text-white">{title}</h3>
-                    <button onClick={onClose} className="text-zinc-500 hover:text-white transition-colors">
+                    <h3 className="text-xl font-bold text-ink">{title}</h3>
+                    <button onClick={onClose} className="text-zinc-500 hover:text-ink transition-colors">
                         <i className="fa-solid fa-xmark text-lg"></i>
                     </button>
                 </div>
@@ -33,7 +33,7 @@ const Modal = ({ isOpen, onClose, title, children }: { isOpen: boolean, onClose:
 
 export function AddTaskButton({ projectId, isWedding }: { projectId: string; isWedding?: boolean }) {
     const [isOpen, setIsOpen] = useState(false);
-    const colorClass = isWedding ? 'bg-pink-500 hover:bg-pink-400 shadow-pink-500/20' : 'bg-[#0056B3] hover:bg-[#0056B3] shadow-blue-900/20';
+    const colorClass = isWedding ? 'bg-accent hover:bg-accent-hover shadow-accent/20' : 'bg-accent hover:bg-accent shadow-accent/20';
     return (
         <>
             <button onClick={() => setIsOpen(true)} className={`px-6 py-2.5 ${colorClass} text-black font-bold rounded-full transition-all flex items-center gap-2 transform hover:scale-105 shadow-lg`}>
@@ -51,8 +51,8 @@ export function TaskCard({ task, projectId, isWedding }: { task: any, projectId:
     const [isDeleting, setIsDeleting] = useState(false);
 
     // Dynamic styles
-    const accentColor = isWedding ? 'pink-500' : '[#0056B3]';
-    const borderHover = isWedding ? 'hover:border-pink-500/50' : 'hover:border-[#0056B3]/30';
+    const accentColor = isWedding ? 'accent' : '[#0056B3]';
+    const borderHover = isWedding ? 'hover:border-accent/50' : 'hover:border-accent/30';
     const priorityColor = task.priority === 'critical' ? 'bg-red-500' : task.priority === 'high' ? `bg-${accentColor}` : task.priority === 'medium' ? 'bg-blue-500' : 'bg-zinc-600';
     const accessBadge = task.access_level === 'admin' ? <span className="text-[10px] uppercase font-bold tracking-wider text-red-400 bg-red-900/20 px-1.5 py-0.5 rounded">Admin Only</span> : null;
 
@@ -65,7 +65,7 @@ export function TaskCard({ task, projectId, isWedding }: { task: any, projectId:
                         {accessBadge || <span className="text-zinc-500 text-[10px]">TASK-{task.id.slice(0, 4)}</span>}
                         {task.priority === 'critical' && <i className="fa-solid fa-fire text-red-500 animate-pulse text-xs" title="Critical"></i>}
                     </div>
-                    <h4 className={`font-medium text-zinc-100 mb-2 ${isWedding ? 'group-hover:text-pink-400' : 'group-hover:text-[#0056B3]'} transition-colors leading-snug break-words`}>
+                    <h4 className={`font-medium text-zinc-100 mb-2 ${isWedding ? 'group-hover:text-accent-hover' : 'group-hover:text-accent'} transition-colors leading-snug break-words`}>
                         {task.title}
                     </h4>
                     {task.description && (
@@ -78,7 +78,7 @@ export function TaskCard({ task, projectId, isWedding }: { task: any, projectId:
                             <i className="fa-regular fa-calendar text-zinc-500"></i>
                             {task.due_date ? new Date(task.due_date).toLocaleDateString() : 'No date'}
                         </div>
-                        <i className={`fa-solid fa-pen-to-square opacity-0 group-hover:opacity-100 transition-opacity ${isWedding ? 'text-pink-500' : 'text-[#0056B3]'}`}></i>
+                        <i className={`fa-solid fa-pen-to-square opacity-0 group-hover:opacity-100 transition-opacity ${isWedding ? 'text-accent' : 'text-accent'}`}></i>
                     </div>
                 </div>
             </div>
@@ -112,8 +112,8 @@ export function TaskCard({ task, projectId, isWedding }: { task: any, projectId:
 function TaskForm({ task, projectId, onClose, isWedding }: { task?: any, projectId: string, onClose: () => void, isWedding?: boolean }) {
     const isEdit = !!task;
     const [isLoading, setIsLoading] = useState(false);
-    const focusClass = isWedding ? 'focus:border-pink-500' : 'focus:border-[#0056B3]/30';
-    const btnClass = isWedding ? 'bg-pink-500 hover:bg-pink-400 shadow-pink-500/20' : 'bg-[#0056B3] hover:bg-[#0056B3] shadow-blue-900/20';
+    const focusClass = isWedding ? 'focus:border-accent' : 'focus:border-accent/30';
+    const btnClass = isWedding ? 'bg-accent hover:bg-accent-hover shadow-accent/20' : 'bg-accent hover:bg-accent shadow-accent/20';
 
     return (
         <form action={async (formData) => {
@@ -130,12 +130,12 @@ function TaskForm({ task, projectId, onClose, isWedding }: { task?: any, project
             <input type="hidden" name="project_id" value={projectId} />
             <div>
                 <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Title</label>
-                <input name="title" defaultValue={task?.title} required className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass} transition-colors`} placeholder="Task Name..." />
+                <input name="title" defaultValue={task?.title} required className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none ${focusClass} transition-colors`} placeholder="Task Name..." />
             </div>
             <div className="grid grid-cols-2 gap-4">
                 <div>
                     <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Status</label>
-                    <select name="status" defaultValue={task?.status || 'todo'} className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass}`}>
+                    <select name="status" defaultValue={task?.status || 'todo'} className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none ${focusClass}`}>
                         <option value="todo">Todo</option>
                         <option value="in_progress">In Progress</option>
                         <option value="review">Review</option>
@@ -144,7 +144,7 @@ function TaskForm({ task, projectId, onClose, isWedding }: { task?: any, project
                 </div>
                 <div>
                     <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Priority</label>
-                    <select name="priority" defaultValue={task?.priority || 'medium'} className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass}`}>
+                    <select name="priority" defaultValue={task?.priority || 'medium'} className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none ${focusClass}`}>
                         <option value="medium">Medium</option>
                         <option value="high">High</option>
                         <option value="critical">Critical</option>
@@ -154,11 +154,11 @@ function TaskForm({ task, projectId, onClose, isWedding }: { task?: any, project
             </div>
             <div>
                 <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Due Date</label>
-                <input type="date" name="due_date" defaultValue={task?.due_date?.split('T')[0]} className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass}`} />
+                <input type="date" name="due_date" defaultValue={task?.due_date?.split('T')[0]} className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none ${focusClass}`} />
             </div>
             <div>
                 <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Description</label>
-                <textarea name="description" defaultValue={task?.description} rows={3} className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass}`} placeholder="Details..."></textarea>
+                <textarea name="description" defaultValue={task?.description} rows={3} className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none ${focusClass}`} placeholder="Details..."></textarea>
             </div>
             <button type="submit" disabled={isLoading} className={`w-full ${btnClass} text-black font-bold py-3 rounded-xl transition-colors mt-4 flex justify-center items-center gap-2 shadow-lg`}>
                 {isLoading && <i className="fa-solid fa-spinner fa-spin"></i>}
@@ -173,8 +173,8 @@ function TaskForm({ task, projectId, onClose, isWedding }: { task?: any, project
 
 export function AddTimelineButton({ projectId, isWedding }: { projectId: string; isWedding?: boolean }) {
     const [isOpen, setIsOpen] = useState(false);
-    const colorClass = isWedding ? 'bg-pink-500 hover:bg-pink-400 shadow-pink-500/20' : 'bg-[#0056B3] hover:bg-[#0056B3] shadow-blue-900/20';
-    const focusClass = isWedding ? 'focus:border-pink-500' : 'focus:border-[#0056B3]/30';
+    const colorClass = isWedding ? 'bg-accent hover:bg-accent-hover shadow-accent/20' : 'bg-accent hover:bg-accent shadow-accent/20';
+    const focusClass = isWedding ? 'focus:border-accent' : 'focus:border-accent/30';
 
     return (
         <>
@@ -189,16 +189,16 @@ export function AddTimelineButton({ projectId, isWedding }: { projectId: string;
                     <input type="hidden" name="project_id" value={projectId} />
                     <div>
                         <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Phase Name</label>
-                        <input name="name" required className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass}`} placeholder="e.g. Phase 1: Planning" />
+                        <input name="name" required className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none ${focusClass}`} placeholder="e.g. Phase 1: Planning" />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Start Date</label>
-                            <input type="date" name="start_date" className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass}`} />
+                            <input type="date" name="start_date" className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none ${focusClass}`} />
                         </div>
                         <div>
                             <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">End Date</label>
-                            <input type="date" name="end_date" className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass}`} />
+                            <input type="date" name="end_date" className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none ${focusClass}`} />
                         </div>
                     </div>
                     <button type="submit" className={`w-full ${colorClass} text-black font-bold py-3 rounded-xl transition-colors mt-4 shadow-lg`}>Add Phase</button>
@@ -225,12 +225,12 @@ export function DeleteTimelineButton({ id, projectId }: { id: string, projectId:
 export function AddBudgetButton({ projectId, isWedding, onSuccess }: { projectId: string; isWedding?: boolean; onSuccess?: () => void }) {
     const [isOpen, setIsOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const colorClass = isWedding ? 'bg-pink-500 hover:bg-pink-400 shadow-pink-500/20' : 'bg-[#0056B3] hover:bg-[#0056B3] shadow-blue-900/20';
-    const focusClass = isWedding ? 'focus:border-pink-500' : 'focus:border-[#0056B3]/30';
+    const colorClass = isWedding ? 'bg-accent hover:bg-accent-hover shadow-accent/20' : 'bg-accent hover:bg-accent shadow-accent/20';
+    const focusClass = isWedding ? 'focus:border-accent' : 'focus:border-accent/30';
 
     return (
         <>
-            <button onClick={() => setIsOpen(true)} className={`h-12 px-6 rounded-2xl ${colorClass} text-white font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2.5 hover:-translate-y-0.5 active:translate-y-0 shadow-lg`}>
+            <button onClick={() => setIsOpen(true)} className={`h-12 px-6 rounded-2xl ${colorClass} text-ink font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2.5 hover:-translate-y-0.5 active:translate-y-0 shadow-lg`}>
                 <i className="fa-solid fa-plus text-lg"></i> Add Transaction
             </button>
             <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title="New Budget Item">
@@ -244,23 +244,23 @@ export function AddBudgetButton({ projectId, isWedding, onSuccess }: { projectId
                     <input type="hidden" name="project_id" value={projectId} />
                     <div>
                         <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Item Name</label>
-                        <input name="item" required className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass}`} placeholder="e.g. Venue Deposit" />
+                        <input name="item" required className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none ${focusClass}`} placeholder="e.g. Venue Deposit" />
                     </div>
                     <div>
                         <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Amount (RM)</label>
-                        <input name="amount" type="number" step="0.01" required className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass}`} placeholder="0.00" />
+                        <input name="amount" type="number" step="0.01" required className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none ${focusClass}`} placeholder="0.00" />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Type</label>
-                            <select name="type" className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass}`}>
+                            <select name="type" className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none ${focusClass}`}>
                                 <option value="expense">Expense</option>
                                 <option value="income">Income</option>
                             </select>
                         </div>
                         <div>
                             <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Category</label>
-                            <input name="category" list="categories" className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass}`} placeholder="Select or type..." />
+                            <input name="category" list="categories" className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none ${focusClass}`} placeholder="Select or type..." />
                             <datalist id="categories">
                                 <option value="Venue" />
                                 <option value="Decor" />
@@ -270,7 +270,7 @@ export function AddBudgetButton({ projectId, isWedding, onSuccess }: { projectId
                             </datalist>
                         </div>
                     </div>
-                    <button type="submit" disabled={isSubmitting} className={`w-full ${colorClass} text-white font-bold py-3 rounded-xl transition-colors mt-4 shadow-lg flex items-center justify-center gap-2 disabled:opacity-50`}>
+                    <button type="submit" disabled={isSubmitting} className={`w-full ${colorClass} text-ink font-bold py-3 rounded-xl transition-colors mt-4 shadow-lg flex items-center justify-center gap-2 disabled:opacity-50`}>
                         {isSubmitting && <i className="fa-solid fa-circle-notch fa-spin" />}
                         {isSubmitting ? 'Saving...' : 'Add Transaction'}
                     </button>
@@ -312,7 +312,7 @@ export function CopyBudgetButton({ projectId, onSuccess }: { projectId: string; 
         <>
             <button 
                 onClick={() => setIsOpen(true)} 
-                className="h-12 px-6 rounded-2xl bg-white/[0.03] border border-white/5 hover:bg-white/10 hover:border-white/20 text-zinc-300 hover:text-white font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2.5 hover:-translate-y-0.5 active:translate-y-0 shadow-lg"
+                className="h-12 px-6 rounded-2xl bg-ink/[0.03] border border-ink/5 hover:bg-ink/10 hover:border-ink/20 text-zinc-300 hover:text-ink font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2.5 hover:-translate-y-0.5 active:translate-y-0 shadow-lg"
             >
                 <i className="fa-solid fa-copy text-lg"></i> Clone
             </button>
@@ -326,7 +326,7 @@ export function CopyBudgetButton({ projectId, onSuccess }: { projectId: string; 
                             placeholder="Search projects..." 
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="w-full bg-zinc-800 border border-zinc-700 rounded-xl py-2 pl-10 pr-4 text-white focus:outline-none focus:border-[#0056B3]/30 transition-colors"
+                            className="w-full bg-zinc-800 border border-zinc-700 rounded-xl py-2 pl-10 pr-4 text-ink focus:outline-none focus:border-accent/30 transition-colors"
                         />
                     </div>
                     <div className="max-h-60 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
@@ -356,9 +356,9 @@ export function CopyBudgetButton({ projectId, onSuccess }: { projectId: string; 
                                         }
                                     }}
                                     disabled={isCopying}
-                                    className="w-full text-left p-4 rounded-xl bg-zinc-800/50 border border-zinc-700/50 hover:bg-zinc-800 hover:border-[#0056B3]/30 transition-all group"
+                                    className="w-full text-left p-4 rounded-xl bg-zinc-800/50 border border-zinc-700/50 hover:bg-zinc-800 hover:border-accent/30 transition-all group"
                                 >
-                                    <div className="font-bold text-zinc-100 group-hover:text-[#0056B3] transition-colors">{project.name}</div>
+                                    <div className="font-bold text-zinc-100 group-hover:text-accent transition-colors">{project.name}</div>
                                     <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">Project ID: {project.id.slice(0, 8)}</div>
                                 </button>
                             ))
@@ -413,8 +413,8 @@ export function EditBudgetModal({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
             <div className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md p-6 shadow-2xl relative animate-in zoom-in-95">
                 <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-lg font-black text-white uppercase tracking-tight">Edit Transaction</h3>
-                    <button onClick={onClose} className="text-zinc-500 hover:text-white transition-colors">
+                    <h3 className="text-lg font-black text-ink uppercase tracking-tight">Edit Transaction</h3>
+                    <button onClick={onClose} className="text-zinc-500 hover:text-ink transition-colors">
                         <i className="fa-solid fa-xmark text-lg" />
                     </button>
                 </div>
@@ -438,7 +438,7 @@ export function EditBudgetModal({
                             name="item"
                             defaultValue={item.item}
                             required
-                            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-[#0056B3]/50 transition-colors"
+                            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none focus:border-accent/50 transition-colors"
                             placeholder="e.g. Venue Deposit"
                         />
                     </div>
@@ -451,7 +451,7 @@ export function EditBudgetModal({
                             step="0.01"
                             defaultValue={item.amount}
                             required
-                            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-[#0056B3]/50 transition-colors"
+                            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none focus:border-accent/50 transition-colors"
                             placeholder="0.00"
                         />
                     </div>
@@ -462,7 +462,7 @@ export function EditBudgetModal({
                             <select
                                 name="type"
                                 defaultValue={item.type}
-                                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-[#0056B3]/50"
+                                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none focus:border-accent/50"
                             >
                                 <option value="expense">Expense</option>
                                 <option value="income">Income</option>
@@ -473,7 +473,7 @@ export function EditBudgetModal({
                             <select
                                 name="status"
                                 defaultValue={item.status}
-                                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-[#0056B3]/50"
+                                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none focus:border-accent/50"
                             >
                                 <option value="planned">Planned</option>
                                 <option value="confirmed">Confirmed</option>
@@ -490,7 +490,7 @@ export function EditBudgetModal({
                             name="category"
                             list="edit-categories"
                             defaultValue={item.category}
-                            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-[#0056B3]/50 transition-colors"
+                            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none focus:border-accent/50 transition-colors"
                             placeholder="Select or type..."
                         />
                         <datalist id="edit-categories">
@@ -516,7 +516,7 @@ export function EditBudgetModal({
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="flex-1 py-3 rounded-xl bg-[#0056B3] hover:bg-[#0069d9] text-white font-bold text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                            className="flex-1 py-3 rounded-xl bg-accent hover:bg-[#0069d9] text-white font-bold text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                         >
                             {isSubmitting && <i className="fa-solid fa-circle-notch fa-spin" />}
                             {isSubmitting ? 'Saving...' : 'Save Changes'}
@@ -533,8 +533,8 @@ export function EditBudgetModal({
 
 export function AddVendorButton({ projectId, isWedding }: { projectId: string; isWedding?: boolean }) {
     const [isOpen, setIsOpen] = useState(false);
-    const colorClass = isWedding ? 'bg-pink-500 hover:bg-pink-400 shadow-pink-500/20' : 'bg-[#0056B3] hover:bg-[#0056B3] shadow-blue-900/20';
-    const focusClass = isWedding ? 'focus:border-pink-500' : 'focus:border-[#0056B3]/30';
+    const colorClass = isWedding ? 'bg-accent hover:bg-accent-hover shadow-accent/20' : 'bg-accent hover:bg-accent shadow-accent/20';
+    const focusClass = isWedding ? 'focus:border-accent' : 'focus:border-accent/30';
 
     return (
         <>
@@ -549,11 +549,11 @@ export function AddVendorButton({ projectId, isWedding }: { projectId: string; i
                     <input type="hidden" name="project_id" value={projectId} />
                     <div>
                         <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Vendor Name</label>
-                        <input name="name" required className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass}`} placeholder="Company Name" />
+                        <input name="name" required className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none ${focusClass}`} placeholder="Company Name" />
                     </div>
                     <div>
                         <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Category</label>
-                        <input name="category" list="vendor-categories" className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass}`} placeholder="e.g. Catering" />
+                        <input name="category" list="vendor-categories" className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none ${focusClass}`} placeholder="e.g. Catering" />
                         <datalist id="vendor-categories">
                             <option value="Venue" />
                             <option value="Catering" />
@@ -565,7 +565,7 @@ export function AddVendorButton({ projectId, isWedding }: { projectId: string; i
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Status</label>
-                            <select name="status" className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass}`}>
+                            <select name="status" className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none ${focusClass}`}>
                                 <option value="potential">Potential</option>
                                 <option value="contacted">Contacted</option>
                                 <option value="confirmed">Confirmed</option>
@@ -573,17 +573,17 @@ export function AddVendorButton({ projectId, isWedding }: { projectId: string; i
                         </div>
                         <div>
                             <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Contact Person</label>
-                            <input name="contact_person" className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass}`} placeholder="Name" />
+                            <input name="contact_person" className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none ${focusClass}`} placeholder="Name" />
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Phone</label>
-                            <input name="phone" className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass}`} placeholder="+60..." />
+                            <input name="phone" className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none ${focusClass}`} placeholder="+60..." />
                         </div>
                         <div>
                             <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Email</label>
-                            <input name="email" className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none ${focusClass}`} placeholder="email@example.com" />
+                            <input name="email" className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none ${focusClass}`} placeholder="email@example.com" />
                         </div>
                     </div>
                     <button type="submit" className={`w-full ${colorClass} text-black font-bold py-3 rounded-xl transition-colors mt-4 shadow-lg`}>Add Vendor</button>
@@ -625,8 +625,8 @@ export function EditVendorModal({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
             <div className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md p-6 shadow-2xl relative animate-in zoom-in-95">
                 <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-lg font-black text-white uppercase tracking-tight">Edit Vendor</h3>
-                    <button onClick={onClose} className="text-zinc-500 hover:text-white transition-colors">
+                    <h3 className="text-lg font-black text-ink uppercase tracking-tight">Edit Vendor</h3>
+                    <button onClick={onClose} className="text-zinc-500 hover:text-ink transition-colors">
                         <i className="fa-solid fa-xmark text-lg" />
                     </button>
                 </div>
@@ -643,11 +643,11 @@ export function EditVendorModal({
                     
                     <div>
                         <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Vendor Name</label>
-                        <input name="name" defaultValue={vendor.name} required className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-[#0056B3]/50" placeholder="Company Name" />
+                        <input name="name" defaultValue={vendor.name} required className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none focus:border-accent/50" placeholder="Company Name" />
                     </div>
                     <div>
                         <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Category</label>
-                        <input name="category" list="edit-vendor-categories" defaultValue={vendor.category} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-[#0056B3]/50" placeholder="e.g. Catering" />
+                        <input name="category" list="edit-vendor-categories" defaultValue={vendor.category} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none focus:border-accent/50" placeholder="e.g. Catering" />
                         <datalist id="edit-vendor-categories">
                             <option value="Venue" />
                             <option value="Catering" />
@@ -659,7 +659,7 @@ export function EditVendorModal({
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Status</label>
-                            <select name="status" defaultValue={vendor.status} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-[#0056B3]/50">
+                            <select name="status" defaultValue={vendor.status} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none focus:border-accent/50">
                                 <option value="potential">Potential</option>
                                 <option value="contacted">Contacted</option>
                                 <option value="confirmed">Confirmed</option>
@@ -667,17 +667,17 @@ export function EditVendorModal({
                         </div>
                         <div>
                             <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Contact Person</label>
-                            <input name="contact_person" defaultValue={vendor.contact_person} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-[#0056B3]/50" placeholder="Name" />
+                            <input name="contact_person" defaultValue={vendor.contact_person} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none focus:border-accent/50" placeholder="Name" />
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Phone</label>
-                            <input name="phone" defaultValue={vendor.phone} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-[#0056B3]/50" placeholder="+60..." />
+                            <input name="phone" defaultValue={vendor.phone} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none focus:border-accent/50" placeholder="+60..." />
                         </div>
                         <div>
                             <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Email</label>
-                            <input name="email" defaultValue={vendor.email} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white focus:outline-none focus:border-[#0056B3]/50" placeholder="email@example.com" />
+                            <input name="email" defaultValue={vendor.email} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none focus:border-accent/50" placeholder="email@example.com" />
                         </div>
                     </div>
                     
@@ -685,7 +685,7 @@ export function EditVendorModal({
                         <button type="button" onClick={onClose} className="flex-1 py-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-400 font-bold text-sm transition-colors">
                             Cancel
                         </button>
-                        <button type="submit" disabled={isSubmitting} className="flex-1 py-3 rounded-xl bg-[#0056B3] hover:bg-[#0069d9] text-white font-bold text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
+                        <button type="submit" disabled={isSubmitting} className="flex-1 py-3 rounded-xl bg-accent hover:bg-[#0069d9] text-white font-bold text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
                             {isSubmitting && <i className="fa-solid fa-circle-notch fa-spin" />}
                             {isSubmitting ? 'Saving...' : 'Save Changes'}
                         </button>
@@ -702,7 +702,7 @@ export function PrintReportButton({ title = "General Report" }: { title?: string
         <>
             <button 
                 onClick={() => setIsModalOpen(true)}
-                className="h-12 px-6 rounded-2xl bg-white/[0.03] border border-white/5 hover:bg-white/10 hover:border-white/20 text-zinc-300 hover:text-white font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2.5 hover:-translate-y-0.5 active:translate-y-0 shadow-lg z-0 relative"
+                className="h-12 px-6 rounded-2xl bg-ink/[0.03] border border-ink/5 hover:bg-ink/10 hover:border-ink/20 text-zinc-300 hover:text-ink font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2.5 hover:-translate-y-0.5 active:translate-y-0 shadow-lg z-0 relative"
             >
                 <i className="fa-solid fa-file-pdf text-lg text-red-400"></i> Export
             </button>
@@ -747,9 +747,9 @@ export function CopyProgramButton({ projectId }: { projectId: string }) {
         <>
             <button 
                 onClick={() => setIsOpen(true)} 
-                style={{ height: 48, padding: '0 24px', borderRadius: 12, background: '#0056B3', border: '1px solid rgba(0,86,179,0.3)', color: '#fff', fontWeight: 900, fontSize: 13, textTransform: 'uppercase', cursor: 'pointer', zIndex: 1000, position: 'relative', boxShadow: '0 0 20px rgba(0,86,179,0.4)', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: 10 }}
-                onMouseEnter={e => (e.currentTarget as HTMLElement).style.boxShadow = '0 0 30px rgba(0,86,179,0.8)'}
-                onMouseLeave={e => (e.currentTarget as HTMLElement).style.boxShadow = '0 0 20px rgba(0,86,179,0.4)'}
+                style={{ height: 48, padding: '0 24px', borderRadius: 12, background: 'var(--c-accent)', border: '1px solid rgb(var(--c-accent-rgb) / 0.3)', color: 'var(--c-on-accent)', fontWeight: 900, fontSize: 13, textTransform: 'uppercase', cursor: 'pointer', zIndex: 1000, position: 'relative', boxShadow: '0 0 20px rgb(var(--c-accent-rgb) / 0.4)', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: 10 }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.boxShadow = '0 0 30px rgb(var(--c-accent-rgb) / 0.8)'}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.boxShadow = '0 0 20px rgb(var(--c-accent-rgb) / 0.4)'}
             >
                 <i className="fa-solid fa-clone"></i> COPY PROGRAM
             </button>
@@ -760,12 +760,12 @@ export function CopyProgramButton({ projectId }: { projectId: string }) {
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="bg-zinc-950 border border-white/10 w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl"
+                            className="bg-zinc-950 border border-ink/10 w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl"
                         >
-                            <div className="p-8 border-b border-white/5 bg-zinc-900/50">
+                            <div className="p-8 border-b border-ink/5 bg-zinc-900/50">
                                 <div className="flex justify-between items-center mb-6">
-                                    <h3 className="text-xl font-black text-white italic uppercase tracking-tighter">Copy Program From</h3>
-                                    <button onClick={() => setIsOpen(false)} className="text-zinc-500 hover:text-white transition-colors">
+                                    <h3 className="text-xl font-black text-ink italic uppercase tracking-tighter">Copy Program From</h3>
+                                    <button onClick={() => setIsOpen(false)} className="text-zinc-500 hover:text-ink transition-colors">
                                         <i className="fa-solid fa-xmark text-xl"></i>
                                     </button>
                                 </div>
@@ -774,7 +774,7 @@ export function CopyProgramButton({ projectId }: { projectId: string }) {
                                     <input 
                                         type="text" 
                                         placeholder="Search projects..."
-                                        className="w-full bg-black border border-white/10 rounded-2xl pl-12 pr-4 py-3 text-sm text-white focus:outline-none focus:border-[#0056B3]/30 transition-all font-medium"
+                                        className="w-full bg-canvas border border-ink/10 rounded-2xl pl-12 pr-4 py-3 text-sm text-ink focus:outline-none focus:border-accent/30 transition-all font-medium"
                                         value={search}
                                         onChange={(e) => setSearch(e.target.value)}
                                         autoFocus
@@ -785,7 +785,7 @@ export function CopyProgramButton({ projectId }: { projectId: string }) {
                             <div className="max-h-[400px] overflow-y-auto p-4 space-y-2 custom-scrollbar">
                                 {isLoading ? (
                                     <div className="py-20 text-center text-zinc-500 font-bold animate-pulse uppercase tracking-widest text-xs flex flex-col items-center gap-3">
-                                        <i className="fa-solid fa-circle-notch fa-spin text-xl text-[#0056B3]"></i>
+                                        <i className="fa-solid fa-circle-notch fa-spin text-xl text-accent"></i>
                                         Scanning projects...
                                     </div>
                                 ) : filteredProjects.length === 0 ? (
@@ -812,10 +812,10 @@ export function CopyProgramButton({ projectId }: { projectId: string }) {
                                                 }
                                             }}
                                             disabled={isCopying}
-                                            className="w-full group flex items-center justify-between p-4 bg-white/5 hover:bg-[#0056B3] rounded-2xl transition-all border border-transparent hover:border-[#0056B3]/30"
+                                            className="w-full group flex items-center justify-between p-4 bg-ink/5 hover:bg-accent rounded-2xl transition-all border border-transparent hover:border-accent/30"
                                         >
                                             <div className="text-left flex-1 min-w-0">
-                                                <div className="text-sm font-black text-white group-hover:text-black uppercase italic tracking-tight truncate">{project.name}</div>
+                                                <div className="text-sm font-black text-ink group-hover:text-black uppercase italic tracking-tight truncate">{project.name}</div>
                                                 <div className="text-[9px] text-zinc-500 group-hover:text-black/60 font-bold uppercase tracking-widest truncate">{project.id}</div>
                                             </div>
                                             <i className="fa-solid fa-arrow-right-long text-zinc-700 group-hover:text-black group-hover:translate-x-1 transition-all ml-4"></i>

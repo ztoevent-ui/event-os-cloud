@@ -35,25 +35,25 @@ export default function TicketManagerPage() {
 
     const isWedding = project?.type === 'wedding' || project?.type === 'wedding_fair';
     const theme = isWedding ? {
-        primary: 'text-pink-500',
-        bg: 'bg-pink-500',
-        hoverBg: 'hover:bg-pink-600',
-        border: 'border-pink-500/30',
-        accentBg: 'bg-pink-500/10',
-        accentText: 'text-pink-500',
-        accentBorder: 'border-pink-500/20',
-        ringClass: 'focus:ring-pink-500',
-        shadow: 'shadow-pink-500/20'
+        primary: 'text-accent',
+        bg: 'bg-accent',
+        hoverBg: 'hover:bg-accent-hover',
+        border: 'border-accent/30',
+        accentBg: 'bg-accent/10',
+        accentText: 'text-accent',
+        accentBorder: 'border-accent/20',
+        ringClass: 'focus:ring-accent',
+        shadow: 'shadow-accent/20'
     } : {
-        primary: 'text-[#0056B3]',
-        bg: 'bg-[#0056B3]',
-        hoverBg: 'hover:bg-[#0056B3]',
-        border: 'border-white/10',
-        accentBg: 'bg-[#0056B3]/10',
-        accentText: 'text-[#0056B3]',
-        accentBorder: 'border-[#0056B3]/30',
-        ringClass: 'focus:ring-[#0056B3]',
-        shadow: 'shadow-blue-900/20'
+        primary: 'text-accent',
+        bg: 'bg-accent',
+        hoverBg: 'hover:bg-accent',
+        border: 'border-ink/10',
+        accentBg: 'bg-accent/10',
+        accentText: 'text-accent',
+        accentBorder: 'border-accent/30',
+        ringClass: 'focus:ring-accent',
+        shadow: 'shadow-accent/20'
     };
 
     const fetchTickets = async () => {
@@ -100,8 +100,8 @@ export default function TicketManagerPage() {
             {/* ── Page Header + Action Bar ── */}
             <div className="print:hidden flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
                 <div className="flex flex-col">
-                    <p className="text-xs font-black uppercase tracking-[0.2em] text-[#0056B3] mb-2">Commerce Hub</p>
-                    <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tight leading-none font-['Urbanist']">
+                    <p className="text-xs font-black uppercase tracking-[0.2em] text-accent mb-2">Commerce Hub</p>
+                    <h1 className="text-4xl md:text-5xl font-black text-ink uppercase tracking-tight leading-none font-display">
                         Ticket Architecture
                     </h1>
                 </div>
@@ -111,14 +111,14 @@ export default function TicketManagerPage() {
                     <PrintReportButton title="Ticket Tiers" />
                     <button
                         onClick={() => setFormVisible(!formVisible)}
-                        className="h-11 px-8 rounded-xl bg-white text-black font-black text-[10px] tracking-widest uppercase hover:bg-zinc-200 transition-all flex items-center gap-2.5 shadow-[0_0_20px_rgba(255,255,255,0.1)]"
+                        className="h-11 px-8 rounded-xl bg-white text-black font-black text-[10px] tracking-widest uppercase hover:bg-zinc-200 transition-all flex items-center gap-2.5 shadow-[0_0_20px_rgb(var(--c-ink-rgb)/0.1)]"
                     >
                         <i className="fa-solid fa-plus text-[10px]" /> New Tier
                     </button>
                     <a 
                         href={`/public/tickets/${projectId}`} 
                         target="_blank" 
-                        className="h-11 px-8 rounded-xl bg-white/5 border border-white/10 text-white font-black text-[10px] tracking-widest uppercase hover:bg-white/10 transition-all flex items-center gap-2.5"
+                        className="h-11 px-8 rounded-xl bg-ink/5 border border-ink/10 text-ink font-black text-[10px] tracking-widest uppercase hover:bg-ink/10 transition-all flex items-center gap-2.5"
                     >
                         <i className="fa-solid fa-eye text-[10px]" /> Public Terminal
                     </a>
@@ -128,9 +128,9 @@ export default function TicketManagerPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
                 {/* ── Ticket Tier Grid ── */}
                 <div className="lg:col-span-2 flex flex-col gap-8">
-                    <div className="flex items-center gap-3 border-b border-white/5 pb-4 px-2">
+                    <div className="flex items-center gap-3 border-b border-ink/5 pb-4 px-2">
                         <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-600">Active Tiers</h2>
-                        <span className="text-[9px] font-black bg-white/5 text-zinc-600 px-3 py-1 rounded-full border border-white/5 font-mono">
+                        <span className="text-[9px] font-black bg-ink/5 text-zinc-600 px-3 py-1 rounded-full border border-ink/5 font-mono">
                             {tickets.length}
                         </span>
                     </div>
@@ -144,7 +144,7 @@ export default function TicketManagerPage() {
                         )}
 
                         {!loading && tickets.length === 0 && (
-                            <div className="py-32 border border-dashed border-white/5 rounded-[32px] bg-white/[0.02] flex flex-col items-center justify-center opacity-30">
+                            <div className="py-32 border border-dashed border-ink/5 rounded-[32px] bg-ink/[0.02] flex flex-col items-center justify-center opacity-30">
                                 <i className="fa-solid fa-ticket-alt text-4xl mb-4" />
                                 <p className="text-[10px] font-black uppercase tracking-[0.2em]">No tiers configured</p>
                             </div>
@@ -152,14 +152,14 @@ export default function TicketManagerPage() {
 
                         {tickets.map(t => (
                             <div key={t.id} className={`${pageBreakIds.includes(t.id) ? 'print:break-before-page' : ''}`}>
-                                <div className="bg-white/[0.03] border border-white/5 p-8 rounded-[32px] flex flex-col md:flex-row md:items-center justify-between gap-8 hover:border-[#0056B3]/40 transition-all group relative overflow-hidden print:bg-white print:border-zinc-200 print:text-black">
+                                <div className="bg-ink/[0.03] border border-ink/5 p-8 rounded-[32px] flex flex-col md:flex-row md:items-center justify-between gap-8 hover:border-accent/40 transition-all group relative overflow-hidden print:bg-white print:border-zinc-200 print:text-black">
                                     <div className="flex-1">
                                         <div className="flex items-center gap-4 mb-4">
-                                            <h3 className="text-2xl font-black text-white uppercase tracking-tight font-['Urbanist'] group-hover:text-[#4da3ff] transition-colors">{t.name}</h3>
+                                            <h3 className="text-2xl font-black text-ink uppercase tracking-tight font-display group-hover:text-accent-bright transition-colors">{t.name}</h3>
                                             <span className={`text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-widest border ${
                                                 t.status === 'active' 
                                                 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
-                                                : 'bg-white/5 text-zinc-600 border-white/10'
+                                                : 'bg-ink/5 text-zinc-600 border-ink/10'
                                             }`}>
                                                 {t.status}
                                             </span>
@@ -170,23 +170,23 @@ export default function TicketManagerPage() {
                                         <div className="flex flex-wrap items-center gap-6">
                                             <div className="flex flex-col">
                                                 <span className="text-[8px] font-black text-zinc-700 uppercase tracking-[0.3em] mb-1">Pricing</span>
-                                                <span className="text-lg font-black text-white tabular-nums font-['Urbanist']">RM {Number(t.price).toFixed(2)}</span>
+                                                <span className="text-lg font-black text-ink tabular-nums font-display">RM {Number(t.price).toFixed(2)}</span>
                                             </div>
-                                            <div className="w-px h-8 bg-white/5" />
+                                            <div className="w-px h-8 bg-ink/5" />
                                             <div className="flex flex-col">
                                                 <span className="text-[8px] font-black text-zinc-700 uppercase tracking-[0.3em] mb-1">Utilization</span>
-                                                <span className="text-lg font-black text-zinc-400 tabular-nums font-['Urbanist']">
-                                                    <span className="text-white">{t.quantity_sold || 0}</span> / {t.quantity_total} Sold
+                                                <span className="text-lg font-black text-zinc-400 tabular-nums font-display">
+                                                    <span className="text-ink">{t.quantity_sold || 0}</span> / {t.quantity_total} Sold
                                                 </span>
                                             </div>
                                         </div>
                                     </div>
                                     
                                     <div className="shrink-0 flex items-center gap-3">
-                                        <button onClick={() => toggleStatus(t)} className="w-12 h-12 rounded-2xl bg-zinc-900 border border-white/5 flex items-center justify-center text-zinc-600 hover:text-[#4da3ff] hover:bg-[#0056B3]/10 transition-all print:hidden">
+                                        <button onClick={() => toggleStatus(t)} className="w-12 h-12 rounded-2xl bg-zinc-900 border border-ink/5 flex items-center justify-center text-zinc-600 hover:text-accent-bright hover:bg-accent/10 transition-all print:hidden">
                                             <i className={`fa-solid ${t.status === 'active' ? 'fa-eye-slash' : 'fa-eye'}`} />
                                         </button>
-                                        <button className="w-12 h-12 rounded-2xl bg-zinc-900 border border-white/5 flex items-center justify-center text-zinc-600 hover:text-red-500 hover:bg-red-500/10 transition-all print:hidden">
+                                        <button className="w-12 h-12 rounded-2xl bg-zinc-900 border border-ink/5 flex items-center justify-center text-zinc-600 hover:text-red-500 hover:bg-red-500/10 transition-all print:hidden">
                                             <i className="fa-solid fa-trash-can" />
                                         </button>
                                     </div>
@@ -199,13 +199,13 @@ export default function TicketManagerPage() {
 
                 {/* ── Configuration Console ── */}
                 <div className={`lg:col-span-1 transition-all duration-500 print:hidden ${formVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-12 pointer-events-none lg:opacity-100 lg:translate-x-0 lg:pointer-events-auto'}`}>
-                    <div className="bg-white/[0.03] border border-white/5 p-10 rounded-[40px] shadow-2xl sticky top-8 group">
+                    <div className="bg-ink/[0.03] border border-ink/5 p-10 rounded-[40px] shadow-2xl sticky top-8 group">
                         <div className="absolute top-0 right-0 p-10 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity pointer-events-none">
                             <i className="fa-solid fa-pen-nib text-8xl" />
                         </div>
 
-                        <h3 className="text-2xl font-black text-white uppercase tracking-tight font-['Urbanist'] mb-10 flex items-center gap-3">
-                            <div className="w-2 h-2 rounded-full bg-[#0056B3] shadow-[0_0_10px_rgba(0,86,179,0.5)]" />
+                        <h3 className="text-2xl font-black text-ink uppercase tracking-tight font-display mb-10 flex items-center gap-3">
+                            <div className="w-2 h-2 rounded-full bg-accent shadow-[0_0_10px_rgb(var(--c-accent-rgb)/0.5)]" />
                             Tier Architect
                         </h3>
 
@@ -214,7 +214,7 @@ export default function TicketManagerPage() {
                                 <label className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.3em] mb-3 block">Tier Designation</label>
                                 <input 
                                     required 
-                                    className="w-full bg-white/5 border border-white/5 rounded-2xl px-6 py-4 text-white font-bold focus:border-[#0056B3]/40 focus:bg-white/[0.08] outline-none transition-all placeholder:text-zinc-800" 
+                                    className="w-full bg-ink/5 border border-ink/5 rounded-2xl px-6 py-4 text-ink font-bold focus:border-accent/40 focus:bg-ink/[0.08] outline-none transition-all placeholder:text-zinc-800" 
                                     placeholder="e.g. VIP DIAMOND" 
                                     value={formData.name} 
                                     onChange={e => setFormData({ ...formData, name: e.target.value })} 
@@ -228,7 +228,7 @@ export default function TicketManagerPage() {
                                         required 
                                         type="number" 
                                         step="0.01" 
-                                        className="w-full bg-white/5 border border-white/5 rounded-2xl px-6 py-4 text-white font-bold focus:border-[#0056B3]/40 focus:bg-white/[0.08] outline-none transition-all font-mono" 
+                                        className="w-full bg-ink/5 border border-ink/5 rounded-2xl px-6 py-4 text-ink font-bold focus:border-accent/40 focus:bg-ink/[0.08] outline-none transition-all font-mono" 
                                         value={formData.price} 
                                         onChange={e => setFormData({ ...formData, price: Number(e.target.value) })} 
                                     />
@@ -238,7 +238,7 @@ export default function TicketManagerPage() {
                                     <input 
                                         required 
                                         type="number" 
-                                        className="w-full bg-white/5 border border-white/5 rounded-2xl px-6 py-4 text-white font-bold focus:border-[#0056B3]/40 focus:bg-white/[0.08] outline-none transition-all font-mono" 
+                                        className="w-full bg-ink/5 border border-ink/5 rounded-2xl px-6 py-4 text-ink font-bold focus:border-accent/40 focus:bg-ink/[0.08] outline-none transition-all font-mono" 
                                         value={formData.quantity} 
                                         onChange={e => setFormData({ ...formData, quantity: Number(e.target.value) })} 
                                     />
@@ -248,7 +248,7 @@ export default function TicketManagerPage() {
                             <div>
                                 <label className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.3em] mb-3 block">Tier Intelligence</label>
                                 <textarea 
-                                    className="w-full bg-white/5 border border-white/5 rounded-2xl px-6 py-4 text-white font-bold focus:border-[#0056B3]/40 focus:bg-white/[0.08] outline-none transition-all h-32 resize-none placeholder:text-zinc-800" 
+                                    className="w-full bg-ink/5 border border-ink/5 rounded-2xl px-6 py-4 text-ink font-bold focus:border-accent/40 focus:bg-ink/[0.08] outline-none transition-all h-32 resize-none placeholder:text-zinc-800" 
                                     placeholder="Define tier inclusions..." 
                                     value={formData.description} 
                                     onChange={e => setFormData({ ...formData, description: e.target.value })} 
@@ -258,7 +258,7 @@ export default function TicketManagerPage() {
                             <button 
                                 type="submit" 
                                 disabled={loading} 
-                                className="w-full h-16 bg-[#0056B3] text-white font-black rounded-2xl text-[11px] uppercase tracking-[0.2em] shadow-[0_0_40px_rgba(0,86,179,0.3)] hover:shadow-[0_0_60px_rgba(0,86,179,0.5)] transition-all active:scale-95 disabled:opacity-50"
+                                className="w-full h-16 bg-accent text-white font-black rounded-2xl text-[11px] uppercase tracking-[0.2em] shadow-[0_0_40px_rgb(var(--c-accent-rgb)/0.3)] hover:shadow-[0_0_60px_rgb(var(--c-accent-rgb)/0.5)] transition-all active:scale-95 disabled:opacity-50"
                             >
                                 {loading ? 'Deploying...' : 'Initialize Tier'}
                             </button>

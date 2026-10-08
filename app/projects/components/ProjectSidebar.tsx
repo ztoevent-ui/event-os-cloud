@@ -84,7 +84,7 @@ export default function ProjectSidebar({
                 display: 'flex',
                 alignItems: 'center',
                 padding: '0 20px',
-                borderBottom: '1px solid rgba(255,255,255,0.06)',
+                borderBottom: '1px solid rgb(var(--c-ink-rgb) / 0.06)',
                 flexShrink: 0,
                 gap: 12,
             }}>
@@ -98,7 +98,7 @@ export default function ProjectSidebar({
                         style={{ width: 30, height: 30, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }}
                     />
                     <span style={{
-                        color: '#fff',
+                        color: 'var(--c-ink)',
                         fontWeight: 700,
                         fontSize: 15,
                         whiteSpace: 'nowrap',
@@ -113,10 +113,10 @@ export default function ProjectSidebar({
                     className="zto-mobile-topbar"
                     onClick={() => setMobileOpen(false)}
                     style={{
-                        background: 'rgba(255,255,255,0.06)',
-                        border: '1px solid rgba(255,255,255,0.1)',
+                        background: 'rgb(var(--c-ink-rgb) / 0.06)',
+                        border: '1px solid rgb(var(--c-ink-rgb) / 0.1)',
                         borderRadius: 8,
-                        color: 'rgba(255,255,255,0.5)',
+                        color: 'rgb(var(--c-ink-rgb) / 0.5)',
                         width: 32, height: 32,
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         cursor: 'pointer', flexShrink: 0, fontSize: 14,
@@ -130,7 +130,7 @@ export default function ProjectSidebar({
             {/* ── Project Context ── */}
             <div style={{
                 padding: '20px',
-                borderBottom: '1px solid rgba(255,255,255,0.06)',
+                borderBottom: '1px solid rgb(var(--c-ink-rgb) / 0.06)',
                 flexShrink: 0,
             }}>
                 <div className="zto-label" style={{ marginBottom: 8 }}>
@@ -139,7 +139,7 @@ export default function ProjectSidebar({
                 <div style={{
                     fontSize: 14,
                     fontWeight: 700,
-                    color: '#fff',
+                    color: 'var(--c-ink)',
                     display: '-webkit-box',
                     WebkitLineClamp: 2,
                     WebkitBoxOrient: 'vertical',
@@ -180,14 +180,14 @@ export default function ProjectSidebar({
             {/* ── Footer ── */}
             <div style={{
                 padding: '12px',
-                borderTop: '1px solid rgba(255,255,255,0.06)',
+                borderTop: '1px solid rgb(var(--c-ink-rgb) / 0.06)',
                 flexShrink: 0,
             }}>
-                <Link href="/projects" className="zto-nav-item" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                <Link href="/projects" className="zto-nav-item" style={{ color: 'rgb(var(--c-ink-rgb) / 0.35)' }}>
                     <i className="fa-solid fa-arrow-left zto-nav-icon" />
                     <span>Exit to Projects</span>
                 </Link>
-                <Link href="/dashboard" className="zto-nav-item" style={{ color: 'rgba(255,255,255,0.25)', marginTop: 2 }}>
+                <Link href="/dashboard" className="zto-nav-item" style={{ color: 'rgb(var(--c-ink-rgb) / 0.25)', marginTop: 2 }}>
                     <i className="fa-solid fa-house-chimney zto-nav-icon" />
                     <span>Master Console</span>
                 </Link>
@@ -204,8 +204,8 @@ export default function ProjectSidebar({
                     position: 'fixed',
                     top: 0, left: 0, right: 0,
                     height: 56,
-                    background: '#050505',
-                    borderBottom: '1px solid rgba(0,86,179,0.25)',
+                    background: 'var(--c-canvas)',
+                    borderBottom: '1px solid rgb(var(--c-accent-rgb) / 0.25)',
                     zIndex: 100,
                     alignItems: 'center',
                     padding: '0 16px',
@@ -216,10 +216,10 @@ export default function ProjectSidebar({
                 <button
                     onClick={() => setMobileOpen(true)}
                     style={{
-                        background: 'rgba(0,86,179,0.1)',
-                        border: '1px solid rgba(0,86,179,0.3)',
+                        background: 'rgb(var(--c-accent-rgb) / 0.1)',
+                        border: '1px solid rgb(var(--c-accent-rgb) / 0.3)',
                         borderRadius: 10,
-                        color: '#4da3ff',
+                        color: 'var(--c-accent-bright)',
                         width: 40, height: 40,
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         cursor: 'pointer', flexShrink: 0, fontSize: 16,
@@ -229,7 +229,7 @@ export default function ProjectSidebar({
                     <i className="fa-solid fa-bars" />
                 </button>
                 <span style={{
-                    fontSize: 15, fontWeight: 700, color: '#fff',
+                    fontSize: 15, fontWeight: 700, color: 'var(--c-ink)',
                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     flex: 1,
                 }}>

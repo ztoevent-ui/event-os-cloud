@@ -59,7 +59,7 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
                 <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mb-6 border border-red-500/20 shadow-[0_0_30px_rgba(239,68,68,0.15)]">
                     <i className="fa-solid fa-lock text-3xl text-red-500"></i>
                 </div>
-                <h2 className="text-3xl font-black text-white uppercase tracking-tight mb-3">Classified Sector</h2>
+                <h2 className="text-3xl font-black text-ink uppercase tracking-tight mb-3">Classified Sector</h2>
                 <p className="text-zinc-400 max-w-md">
                     Your current clearance level (Intern) does not permit access to financial data. Please contact the project administrator if you require access.
                 </p>
@@ -77,7 +77,7 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
     const statusColor: Record<string, string> = {
         paid:      '#22c55e',
         received:  '#22c55e',
-        confirmed: '#0056B3',
+        confirmed: 'var(--c-accent)',
         planned:   '#71717a',
         cancelled: '#ef4444',
     };
@@ -127,8 +127,8 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
             {/* ── SCREEN HEADER ── */}
             <div className="print:hidden flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
                 <div className="flex flex-col">
-                    <p className="text-xs font-black uppercase tracking-[0.2em] text-[#0056B3] mb-2">Financial Hub</p>
-                    <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tight leading-none font-['Urbanist']">
+                    <p className="text-xs font-black uppercase tracking-[0.2em] text-accent mb-2">Financial Hub</p>
+                    <h1 className="text-4xl md:text-5xl font-black text-ink uppercase tracking-tight leading-none font-display">
                         Budget Ledger
                     </h1>
                 </div>
@@ -136,7 +136,7 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
                 {/* ── Stats + Actions Hub ── */}
                 <div className="flex flex-wrap items-center gap-4">
                     {/* Premium Stats Pill */}
-                    <div className="h-auto md:h-12 py-4 md:py-0 px-6 flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-6 rounded-2xl bg-[#050505] border border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.5)] w-full lg:w-auto">
+                    <div className="h-auto md:h-12 py-4 md:py-0 px-6 flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-6 rounded-2xl bg-canvas border border-ink/10 shadow-[0_0_30px_rgba(0,0,0,0.5)] w-full lg:w-auto">
                         <div className="flex items-center justify-between w-full md:w-auto gap-2">
                             <div className="flex items-center gap-2">
                                 <span className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
@@ -144,21 +144,21 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
                             </div>
                             <span className="text-xs font-black text-red-500 font-mono ml-2">RM {totalSpends.toFixed(2)}</span>
                         </div>
-                        <div className="hidden md:block w-px h-4 bg-white/10" />
+                        <div className="hidden md:block w-px h-4 bg-ink/10" />
                         <div className="flex items-center justify-between w-full md:w-auto gap-2">
                             <div className="flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-[#DEFF9A] shadow-[0_0_10px_rgba(222,255,154,0.5)]" />
+                                <span className="w-1.5 h-1.5 rounded-full bg-accent-2 shadow-[0_0_10px_rgb(var(--c-accent-2-rgb)/0.5)]" />
                                 <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Income</span>
                             </div>
-                            <span className="text-xs font-black text-[#DEFF9A] font-mono ml-2">RM {totalIncome.toFixed(2)}</span>
+                            <span className="text-xs font-black text-accent-2 font-mono ml-2">RM {totalIncome.toFixed(2)}</span>
                         </div>
-                        <div className="hidden md:block w-px h-4 bg-white/10" />
+                        <div className="hidden md:block w-px h-4 bg-ink/10" />
                         <div className="flex items-center justify-between w-full md:w-auto gap-2">
                             <div className="flex items-center gap-2">
-                                <i className="fa-solid fa-scale-balanced text-[10px] text-[#0056B3]"></i>
+                                <i className="fa-solid fa-scale-balanced text-[10px] text-accent"></i>
                                 <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Net Profit</span>
                             </div>
-                            <span className={`text-xs font-black font-mono ml-2 ${netBalance >= 0 ? 'text-[#DEFF9A]' : 'text-red-500'}`}>
+                            <span className={`text-xs font-black font-mono ml-2 ${netBalance >= 0 ? 'text-accent-2' : 'text-red-500'}`}>
                                 RM {netBalance.toFixed(2)}
                             </span>
                         </div>
@@ -180,7 +180,7 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
 
                 {/* Expenses column */}
                 <div className="flex flex-col gap-4">
-                    <div className="flex items-center justify-between border-b border-white/5 pb-3">
+                    <div className="flex items-center justify-between border-b border-ink/5 pb-3">
                         <div className="flex items-center gap-3">
                             <div className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
                             <h3 className="text-[10px] font-black text-red-500 uppercase tracking-[0.3em]">Debit / Expenses</h3>
@@ -189,7 +189,7 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
                     </div>
 
                     {expenses.length === 0 ? (
-                        <div className="py-12 border border-dashed border-white/5 rounded-2xl flex flex-col items-center justify-center opacity-30">
+                        <div className="py-12 border border-dashed border-ink/5 rounded-2xl flex flex-col items-center justify-center opacity-30">
                             <i className="fa-solid fa-receipt text-2xl mb-3" />
                             <p className="text-[9px] font-black uppercase tracking-widest">No expenses logged</p>
                         </div>
@@ -198,17 +198,17 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
                             <div
                                 key={item.id}
                                 onClick={() => setEditingItem(item)}
-                                className="group relative bg-white/[0.03] border border-white/5 px-5 py-4 rounded-2xl hover:border-red-500/30 transition-all cursor-pointer"
+                                className="group relative bg-ink/[0.03] border border-ink/5 px-5 py-4 rounded-2xl hover:border-red-500/30 transition-all cursor-pointer"
                             >
                                 <div className="flex justify-between items-start">
                                     <div className="flex-1 min-w-0 pr-4">
-                                        <h4 className="text-[13px] font-black text-white uppercase tracking-tight group-hover:text-red-400 transition-colors truncate">{item.item}</h4>
+                                        <h4 className="text-[13px] font-black text-ink uppercase tracking-tight group-hover:text-red-400 transition-colors truncate">{item.item}</h4>
                                         <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mt-0.5">{item.category}</p>
                                     </div>
                                     <div className="text-right flex flex-col items-end shrink-0">
                                         <div className="text-sm font-black text-red-500 font-mono whitespace-nowrap">− RM {Number(item.amount).toFixed(2)}</div>
                                         <div className="mt-1.5 flex items-center gap-2">
-                                            <span className="text-[8px] font-black px-2 py-0.5 rounded bg-white/5 text-zinc-600 uppercase tracking-tighter">{item.status}</span>
+                                            <span className="text-[8px] font-black px-2 py-0.5 rounded bg-ink/5 text-zinc-600 uppercase tracking-tighter">{item.status}</span>
                                             <i className="fa-solid fa-pen-to-square text-[10px] text-zinc-700 group-hover:text-red-400 transition-colors" />
                                             <div onClick={e => e.stopPropagation()}>
                                                 <DeleteBudgetButton id={item.id} projectId={id} onSuccess={fetchData} />
@@ -222,7 +222,7 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
                     )}
 
                     {expenses.length > 0 && (
-                        <div className="flex justify-between items-center border-t border-white/5 pt-3 px-1">
+                        <div className="flex justify-between items-center border-t border-ink/5 pt-3 px-1">
                             <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Total Expenses</span>
                             <span className="text-sm font-black text-red-500 font-mono">RM {totalSpends.toFixed(2)}</span>
                         </div>
@@ -231,16 +231,16 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
 
                 {/* Income column */}
                 <div className="flex flex-col gap-4">
-                    <div className="flex items-center justify-between border-b border-white/5 pb-3">
+                    <div className="flex items-center justify-between border-b border-ink/5 pb-3">
                         <div className="flex items-center gap-3">
-                            <div className="w-2 h-2 rounded-full bg-[#DEFF9A] shadow-[0_0_10px_rgba(222,255,154,0.5)]" />
-                            <h3 className="text-[10px] font-black text-[#DEFF9A] uppercase tracking-[0.3em]">Credit / Income</h3>
+                            <div className="w-2 h-2 rounded-full bg-accent-2 shadow-[0_0_10px_rgb(var(--c-accent-2-rgb)/0.5)]" />
+                            <h3 className="text-[10px] font-black text-accent-2 uppercase tracking-[0.3em]">Credit / Income</h3>
                         </div>
                         <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">{income.length} records</span>
                     </div>
 
                     {income.length === 0 ? (
-                        <div className="py-12 border border-dashed border-white/5 rounded-2xl flex flex-col items-center justify-center opacity-30">
+                        <div className="py-12 border border-dashed border-ink/5 rounded-2xl flex flex-col items-center justify-center opacity-30">
                             <i className="fa-solid fa-hand-holding-dollar text-2xl mb-3" />
                             <p className="text-[9px] font-black uppercase tracking-widest">No income logged</p>
                         </div>
@@ -249,18 +249,18 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
                             <div
                                 key={item.id}
                                 onClick={() => setEditingItem(item)}
-                                className="group relative bg-white/[0.03] border border-white/5 px-5 py-4 rounded-2xl hover:border-[#DEFF9A]/30 transition-all cursor-pointer"
+                                className="group relative bg-ink/[0.03] border border-ink/5 px-5 py-4 rounded-2xl hover:border-accent-2/30 transition-all cursor-pointer"
                             >
                                 <div className="flex justify-between items-start">
                                     <div className="flex-1 min-w-0 pr-4">
-                                        <h4 className="text-[13px] font-black text-white uppercase tracking-tight group-hover:text-[#DEFF9A] transition-colors truncate">{item.item}</h4>
+                                        <h4 className="text-[13px] font-black text-ink uppercase tracking-tight group-hover:text-accent-2 transition-colors truncate">{item.item}</h4>
                                         <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mt-0.5">{item.category}</p>
                                     </div>
                                     <div className="text-right flex flex-col items-end shrink-0">
-                                        <div className="text-sm font-black text-[#DEFF9A] font-mono whitespace-nowrap">+ RM {Number(item.amount).toFixed(2)}</div>
+                                        <div className="text-sm font-black text-accent-2 font-mono whitespace-nowrap">+ RM {Number(item.amount).toFixed(2)}</div>
                                         <div className="mt-1.5 flex items-center gap-2">
-                                            <span className="text-[8px] font-black px-2 py-0.5 rounded bg-white/5 text-zinc-600 uppercase tracking-tighter">{item.status}</span>
-                                            <i className="fa-solid fa-pen-to-square text-[10px] text-zinc-700 group-hover:text-[#DEFF9A] transition-colors" />
+                                            <span className="text-[8px] font-black px-2 py-0.5 rounded bg-ink/5 text-zinc-600 uppercase tracking-tighter">{item.status}</span>
+                                            <i className="fa-solid fa-pen-to-square text-[10px] text-zinc-700 group-hover:text-accent-2 transition-colors" />
                                             <div onClick={e => e.stopPropagation()}>
                                                 <DeleteBudgetButton id={item.id} projectId={id} onSuccess={fetchData} />
                                             </div>
@@ -273,9 +273,9 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
                     )}
 
                     {income.length > 0 && (
-                        <div className="flex justify-between items-center border-t border-white/5 pt-3 px-1">
+                        <div className="flex justify-between items-center border-t border-ink/5 pt-3 px-1">
                             <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Total Income</span>
-                            <span className="text-sm font-black text-[#DEFF9A] font-mono">RM {totalIncome.toFixed(2)}</span>
+                            <span className="text-sm font-black text-accent-2 font-mono">RM {totalIncome.toFixed(2)}</span>
                         </div>
                     )}
                 </div>

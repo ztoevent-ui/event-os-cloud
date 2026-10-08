@@ -124,7 +124,7 @@ export default function ProjectsPage() {
     return (
         <div className="page-transition" style={{
             minHeight: '100vh',
-            background: '#050505',
+            background: 'var(--c-canvas)',
             fontFamily: 'Urbanist, sans-serif',
             color: '#E5E5E5',
         }}>
@@ -141,18 +141,18 @@ export default function ProjectsPage() {
                 flexWrap: 'wrap',
                 gap: 16,
                 marginBottom: 32,
-                borderBottom: '1px solid rgba(255,255,255,0.06)',
+                borderBottom: '1px solid rgb(var(--c-ink-rgb) / 0.06)',
             }}>
                 <div>
                     <div className="zto-label" style={{ marginBottom: 8 }}>Internal Network</div>
-                    <h1 style={{ fontSize: 'clamp(20px, 5vw, 28px)', fontWeight: 800, color: '#fff', letterSpacing: '-0.01em' }}>
+                    <h1 style={{ fontSize: 'clamp(20px, 5vw, 28px)', fontWeight: 800, color: 'var(--c-ink)', letterSpacing: '-0.01em' }}>
                         Event Manager
                     </h1>
                     <p className="zto-desc" style={{ marginTop: 6 }}>Oversee and coordinate active deployments.</p>
                 </div>
                 <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'rgba(255,255,255,0.6)', cursor: 'pointer' }}>
-                        <input type="checkbox" checked={showPast} onChange={e => setShowPast(e.target.checked)} style={{ accentColor: '#0056B3' }} /> 
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'rgb(var(--c-ink-rgb) / 0.6)', cursor: 'pointer' }}>
+                        <input type="checkbox" checked={showPast} onChange={e => setShowPast(e.target.checked)} style={{ accentColor: 'var(--c-accent)' }} /> 
                         Include Past
                     </label>
                     <Link href="/dashboard" className="zto-btn zto-btn-ghost" style={{ textDecoration: 'none' }}>
@@ -176,12 +176,12 @@ export default function ProjectsPage() {
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 300, gap: 16, opacity: 0.5 }}>
                         <div style={{
                             width: 44, height: 44,
-                            border: '2px solid rgba(0,86,179,0.2)',
-                            borderTopColor: '#0056B3',
+                            border: '2px solid rgb(var(--c-accent-rgb) / 0.2)',
+                            borderTopColor: 'var(--c-accent)',
                             borderRadius: '50%',
                             animation: 'spin 0.8s linear infinite',
                         }} />
-                        <p style={{ color: '#0056B3', fontSize: 10, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase' }}>
+                        <p style={{ color: 'var(--c-accent)', fontSize: 10, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase' }}>
                             Synchronizing Nodes...
                         </p>
                         <style jsx>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
@@ -192,15 +192,15 @@ export default function ProjectsPage() {
                         <div style={{
                             width: 56, height: 56,
                             borderRadius: 16,
-                            background: 'rgba(0,86,179,0.08)',
-                            border: '1px solid rgba(0,86,179,0.2)',
+                            background: 'rgb(var(--c-accent-rgb) / 0.08)',
+                            border: '1px solid rgb(var(--c-accent-rgb) / 0.2)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: 22, color: '#0056B3',
+                            fontSize: 22, color: 'var(--c-accent)',
                             margin: '0 auto 20px',
                         }}>
                             <i className="fa-solid fa-layer-group" />
                         </div>
-                        <h3 style={{ fontSize: 18, fontWeight: 700, color: '#fff', marginBottom: 8 }}>No Active Deployments</h3>
+                        <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--c-ink)', marginBottom: 8 }}>No Active Deployments</h3>
                         <p className="zto-desc" style={{ marginBottom: 28 }}>
                             Initialize your first event project to orchestrate tasks, coordinate vendors, and deploy operations.
                         </p>
@@ -210,7 +210,7 @@ export default function ProjectsPage() {
                     </div>
 
                 ) : filteredProjects.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '60px 20px', color: 'rgba(255,255,255,0.4)' }}>
+                    <div style={{ textAlign: 'center', padding: '60px 20px', color: 'rgb(var(--c-ink-rgb) / 0.4)' }}>
                         <i className="fa-solid fa-folder-open" style={{ fontSize: 32, marginBottom: 16, opacity: 0.5 }} />
                         <p>No active deployments found.</p>
                         <button onClick={() => setShowPast(true)} className="zto-btn zto-btn-ghost" style={{ marginTop: 12 }}>Show Past Events</button>
@@ -232,8 +232,8 @@ export default function ProjectsPage() {
                                         style={{ cursor: 'pointer', height: '100%', display: 'flex', flexDirection: 'column', transition: 'all 0.3s ease', padding: 20 }}
                                         onMouseEnter={e => {
                                             (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-4px)';
-                                            (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(0,86,179,0.6)';
-                                            (e.currentTarget as HTMLDivElement).style.boxShadow = '0 12px 40px -10px rgba(0,86,179,0.3)';
+                                            (e.currentTarget as HTMLDivElement).style.borderColor = 'rgb(var(--c-accent-rgb) / 0.6)';
+                                            (e.currentTarget as HTMLDivElement).style.boxShadow = '0 12px 40px -10px rgb(var(--c-accent-rgb) / 0.3)';
                                         }}
                                         onMouseLeave={e => {
                                             (e.currentTarget as HTMLDivElement).style.transform = '';
@@ -245,8 +245,8 @@ export default function ProjectsPage() {
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
                                             <div style={{
                                                 width: 36, height: 36, borderRadius: 10,
-                                                background: `${col}12`,
-                                                border: `1px solid ${col}30`,
+                                                background: `color-mix(in srgb, ${col} 7%, transparent)`,
+                                                border: `1px solid color-mix(in srgb, ${col} 19%, transparent)`,
                                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                                 fontSize: 15, color: col,
                                             }}>
@@ -259,19 +259,19 @@ export default function ProjectsPage() {
                                         </div>
 
                                         {/* Title */}
-                                        <h3 style={{ fontSize: 16, fontWeight: 700, color: '#fff', marginBottom: 10, lineHeight: 1.3 }}>
+                                        <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--c-ink)', marginBottom: 10, lineHeight: 1.3 }}>
                                             {project.name}
                                         </h3>
 
                                         {/* Meta */}
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 'auto' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#DEFF9A' }}>
-                                                <i className="fa-regular fa-clock" style={{ width: 14, color: 'rgba(255,255,255,0.3)' }} />
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--c-accent-2)' }}>
+                                                <i className="fa-regular fa-clock" style={{ width: 14, color: 'rgb(var(--c-ink-rgb) / 0.3)' }} />
                                                 {project.start_date ? new Date(project.start_date).toLocaleDateString('en-GB') : 'TBD'}
                                             </div>
                                             {project.venue && (
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>
-                                                    <i className="fa-solid fa-location-crosshairs" style={{ width: 14, color: 'rgba(255,255,255,0.3)' }} />
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'rgb(var(--c-ink-rgb) / 0.5)' }}>
+                                                    <i className="fa-solid fa-location-crosshairs" style={{ width: 14, color: 'rgb(var(--c-ink-rgb) / 0.3)' }} />
                                                     <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{project.venue}</span>
                                                 </div>
                                             )}
@@ -281,7 +281,7 @@ export default function ProjectsPage() {
                                         <div style={{
                                             marginTop: 16,
                                             paddingTop: 12,
-                                            borderTop: '1px solid rgba(255,255,255,0.05)',
+                                            borderTop: '1px solid rgb(var(--c-ink-rgb) / 0.05)',
                                             display: 'flex',
                                             justifyContent: 'space-between',
                                             alignItems: 'center',
@@ -298,10 +298,10 @@ export default function ProjectsPage() {
                                                 <span className="zto-label">Enter</span>
                                                 <div style={{
                                                     width: 28, height: 28, borderRadius: '50%',
-                                                    background: 'rgba(255,255,255,0.04)',
-                                                    border: '1px solid rgba(255,255,255,0.1)',
+                                                    background: 'rgb(var(--c-ink-rgb) / 0.04)',
+                                                    border: '1px solid rgb(var(--c-ink-rgb) / 0.1)',
                                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                    fontSize: 10, color: 'rgba(255,255,255,0.4)',
+                                                    fontSize: 10, color: 'rgb(var(--c-ink-rgb) / 0.4)',
                                                 }}>
                                                     <i className="fa-solid fa-arrow-right" />
                                                 </div>
@@ -327,7 +327,7 @@ export default function ProjectsPage() {
                         onClick={() => setShowModal(false)}
                         style={{
                             position: 'absolute', inset: 0,
-                            background: 'rgba(5,5,5,0.85)',
+                            background: 'rgb(var(--c-canvas-rgb) / 0.85)',
                             backdropFilter: 'blur(8px)',
                         }}
                     />
@@ -354,9 +354,9 @@ export default function ProjectsPage() {
                         {/* Header */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
                             <span className="zto-pulse-dot lime" />
-                            <h2 style={{ fontSize: 20, fontWeight: 700, color: '#fff' }}>Initialize Project</h2>
+                            <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--c-ink)' }}>Initialize Project</h2>
                         </div>
-                        <p className="zto-desc" style={{ marginBottom: 28, paddingBottom: 24, borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                        <p className="zto-desc" style={{ marginBottom: 28, paddingBottom: 24, borderBottom: '1px solid rgb(var(--c-ink-rgb) / 0.07)' }}>
                             Configure root parameters. Metadata can be altered post-deployment.
                         </p>
 
@@ -382,12 +382,12 @@ export default function ProjectsPage() {
                                     className="zto-select"
                                     style={{ backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', backgroundSize: '1em' }}
                                 >
-                                    <option value="corporate" style={{ background: '#0a0a0a' }}>Corporate Node</option>
-                                    <option value="wedding" style={{ background: '#0a0a0a' }}>Wedding Protocol</option>
-                                    <option value="wedding_fair" style={{ background: '#0a0a0a' }}>Wedding Fair</option>
-                                    <option value="sports" style={{ background: '#0a0a0a' }}>Sports Matrix</option>
-                                    <option value="dinner" style={{ background: '#0a0a0a' }}>Gala Banquet</option>
-                                    <option value="other" style={{ background: '#0a0a0a' }}>Uncategorized</option>
+                                    <option value="corporate" style={{ background: 'var(--c-surface-solid)' }}>Corporate Node</option>
+                                    <option value="wedding" style={{ background: 'var(--c-surface-solid)' }}>Wedding Protocol</option>
+                                    <option value="wedding_fair" style={{ background: 'var(--c-surface-solid)' }}>Wedding Fair</option>
+                                    <option value="sports" style={{ background: 'var(--c-surface-solid)' }}>Sports Matrix</option>
+                                    <option value="dinner" style={{ background: 'var(--c-surface-solid)' }}>Gala Banquet</option>
+                                    <option value="other" style={{ background: 'var(--c-surface-solid)' }}>Uncategorized</option>
                                 </select>
                             </div>
 
