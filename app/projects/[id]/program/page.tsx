@@ -227,7 +227,7 @@ export default function TentativeProgramPage({ params }: { params: Promise<{ id:
               </span>
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 20, fontWeight: 700, color: row.is_important ? '#ef4444' : '#fff', marginBottom: 6 }}>
+              <div style={{ fontSize: 20, fontWeight: 700, color: row.is_important ? '#ef4444' : 'var(--c-ink)', marginBottom: 6 }}>
                 {row.activities}
               </div>
               <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '4px' }}>
@@ -562,8 +562,8 @@ function RowCard({ row, editMode, updateCell, removeRow, toggleImportant, isPlac
   return (
       <div
         style={{
-          background: isPlaceholder ? 'rgb(var(--c-ink-rgb) / 0.02)' : (row.is_important ? 'rgba(239,68,68,0.05)' : 'rgb(var(--c-ink-rgb) / 0.025)'),
-          border: isPlaceholder ? '2px dashed rgb(var(--c-accent-2-rgb) / 0.4)' : (row.is_important ? '1px solid rgba(239,68,68,0.3)' : '1px solid rgb(var(--c-accent-rgb) / 0.25)'),
+          background: isPlaceholder ? 'rgb(var(--c-ink-rgb) / 0.04)' : (row.is_important ? 'rgba(239,68,68,0.08)' : 'rgb(var(--c-ink-rgb) / 0.04)'),
+          border: isPlaceholder ? '2px dashed rgb(var(--c-accent-2-rgb) / 0.4)' : (row.is_important ? '1px solid rgba(239,68,68,0.4)' : '1px solid rgb(var(--c-accent-rgb) / 0.3)'),
           borderRadius: 20,
           padding: '24px 28px',
           display: 'flex',
@@ -622,7 +622,7 @@ function RowCard({ row, editMode, updateCell, removeRow, toggleImportant, isPlac
           ) : (
             <div style={{
               fontSize: 16, fontWeight: 700,
-              color: row.is_important ? '#f87171' : '#fff',
+              color: row.is_important ? '#f87171' : 'var(--c-ink)',
             }}>
               {row.activities || <span style={{ color: 'rgb(var(--c-ink-rgb) / 0.15)' }}>—</span>}
             </div>
@@ -634,8 +634,8 @@ function RowCard({ row, editMode, updateCell, removeRow, toggleImportant, isPlac
               <>
                 <input value={row.pic} onChange={e => updateCell(row.id, 'pic', e.target.value, false)} placeholder="PIC" style={{ ...inputStyle, fontSize: 12, color: 'var(--c-accent-bright)', width: 100 }} />
                 <input value={row.course} onChange={e => updateCell(row.id, 'course', e.target.value, false)} placeholder="Course Seq" style={{ ...inputStyle, fontSize: 12, color: '#f59e0b', width: 100 }} />
-                <input value={row.movement} onChange={e => updateCell(row.id, 'movement', e.target.value, false)} placeholder="Movement" style={{ ...inputStyle, fontSize: 12, color: 'rgb(var(--c-ink-rgb) / 0.5)', width: 140 }} />
-                <input value={row.cues} onChange={e => updateCell(row.id, 'cues', e.target.value, false)} placeholder="Staff cue / note" style={{ ...inputStyle, fontSize: 12, color: 'rgb(var(--c-ink-rgb) / 0.5)', flex: 1, minWidth: 120 }} />
+                <input value={row.movement} onChange={e => updateCell(row.id, 'movement', e.target.value, false)} placeholder="Movement" style={{ ...inputStyle, fontSize: 12, color: 'rgb(var(--c-ink-rgb) / 0.65)', width: 140 }} />
+                <input value={row.cues} onChange={e => updateCell(row.id, 'cues', e.target.value, false)} placeholder="Staff cue / note" style={{ ...inputStyle, fontSize: 12, color: 'rgb(var(--c-ink-rgb) / 0.65)', flex: 1, minWidth: 120 }} />
               </>
             ) : (
               <>
@@ -650,12 +650,12 @@ function RowCard({ row, editMode, updateCell, removeRow, toggleImportant, isPlac
                   </span>
                 )}
                 {row.movement && (
-                  <span style={{ fontSize: 12, color: 'rgb(var(--c-ink-rgb) / 0.45)', display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <span style={{ fontSize: 12, color: 'rgb(var(--c-ink-rgb) / 0.65)', display: 'flex', alignItems: 'center', gap: 5 }}>
                     <i className="fa-solid fa-person-walking" style={{ fontSize: 10 }} /> {row.movement}
                   </span>
                 )}
                 {row.cues && (
-                  <span style={{ fontSize: 12, color: 'rgb(var(--c-ink-rgb) / 0.35)', display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <span style={{ fontSize: 12, color: 'rgb(var(--c-ink-rgb) / 0.55)', display: 'flex', alignItems: 'center', gap: 5 }}>
                     <i className="fa-solid fa-comment-dots" style={{ fontSize: 10 }} /> {row.cues}
                   </span>
                 )}
@@ -669,7 +669,7 @@ function RowCard({ row, editMode, updateCell, removeRow, toggleImportant, isPlac
           {editMode && !isOverlay ? (
             <>
               <input value={row.song} onChange={e => updateCell(row.id, 'song', e.target.value, false)} placeholder="BGM" style={{ ...inputStyle, fontSize: 12, color: 'var(--c-accent-bright)', textAlign: 'right' }} />
-              <input value={row.volume} onChange={e => updateCell(row.id, 'volume', e.target.value, false)} placeholder="Vol" style={{ ...inputStyle, fontSize: 11, color: 'rgb(var(--c-ink-rgb) / 0.35)', textAlign: 'right', marginTop: 4 }} />
+              <input value={row.volume} onChange={e => updateCell(row.id, 'volume', e.target.value, false)} placeholder="Vol" style={{ ...inputStyle, fontSize: 11, color: 'rgb(var(--c-ink-rgb) / 0.55)', textAlign: 'right', marginTop: 4 }} />
             </>
           ) : (
             <>
@@ -679,7 +679,7 @@ function RowCard({ row, editMode, updateCell, removeRow, toggleImportant, isPlac
                 </div>
               )}
               {row.volume && (
-                <div style={{ fontSize: 11, color: 'rgb(var(--c-ink-rgb) / 0.3)', marginTop: 4 }}>{row.volume}</div>
+                <div style={{ fontSize: 11, color: 'rgb(var(--c-ink-rgb) / 0.5)', marginTop: 4 }}>{row.volume}</div>
               )}
             </>
           )}
