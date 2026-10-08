@@ -593,13 +593,13 @@ export function AddVendorButton({ projectId, isWedding }: { projectId: string; i
     );
 }
 
-export function DeleteVendorButton({ id, projectId }: { id: string, projectId: string }) {
+export function DeleteVendorButton({ id, projectId, className }: { id: string, projectId: string, className?: string }) {
     return (
-        <form action={deleteVendor} className="absolute top-4 right-16">
+        <form action={deleteVendor} className={className || "absolute top-4 right-16"}>
             <input type="hidden" name="id" value={id} />
             <input type="hidden" name="project_id" value={projectId} />
-            <button type="submit" className="text-zinc-600 hover:text-red-500 transition-colors bg-zinc-900 rounded-full w-8 h-8 flex items-center justify-center border border-zinc-700" title="Delete">
-                <i className="fa-solid fa-trash text-xs"></i>
+            <button type="submit" className="text-zinc-600 hover:text-red-500 transition-colors bg-white/50 backdrop-blur-md rounded-full w-8 h-8 flex items-center justify-center border border-ink/10" title="Delete">
+                <i className="fa-solid fa-trash text-[10px]"></i>
             </button>
         </form>
     );

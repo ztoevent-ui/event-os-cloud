@@ -65,7 +65,7 @@ export default function VendorsPage({ params }: { params: Promise<{ id: string }
     return (
         <div className="flex flex-col flex-1 animate-in fade-in duration-700">
             {/* ── Page Header + Action Bar ── */}
-            <div className="print:hidden flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
+            <div className="print:hidden flex flex-col xl:flex-row xl:items-end justify-between gap-8 mb-12">
                 <div className="flex flex-col">
                     <p className="text-xs font-black uppercase tracking-[0.2em] text-accent mb-2">Supply Chain Hub</p>
                     <h1 className="text-4xl md:text-5xl font-black text-ink uppercase tracking-tight leading-none font-display">
@@ -151,8 +151,16 @@ export default function VendorsPage({ params }: { params: Promise<{ id: string }
                         {filteredVendors.map((vendor) => (
                         <div key={vendor.id} className={`${pageBreakIds.includes(vendor.id) ? 'print:break-before-page' : ''}`}>
                             <div className="bg-ink/[0.03] border border-ink/5 p-8 rounded-[32px] hover:border-accent/40 hover:shadow-[0_8px_32px_rgb(var(--c-accent-rgb)/0.15)] transition-all group relative overflow-hidden h-full flex flex-col">
-                                {/* Status Pill */}
-                                <div className="absolute top-6 right-6 print:hidden">
+                                {/* Action & Status Group */}
+                                <div className="absolute top-6 right-6 print:hidden flex items-center gap-2">
+                                    <button
+                                        onClick={() => setEditingVendor(vendor)}
+                                        className="text-zinc-600 hover:text-accent transition-colors bg-white/50 backdrop-blur-md rounded-full w-8 h-8 flex items-center justify-center border border-ink/10"
+                                        title="Edit"
+                                    >
+                                        <i className="fa-solid fa-pen text-[10px]"></i>
+                                    </button>
+                                    <DeleteVendorButton id={vendor.id} projectId={id} className="" />
                                     <span className={`text-[8px] font-black px-3 py-1 rounded-full uppercase tracking-widest border backdrop-blur-md ${
                                         vendor.status === 'confirmed' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
                                         vendor.status === 'contacted' ? 'bg-accent/10 text-accent-bright border-accent/20' :
@@ -161,15 +169,6 @@ export default function VendorsPage({ params }: { params: Promise<{ id: string }
                                         {vendor.status}
                                     </span>
                                 </div>
-
-                                <DeleteVendorButton id={vendor.id} projectId={id} />
-                                <button
-                                    onClick={() => setEditingVendor(vendor)}
-                                    className="absolute top-4 right-28 print:hidden text-zinc-600 hover:text-accent transition-colors bg-zinc-900 rounded-full w-8 h-8 flex items-center justify-center border border-zinc-700"
-                                    title="Edit"
-                                >
-                                    <i className="fa-solid fa-pen text-xs"></i>
-                                </button>
 
                                 <div className="mb-8">
                                     <div className="w-14 h-14 bg-zinc-900 border border-ink/5 rounded-2xl flex items-center justify-center text-accent text-xl mb-6 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgb(var(--c-accent-rgb)/0.1)]">

@@ -255,7 +255,7 @@ export default function RegistrationStudio() {
     return (
         <div className="space-y-10">
             {/* Action Floating Group */}
-            <div className="print:hidden fixed top-6 right-8 z-[9999] pointer-events-auto flex items-center gap-3 bg-canvas/90 backdrop-blur-xl border border-accent/40 p-2 rounded-2xl shadow-[0_8px_32px_rgb(var(--c-accent-rgb)/0.2)]">
+            <div className="print:hidden fixed bottom-8 right-8 z-[9999] pointer-events-auto flex items-center gap-3 bg-canvas/90 backdrop-blur-xl border border-accent/40 p-2 rounded-2xl shadow-[0_8px_32px_rgb(var(--c-accent-rgb)/0.2)]">
                 {activeTab === 'submissions' && (
                     <div className="px-2 border-r border-ink/10 mr-2">
                         <PrintReportButton title="Registration Submissions" />
@@ -267,7 +267,7 @@ export default function RegistrationStudio() {
             </div>
 
             {/* Page Header */}
-            <div className="print:hidden flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
+            <div className="print:hidden flex flex-col xl:flex-row xl:items-end justify-between gap-8 mb-12">
                 <div className="flex flex-col">
                     <p className="text-xs font-black uppercase tracking-[0.2em] text-accent mb-2">Project Registration</p>
                     <h1 className="text-4xl md:text-5xl font-black text-ink uppercase tracking-tight leading-none font-display">

@@ -125,7 +125,7 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
             </div>
 
             {/* ── SCREEN HEADER ── */}
-            <div className="print:hidden flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
+            <div className="print:hidden flex flex-col xl:flex-row xl:items-end justify-between gap-8 mb-12">
                 <div className="flex flex-col">
                     <p className="text-xs font-black uppercase tracking-[0.2em] text-accent mb-2">Financial Hub</p>
                     <h1 className="text-4xl md:text-5xl font-black text-ink uppercase tracking-tight leading-none font-display">
