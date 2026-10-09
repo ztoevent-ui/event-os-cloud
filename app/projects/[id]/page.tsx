@@ -153,9 +153,11 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
         },
     ].filter(Boolean);
 
-    const visibleModules = userRole === 'intern'
-        ? MODULES.filter(mod => mod.label !== 'Budget')
-        : MODULES;
+    const visibleModules = MODULES.filter(mod => {
+        if (userRole === 'intern' && mod.label === 'Budget') return false;
+        if (project?.type === 'wedding' && ['Timeline', 'Registration', 'Auction'].includes(mod.label)) return false;
+        return true;
+    });
 
     return (
         <div className="page-transition" style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>

@@ -41,6 +41,7 @@ export default async function ProjectLayout({
                     projectName={project?.name || ''}
                     projectStatus={project?.status || 'PLANNING'}
                     isTournament={isTournament}
+                    projectType={project?.type}
                 />
 
                 {/* Layer 2 — Main Canvas */}

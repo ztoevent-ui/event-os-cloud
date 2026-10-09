@@ -25,11 +25,13 @@ export default function ProjectSidebar({
     projectName,
     projectStatus,
     isTournament,
+    projectType,
 }: {
     projectId: string;
     projectName: string;
     projectStatus: string;
     isTournament: boolean;
+    projectType?: string;
 }) {
     const pathname = usePathname();
     
@@ -53,6 +55,7 @@ export default function ProjectSidebar({
 
     const filteredNavItems = NAV_ITEMS.filter(item => {
         if (item.label === 'Budget' && userRole === 'intern') return false;
+        if (projectType === 'wedding' && ['Timeline', 'Registration', 'Auction'].includes(item.label)) return false;
         return true;
     });
 
