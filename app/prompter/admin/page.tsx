@@ -34,14 +34,20 @@ export default function PrompterAdmin() {
     };
 
     const createScript = async () => {
-        if (!newTitle || !newContent) return;
+        if (!newContent.trim()) {
+            alert('Error: Content cannot be empty. Please paste your script/lyrics.');
+            return;
+        }
+        const titleToSave = newTitle.trim() || `Untitled Script (${new Date().toLocaleTimeString()})`;
         const lines = newContent.split('\n').filter(l => l.trim() !== '');
         const { error } = await supabase.from('prompter_scripts').insert({
-            title: newTitle,
+            title: titleToSave,
             type: newType,
             content: lines
         });
-        if (!error) {
+        if (error) {
+            alert('Failed to save script: ' + error.message);
+        } else {
             setNewTitle('');
             setNewContent('');
             fetchData();
