@@ -57,6 +57,15 @@ const tools = [
         tag: 'DISPLAY',
     },
     {
+        id: 'prompter',
+        href: '/prompter/admin',
+        icon: 'fa-solid fa-closed-captioning',
+        label: 'ZTO Prompter',
+        desc: 'Teleprompter & Lyric Control Engine',
+        accent: '#f59e0b',
+        tag: 'DISPLAY',
+    },
+    {
         id: 'registration',
         href: '/admin/registration',
         icon: 'fa-solid fa-sliders',
