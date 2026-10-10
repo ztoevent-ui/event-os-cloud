@@ -86,6 +86,16 @@ export default function PrompterAdmin() {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [state]);
 
+    // Auto-scroll to current lyric line
+    useEffect(() => {
+        if (state?.mode === 'lyric') {
+            const activeEl = document.getElementById(`lyric-line-${state.current_index}`);
+            if (activeEl) {
+                activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    }, [state?.current_index, state?.mode]);
+
     const togglePlay = async () => {
         if (!state) return;
         await supabase.from('prompter_state').update({ is_playing: !state.is_playing }).eq('id', 1);
@@ -157,22 +167,32 @@ export default function PrompterAdmin() {
                     </div>
 
                     {state?.mode === 'lyric' && (
-                        <div className="flex-1 flex flex-col items-center justify-center gap-8">
-                            <div className="text-center w-full max-w-2xl bg-zinc-950 p-8 rounded-3xl border border-zinc-800 min-h-[200px] flex flex-col items-center justify-center shadow-2xl">
-                                <div className="text-zinc-500 font-bold mb-4">CURRENT LINE ({state.current_index + 1})</div>
-                                <div className="text-3xl md:text-5xl font-black text-white leading-tight">
-                                    {currentScript?.content[state.current_index] || '---'}
-                                </div>
+                        <div className="flex-1 flex flex-col gap-6 max-h-[65vh]">
+                            <div className="flex-1 overflow-y-auto bg-zinc-950 p-4 rounded-3xl border border-zinc-800 shadow-inner flex flex-col gap-2 relative script-matrix-container">
+                                {currentScript?.content.map((line: string, idx: number) => {
+                                    const isActive = state.current_index === idx;
+                                    return (
+                                        <div 
+                                            key={idx}
+                                            id={`lyric-line-${idx}`}
+                                            onClick={() => supabase.from('prompter_state').update({ current_index: idx }).eq('id', 1)}
+                                            className={`p-4 rounded-xl cursor-pointer transition-all ${isActive ? 'bg-blue-600 text-white font-black text-2xl shadow-lg scale-[1.02] border border-blue-400' : 'bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 border border-zinc-800'}`}
+                                        >
+                                            <span className="opacity-40 text-sm mr-4">{idx + 1}</span>
+                                            {line}
+                                        </div>
+                                    );
+                                })}
                             </div>
                             
-                            <div className="flex gap-6 w-full max-w-2xl">
-                                <button onClick={prevLine} className="flex-1 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 text-white font-black text-3xl py-12 rounded-3xl transition-all shadow-xl active:scale-95 flex flex-col items-center justify-center gap-2">
+                            <div className="flex gap-4">
+                                <button onClick={prevLine} className="flex-1 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 text-white font-black text-2xl py-6 rounded-2xl transition-all shadow-xl active:scale-95 flex flex-col items-center justify-center gap-1">
                                     <i className="fa-solid fa-chevron-left" />
-                                    <span className="text-sm tracking-widest text-zinc-400">PREV (←)</span>
+                                    <span className="text-xs tracking-widest text-zinc-400">PREV (←)</span>
                                 </button>
-                                <button onClick={nextLine} className="flex-1 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-black text-3xl py-12 rounded-3xl transition-all shadow-xl shadow-blue-900/50 active:scale-95 flex flex-col items-center justify-center gap-2">
+                                <button onClick={nextLine} className="flex-1 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-black text-2xl py-6 rounded-2xl transition-all shadow-xl shadow-blue-900/50 active:scale-95 flex flex-col items-center justify-center gap-1">
                                     <i className="fa-solid fa-chevron-right" />
-                                    <span className="text-sm tracking-widest text-blue-200">NEXT (→)</span>
+                                    <span className="text-xs tracking-widest text-blue-200">NEXT (→)</span>
                                 </button>
                             </div>
                         </div>

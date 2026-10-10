@@ -106,10 +106,10 @@ export default function PrompterDisplay() {
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={state.current_index}
-                            initial={{ opacity: 0, y: 30 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -30 }}
-                            transition={{ duration: 0.4, ease: "easeOut" }}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.5, ease: "easeInOut" }}
                             className="text-[6vw] md:text-[8vw] font-black leading-tight text-center tracking-tight text-white drop-shadow-2xl"
                             style={{ fontFamily: "'Inter', 'Noto Sans', sans-serif" }}
                         >
