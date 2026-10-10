@@ -169,64 +169,62 @@ export default function PrompterAdmin() {
                         </div>
                     </div>
 
+                    {/* Global Script Matrix (Available in both modes) */}
+                    <div className="flex-1 flex flex-col gap-6 max-h-[50vh] mb-8">
+                        <div className="flex-1 overflow-y-auto bg-zinc-950 p-4 rounded-3xl border border-zinc-800 shadow-inner flex flex-col gap-2 relative script-matrix-container">
+                            {currentScript?.content.map((line: string, idx: number) => {
+                                const isActive = state.current_index === idx;
+                                return (
+                                    <div 
+                                        key={idx}
+                                        id={`lyric-line-${idx}`}
+                                        onClick={() => {
+                                            setState((prev: any) => ({ ...prev, current_index: idx }));
+                                            supabase.from('prompter_state').update({ current_index: idx }).eq('id', 1);
+                                        }}
+                                        className={`p-4 rounded-xl cursor-pointer transition-all ${isActive ? 'bg-blue-600 text-white font-black text-2xl shadow-lg scale-[1.02] border border-blue-400' : 'bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 border border-zinc-800'}`}
+                                    >
+                                        <span className="opacity-40 text-sm mr-4">{idx + 1}</span>
+                                        {line}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Controls */}
                     {state?.mode === 'lyric' && (
-                        <div className="flex-1 flex flex-col gap-6 max-h-[65vh]">
-                            <div className="flex-1 overflow-y-auto bg-zinc-950 p-4 rounded-3xl border border-zinc-800 shadow-inner flex flex-col gap-2 relative script-matrix-container">
-                                {currentScript?.content.map((line: string, idx: number) => {
-                                    const isActive = state.current_index === idx;
-                                    return (
-                                        <div 
-                                            key={idx}
-                                            id={`lyric-line-${idx}`}
-                                            onClick={() => {
-                                                setState((prev: any) => ({ ...prev, current_index: idx }));
-                                                supabase.from('prompter_state').update({ current_index: idx }).eq('id', 1);
-                                            }}
-                                            className={`p-4 rounded-xl cursor-pointer transition-all ${isActive ? 'bg-blue-600 text-white font-black text-2xl shadow-lg scale-[1.02] border border-blue-400' : 'bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 border border-zinc-800'}`}
-                                        >
-                                            <span className="opacity-40 text-sm mr-4">{idx + 1}</span>
-                                            {line}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                            
-                            <div className="flex gap-4">
-                                <button onClick={prevLine} className="flex-1 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 text-white font-black text-2xl py-6 rounded-2xl transition-all shadow-xl active:scale-95 flex flex-col items-center justify-center gap-1">
-                                    <i className="fa-solid fa-chevron-left" />
-                                    <span className="text-xs tracking-widest text-zinc-400">PREV (←)</span>
-                                </button>
-                                <button onClick={nextLine} className="flex-1 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-black text-2xl py-6 rounded-2xl transition-all shadow-xl shadow-blue-900/50 active:scale-95 flex flex-col items-center justify-center gap-1">
-                                    <i className="fa-solid fa-chevron-right" />
-                                    <span className="text-xs tracking-widest text-blue-200">NEXT (→)</span>
-                                </button>
-                            </div>
+                        <div className="flex gap-4">
+                            <button onClick={prevLine} className="flex-1 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 text-white font-black text-2xl py-6 rounded-2xl transition-all shadow-xl active:scale-95 flex flex-col items-center justify-center gap-1">
+                                <i className="fa-solid fa-chevron-left" />
+                                <span className="text-xs tracking-widest text-zinc-400">PREV (←)</span>
+                            </button>
+                            <button onClick={nextLine} className="flex-1 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-black text-2xl py-6 rounded-2xl transition-all shadow-xl shadow-blue-900/50 active:scale-95 flex flex-col items-center justify-center gap-1">
+                                <i className="fa-solid fa-chevron-right" />
+                                <span className="text-xs tracking-widest text-blue-200">NEXT (→)</span>
+                            </button>
                         </div>
                     )}
 
                     {state?.mode === 'speech' && (
-                        <div className="flex-1 flex flex-col gap-12 justify-center">
-                            <button onClick={togglePlay} className={`w-full font-black text-5xl py-16 rounded-3xl transition-all shadow-2xl active:scale-95 flex items-center justify-center gap-6 ${state.is_playing ? 'bg-red-600 hover:bg-red-500 shadow-red-900/50' : 'bg-green-600 hover:bg-green-500 shadow-green-900/50'}`}>
+                        <div className="flex gap-8 items-center">
+                            <button onClick={togglePlay} className={`flex-1 font-black text-3xl py-8 rounded-3xl transition-all shadow-xl active:scale-95 flex items-center justify-center gap-4 ${state.is_playing ? 'bg-red-600 hover:bg-red-500' : 'bg-green-600 hover:bg-green-500'}`}>
                                 <i className={`fa-solid ${state.is_playing ? 'fa-pause' : 'fa-play'}`} />
                                 {state.is_playing ? 'PAUSE' : 'PLAY'}
                             </button>
 
-                            <div className="bg-zinc-950 border border-zinc-800 p-8 rounded-3xl shadow-xl">
-                                <div className="flex justify-between items-center mb-6">
-                                    <div className="font-bold text-zinc-400 tracking-widest">SCROLL SPEED</div>
-                                    <div className="font-black text-3xl text-white">{state.scroll_speed.toFixed(1)}x</div>
+                            <div className="flex-1 bg-zinc-950 border border-zinc-800 p-6 rounded-3xl shadow-xl">
+                                <div className="flex justify-between items-center mb-4">
+                                    <div className="font-bold text-zinc-400 text-sm tracking-widest">SCROLL SPEED</div>
+                                    <div className="font-black text-2xl text-white">{state.scroll_speed.toFixed(1)}x</div>
                                 </div>
                                 <input 
                                     type="range" 
                                     min="0.5" max="5" step="0.1" 
                                     value={state.scroll_speed}
                                     onChange={e => changeSpeed(parseFloat(e.target.value))}
-                                    className="w-full h-4 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                                    className="w-full h-3 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
                                 />
-                                <div className="flex justify-between mt-3 text-zinc-600 font-bold text-sm">
-                                    <span>Slow</span>
-                                    <span>Fast</span>
-                                </div>
                             </div>
                         </div>
                     )}

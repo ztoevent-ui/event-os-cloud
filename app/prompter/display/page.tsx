@@ -72,12 +72,25 @@ export default function PrompterDisplay() {
         };
     }, [state?.mode, state?.is_playing, state?.scroll_speed]);
 
-    // Reset scroll position when switching to speech mode or script changes
+    // Handle Jumps in Speech Mode & reset on script change
     useEffect(() => {
-        if (state?.mode === 'speech' && containerRef.current && scrollPosRef.current === 0) {
-            containerRef.current.scrollTop = 0;
+        if (state?.mode === 'speech' && containerRef.current) {
+            if (script && state.current_index === 0 && scrollPosRef.current === 0) {
+                containerRef.current.scrollTop = 0;
+            } else if (state.current_index > 0) {
+                const targetLine = document.getElementById(`display-line-${state.current_index}`);
+                if (targetLine) {
+                    // Center the target line in the view
+                    const containerHalfHeight = containerRef.current.clientHeight / 2;
+                    const lineTop = targetLine.offsetTop;
+                    const lineHeight = targetLine.clientHeight;
+                    const targetScroll = lineTop - containerHalfHeight + (lineHeight / 2);
+                    scrollPosRef.current = Math.max(0, targetScroll);
+                    containerRef.current.scrollTop = scrollPosRef.current;
+                }
+            }
         }
-    }, [state?.mode, script]);
+    }, [state?.mode, state?.current_index, script]);
 
 
     if (loading) return <div className="min-h-screen bg-black" />;
@@ -138,8 +151,9 @@ export default function PrompterDisplay() {
                                 return (
                                     <div 
                                         key={i} 
-                                        className="text-[4vw] md:text-[5vw] font-bold leading-normal text-center text-white/90 drop-shadow-lg"
-                                        style={{ fontFamily: "'Inter', 'Noto Sans', sans-serif" }}
+                                        id={`display-line-${i}`}
+                                        className="text-[4vw] md:text-[5vw] font-bold leading-normal text-center text-white/90 drop-shadow-lg transition-opacity duration-300"
+                                        style={{ fontFamily: "'Inter', 'Noto Sans', sans-serif", opacity: state.current_index === i ? 1 : 0.6 }}
                                     >
                                         {line}
                                     </div>
