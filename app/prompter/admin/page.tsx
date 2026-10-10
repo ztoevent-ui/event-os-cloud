@@ -55,23 +55,23 @@ export default function PrompterAdmin() {
     };
 
     const activateScript = async (id: string, type: string) => {
-        await supabase.from('prompter_state').update({
-            current_script_id: id,
-            mode: type,
-            current_index: 0,
-            is_playing: false
-        }).eq('id', 1);
+        const updates = { current_script_id: id, mode: type, current_index: 0, is_playing: false };
+        setState((prev: any) => ({ ...prev, ...updates }));
+        await supabase.from('prompter_state').update(updates).eq('id', 1);
     };
 
     const prevLine = async () => {
         if (!state) return;
         const nextIdx = Math.max(0, state.current_index - 1);
+        setState((prev: any) => ({ ...prev, current_index: nextIdx }));
         await supabase.from('prompter_state').update({ current_index: nextIdx }).eq('id', 1);
     };
 
     const nextLine = async () => {
         if (!state) return;
-        await supabase.from('prompter_state').update({ current_index: state.current_index + 1 }).eq('id', 1);
+        const nextIdx = state.current_index + 1;
+        setState((prev: any) => ({ ...prev, current_index: nextIdx }));
+        await supabase.from('prompter_state').update({ current_index: nextIdx }).eq('id', 1);
     };
 
     useEffect(() => {
@@ -84,7 +84,7 @@ export default function PrompterAdmin() {
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [state]);
+    }, [state, prevLine, nextLine]);
 
     // Auto-scroll to current lyric line
     useEffect(() => {
@@ -98,16 +98,19 @@ export default function PrompterAdmin() {
 
     const togglePlay = async () => {
         if (!state) return;
+        setState((prev: any) => ({ ...prev, is_playing: !prev.is_playing }));
         await supabase.from('prompter_state').update({ is_playing: !state.is_playing }).eq('id', 1);
     };
 
     const changeSpeed = async (val: number) => {
         if (!state) return;
+        setState((prev: any) => ({ ...prev, scroll_speed: val }));
         await supabase.from('prompter_state').update({ scroll_speed: val }).eq('id', 1);
     };
 
     const changeTheme = async (val: string) => {
         if (!state) return;
+        setState((prev: any) => ({ ...prev, theme: val }));
         await supabase.from('prompter_state').update({ theme: val }).eq('id', 1);
     };
 
@@ -175,7 +178,10 @@ export default function PrompterAdmin() {
                                         <div 
                                             key={idx}
                                             id={`lyric-line-${idx}`}
-                                            onClick={() => supabase.from('prompter_state').update({ current_index: idx }).eq('id', 1)}
+                                            onClick={() => {
+                                                setState((prev: any) => ({ ...prev, current_index: idx }));
+                                                supabase.from('prompter_state').update({ current_index: idx }).eq('id', 1);
+                                            }}
                                             className={`p-4 rounded-xl cursor-pointer transition-all ${isActive ? 'bg-blue-600 text-white font-black text-2xl shadow-lg scale-[1.02] border border-blue-400' : 'bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 border border-zinc-800'}`}
                                         >
                                             <span className="opacity-40 text-sm mr-4">{idx + 1}</span>
