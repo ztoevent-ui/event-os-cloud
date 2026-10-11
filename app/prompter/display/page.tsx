@@ -7,16 +7,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 export default function PrompterDisplay() {
     const [state, setState] = useState<any>(null);
     const [script, setScript] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
-    const [showHud, setShowHud] = useState(false);
-    const [syncBadge, setSyncBadge] = useState<'live' | 'syncing'>('live');
 
     const containerRef = useRef<HTMLDivElement>(null);
     const requestRef = useRef<number | null>(null);
     const scrollPosRef = useRef<number>(0);
     const scriptRef = useRef<any>(null);
     const stateRef = useRef<any>(null);
-    const hudTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // Keep stateRef and scriptRef synced for callbacks
     useEffect(() => {
@@ -44,9 +40,14 @@ export default function PrompterDisplay() {
     // Unified state applicator: handles state from any sync channel
     const applyIncomingState = useCallback(async (newState: any, incomingScript?: any) => {
         if (!newState) return;
-        setSyncBadge('syncing');
-        setState((prev: any) => ({ ...prev, ...newState }));
-        setTimeout(() => setSyncBadge('live'), 200);
+        setState((prev: any) => {
+            const preservedBlackout = newState.is_blackout !== undefined ? newState.is_blackout : prev?.is_blackout;
+            return {
+                ...prev,
+                ...newState,
+                is_blackout: preservedBlackout,
+            };
+        });
 
         // If a script object was passed directly in the payload, use it immediately (0ms)
         if (incomingScript && incomingScript.id === newState.current_script_id) {
@@ -56,7 +57,11 @@ export default function PrompterDisplay() {
 
         // If the script changed and is different from current, load it
         if (newState.current_script_id && (!scriptRef.current || scriptRef.current.id !== newState.current_script_id)) {
-            const { data: sc } = await supabase.from('prompter_scripts').select('*').eq('id', newState.current_script_id).single();
+            const { data: sc } = await supabase
+                .from('prompter_scripts')
+                .select('*')
+                .eq('id', newState.current_script_id)
+                .single();
             if (sc) {
                 setScript(sc);
                 scrollPosRef.current = 0;
@@ -84,11 +89,14 @@ export default function PrompterDisplay() {
             if (st) {
                 setState(st);
                 if (st.current_script_id) {
-                    const { data: sc } = await supabase.from('prompter_scripts').select('*').eq('id', st.current_script_id).single();
+                    const { data: sc } = await supabase
+                        .from('prompter_scripts')
+                        .select('*')
+                        .eq('id', st.current_script_id)
+                        .single();
                     if (sc) setScript(sc);
                 }
             }
-            setLoading(false);
         };
         init();
     }, []);
@@ -136,17 +144,21 @@ export default function PrompterDisplay() {
                     applyIncomingState(newRow);
                 }
             })
-            .subscribe((status) => {
-                console.log('[Prompter Display] Realtime Status:', status);
-            });
+            .subscribe();
 
         // Layer 4: Heartbeat polling fallback (every 2s) for complete disconnection recovery
         const poller = setInterval(async () => {
             const { data: st } = await supabase.from('prompter_state').select('*').eq('id', 1).single();
             if (st) {
-                // If index or script or playing changed, apply
                 const curr = stateRef.current;
-                if (!curr || curr.current_index !== st.current_index || curr.current_script_id !== st.current_script_id || curr.is_playing !== st.is_playing || curr.mode !== st.mode || curr.theme !== st.theme) {
+                if (
+                    !curr ||
+                    curr.current_index !== st.current_index ||
+                    curr.current_script_id !== st.current_script_id ||
+                    curr.is_playing !== st.is_playing ||
+                    curr.mode !== st.mode ||
+                    curr.theme !== st.theme
+                ) {
                     applyIncomingState(st);
                 }
             }
@@ -160,14 +172,7 @@ export default function PrompterDisplay() {
         };
     }, [applyIncomingState]);
 
-    // Handle mouse movement for subtle HUD fade-in
-    const handleMouseMove = () => {
-        setShowHud(true);
-        if (hudTimeoutRef.current) clearTimeout(hudTimeoutRef.current);
-        hudTimeoutRef.current = setTimeout(() => setShowHud(false), 3000);
-    };
-
-    // Toggle fullscreen on double click or shortcut
+    // Fullscreen toggle via 'F' shortcut or double-click (completely invisible)
     const toggleFullscreen = () => {
         if (!document.fullscreenElement) {
             document.documentElement.requestFullscreen().catch(() => {});
@@ -186,7 +191,7 @@ export default function PrompterDisplay() {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, []);
 
-    // Handle Speech Mode Scrolling via requestAnimationFrame
+    // Speech Mode Autoscroll via requestAnimationFrame
     useEffect(() => {
         if (state?.mode === 'speech' && state.is_playing) {
             let lastTime = performance.now();
@@ -211,7 +216,7 @@ export default function PrompterDisplay() {
         };
     }, [state?.mode, state?.is_playing, state?.scroll_speed]);
 
-    // Handle Jumps in Speech Mode
+    // Speech Mode Line Jump
     useEffect(() => {
         if (state?.mode === 'speech' && containerRef.current) {
             if (state.current_index === 0 && scrollPosRef.current === 0) {
@@ -232,38 +237,14 @@ export default function PrompterDisplay() {
 
     const lines = getScriptLines(script);
 
-    if (loading) {
+    // If Blackout is on, or no script, or waiting: 100% PURE VOID BLACK. Zero text, zero HUD, zero indicators.
+    if (!state || !script || state.is_blackout) {
         return (
-            <div className="min-h-screen bg-black flex items-center justify-center text-zinc-600 font-mono text-xl">
-                CONNECTING ENGINE...
-            </div>
-        );
-    }
-
-    if (!state || !script) {
-        return (
-            <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white p-8 cursor-default">
-                <div className="text-4xl md:text-5xl font-black text-zinc-600 tracking-widest uppercase mb-4">
-                    WAITING FOR SCRIPT
-                </div>
-                <div className="text-zinc-500 text-sm font-mono tracking-wider">
-                    Please select or activate a script in the Operator Console
-                </div>
-            </div>
-        );
-    }
-
-    // Safety Blackout Check
-    if (state.is_blackout) {
-        return (
-            <div className="min-h-screen bg-black select-none cursor-none" onMouseMove={handleMouseMove} onDoubleClick={toggleFullscreen}>
-                {showHud && (
-                    <div className="absolute top-6 right-6 flex items-center gap-2 bg-red-950/80 border border-red-800 text-red-300 px-4 py-2 rounded-full font-mono text-xs backdrop-blur-md">
-                        <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                        STAGE BLACKOUT ACTIVE
-                    </div>
-                )}
-            </div>
+            <div 
+                className="fixed inset-0 bg-black z-[9999] select-none cursor-none"
+                style={{ cursor: 'none' }}
+                onDoubleClick={toggleFullscreen}
+            />
         );
     }
 
@@ -274,8 +255,8 @@ export default function PrompterDisplay() {
 
     return (
         <div 
-            className={`min-h-screen ${bgStyle} text-white font-sans overflow-hidden relative selection:bg-transparent cursor-none`}
-            onMouseMove={handleMouseMove}
+            className={`fixed inset-0 ${bgStyle} text-white font-sans overflow-hidden select-none cursor-none z-[9999]`}
+            style={{ cursor: 'none' }}
             onDoubleClick={toggleFullscreen}
         >
             {/* Particles Texture Overlay */}
@@ -286,7 +267,7 @@ export default function PrompterDisplay() {
                 />
             )}
 
-            {/* Mode: Lyric (PPT style) with ultra-responsive 0.15s crossfade */}
+            {/* Mode: Lyric (Slide Mode) - PURE CENTRED TEXT ONLY */}
             {state.mode === 'lyric' && (
                 <div className="absolute inset-0 flex items-center justify-center p-8 md:p-20 select-none">
                     <AnimatePresence mode="popLayout">
@@ -305,16 +286,13 @@ export default function PrompterDisplay() {
                 </div>
             )}
 
-            {/* Mode: Speech (Continuous Scroll) */}
+            {/* Mode: Speech (Autoscroll Mode) - PURE SCROLLING TEXT ONLY */}
             {state.mode === 'speech' && (
                 <div className="absolute inset-0 flex justify-center select-none">
-                    {/* Fixed focus box in center */}
-                    <div className="absolute top-1/2 left-0 w-full h-[32vh] -translate-y-1/2 bg-gradient-to-b from-transparent via-blue-500/10 to-transparent pointer-events-none border-y border-blue-500/20 z-10" />
-
                     <div 
                         ref={containerRef}
                         className="w-full max-w-7xl h-full overflow-hidden relative pt-[50vh] pb-[50vh] px-12"
-                        style={{ scrollBehavior: 'auto' }}
+                        style={{ scrollBehavior: 'auto', scrollbarWidth: 'none' }}
                     >
                         <div className="flex flex-col gap-12">
                             {lines.map((line: string, i: number) => (
@@ -324,7 +302,7 @@ export default function PrompterDisplay() {
                                     className="text-[4vw] md:text-[5vw] font-bold leading-normal text-center text-white/90 drop-shadow-lg transition-opacity duration-200"
                                     style={{ 
                                         fontFamily: "'Inter', 'Noto Sans SC', system-ui, sans-serif", 
-                                        opacity: state.current_index === i ? 1 : 0.5 
+                                        opacity: state.current_index === i ? 1 : 0.45 
                                     }}
                                 >
                                     {line}
@@ -334,28 +312,6 @@ export default function PrompterDisplay() {
                     </div>
                 </div>
             )}
-
-            {/* Subtle HUD for Stage Techs (Visible on mouse move) */}
-            <div 
-                className={`fixed top-6 right-6 flex items-center gap-3 transition-opacity duration-500 z-50 ${showHud ? 'opacity-90' : 'opacity-0 pointer-events-none'}`}
-            >
-                <div className="bg-zinc-950/80 border border-zinc-800 text-zinc-300 px-4 py-2 rounded-full font-mono text-xs flex items-center gap-2 backdrop-blur-md shadow-2xl">
-                    <span className={`w-2 h-2 rounded-full ${syncBadge === 'live' ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
-                    <span>0ms SYNC</span>
-                    <span className="text-zinc-600">|</span>
-                    <span className="text-zinc-400 uppercase">{state.mode}</span>
-                    <span className="text-zinc-600">|</span>
-                    <span className="text-blue-400 font-bold">{state.current_index + 1} / {lines.length}</span>
-                </div>
-
-                <button 
-                    onClick={toggleFullscreen}
-                    title="Toggle Fullscreen (F)"
-                    className="bg-zinc-950/80 hover:bg-zinc-800 border border-zinc-800 text-white p-2.5 rounded-full transition backdrop-blur-md"
-                >
-                    <i className="fa-solid fa-expand text-xs" />
-                </button>
-            </div>
         </div>
     );
 }
