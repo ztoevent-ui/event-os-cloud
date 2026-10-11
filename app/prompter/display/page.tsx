@@ -146,7 +146,7 @@ export default function PrompterDisplay() {
             if (st) {
                 // If index or script or playing changed, apply
                 const curr = stateRef.current;
-                if (!curr || curr.current_index !== st.current_index || curr.current_script_id !== st.current_script_id || curr.is_playing !== st.is_playing || curr.mode !== st.mode || curr.theme !== st.theme || curr.is_blackout !== st.is_blackout) {
+                if (!curr || curr.current_index !== st.current_index || curr.current_script_id !== st.current_script_id || curr.is_playing !== st.is_playing || curr.mode !== st.mode || curr.theme !== st.theme) {
                     applyIncomingState(st);
                 }
             }

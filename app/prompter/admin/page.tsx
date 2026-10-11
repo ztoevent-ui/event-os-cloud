@@ -155,6 +155,23 @@ export default function PrompterAdmin() {
         fetchData();
     };
 
+    // Clean database persister (only sends valid schema columns)
+    const persistToDb = async (updates: any) => {
+        const validKeys = ['current_script_id', 'mode', 'current_index', 'scroll_speed', 'theme', 'is_playing'];
+        const payload: any = {};
+        for (const key of validKeys) {
+            if (updates[key] !== undefined) {
+                payload[key] = updates[key];
+            }
+        }
+        if (Object.keys(payload).length === 0) return;
+        payload.updated_at = new Date().toISOString();
+        const { error } = await supabase.from('prompter_state').update(payload).eq('id', 1);
+        if (error) {
+            console.error('Failed to update prompter_state:', error);
+        }
+    };
+
     const activateScript = async (id: string, type: string, scriptObj?: any) => {
         const targetScript = scriptObj || scripts.find(s => s.id === id);
         const updates = { 
@@ -167,7 +184,7 @@ export default function PrompterAdmin() {
         const nextState = { ...state, ...updates };
         setState(nextState);
         broadcastSync(nextState, targetScript);
-        await supabase.from('prompter_state').update(updates).eq('id', 1);
+        await persistToDb(updates);
     };
 
     const jumpToLine = async (idx: number) => {
@@ -176,7 +193,7 @@ export default function PrompterAdmin() {
         const nextState = { ...state, current_index: idx, is_blackout: false };
         setState(nextState);
         broadcastSync(nextState, currentScript);
-        await supabase.from('prompter_state').update({ current_index: idx, is_blackout: false }).eq('id', 1);
+        await persistToDb({ current_index: idx });
     };
 
     const prevLine = useCallback(async () => {
@@ -186,7 +203,7 @@ export default function PrompterAdmin() {
         const nextState = { ...state, current_index: nextIdx, is_blackout: false };
         setState(nextState);
         broadcastSync(nextState, currentScript);
-        await supabase.from('prompter_state').update({ current_index: nextIdx, is_blackout: false }).eq('id', 1);
+        await persistToDb({ current_index: nextIdx });
     }, [state, getCurrentScript, broadcastSync]);
 
     const nextLine = useCallback(async () => {
@@ -198,7 +215,7 @@ export default function PrompterAdmin() {
         const nextState = { ...state, current_index: nextIdx, is_blackout: false };
         setState(nextState);
         broadcastSync(nextState, currentScript);
-        await supabase.from('prompter_state').update({ current_index: nextIdx, is_blackout: false }).eq('id', 1);
+        await persistToDb({ current_index: nextIdx });
     }, [state, getCurrentScript, getScriptLines, broadcastSync]);
 
     const toggleBlackout = async () => {
@@ -207,7 +224,6 @@ export default function PrompterAdmin() {
         const nextState = { ...state, is_blackout: !state.is_blackout };
         setState(nextState);
         broadcastSync(nextState, currentScript);
-        await supabase.from('prompter_state').update({ is_blackout: nextState.is_blackout }).eq('id', 1);
     };
 
     // Keyboard Shortcuts
@@ -245,7 +261,7 @@ export default function PrompterAdmin() {
         const nextState = { ...state, is_playing: !state.is_playing };
         setState(nextState);
         broadcastSync(nextState, currentScript);
-        await supabase.from('prompter_state').update({ is_playing: nextState.is_playing }).eq('id', 1);
+        await persistToDb({ is_playing: nextState.is_playing });
     };
 
     const changeSpeed = async (val: number) => {
@@ -254,7 +270,7 @@ export default function PrompterAdmin() {
         const nextState = { ...state, scroll_speed: val };
         setState(nextState);
         broadcastSync(nextState, currentScript);
-        await supabase.from('prompter_state').update({ scroll_speed: val }).eq('id', 1);
+        await persistToDb({ scroll_speed: val });
     };
 
     const changeTheme = async (val: string) => {
@@ -263,7 +279,7 @@ export default function PrompterAdmin() {
         const nextState = { ...state, theme: val };
         setState(nextState);
         broadcastSync(nextState, currentScript);
-        await supabase.from('prompter_state').update({ theme: val }).eq('id', 1);
+        await persistToDb({ theme: val });
     };
 
     if (loading) {
