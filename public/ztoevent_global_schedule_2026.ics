@@ -77,9 +77,18 @@ DTEND;TZID=Asia/Kuching:20261106T170000
 STATUS:CONFIRMED
 END:VEVENT
 BEGIN:VEVENT
-UID:zto-shellmds-20261110@ztoevent.com
-SUMMARY:[ZTO] Shell MDS - Tents & Stage
-DESCRIPTION:Tents & Stage
+UID:zto-shellmds-20261108@ztoevent.com
+SUMMARY:[ZTO] Shell MDS - Family Day
+DESCRIPTION:Shell MDS Family Day (Setup Nov 8, Event Nov 13-15, Dismantling Nov 15)
+LOCATION:Stadium Muhibah Bintulu
+DTSTART;TZID=Asia/Kuching:20261108T090000
+DTEND;TZID=Asia/Kuching:20261115T210000
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:zto-assyakirin-20261110@ztoevent.com
+SUMMARY:[ZTO] Balai Raya Kampung Assyakirin - Tents & Stage
+DESCRIPTION:Tents & Stage Setup (Nov 10) & Dismantling (Nov 14)
 LOCATION:Balai Raya Kampung Assyakirin (Bintulu)
 DTSTART;TZID=Asia/Kuching:20261110T090000
 DTEND;TZID=Asia/Kuching:20261114T200000

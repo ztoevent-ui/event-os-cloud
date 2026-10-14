@@ -25,20 +25,30 @@ git add .
 if git diff-index --quiet HEAD --; then
     echo -e "${GREEN}✅ No changes to stash or commit. Workspace clean.${NC}"
 else
-    # 4. Commit changes with automated message
-    COMMIT_MSG="Auto-deploy backup generated on $TIMESTAMP"
-    echo -e "${YELLOW}📝 Committing changes...${NC}"
+    # 4. Commit changes with automated or custom message
+    if [ -n "$1" ]; then
+        COMMIT_MSG="$1"
+    else
+        COMMIT_MSG="feat: update and auto-deploy on $TIMESTAMP"
+    fi
+    echo -e "${YELLOW}📝 Committing changes: $COMMIT_MSG${NC}"
     git commit -m "$COMMIT_MSG"
 fi
 
-# 5. Create backup branch and merge changes (ensure we preserve the history)
+# 5. Create backup branch and preserve history
 echo -e "${YELLOW}🌿 Creating backup branch: $BACKUP_BRANCH${NC}"
 git branch $BACKUP_BRANCH
-git push origin $BACKUP_BRANCH
+git push origin $BACKUP_BRANCH || echo "Backup branch push skipped."
 
-# 6. Push to Main (Triggers Vercel)
-echo -e "${YELLOW}☁️ Pushing to remote main branch...${NC}"
+# 6. Push to Main on origin (Triggers Vercel / GitHub Actions)
+echo -e "${YELLOW}☁️ Pushing to origin main branch...${NC}"
 git push origin main
 
+# 7. Push to vercel-target if configured
+if git remote | grep -q "vercel-target"; then
+    echo -e "${YELLOW}☁️ Pushing to vercel-target main branch...${NC}"
+    git push vercel-target main || echo "Push to vercel-target skipped."
+fi
+
 echo -e "${GREEN}✅ Deployment sequence completed successfully.${NC}"
-echo -e "${GREEN}🌐 Vercel will now automatically build and deploy the application.${NC}"
+echo -e "${GREEN}🌐 Vercel will now automatically build and deploy the application to https://ztoevent.com${NC}"
