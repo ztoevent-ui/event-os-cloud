@@ -42,6 +42,16 @@ DTEND;TZID=Asia/Kuching:20261022T130000
 STATUS:CONFIRMED
 END:VEVENT
 BEGIN:VEVENT
+UID:zto-komatsu-20261021@ztoevent.com
+SUMMARY:[ZTO] Komatsu East Malaysia - Setup, Event & Dismantling
+DESCRIPTION:Setup: Oct 21 | Event: Oct 22 | Dismantling: Oct 23\nItems: 3x Air Cooler 100L, 6x Round Table with Cloth, 80x Chair, 5x Table Cloth, Electrical Wiring. Contact: Carol @ Ina
+LOCATION:Komatsu East Malaysia, Kidurong Bintulu
+DTSTART;TZID=Asia/Kuching:20261021T090000
+DTEND;TZID=Asia/Kuching:20261023T160000
+STATUS:CONFIRMED
+END:VEVENT
+
+BEGIN:VEVENT
 UID:zto-kozai-20261028@ztoevent.com
 SUMMARY:[ZTO] Kozai Shoplot - Tents & Furniture
 DESCRIPTION:Tents & Furniture
