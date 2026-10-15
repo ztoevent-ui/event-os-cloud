@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { QRCodeSVG } from 'qrcode.react';
 import { supabase } from '@/lib/supabaseClient';
 import { Leaderboard } from '../components/Leaderboard';
 import { ScoreBarChart } from '../components/ScoreBarChart';
@@ -19,9 +20,10 @@ export default function BroadcastScoreboard() {
   const [lastUpdate,   setLastUpdate]   = useState<Date|null>(null);
   const [flash,        setFlash]        = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showQR,       setShowQR]       = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // ── Fullscreen ────────────────────────────────────────────────────────────
+  // ── Fullscreen & Shortcuts ────────────────────────────────────────────────
   const toggleFullscreen = useCallback(() => {
     if (!document.fullscreenElement) {
       containerRef.current?.requestFullscreen();
@@ -32,9 +34,24 @@ export default function BroadcastScoreboard() {
 
   useEffect(() => {
     const handler = () => setIsFullscreen(!!document.fullscreenElement);
+    const keyHandler = (e: KeyboardEvent) => {
+      if (e.key === 'q' || e.key === 'Q') {
+        setShowQR(prev => !prev);
+      }
+      if (e.key === 'f' || e.key === 'F') {
+        toggleFullscreen();
+      }
+      if (e.key === 'Escape') {
+        setShowQR(false);
+      }
+    };
     document.addEventListener('fullscreenchange', handler);
-    return () => document.removeEventListener('fullscreenchange', handler);
-  }, []);
+    window.addEventListener('keydown', keyHandler);
+    return () => {
+      document.removeEventListener('fullscreenchange', handler);
+      window.removeEventListener('keydown', keyHandler);
+    };
+  }, [toggleFullscreen]);
 
   // ── Data fetch ────────────────────────────────────────────────────────────
   const fetchTeams  = async () => { const {data} = await supabase.from('teams').select('*');            if (data) setTeams(data); };
@@ -103,6 +120,67 @@ export default function BroadcastScoreboard() {
         style={{ backdropFilter:'blur(8px)' }}>
         {isFullscreen ? '⤡' : '⛶'}
       </button>
+
+      {/* 1000 Attendees QR Code Toggle Button */}
+      <button
+        onClick={() => setShowQR(prev => !prev)}
+        title="Scan QR Code (Press Q)"
+        className="fixed top-4 right-16 z-50 h-9 px-3 flex items-center gap-1.5 rounded-xl bg-white/5 hover:bg-white/15 border border-white/10 text-zinc-300 hover:text-white transition-all text-xs font-bold"
+        style={{ backdropFilter:'blur(8px)' }}>
+        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+        </svg>
+        <span className="text-[10px] uppercase tracking-wider hidden sm:inline">Scan QR (Q)</span>
+      </button>
+
+      {/* ── 1000 Attendees QR Code Large Broadcast Modal ────────────────────── */}
+      <AnimatePresence>
+        {showQR && (
+          <motion.div
+            key="qr-overlay"
+            initial={{ opacity:0, scale:0.95 }}
+            animate={{ opacity:1, scale:1 }}
+            exit={{ opacity:0, scale:0.95 }}
+            transition={{ duration:0.25 }}
+            className="fixed inset-0 z-50 bg-black/90 backdrop-blur-xl flex flex-col items-center justify-center p-8 select-none"
+            onClick={() => setShowQR(false)}>
+            <div
+              className="relative max-w-lg w-full bg-[#0d0e14] border-2 border-white/20 rounded-3xl p-8 flex flex-col items-center text-center shadow-[0_0_120px_rgba(239,68,68,0.3)]"
+              onClick={e => e.stopPropagation()}>
+              <button
+                onClick={() => setShowQR(false)}
+                className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-sm font-bold transition-all">
+                ✕
+              </button>
+              <div className="px-3.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 text-xs font-black uppercase tracking-widest mb-3">
+                ● 1,000 Spectators Live Sync · Scan for Scores
+              </div>
+              <h2 className="text-3xl font-black text-white uppercase tracking-tight mb-1">
+                {config.event_title || 'FAMILY DAY 2026'}
+              </h2>
+              <p className="text-xs text-zinc-400 font-medium mb-6">
+                Point your phone camera to view real-time scores and team standings
+              </p>
+              <div className="p-6 bg-white rounded-3xl shadow-2xl border-4 border-white">
+                <QRCodeSVG
+                  value={typeof window !== 'undefined' ? `${window.location.origin}/scoreboard/public` : '/scoreboard/public'}
+                  size={300}
+                  level="H"
+                  includeMargin={false}
+                  fgColor="#09090b"
+                  bgColor="#ffffff"
+                />
+              </div>
+              <div className="mt-5 px-4 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-mono text-blue-300">
+                {typeof window !== 'undefined' ? `${window.location.origin}/scoreboard/public` : '/scoreboard/public'}
+              </div>
+              <div className="mt-3 text-[10px] text-zinc-500 font-bold uppercase tracking-widest">
+                Press ESC or Q to close
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Score update flash */}
       <AnimatePresence>

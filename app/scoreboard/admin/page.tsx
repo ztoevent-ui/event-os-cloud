@@ -286,9 +286,22 @@ export default function AdminScoreboard() {
               </Link>
             </div>
 
+            <Link href="/scoreboard/qr" target="_blank"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-[10px] font-black uppercase tracking-widest text-blue-300 hover:text-white transition-all shadow-sm shadow-blue-500/20"
+              title="1,000 Spectators QR Poster / Standee">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+              </svg>
+              <span className="hidden sm:inline">1,000 QR Poster</span>
+            </Link>
+
             <Link href="/scoreboard/public" target="_blank"
-              className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/[0.08] text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-white transition-all">
-              📱
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/[0.08] text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-white transition-all"
+              title="Public Mobile Scoreboard (Single Screen)">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+              <span className="hidden sm:inline">Mobile Board</span>
             </Link>
           </div>
         </div>

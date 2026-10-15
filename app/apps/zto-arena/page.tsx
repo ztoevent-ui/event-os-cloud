@@ -416,12 +416,18 @@ export default function ArenaHubRoot() {
                   <i className="fa-solid fa-flag-checkered text-orange-500" />
                   <span className="text-[10px] font-black uppercase tracking-widest text-orange-400">Family Day Specials</span>
                 </div>
-                <div className="grid grid-cols-2 gap-3 mb-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
                   <Link href="/scoreboard/public" target="_blank"
                     className="p-4 bg-black/40 hover:bg-white/10 border border-white/5 hover:border-orange-500/30 rounded-xl transition-all group">
                     <div className="text-orange-400 mb-2 text-lg"><i className="fa-solid fa-mobile-screen" /></div>
-                    <div className="text-[11px] font-black text-white uppercase tracking-wider mb-1">Public UI</div>
-                    <div className="text-[9px] text-zinc-500 font-bold leading-tight">3s Edge Cache · Mobile</div>
+                    <div className="text-[11px] font-black text-white uppercase tracking-wider mb-1">Public UI (Single Screen)</div>
+                    <div className="text-[9px] text-zinc-500 font-bold leading-tight">3s Edge · Mobile Fullscreen</div>
+                  </Link>
+                  <Link href="/scoreboard/qr" target="_blank"
+                    className="p-4 bg-blue-950/20 hover:bg-blue-900/30 border border-blue-500/20 hover:border-blue-400/40 rounded-xl transition-all group">
+                    <div className="text-blue-400 mb-2 text-lg"><i className="fa-solid fa-qrcode" /></div>
+                    <div className="text-[11px] font-black text-white uppercase tracking-wider mb-1">1,000 QR Poster</div>
+                    <div className="text-[9px] text-blue-400/80 font-bold leading-tight">Print Standee · Stage · PNG</div>
                   </Link>
                   <Link href="/scoreboard/admin" target="_blank"
                     className="p-4 bg-black/40 hover:bg-white/10 border border-white/5 hover:border-orange-500/30 rounded-xl transition-all group">
