@@ -1,6 +1,5 @@
 "use client";
-import React, { useState, useEffect, useMemo } from 'react';
-import Link from 'next/link';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import useSWR from 'swr';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
@@ -10,535 +9,558 @@ import { AnimatedNumber } from '../components/AnimatedNumber';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
-// House mascot mapping (Corporate Sports Day Houses)
-const TEAM_MASCOTS: Record<string, string> = {
-  'RUMAH MERAH': '🦁',
-  'RED TITANS': '🦁',
-  'RUMAH BIRU': '🐉',
-  'BLUE DRAGONS': '🐉',
-  'RUMAH KUNING': '🐯',
-  'YELLOW LIONS': '🐯',
-  'RUMAH HIJAU': '🦅',
-  'GREEN VIPERS': '🦅',
+// ─── Mascot assignment ───────────────────────────────────────────────────────
+const getMascot = (name: string, index: number): string => {
+  const lower = (name || '').toLowerCase();
+  if (lower.includes('merah') || lower.includes('red')) return '🦁';
+  if (lower.includes('biru') || lower.includes('blue')) return '🐉';
+  if (lower.includes('hijau') || lower.includes('green')) return '🦅';
+  if (lower.includes('kuning') || lower.includes('yellow')) return '🐯';
+  const MASCOTS = ['🦁', '🐉', '🦅', '🐯', '🦊', '🐺', '🦈', '🦋'];
+  return MASCOTS[index % MASCOTS.length];
 };
 
-const DEFAULT_MASCOTS = ['🦁', '🐉', '🐯', '🦅', '🐺', '🦈'];
+// ─── Festive Bunting Garland ────────────────────────────────────────────────
+function FestiveBunting() {
+  const flags = [
+    '#ef4444', '#3b82f6', '#eab308', '#22c55e',
+    '#f97316', '#8b5cf6', '#ec4899', '#06b6d4',
+    '#ef4444', '#3b82f6', '#eab308', '#22c55e'
+  ];
+  return (
+    <div className="w-full overflow-hidden pointer-events-none select-none h-6 flex items-start justify-between relative px-1 shrink-0 z-20">
+      <svg className="absolute top-0 left-0 w-full h-6" preserveAspectRatio="none" viewBox="0 0 100 20">
+        <path d="M 0 2 Q 50 14 100 2" fill="none" stroke="#94a3b8" strokeWidth="0.8" opacity="0.4" />
+      </svg>
+      <div className="w-full flex justify-between items-start z-10">
+        {flags.map((color, i) => (
+          <div
+            key={i}
+            style={{
+              width: 0,
+              height: 0,
+              borderLeft: '11px solid transparent',
+              borderRight: '11px solid transparent',
+              borderTop: `18px solid ${color}`,
+              marginTop: i % 2 === 0 ? '1px' : '4px',
+              filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.12))',
+              transform: `rotate(${((i % 3) - 1) * 3}deg)`,
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
 
-// Web Audio API Sound Synthesizer (No external MP3 file download required)
-class SportsAudio {
+// ─── Floating Background Confetti ───────────────────────────────────────────
+function BackgroundConfetti() {
+  const particles = [
+    { left: '6%', delay: 0, duration: 4.8, color: '#ef4444', size: 8 },
+    { left: '20%', delay: 1.2, duration: 5.4, color: '#3b82f6', size: 9 },
+    { left: '36%', delay: 0.6, duration: 4.5, color: '#eab308', size: 7 },
+    { left: '52%', delay: 2.0, duration: 5.6, color: '#22c55e', size: 9 },
+    { left: '68%', delay: 1.4, duration: 4.2, color: '#f97316', size: 8 },
+    { left: '82%', delay: 0.8, duration: 5.1, color: '#8b5cf6', size: 10 },
+    { left: '94%', delay: 2.3, duration: 4.7, color: '#ec4899', size: 7 },
+  ];
+  return (
+    <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+      {particles.map((p, i) => (
+        <motion.div
+          key={i}
+          style={{
+            position: 'absolute',
+            left: p.left,
+            top: -20,
+            width: p.size,
+            height: p.size * 0.6,
+            background: p.color,
+            borderRadius: 2,
+            opacity: 0.5,
+          }}
+          animate={{
+            y: ['0vh', '105vh'],
+            rotate: [0, 360],
+            x: [0, i % 2 === 0 ? 25 : -25],
+          }}
+          transition={{
+            duration: p.duration,
+            delay: p.delay,
+            repeat: Infinity,
+            ease: 'linear',
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+// ─── Audio Chime (Carnival Major Arpeggio) ──────────────────────────────────
+class FunChime {
   private ctx: AudioContext | null = null;
-
-  private getContext() {
-    if (!this.ctx && typeof window !== 'undefined') {
-      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
-      if (AudioCtx) this.ctx = new AudioCtx();
-    }
-    return this.ctx;
-  }
-
-  playScoreChime() {
+  play() {
     try {
-      const ctx = this.getContext();
-      if (!ctx) return;
+      if (!this.ctx) {
+        const C = window.AudioContext || (window as any).webkitAudioContext;
+        if (!C) return;
+        this.ctx = new C();
+      }
+      const ctx = this.ctx;
       if (ctx.state === 'suspended') ctx.resume();
-
       const now = ctx.currentTime;
-      // High-end sports chime chord
-      [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+      [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = 'triangle';
-        osc.frequency.setValueAtTime(freq, now + i * 0.07);
-
-        gain.gain.setValueAtTime(0.001, now + i * 0.07);
-        gain.gain.exponentialRampToValueAtTime(0.2, now + i * 0.07 + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.07 + 0.35);
-
+        osc.frequency.setValueAtTime(f, now + i * 0.07);
+        gain.gain.setValueAtTime(0.0001, now + i * 0.07);
+        gain.gain.exponentialRampToValueAtTime(0.12, now + i * 0.07 + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.07 + 0.28);
         osc.connect(gain);
         gain.connect(ctx.destination);
-
         osc.start(now + i * 0.07);
-        osc.stop(now + i * 0.07 + 0.38);
+        osc.stop(now + i * 0.07 + 0.32);
       });
     } catch {
-      // Audio playback suspended by browser policy before tap
+      /* ignore audio context restrictions */
     }
   }
 }
+const funAudio = new FunChime();
 
-const audio = new SportsAudio();
+// ─── Rank Badge Component ───────────────────────────────────────────────────
+function RankPill({ rank }: { rank: number }) {
+  if (rank === 1) {
+    return (
+      <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-400 to-yellow-500 text-amber-950 shadow-xs border border-yellow-300">
+        ⭐ 1ST
+      </span>
+    );
+  }
+  if (rank === 2) {
+    return (
+      <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-slate-200 to-slate-300 text-slate-800 shadow-xs border border-slate-300">
+        🥈 2ND
+      </span>
+    );
+  }
+  if (rank === 3) {
+    return (
+      <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-600 to-amber-700 text-white shadow-xs border border-amber-500">
+        🥉 3RD
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200">
+      4TH
+    </span>
+  );
+}
 
+// ─── Main Public Mobile Scoreboard ──────────────────────────────────────────
 export default function PublicScoreboard() {
-  const { data, mutate, isValidating } = useSWR('/api/scoreboard', fetcher, {
+  const { data, mutate } = useSWR('/api/scoreboard', fetcher, {
     refreshInterval: 3000,
     revalidateOnFocus: true,
-    revalidateOnReconnect: true,
-    dedupingInterval: 1500,
   });
 
   const [soundEnabled, setSoundEnabled] = useState(false);
-  const [showQRModal, setShowQRModal] = useState(false);
+  const [showQR, setShowQR] = useState(false);
+  const [selectedTeam, setSelectedTeam] = useState<any | null>(null);
   const [showBreakdown, setShowBreakdown] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [copied, setCopied] = useState(false);
-  const [shareUrl, setShareUrl] = useState('');
-  const [lastTotalScore, setLastTotalScore] = useState<number | null>(null);
 
-  const config = data?.config || {
-    organizer: 'Shell MDS',
-    event_title: 'Family Day 2026',
-    announcement_text: '',
-    announcement_active: 'false',
-  };
+  // Track previous top leader to fire confetti on lead changes
+  const prevLeaderIdRef = useRef<string | null>(null);
+  const prevScoresHashRef = useRef<string>('');
 
-  const teams = useMemo(() => data?.teams || [], [data?.teams]);
-  const categories = useMemo(() => data?.categories || [], [data?.categories]);
-  const scores = useMemo(() => data?.scores || [], [data?.scores]);
+  const teams = data?.teams || [];
+  const scores = data?.scores || [];
+  const categories = data?.categories || [];
+  const config = data?.config || {};
 
-  // Ranked teams
   const sortedTeams = useMemo(() => {
-    return [...teams].sort((a, b) => {
-      if (b.score !== a.score) return b.score - a.score;
-      return a.name.localeCompare(b.name);
-    });
+    return [...teams].sort((a, b) => b.score - a.score);
   }, [teams]);
 
-  const maxScore = useMemo(() => {
-    return Math.max(...teams.map((t: any) => t.score || 0), 1);
-  }, [teams]);
+  const leader = sortedTeams[0] || null;
+  const maxScore = leader?.score ? Math.max(leader.score, 100) : 100;
 
-  const totalScoreAll = useMemo(() => {
-    return teams.reduce((acc: number, t: any) => acc + (t.score || 0), 0);
-  }, [teams]);
-
-  const leader = sortedTeams[0];
-  const secondPlace = sortedTeams[1];
-  const leaderMargin = (leader?.score || 0) - (secondPlace?.score || 0);
-
+  // Supabase Realtime subscriptions
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setShareUrl(window.location.href);
-    }
-  }, []);
+    const chScores = supabase
+      .channel('fun_public_scores')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'game_scores' }, () => {
+        mutate();
+        setLastUpdated(new Date());
+      })
+      .subscribe();
 
-  // Supabase real-time push channel
-  useEffect(() => {
-    const channel = supabase.channel('mobile_public_board')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'game_scores' }, () => mutate())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'teams' }, () => mutate())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'scoreboard_config' }, () => mutate())
+    const chTeams = supabase
+      .channel('fun_public_teams')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'teams' }, () => {
+        mutate();
+        setLastUpdated(new Date());
+      })
+      .subscribe();
+
+    const chConfig = supabase
+      .channel('fun_public_config')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'scoreboard_config' }, () => {
+        mutate();
+      })
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(chScores);
+      supabase.removeChannel(chTeams);
+      supabase.removeChannel(chConfig);
     };
   }, [mutate]);
 
-  // Audio & confetti on score update
+  // Handle score change sound & leader celebration
   useEffect(() => {
-    if (totalScoreAll > 0) {
-      if (lastTotalScore !== null && totalScoreAll > lastTotalScore) {
-        if (soundEnabled) audio.playScoreChime();
-        triggerConfetti(leader?.color_hex);
+    if (!sortedTeams.length) return;
+    const scoresHash = sortedTeams.map(t => `${t.id}:${t.score}`).join('|');
+    if (prevScoresHashRef.current && prevScoresHashRef.current !== scoresHash) {
+      if (soundEnabled) {
+        funAudio.play();
       }
-      setLastTotalScore(totalScoreAll);
-    }
-  }, [totalScoreAll, soundEnabled, leader?.color_hex, lastTotalScore]);
+      setLastUpdated(new Date());
 
-  const triggerConfetti = (color?: string) => {
-    try {
-      confetti({
-        particleCount: 45,
-        spread: 65,
-        origin: { y: 0.28 },
-        colors: color ? [color, '#fbbf24', '#ffffff', '#ef4444'] : ['#ef4444', '#3b82f6', '#eab308', '#22c55e'],
-      });
-    } catch {
-      // ignore
+      // Check if leader changed
+      const currentLeaderId = sortedTeams[0]?.id;
+      if (prevLeaderIdRef.current && prevLeaderIdRef.current !== currentLeaderId) {
+        confetti({
+          particleCount: 50,
+          spread: 70,
+          origin: { y: 0.3 },
+          colors: ['#ef4444', '#3b82f6', '#eab308', '#22c55e', '#ec4899'],
+        });
+      }
+      prevLeaderIdRef.current = currentLeaderId;
     }
+    prevScoresHashRef.current = scoresHash;
+    if (!prevLeaderIdRef.current && sortedTeams[0]) {
+      prevLeaderIdRef.current = sortedTeams[0].id;
+    }
+  }, [sortedTeams, soundEnabled]);
+
+  const handleManualConfetti = () => {
+    confetti({
+      particleCount: 45,
+      spread: 60,
+      origin: { y: 0.25 },
+      colors: ['#ef4444', '#3b82f6', '#eab308', '#22c55e', '#ec4899', '#06b6d4'],
+    });
   };
 
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(shareUrl || window.location.href);
+  const handleCopyLink = () => {
+    const url = typeof window !== 'undefined' ? window.location.href : 'https://ztoevent.com/scoreboard/public';
+    navigator.clipboard.writeText(url).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // fallback
-    }
+    });
   };
 
-  const annActive = config.announcement_active === 'true' && config.announcement_text?.trim();
+  const annActive = config.announcement_active === 'true';
+  const annLines = (config.announcement_text || '').split('\n').filter(Boolean);
+
+  const shareUrl = typeof window !== 'undefined' ? window.location.origin + '/scoreboard/public' : 'https://ztoevent.com/scoreboard/public';
 
   return (
     <div
-      className="fixed inset-0 w-full h-[100dvh] max-h-[100dvh] bg-[#07070a] text-white flex flex-col justify-between overflow-hidden select-none"
-      style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif" }}
+      className="w-full h-[100dvh] max-h-[100dvh] overflow-hidden flex flex-col relative select-none"
+      style={{
+        background: 'linear-gradient(160deg, #e0f2fe 0%, #f0fdf4 50%, #fef9c3 100%)',
+        fontFamily: "var(--font-fredoka), 'Fredoka', 'Comic Sans MS', cursive, sans-serif",
+      }}
     >
-      {/* Hide developer overlay icons */}
-      <style jsx global>{`
-        aside[id="__next-build-watcher"],
-        [data-nextjs-toast],
-        nextjs-portal {
-          display: none !important;
-        }
-      `}</style>
+      {/* Background Floating Confetti */}
+      <BackgroundConfetti />
 
-      {/* Ambient Radial Spotlight */}
-      <div
-        className="fixed top-0 left-1/2 -translate-x-1/2 w-[380px] h-[220px] pointer-events-none opacity-20 blur-3xl transition-all duration-1000"
-        style={{
-          background: leader
-            ? `radial-gradient(circle, ${leader.color_hex}50 0%, transparent 70%)`
-            : 'radial-gradient(circle, #3b82f640 0%, transparent 70%)',
-        }}
-      />
+      {/* ── TOP FESTIVE BUNTING ────────────────────────────────────────────── */}
+      <FestiveBunting />
 
-      {/* ── 1. Top Event Header (Ultra-Clean Corporate Sports Styling) ──── */}
-      <header className="shrink-0 z-20 px-3.5 pt-[calc(0.55rem+env(safe-area-inset-top,0px))] pb-2 bg-[#09090e]/95 backdrop-blur-md border-b border-white/[0.08]">
-        <div className="flex items-center justify-between gap-2">
-          {/* Left: Shell MDS Event Crest */}
-          <div className="flex items-center gap-2.5 min-w-0">
-            {config.logo_url ? (
-              <img src={config.logo_url} alt="Event Logo" className="w-8 h-8 object-contain shrink-0 rounded" />
-            ) : (
-              <div
-                className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-md border"
-                style={{
-                  background: 'linear-gradient(135deg, #ef4444 0%, #b91c1c 50%, #f59e0b 100%)',
-                  borderColor: 'rgba(251, 191, 36, 0.4)',
-                }}
-              >
-                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2l2.4 4.8 5.3.8-3.8 3.7.9 5.3L12 16.1l-4.8 2.5.9-5.3-3.8-3.7 5.3-.8L12 2z" />
-                </svg>
+      {/* ── HEADER (Compact Mobile Banner) ─────────────────────────────────── */}
+      <header className="relative z-10 shrink-0 px-3 pt-0.5 pb-1">
+        {/* Top Control Bar */}
+        <div className="flex items-center justify-between gap-2 mb-1">
+          {/* Organizer + Event Badge */}
+          <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/90 backdrop-blur-sm border border-teal-200/80 shadow-xs">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-[10px] font-black tracking-wider text-teal-800 uppercase">
+              {config.organizer || 'SHELL MDS'} · {config.event_title || 'FAMILY DAY 2026'}
+            </span>
+          </div>
+
+          {/* Quick Buttons */}
+          <div className="flex items-center gap-1.5">
+            {/* Audio Toggle */}
+            <button
+              onClick={() => setSoundEnabled(v => !v)}
+              className={`h-7 px-2 flex items-center gap-1 rounded-full text-xs font-bold transition-all shadow-xs border ${
+                soundEnabled
+                  ? 'bg-amber-400 text-amber-950 border-amber-300'
+                  : 'bg-white/90 text-slate-600 border-slate-200 hover:bg-white'
+              }`}
+              title={soundEnabled ? 'Mute Sound' : 'Enable Sound Chimes'}
+            >
+              <span>{soundEnabled ? '🔔' : '🔕'}</span>
+            </button>
+
+            {/* Confetti Blast */}
+            <button
+              onClick={handleManualConfetti}
+              className="h-7 px-2.5 flex items-center gap-1 rounded-full bg-white/90 hover:bg-white text-xs font-bold text-pink-600 border border-pink-200 shadow-xs active:scale-95 transition-all"
+              title="Blast Confetti"
+            >
+              <span>🎉</span>
+            </button>
+
+            {/* Share QR */}
+            <button
+              onClick={() => setShowQR(true)}
+              className="h-7 px-2.5 flex items-center gap-1 rounded-full bg-teal-600 hover:bg-teal-700 text-white text-xs font-black uppercase tracking-wider shadow-xs active:scale-95 transition-all"
+            >
+              <span>📱</span>
+              <span className="text-[10px]">QR</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Title & Leader Ribbon Card */}
+        <div className="bg-gradient-to-r from-teal-600 via-teal-700 to-cyan-700 rounded-2xl px-3 py-1.5 shadow-md border-2 border-teal-400/40 text-white flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-1.5">
+              <h1 className="text-xl sm:text-2xl font-black tracking-wide uppercase leading-tight drop-shadow-xs">
+                HOUSE CUP LIVE
+              </h1>
+              <span className="px-1.5 py-0.5 rounded-full bg-emerald-400 text-emerald-950 text-[9px] font-black tracking-wider uppercase animate-pulse">
+                LIVE
+              </span>
+            </div>
+            {leader && (
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span className="text-sm">👑</span>
+                <span className="text-xs font-black text-yellow-300 uppercase tracking-wide">
+                  {leader.name} leading with {leader.score.toLocaleString()} pts!
+                </span>
               </div>
             )}
-
-            <div className="min-w-0">
-              <div className="flex items-center gap-1.5 leading-none">
-                <span className="text-[9px] font-black tracking-[0.25em] text-amber-400 uppercase truncate">
-                  {config.organizer || 'SHELL MDS'}
-                </span>
-                <span className="inline-block w-1 h-1 rounded-full bg-zinc-600" />
-                <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-wider">ANNUAL GAMES</span>
-              </div>
-              <h1 className="text-sm sm:text-base font-black text-white uppercase tracking-tight truncate leading-tight mt-0.5">
-                {config.event_title || 'Family Day 2026'}
-              </h1>
-            </div>
           </div>
 
-          {/* Right: Guest Controls */}
-          <div className="flex items-center gap-1.5 shrink-0">
-            {/* Live Indicator Badge */}
-            <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest">LIVE</span>
-            </div>
-
-            {/* Sound Toggle Button */}
-            <button
-              onClick={() => {
-                setSoundEnabled(!soundEnabled);
-                if (!soundEnabled) audio.playScoreChime();
-              }}
-              title={soundEnabled ? 'Mute Audio' : 'Unmute Audio'}
-              className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all border ${
-                soundEnabled
-                  ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
-                  : 'bg-white/5 border-white/10 text-zinc-400 hover:text-white'
-              }`}
-            >
-              {soundEnabled ? (
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M11 5L6 9H2v6h4l5 4V5z" />
-                </svg>
-              ) : (
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M5.586 15H2V9h3.586l5-5v16l-5-5zm12.707-8.707l-8 8m0-8l8 8" />
-                </svg>
-              )}
-            </button>
-
-            {/* Confetti Celebration Button */}
-            <button
-              onClick={() => triggerConfetti(leader?.color_hex)}
-              title="Celebrate"
-              className="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-zinc-300 hover:text-amber-300 transition-all active:scale-95"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-              </svg>
-            </button>
-
-            {/* QR Code Share Button */}
-            <button
-              onClick={() => setShowQRModal(true)}
-              title="Share QR Code"
-              className="px-2 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white border border-blue-400/40 text-[10px] font-black tracking-wider flex items-center gap-1 shadow-sm shadow-blue-500/25 transition-all active:scale-95"
-            >
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-              </svg>
-              <span>QR</span>
-            </button>
+          <div className="text-right">
+            <span className="text-[9px] font-black text-teal-200 uppercase tracking-widest block">
+              TOTAL TEAMS
+            </span>
+            <span className="text-lg sm:text-xl font-black text-white tabular-nums">
+              {sortedTeams.length} HOUSES
+            </span>
           </div>
         </div>
-
-        {/* Announcement Banner (if active) */}
-        {annActive && (
-          <div className="mt-2 px-2.5 py-1 rounded-lg bg-gradient-to-r from-amber-500/20 via-orange-500/15 to-amber-500/10 border border-amber-500/30 flex items-center gap-2 overflow-hidden shadow-sm">
-            <span className="text-amber-400 font-black text-xs shrink-0">ANNOUNCEMENT</span>
-            <div className="text-[10px] font-bold text-amber-100 tracking-wide truncate">
-              {config.announcement_text}
-            </div>
-          </div>
-        )}
       </header>
 
-      {/* ── 2. Top Standings Ribbon (One-Line Summary) ────────────────── */}
-      <div className="shrink-0 px-3.5 py-1 bg-gradient-to-r from-white/[0.04] via-white/[0.06] to-white/[0.02] border-b border-white/[0.05] flex items-center justify-between text-[10px]">
-        <div className="flex items-center gap-1.5 truncate">
-          <span className="text-[9px] font-black text-zinc-400 uppercase tracking-wider">LEADER:</span>
-          <span className="font-black uppercase tracking-wider truncate" style={{ color: leader?.color_hex || '#fff' }}>
-            {leader?.name || 'Awaiting Results'}
-          </span>
-          {leaderMargin > 0 && (
-            <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-[9px] font-extrabold text-amber-300">
-              +{leaderMargin} PTS
-            </span>
-          )}
-        </div>
+      {/* ── 4 HOUSE CARDS STACK (Fits exactly in 1 screen) ──────────────────── */}
+      <main className="relative z-10 flex-1 min-h-0 flex flex-col justify-between gap-2 px-3 py-1 overflow-hidden">
+        {sortedTeams.map((team, idx) => {
+          const rank = idx + 1;
+          const isLeader = rank === 1;
+          const originalIdx = teams.findIndex((t: any) => t.id === team.id);
+          const mascot = getMascot(team.name, originalIdx >= 0 ? originalIdx : idx);
+          const percent = maxScore > 0 ? Math.min(100, Math.round((team.score / maxScore) * 100)) : 0;
+          const gap = leader && leader.id !== team.id ? leader.score - team.score : 0;
 
-        <div className="flex items-center gap-2 shrink-0 text-zinc-400 text-[9px] font-bold">
-          <span>POOL: {totalScoreAll} PTS</span>
-          <span className="text-zinc-600">|</span>
-          <span className="flex items-center gap-1 text-emerald-400">
-            <span className={`w-1.5 h-1.5 rounded-full bg-emerald-400 ${isValidating ? 'animate-spin' : ''}`} />
-            LIVE SYNC
-          </span>
-        </div>
-      </div>
-
-      {/* ── 3. Four Team Score Cards (100% Fit in Single Screen) ──────── */}
-      <main className="flex-1 min-h-0 flex flex-col justify-between p-2.5 sm:p-3 gap-2 overflow-hidden">
-        {teams.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center p-4 text-center">
-            <div className="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 mb-3 animate-pulse">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Connecting to Live Arena...</p>
-            <p className="text-[10px] text-zinc-500 mt-1">Real-time edge synchronization for 1,000 spectators</p>
-          </div>
-        ) : (
-          sortedTeams.map((team: any, index: number) => {
-            const pct = Math.max((team.score / maxScore) * 100, 3);
-            const mascot = TEAM_MASCOTS[team.name.toUpperCase()] || DEFAULT_MASCOTS[index % DEFAULT_MASCOTS.length];
-            const isFirst = index === 0;
-            const diffFromLeader = isFirst ? 0 : team.score - leader.score;
-
-            const rankBadges = [
-              { label: '1ST', bg: 'from-amber-400 via-amber-500 to-yellow-600', text: '#000' },
-              { label: '2ND', bg: 'from-slate-200 via-zinc-300 to-slate-400', text: '#000' },
-              { label: '3RD', bg: 'from-amber-700 via-amber-600 to-orange-800', text: '#fff' },
-              { label: '4TH', bg: 'from-zinc-700 via-zinc-800 to-zinc-900', text: '#94a3b8' },
-            ];
-            const badge = rankBadges[index] || { label: `${index + 1}TH`, bg: 'from-zinc-800 to-zinc-900', text: '#94a3b8' };
-
-            return (
-              <motion.div
-                key={team.id}
-                layout
-                transition={{ type: 'spring', stiffness: 350, damping: 28 }}
-                onClick={() => setShowBreakdown(true)}
-                className="relative flex-1 min-h-0 w-full rounded-2xl border flex flex-col justify-between overflow-hidden shadow-lg transition-transform active:scale-[0.99] cursor-pointer"
-                style={{
-                  borderColor: isFirst ? `${team.color_hex}70` : `${team.color_hex}35`,
-                  background: `linear-gradient(135deg, ${team.color_hex}16 0%, #0d0e14 70%, #09090d 100%)`,
-                  boxShadow: isFirst ? `0 0 28px ${team.color_hex}25` : undefined,
-                }}
-              >
-                {/* Team Accent Glow */}
-                <div
-                  className="absolute right-0 top-0 bottom-0 w-36 pointer-events-none opacity-20"
-                  style={{ background: `radial-gradient(circle at right, ${team.color_hex}, transparent 75%)` }}
-                />
-
-                {/* Left Accent Bar */}
-                <div
-                  className="absolute left-0 top-0 bottom-0 w-1.5 rounded-l-2xl"
-                  style={{ background: team.color_hex }}
-                />
-
-                {/* Card Body */}
-                <div className="relative z-10 flex-1 flex items-center justify-between px-3.5 sm:px-4 py-1.5 sm:py-2">
-                  {/* Left: Rank + Mascot + Team Name */}
-                  <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                    {/* Rank Badge */}
-                    <div
-                      className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center font-black text-xs sm:text-sm shrink-0 shadow-md bg-gradient-to-br ${badge.bg}`}
-                      style={{ color: badge.text }}
+          return (
+            <motion.div
+              key={team.id}
+              layout
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ type: 'spring', stiffness: 260, damping: 24, delay: idx * 0.05 }}
+              onClick={() => {
+                setSelectedTeam(team);
+                setShowBreakdown(true);
+              }}
+              className="flex-1 min-h-0 rounded-2xl bg-white/95 backdrop-blur-md px-3.5 py-2 flex items-center justify-between gap-3 cursor-pointer active:scale-[0.99] transition-all relative overflow-hidden"
+              style={{
+                border: `3.5px solid ${team.color_hex}`,
+                boxShadow: `0 4px 16px ${team.color_hex}30, 0 1px 0 ${team.color_hex}`,
+                background: `linear-gradient(135deg, #ffffff 75%, ${team.color_hex}10 100%)`,
+              }}
+            >
+              {/* Left Column: Mascot Avatar & Rank */}
+              <div className="flex flex-col items-center justify-center shrink-0 w-12 z-10">
+                <div className="relative">
+                  <span
+                    className="text-4xl inline-block filter leading-none"
+                    style={{ filter: `drop-shadow(0 3px 8px ${team.color_hex}60)` }}
+                  >
+                    {mascot}
+                  </span>
+                  {isLeader && (
+                    <motion.span
+                      animate={{ y: [0, -3, 0], scale: [1, 1.15, 1] }}
+                      transition={{ repeat: Infinity, duration: 2 }}
+                      className="absolute -top-2.5 -right-2 text-base pointer-events-none"
+                      style={{ filter: 'drop-shadow(0 2px 5px rgba(255,200,0,0.9))' }}
                     >
-                      {badge.label}
-                    </div>
+                      👑
+                    </motion.span>
+                  )}
+                </div>
+                <div className="mt-1">
+                  <RankPill rank={rank} />
+                </div>
+              </div>
 
-                    {/* Team Mascot & Name */}
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-base sm:text-lg shrink-0">{mascot}</span>
-                        <h2 className="text-sm sm:text-base font-black text-white uppercase tracking-wider truncate">
-                          {team.name}
-                        </h2>
-                      </div>
-
-                      {/* Lead / Trailing Status */}
-                      <div className="flex items-center gap-1.5 mt-0.5">
-                        {isFirst ? (
-                          <span className="text-[9px] font-black text-amber-400 uppercase tracking-widest">
-                            CURRENT LEADER
-                          </span>
-                        ) : (
-                          <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-wider">
-                            TRAILING BY {Math.abs(diffFromLeader)} PTS
-                          </span>
-                        )}
-                        <span className="text-[8px] text-zinc-600">·</span>
-                        <span className="text-[9px] text-zinc-400 font-medium">
-                          {Math.round((team.score / Math.max(totalScoreAll, 1)) * 100)}% SHARE
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Right: Big Animated Score Number */}
-                  <div className="text-right shrink-0 pl-2">
-                    <div
-                      className="text-2xl sm:text-3xl font-black tabular-nums tracking-tight leading-none"
-                      style={{
-                        color: team.color_hex,
-                        textShadow: `0 0 20px ${team.color_hex}40`,
-                      }}
-                    >
-                      <AnimatedNumber value={team.score} />
-                    </div>
-                    <span className="text-[9px] font-black text-zinc-400 tracking-widest uppercase">
-                      POINTS
+              {/* Middle Column: House Name, Gap, Progress, Stars */}
+              <div className="flex-1 min-w-0 flex flex-col justify-center z-10">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <h2
+                    className="text-base sm:text-lg font-black uppercase tracking-wide truncate leading-tight"
+                    style={{ color: team.color_hex }}
+                  >
+                    {team.name}
+                  </h2>
+                  {isLeader ? (
+                    <span className="px-1.5 py-0.2 rounded-md bg-amber-400 text-amber-950 text-[9px] font-black uppercase tracking-wider">
+                      LEADER
                     </span>
-                  </div>
+                  ) : (
+                    <span className="text-[10px] font-bold text-slate-400">
+                      -{gap} pts
+                    </span>
+                  )}
                 </div>
 
-                {/* Integrated Progress Bar (Visual Comparison on Same Screen) */}
-                <div className="relative z-10 px-3.5 sm:px-4 pb-2">
-                  <div className="w-full h-1.5 sm:h-2 bg-white/[0.08] rounded-full overflow-hidden flex items-center p-0.5">
+                <div className="text-[10px] font-bold text-slate-500 flex items-center gap-1.5 mt-0.5">
+                  {isLeader ? (
+                    <span className="text-amber-600 font-black">★ Ranked 1st in House Cup</span>
+                  ) : (
+                    <span>Gap to leader: <strong className="text-slate-600">-{gap} pts</strong></span>
+                  )}
+                  <span className="text-slate-300">·</span>
+                  <span className="text-teal-700 font-black">Details ›</span>
+                </div>
+
+                {/* Candy Rounded Progress Bar */}
+                <div className="w-full mt-1.5">
+                  <div className="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden border border-slate-200/90 shadow-inner">
                     <motion.div
                       className="h-full rounded-full"
                       initial={{ width: 0 }}
-                      animate={{ width: `${pct}%` }}
-                      transition={{ type: 'spring', stiffness: 60, damping: 15 }}
+                      animate={{ width: `${percent}%` }}
+                      transition={{ type: 'spring', stiffness: 50, damping: 15 }}
                       style={{
-                        background: `linear-gradient(90deg, ${team.color_hex}, ${team.color_hex}dd)`,
-                        boxShadow: `0 0 10px ${team.color_hex}60`,
+                        background: `linear-gradient(90deg, ${team.color_hex}99, ${team.color_hex})`,
                       }}
                     />
                   </div>
                 </div>
-              </motion.div>
-            );
-          })
-        )}
+
+                {/* Mini Star Rating Accents */}
+                <div className="flex items-center justify-between text-[10px] font-bold text-slate-400 mt-0.5">
+                  <span>{percent}% of leader</span>
+                  <div className="flex gap-1" style={{ color: team.color_hex }}>
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <span key={i} className="text-[11px] leading-none opacity-80">★</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: Score Pod */}
+              <div
+                className="shrink-0 px-3.5 py-2.5 rounded-2xl flex flex-col items-center justify-center min-w-[88px] shadow-sm text-white z-10"
+                style={{
+                  background: team.color_hex,
+                  boxShadow: `0 4px 14px ${team.color_hex}45`,
+                }}
+              >
+                <div className="text-2xl sm:text-3xl font-black tabular-nums leading-none tracking-tight">
+                  <AnimatedNumber value={team.score} />
+                </div>
+                <div className="text-[9px] font-black uppercase tracking-widest text-white/90 mt-1">
+                  POINTS
+                </div>
+              </div>
+            </motion.div>
+          );
+        })}
       </main>
 
-      {/* ── 4. Bottom Control Bar ────────────────────────────────────────── */}
-      <footer className="shrink-0 z-20 px-3.5 pt-2 pb-[calc(0.55rem+env(safe-area-inset-bottom,0px))] bg-[#09090d]/95 backdrop-blur-md border-t border-white/[0.08] flex items-center justify-between gap-2">
-        {/* Spectator connection indicator */}
-        <div className="flex items-center gap-1.5 min-w-0">
-          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-          <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest truncate">
-            1,000 SPECTATORS ONLINE
+      {/* ── FOOTER STATUS BAR ──────────────────────────────────────────────── */}
+      <footer className="relative z-10 shrink-0 px-3 py-1.5 bg-white/90 backdrop-blur-md border-t border-slate-200/90 flex items-center justify-between text-xs">
+        <div className="flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+          <span className="text-[10px] font-black text-slate-600 uppercase tracking-wide">
+            LIVE SYNC · {lastUpdated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}
           </span>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex items-center gap-1.5 shrink-0">
-          {/* Category Breakdown Button */}
+        <div className="flex items-center gap-1.5">
           <button
-            onClick={() => setShowBreakdown(true)}
-            className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-zinc-300 transition-all flex items-center gap-1.5 active:scale-95"
+            onClick={() => {
+              setSelectedTeam(sortedTeams[0] || null);
+              setShowBreakdown(true);
+            }}
+            className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-black uppercase tracking-wider transition-all"
           >
-            <svg className="w-3.5 h-3.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-            <span>Breakdown</span>
+            📊 Breakdown
           </button>
-
-          {/* Share QR Code Button */}
           <button
-            onClick={() => setShowQRModal(true)}
-            className="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
+            onClick={() => setShowQR(true)}
+            className="px-2.5 py-1 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-700 text-[10px] font-black uppercase tracking-wider transition-all border border-teal-200"
           >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-            </svg>
-            <span>Share QR</span>
-          </button>
-
-          {/* Instant Manual Refresh Button */}
-          <button
-            onClick={() => mutate()}
-            title="Refresh Scoreboard"
-            className="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-xs text-zinc-400 active:scale-90 transition-all"
-          >
-            <svg className={`w-3.5 h-3.5 ${isValidating ? 'animate-spin text-blue-400' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
+            📱 Share QR
           </button>
         </div>
       </footer>
 
-      {/* ── 5. Modal: Share QR Code with Teammates ──────────────────────── */}
+      {/* ── SHARE QR MODAL ─────────────────────────────────────────────────── */}
       <AnimatePresence>
-        {showQRModal && (
+        {showQR && (
           <motion.div
+            key="qr-modal"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4"
-            onClick={() => setShowQRModal(false)}
+            onClick={() => setShowQR(false)}
+            className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4"
           >
             <motion.div
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-xs bg-[#111218] border border-white/15 rounded-3xl p-5 flex flex-col items-center text-center shadow-2xl relative"
+              initial={{ scale: 0.9, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 10 }}
+              onClick={e => e.stopPropagation()}
+              className="bg-white rounded-3xl p-5 pb-6 max-w-sm w-full text-center shadow-2xl border-4 border-yellow-400 relative overflow-hidden"
             >
               <button
-                onClick={() => setShowQRModal(false)}
-                className="absolute top-3.5 right-3.5 w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-zinc-400 hover:text-white flex items-center justify-center text-xs font-bold transition-all"
+                onClick={() => setShowQR(false)}
+                className="absolute top-3 right-3 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center text-sm font-bold transition-all"
               >
                 ✕
               </button>
 
-              <div className="w-8 h-8 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 mb-2">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-                </svg>
+              <div className="inline-block px-3 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200 text-[10px] font-black uppercase tracking-wider mb-2">
+                Spectator Live Board
               </div>
 
-              <h3 className="text-sm font-black text-white uppercase tracking-tight">
-                Scan for Live Scores
-              </h3>
-              <p className="text-[10px] text-zinc-400 mt-0.5 mb-4">
-                Point your phone camera to view real-time scores
+              <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight mb-1">
+                Scan for Scores
+              </h2>
+              <p className="text-xs text-slate-500 font-medium mb-3">
+                Scan with your phone camera to open the live house standings!
               </p>
 
-              {/* High Contrast QR Code */}
-              <div className="p-3 bg-white rounded-2xl shadow-xl mb-4 border-2 border-white/90">
+              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 inline-block shadow-inner mb-3">
                 <QRCodeSVG
-                  value={shareUrl || (typeof window !== 'undefined' ? window.location.href : '')}
-                  size={180}
+                  value={shareUrl}
+                  size={160}
                   level="H"
                   includeMargin={false}
                   fgColor="#09090b"
@@ -546,125 +568,215 @@ export default function PublicScoreboard() {
                 />
               </div>
 
-              <div className="w-full space-y-2">
-                <button
-                  onClick={handleCopy}
-                  className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs uppercase tracking-wider transition-all shadow-md shadow-blue-600/30 active:scale-95"
-                >
-                  {copied ? '✓ Link Copied!' : 'Copy Scoreboard Link'}
-                </button>
+              <div className="bg-slate-100 rounded-xl p-2 text-[10px] font-mono text-teal-800 break-all mb-4 select-all">
+                {shareUrl}
+              </div>
 
-                <Link
-                  href="/scoreboard/qr"
-                  className="w-full py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 font-bold text-[10px] uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all"
+              <div className="flex gap-2">
+                <button
+                  onClick={handleCopyLink}
+                  className="flex-1 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-black text-xs uppercase tracking-wider transition-all"
                 >
-                  <svg className="w-3.5 h-3.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                  </svg>
-                  <span>Open Printable QR Poster</span>
-                </Link>
+                  {copied ? '✓ Copied!' : 'Copy Link'}
+                </button>
+                <button
+                  onClick={() => setShowQR(false)}
+                  className="py-2.5 px-5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-black text-xs uppercase tracking-wider transition-all"
+                >
+                  Close
+                </button>
               </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* ── 6. Bottom Sheet: Category Breakdown Drawer ──────────────────── */}
+      {/* ── GAME BREAKDOWN MODAL ───────────────────────────────────────────── */}
       <AnimatePresence>
         {showBreakdown && (
           <motion.div
+            key="breakdown-modal"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex flex-col justify-end"
             onClick={() => setShowBreakdown(false)}
+            className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4"
           >
             <motion.div
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              onClick={(e) => e.stopPropagation()}
-              className="w-full max-h-[75vh] bg-[#101117] border-t border-white/15 rounded-t-3xl p-5 flex flex-col overflow-hidden"
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              onClick={e => e.stopPropagation()}
+              className="bg-white rounded-t-3xl sm:rounded-3xl p-5 max-w-md w-full max-h-[85vh] flex flex-col shadow-2xl border-t-4 sm:border-4 border-teal-500 pb-8 sm:pb-5"
             >
-              {/* Drag Handle */}
-              <div className="w-10 h-1 bg-white/20 rounded-full mx-auto mb-4" />
-
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="text-sm font-black text-white uppercase tracking-tight">
-                    Event Category Breakdown
-                  </h3>
-                  <p className="text-[10px] text-zinc-400">Points awarded per competition round</p>
+              {/* Header */}
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">🏆</span>
+                  <div>
+                    <h3 className="text-lg font-black uppercase text-slate-900 leading-tight">
+                      Game Points Breakdown
+                    </h3>
+                    <p className="text-[10px] text-slate-500 font-bold">
+                      Scores across all Family Day activities
+                    </p>
+                  </div>
                 </div>
                 <button
                   onClick={() => setShowBreakdown(false)}
-                  className="px-3 py-1 rounded-lg bg-white/10 text-xs font-bold text-zinc-300 hover:text-white"
+                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center text-sm font-bold transition-all"
                 >
-                  Close
+                  ✕
                 </button>
               </div>
 
-              {/* Competition Categories List */}
-              <div className="flex-1 overflow-y-auto space-y-3 pr-1">
-                {categories.length === 0 ? (
-                  <p className="text-xs text-zinc-500 py-6 text-center">No competition results recorded yet</p>
-                ) : (
-                  categories.map((cat: any) => {
-                    const catScores = scores.filter((s: any) => s.category_id === cat.id);
-                    return (
-                      <div
-                        key={cat.id}
-                        className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.08]"
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs font-black text-white tracking-wide">
-                            {cat.event_name}
-                          </span>
-                          <span className="text-[9px] px-2 py-0.5 rounded-full bg-white/5 text-zinc-400 font-bold uppercase">
-                            ROUND {cat.event_type}
-                          </span>
-                        </div>
+              {/* Team Selector Tabs */}
+              <div className="grid grid-cols-4 gap-1.5 py-3">
+                {sortedTeams.map(t => {
+                  const isSelected = (selectedTeam?.id || sortedTeams[0]?.id) === t.id;
+                  return (
+                    <button
+                      key={t.id}
+                      onClick={() => setSelectedTeam(t)}
+                      className="py-1.5 px-1 rounded-xl text-center transition-all flex flex-col items-center"
+                      style={{
+                        background: isSelected ? t.color_hex : `${t.color_hex}15`,
+                        color: isSelected ? '#ffffff' : t.color_hex,
+                        border: `2px solid ${t.color_hex}`,
+                      }}
+                    >
+                      <span className="text-xs font-black uppercase truncate w-full">
+                        {t.name.replace('RUMAH ', '')}
+                      </span>
+                      <span className="text-[11px] font-black tabular-nums">
+                        {t.score}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
 
-                        {/* Team points in this category */}
-                        <div className="grid grid-cols-2 gap-2">
-                          {teams.map((t: any) => {
-                            const teamCatScores = catScores.filter((s: any) => s.team_id === t.id);
-                            const catTotal = teamCatScores.reduce((sum: number, s: any) => sum + s.score, 0);
-                            return (
-                              <div
-                                key={t.id}
-                                className="flex items-center justify-between px-2.5 py-1.5 rounded-lg border text-xs"
-                                style={{
-                                  borderColor: `${t.color_hex}30`,
-                                  background: `${t.color_hex}10`,
-                                }}
-                              >
-                                <div className="flex items-center gap-1.5 truncate">
-                                  <span
-                                    className="w-2 h-2 rounded-full shrink-0"
-                                    style={{ background: t.color_hex }}
-                                  />
-                                  <span className="text-[10px] font-bold text-zinc-200 truncate">
-                                    {t.name}
-                                  </span>
-                                </div>
-                                <span
-                                  className="font-black text-xs tabular-nums shrink-0"
-                                  style={{ color: t.color_hex }}
-                                >
-                                  +{catTotal}
-                                </span>
-                              </div>
-                            );
-                          })}
+              {/* Active Team Breakdown List */}
+              {(() => {
+                const active = selectedTeam || sortedTeams[0];
+                if (!active) return null;
+                const teamScores = scores.filter((s: any) => s.team_id === active.id);
+
+                return (
+                  <div className="flex-1 overflow-y-auto space-y-2 py-2 pr-1">
+                    <div
+                      className="p-3 rounded-2xl flex items-center justify-between"
+                      style={{ background: `${active.color_hex}15`, border: `1.5px solid ${active.color_hex}40` }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl">{getMascot(active.name, 0)}</span>
+                        <div>
+                          <div className="text-sm font-black uppercase" style={{ color: active.color_hex }}>
+                            {active.name}
+                          </div>
+                          <div className="text-[10px] text-slate-500 font-bold">
+                            Total: {teamScores.length} recorded events
+                          </div>
                         </div>
                       </div>
-                    );
-                  })
-                )}
+                      <div className="text-right">
+                        <div className="text-xl font-black tabular-nums" style={{ color: active.color_hex }}>
+                          {active.score}
+                        </div>
+                        <div className="text-[9px] font-black uppercase text-slate-400">
+                          TOTAL PTS
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="text-[11px] font-black uppercase text-slate-400 tracking-wider px-1 pt-2">
+                      Event Scores
+                    </div>
+
+                    {categories.length === 0 ? (
+                      <div className="text-center py-6 text-xs text-slate-400">
+                        No game categories found.
+                      </div>
+                    ) : (
+                      categories.map((cat: any) => {
+                        const matchingScore = teamScores.find((s: any) => s.category_id === cat.id);
+                        const points = matchingScore ? matchingScore.score : 0;
+                        return (
+                          <div
+                            key={cat.id}
+                            className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200/80"
+                          >
+                            <div>
+                              <div className="text-xs font-black uppercase text-slate-800">
+                                {cat.event_name}
+                              </div>
+                              <div className="text-[9px] font-bold text-slate-400 uppercase">
+                                {cat.event_type || 'ACTIVITY'}
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <span
+                                className={`text-base font-black tabular-nums ${
+                                  points > 0 ? 'text-teal-700' : 'text-slate-300'
+                                }`}
+                              >
+                                {points > 0 ? `+${points}` : '0'}
+                              </span>
+                              <span className="text-[9px] font-bold text-slate-400 block -mt-0.5">
+                                pts
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                );
+              })()}
+
+              <div className="pt-3 border-t border-slate-100">
+                <button
+                  onClick={() => setShowBreakdown(false)}
+                  className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs uppercase tracking-wider transition-all"
+                >
+                  Close Breakdown
+                </button>
               </div>
             </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── BROADCAST ANNOUNCEMENT OVERLAY ─────────────────────────────────── */}
+      <AnimatePresence>
+        {annActive && config.announcement_text && (
+          <motion.div
+            key="announcement-modal"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex flex-col items-center justify-center p-6"
+            style={{ background: 'rgba(0, 30, 60, 0.94)', backdropFilter: 'blur(10px)' }}
+          >
+            <div className="text-5xl mb-4 animate-bounce">📢</div>
+            <div className="text-center max-w-sm">
+              <span className="inline-block px-3 py-1 rounded-full bg-yellow-400/20 border border-yellow-400 text-yellow-300 text-[10px] font-black uppercase tracking-widest mb-3">
+                Live Announcement
+              </span>
+              {annLines.map((line: string, i: number) => (
+                <div
+                  key={i}
+                  className={
+                    i === 0
+                      ? 'text-2xl font-black text-white uppercase tracking-wide leading-tight mb-2'
+                      : 'text-sm font-bold text-yellow-200 uppercase tracking-wider'
+                  }
+                >
+                  {line}
+                </div>
+              ))}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

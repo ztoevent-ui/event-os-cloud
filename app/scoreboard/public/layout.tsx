@@ -1,11 +1,16 @@
 import type { Metadata, Viewport } from 'next';
+import { Fredoka } from 'next/font/google';
+
+const fredoka = Fredoka({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-fredoka',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
-  title: 'Family Day 2026 | Live Scoreboard',
-  description: 'Shell MDS Family Day 2026 - Real-time team standings and live scoreboard.',
-  icons: {
-    icon: '/favicon.ico',
-  },
+  title: 'Family Day 2026 | House Cup Live Scoreboard',
+  description: 'Shell MDS Family Day 2026 - Real-time house standings and live scoreboard for attendees.',
 };
 
 export const viewport: Viewport = {
@@ -14,9 +19,14 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: 'cover',
-  themeColor: '#07070a',
+  themeColor: '#0d9488',
 };
 
 export default function PublicScoreboardLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+  return (
+    <div className={`${fredoka.variable}`} style={{ fontFamily: "var(--font-fredoka), 'Fredoka', 'Comic Sans MS', cursive, sans-serif" }}>
+      {children}
+    </div>
+  );
 }
+
