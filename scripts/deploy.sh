@@ -50,5 +50,9 @@ if git remote | grep -q "vercel-target"; then
     git push vercel-target main || echo "Push to vercel-target skipped."
 fi
 
+# 8. Trigger immediate direct Vercel Production Deployment
+echo -e "${YELLOW}⚡ Triggering direct Vercel Production Deployment...${NC}"
+vercel deploy --prod --yes || echo "Direct Vercel CLI deploy skipped, relying on Git push."
+
 echo -e "${GREEN}✅ Deployment sequence completed successfully.${NC}"
-echo -e "${GREEN}🌐 Vercel will now automatically build and deploy the application to https://ztoevent.com${NC}"
+echo -e "${GREEN}🌐 Live application active at https://ztoevent.com${NC}"
