@@ -359,24 +359,27 @@ function Nav({ onOpenCategoryPicker }: { onOpenCategoryPicker?: (e?: React.Mouse
           >
             Start a Project
           </a>
-          <Link
-            href="/auth"
-            onClick={() => setMenuOpen(false)}
-            style={{
-              marginTop: 0,
-              color: 'rgba(229,229,229,0.5)',
-              fontFamily: 'Inter, sans-serif',
-              fontWeight: 500,
-              fontSize: 14,
-              textDecoration: 'none',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-            }}
-          >
-            <i className="fa-solid fa-terminal" />
-            Staff Login
-          </Link>
+
+          <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+            <Link
+              href="/auth"
+              onClick={() => setMenuOpen(false)}
+              style={{
+                color: 'rgba(229,229,229,0.35)',
+                fontFamily: 'Inter, sans-serif',
+                fontWeight: 500,
+                fontSize: 12,
+                textDecoration: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                letterSpacing: '0.03em',
+              }}
+            >
+              <i className="fa-solid fa-lock" style={{ fontSize: 10 }} />
+              <span>Staff Portal (员工内部通道)</span>
+            </Link>
+          </div>
         </div>
       )}
 
@@ -443,36 +446,48 @@ function Nav({ onOpenCategoryPicker }: { onOpenCategoryPicker?: (e?: React.Mouse
             Start a Project
           </a>
 
-          {/* Staff Login — direct link */}
+          {/* Subtle Vertical Divider */}
+          <div
+            style={{
+              width: 1,
+              height: 14,
+              background: 'rgba(255,255,255,0.12)',
+              marginLeft: 4,
+              marginRight: -10,
+            }}
+          />
+
+          {/* Discreet Staff Portal Entry (Lock icon, not mistaken for enquiry button) */}
           <Link
             href="/auth"
+            id="nav-staff-login"
+            title="Internal Staff Portal (员工系统入口)"
             style={{
-              background: 'rgba(255,255,255,0.05)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              color: 'rgba(229,229,229,0.8)',
-              width: 36,
-              height: 36,
-              borderRadius: 8,
-              display: 'flex',
+              color: 'rgba(229,229,229,0.38)',
+              display: 'inline-flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'all 0.2s',
+              gap: 5,
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: '0.04em',
+              textTransform: 'uppercase',
               textDecoration: 'none',
+              padding: '6px 8px',
+              borderRadius: 6,
+              transition: 'all 0.2s ease',
               flexShrink: 0,
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(0,86,179,0.2)';
-              e.currentTarget.style.borderColor = 'rgba(0,86,179,0.5)';
-              e.currentTarget.style.color = '#6BB8FF';
+              e.currentTarget.style.color = '#93c5fd';
+              e.currentTarget.style.background = 'rgba(255,255,255,0.06)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
-              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
-              e.currentTarget.style.color = 'rgba(229,229,229,0.8)';
+              e.currentTarget.style.color = 'rgba(229,229,229,0.38)';
+              e.currentTarget.style.background = 'transparent';
             }}
-            title="Staff Login"
           >
-            <i className="fa-solid fa-terminal" style={{ fontSize: 13 }} />
+            <i className="fa-solid fa-lock" style={{ fontSize: 10 }} />
+            <span style={{ fontSize: 10, opacity: 0.85 }}>Staff</span>
           </Link>
         </div>
 
@@ -1921,18 +1936,39 @@ function Footer() {
           </div>
         </div>
 
-        {/* Copyright */}
+        {/* Copyright & Discreet Staff Access */}
         <div
           style={{
             fontFamily: 'Inter, sans-serif',
             fontSize: 12,
             color: 'rgba(229,229,229,0.25)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 12,
           }}
         >
-          © {new Date().getFullYear()} ZTO. All rights reserved.
+          <span>© {new Date().getFullYear()} ZTO. All rights reserved.</span>
+          <Link
+            href="/auth"
+            style={{
+              color: 'rgba(229,229,229,0.2)',
+              fontSize: 11,
+              textDecoration: 'none',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 4,
+              transition: 'color 0.2s',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(229,229,229,0.5)')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(229,229,229,0.2)')}
+            title="Internal Staff Access"
+          >
+            <i className="fa-solid fa-lock" style={{ fontSize: 9 }} />
+            <span>Staff Portal</span>
+          </Link>
         </div>
-
-        {/* Staff Login — moved to nav */}
       </div>
     </footer>
   );
