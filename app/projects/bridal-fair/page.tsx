@@ -1379,73 +1379,11 @@ export default function BridalFairBookingPage() {
                   </div>
                 </div>
 
-                {/* iPad Handover Option Banner (Recommended) */}
-                <div
-                  style={{
-                    background: 'linear-gradient(135deg, rgba(236,72,153,0.12), rgba(0,86,179,0.18))',
-                    border: '1.5px solid rgba(236,72,153,0.35)',
-                    borderRadius: 14,
-                    padding: '16px',
-                    marginBottom: 16,
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div
-                        style={{
-                          width: 40,
-                          height: 40,
-                          borderRadius: 10,
-                          background: 'linear-gradient(135deg, #ec4899, #0056B3)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: '#fff',
-                          fontSize: 18,
-                        }}
-                      >
-                        <i className="fa-solid fa-tablet-screen-button" />
-                      </div>
-                      <div>
-                        <div style={{ fontSize: 13, fontWeight: 800, color: '#fff' }}>
-                          推荐：电脑填完资料 ➔ 换 iPad 给顾客手写签字
-                        </div>
-                        <div style={{ fontSize: 11, color: 'rgba(229,229,229,0.6)' }}>
-                          点击下方按钮自动保存全部资料，生成 iPad 扫码签字二维码
-                        </div>
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={handleSaveDraftAndShowQR}
-                      disabled={isSaving}
-                      style={{
-                        background: 'linear-gradient(135deg, #ec4899, #0056B3)',
-                        color: '#fff',
-                        border: 'none',
-                        padding: '10px 18px',
-                        borderRadius: 10,
-                        fontSize: 13,
-                        fontWeight: 700,
-                        cursor: isSaving ? 'not-allowed' : 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 8,
-                        boxShadow: '0 4px 14px rgba(236,72,153,0.35)',
-                      }}
-                    >
-                      <i className="fa-solid fa-qrcode" />
-                      <span>保存并唤起 iPad 签名</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Local PC Canvas Fallback */}
+                {/* PC Canvas Signature */}
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                     <span style={{ fontSize: 11, color: 'rgba(229,229,229,0.5)', fontWeight: 600 }}>
-                      或在本机触控板/触控屏手写签名 (备用):
+                      现场手写签名区 (亦可使用下方“保存并换 iPad 签名”):
                     </span>
                     {hasSignature && (
                       <button
@@ -1494,17 +1432,16 @@ export default function BridalFairBookingPage() {
                         }}
                       >
                         <i className="fa-solid fa-signature" style={{ marginRight: 6 }} />
-                        Sign here on screen / 客户也可直接在此处签名
+                        Sign here on screen / 客户可直接在此处签名
                       </div>
                     )}
                   </div>
                 </div>
               </div>
 
-              {/* ACTION BUTTONS */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                
-                {/* 1. Primary Highlight Button: Save & Pass to iPad */}
+              {/* ACTION BUTTONS (Single Compact Action Row) */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10, marginTop: 4 }}>
+                {/* 1. Primary Highlight Button: Save & Pass to iPad (Compact & Refined) */}
                 <button
                   type="button"
                   disabled={isSaving}
@@ -1513,16 +1450,16 @@ export default function BridalFairBookingPage() {
                     background: 'linear-gradient(135deg, #ec4899, #0056B3)',
                     color: '#fff',
                     border: 'none',
-                    padding: '18px 24px',
-                    borderRadius: 14,
-                    fontWeight: 900,
-                    fontSize: 16,
+                    padding: '11px 18px',
+                    borderRadius: 10,
+                    fontWeight: 700,
+                    fontSize: 13,
                     cursor: isSaving ? 'not-allowed' : 'pointer',
-                    boxShadow: '0 10px 30px rgba(236,72,153,0.4)',
+                    boxShadow: '0 4px 14px rgba(236,72,153,0.3)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: 12,
+                    gap: 8,
                     transition: 'all 0.2s',
                     opacity: isSaving ? 0.75 : 1,
                   }}
@@ -1530,17 +1467,12 @@ export default function BridalFairBookingPage() {
                   {isSaving ? (
                     <>
                       <i className="fa-solid fa-spinner fa-spin" />
-                      <span>正在保存签约单草稿并生成签名二维码...</span>
+                      <span>正在保存并生成二维码...</span>
                     </>
                   ) : (
                     <>
-                      <i className="fa-solid fa-tablet-screen-button text-xl" />
-                      <div style={{ textAlign: 'left' }}>
-                        <div>📱 保存并换 iPad 签名 (Save & Sign on iPad)</div>
-                        <div style={{ fontSize: 11, fontWeight: 500, opacity: 0.85, marginTop: 2 }}>
-                          电脑自动监听，客户在 iPad 签完后本屏幕直接生成正式单据凭证
-                        </div>
-                      </div>
+                      <i className="fa-solid fa-tablet-screen-button" />
+                      <span>保存并换 iPad 签名</span>
                     </>
                   )}
                 </button>
@@ -1554,20 +1486,20 @@ export default function BridalFairBookingPage() {
                     background: 'rgba(255,255,255,0.06)',
                     color: 'rgba(229,229,229,0.85)',
                     border: '1px solid rgba(255,255,255,0.15)',
-                    padding: '14px 20px',
-                    borderRadius: 12,
-                    fontWeight: 700,
-                    fontSize: 14,
+                    padding: '11px 16px',
+                    borderRadius: 10,
+                    fontWeight: 600,
+                    fontSize: 13,
                     cursor: isSaving ? 'not-allowed' : 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: 8,
+                    gap: 7,
                     transition: 'all 0.2s',
                   }}
                 >
                   <i className="fa-solid fa-laptop" />
-                  <span>💻 在本电脑直接确认签约开单 (Sign & Confirm on PC)</span>
+                  <span>在本电脑直接签约开单</span>
                 </button>
               </div>
             </div>
