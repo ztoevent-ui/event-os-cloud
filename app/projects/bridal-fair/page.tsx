@@ -18,56 +18,93 @@ const COMPANY_INFO = {
   logoUrl: 'https://zihjzbweasaqqbwilshx.supabase.co/storage/v1/object/public/logo/icon.png.JPG',
 };
 
-// Preset Wedding Packages for Bridal Fair
+// Preset Wedding Packages exactly matched from Official Bridal Fair PDF
 const PRESET_PACKAGES = [
   {
-    id: 'royal_luxury',
-    name: '💎 Royal Luxury AV & FX Grand Production',
-    price: 15800,
-    fairDiscount: 2000,
-    depositSuggestion: 3000,
-    inclusions: [
-      'P2.6 Ultra-HD Curved LED Video Wall (6m x 3.5m) + Live Video Feed',
-      '3-Way Active Concert Line Array Audio System (Up to 100 tables)',
-      '16x Moving Heads (Spot & Beam) + Wireless Battery Venue Wash Lights',
-      'Low-Fog Dry Ice 云海特效 (Double March-In 双次进场梦幻仙境)',
-      '4x Safe Indoor Cold Spark Fountains (室内安全浪漫冷烟花喷泉)',
-      'Senior Bilingual Wedding Emcee (资深金牌婚礼双语司仪)',
-      '4-Piece Acoustic Live Band (流行/爵士四重奏现场乐队)',
-      'Dedicated On-Site Sound Engineer & Lighting Director (现场控台团队)',
-      '3D Virtual Stage Simulation & Production Cue Sheet (3D舞台预演与督导)',
-    ],
-  },
-  {
-    id: 'signature_elegance',
-    name: '🌟 Signature Elegance Wedding Package',
-    price: 9800,
-    fairDiscount: 1000,
+    id: 'package_a',
+    name: '🌸 Wedding Package A',
+    subtitle: 'Classic Wedding Decoration & Reception Butler (婚宴现场布置与管家)',
+    price: 9888,
+    fairDiscount: 0,
     depositSuggestion: 2000,
+    hasAddon: false,
+    addonTitle: '',
+    addonNormalPrice: 0,
+    addonPromoPrice: 0,
     inclusions: [
-      'P2.9 High-Definition LED Backdrop Screen (4m x 2.5m)',
-      'Full Concert Audio Sound System & Wireless Microphones (Up to 60 tables)',
-      '8x Intelligent Moving Beam Lights + Warm Face Wash Lighting',
-      'Low-Fog Dry Ice Machine for 1st March-In (第一次浪漫进场干冰云海)',
-      'Professional Bilingual Wedding Emcee (资深婚礼司仪)',
-      '2-Piece Acoustic Live Band (双人流行声乐现场乐队)',
-      'Dedicated Audio & Lighting Operating Crew (专业调音灯光师)',
-      'Full Audio-Visual Day-Of Management (活动全程技术执行)',
+      'Wedding Decoration — Reception Table (迎宾桌花艺与摆设布置)',
+      'Wedding Decoration — VIP Table (贵宾主桌专属花艺)',
+      'Wedding Decoration — Arch (经典入场拱门)',
+      'Wedding Decoration — Walkway (Non-Lighting: 8pcs Flower Pillars with Hotel\'s Carpet, No Spotlights / 8组花柱+酒店地毯)',
+      'Wedding Decoration — Photobooth Drapping Backdrop (16ft x 10ft Fabric Backdrop, Name, Flower Pillars, Flower Arrangement, Spotlights, Carpet)',
+      'Wedding Decoration — LED Screen Design (Fixed standard design — no customization for background/logo)',
+      'Wedding Butler — Wedding Reception Only (晚宴现场管家督导)',
+      'Wedding Butler — Rehearsal x 1 Night (晚间婚礼彩排 1 次)',
+      'Wedding Butler — Max 300 guest party (最高 300 宾客 / 3pax crew 3位专业督导团队)',
+      'Bridal Hand Bouquet — Fresh Flower (新娘精美鲜花手捧花)',
+      'Corsage — 4 pcs (新人与主婚人胸花 4 朵)',
     ],
+    terms: 'Valid until 31 December 2027. Only the photobooth design is customizable. All other items included in this package are fixed and are not allowed to be replaced, or exchanged for other items.',
   },
   {
-    id: 'essential_sound',
-    name: '🎵 Essential Audio & Lighting Package',
-    price: 5800,
-    fairDiscount: 500,
-    depositSuggestion: 1500,
+    id: 'package_b',
+    name: '🌿 Wedding Package B',
+    subtitle: 'Signature Full-Day Butler, Solid Photobooth & Car Deco (全天婚礼管家与硬板打卡墙)',
+    price: 12888,
+    fairDiscount: 0,
+    depositSuggestion: 3000,
+    hasAddon: true,
+    addonTitle: 'Video Guestbook (复古视频/语音留言机)',
+    addonNormalPrice: 1688,
+    addonPromoPrice: 888, // Save RM 800!
     inclusions: [
-      'Professional Digital PA Sound System & Shure Wireless Mics',
-      'Stage Front Warm Spotlights & Ballroom Mood Ambience Wash',
-      '2x High-Power Follow Spotlights for Grand Entrance (追光灯)',
-      'Live Sound Engineer & Technician On-Site (现场调音师)',
-      'Wireless Background Music & Audio Playback System',
+      'Wedding Decoration — Reception Table (迎宾桌花艺与摆设布置)',
+      'Wedding Decoration — VIP Table (贵宾主桌专属花艺)',
+      'Wedding Decoration — Stage Side Deco (主舞台两侧立体美化装饰)',
+      'Wedding Decoration — Arch (入场拱门)',
+      'Wedding Decoration — Walkway (Non-Lighting: 8pcs Flower Pillars with Hotel\'s Carpet, No Spotlights / 8组花柱+酒店地毯)',
+      'Wedding Decoration — Photobooth Solid Backdrop (16ft x 9ft Flower Arrangement Plain Solid Backdrop, Spotlights, Carpet — Design & Color Customizable)',
+      'Wedding Decoration — LED Screen Design (Customizable design, final result subject to technical feasibility)',
+      'Wedding Butler — Morning Ceremony (早上迎亲/出门仪式全程统筹督导)',
+      'Wedding Butler — Wedding Reception (晚宴盛典全程统筹督导)',
+      'Wedding Butler — Rehearsal x 1 Night (晚间婚礼彩排 1 次)',
+      'Wedding Butler — Max 300 guest party (最高 300 宾客服务)',
+      'Bridal Hand Bouquet — Fresh Flower (Dried Flower / Fresh Flower 鲜花或永生花手捧花)',
+      'Corsage — 8 pcs (新人与贵宾胸花 8 朵)',
+      'Bridal Car Deco — 1 Car Only (1 time car cash) (1辆新娘主婚车扎花装饰)',
     ],
+    terms: 'Valid until 31 December 2027. Only the photobooth design is customizable. All other items included in this package are fixed and are not allowed to be replaced, or exchanged for other items.',
+  },
+  {
+    id: 'package_c',
+    name: '👑 Wedding Package C',
+    subtitle: 'Luxury 3D Flower Arch, Lighting Walkway & Photo Gallery (立体花艺拱门与发光路引奢华配套)',
+    price: 16888,
+    fairDiscount: 0,
+    depositSuggestion: 5000,
+    hasAddon: true,
+    addonTitle: 'Video Guestbook (复古视频/语音留言机)',
+    addonNormalPrice: 1688,
+    addonPromoPrice: 788, // Save RM 900!
+    inclusions: [
+      'Wedding Decoration — Reception Table (迎宾桌花艺与精美摆设布置)',
+      'Wedding Decoration — VIP Table (贵宾主桌专属花艺)',
+      'Wedding Decoration — Stage Side Deco (主舞台两侧立体奢华花艺装饰)',
+      'Wedding Decoration — 3D Flower Arch (7ft Height 7尺高立体3D梦幻花艺拱门)',
+      'Wedding Decoration — Walkway with Lighting (8pcs Lighting Standee with Flower Arrangement & Hotel\'s Carpet — Design Changeable)',
+      'Wedding Decoration — Photo Gallery (3 Set 精美相框展示画架 3 组)',
+      'Wedding Decoration — Photobooth Solid Backdrop (16ft x 9ft Customized Backdrop, Lighting, Spotlights, Flower Arrangement — Design & Color Customizable)',
+      'Wedding Decoration — LED Screen Design (Customizable High-End Design, subject to technical feasibility)',
+      'Wedding Butler — Morning Ceremony (早上迎亲仪式全程统筹)',
+      'Wedding Butler — Wedding Reception (晚宴盛典全程统筹)',
+      'Wedding Butler — Rehearsal x 1 Night (晚间婚礼彩排 1 次)',
+      'Wedding Butler — Special Timing Cue (专业音乐灯光节点精准控场)',
+      'Wedding Butler — Max 300 guest party (最高 300 宾客服务)',
+      'Bridal Hand Bouquet — Fresh Flower (Dried Flower / Fresh Flower 鲜花或永生花手捧花)',
+      'Corsage — 12 pcs (新人与贵宾胸花 12 朵)',
+      'Bridal Car Deco — 1 Car Only (1 time car cash) (1辆新娘主婚车奢华扎花装饰)',
+    ],
+    terms: 'Valid until 31 December 2027. Only the photobooth design is customizable. All other items included in this package are fixed and are not allowed to be replaced, or exchanged for other items.',
   },
 ];
 
@@ -85,16 +122,20 @@ export default function BridalFairBookingPage() {
   const [tables, setTables] = useState('');
 
   // Package & Pricing State
-  const [selectedPresetId, setSelectedPresetId] = useState<string>('signature_elegance');
-  const [packageName, setPackageName] = useState(PRESET_PACKAGES[1].name);
-  const [packageItems, setPackageItems] = useState<string[]>(PRESET_PACKAGES[1].inclusions);
+  const [selectedPresetId, setSelectedPresetId] = useState<string>('package_a');
+  const [packageName, setPackageName] = useState(PRESET_PACKAGES[0].name);
+  const [packageItems, setPackageItems] = useState<string[]>(PRESET_PACKAGES[0].inclusions);
+  const [packageTerms, setPackageTerms] = useState<string>(PRESET_PACKAGES[0].terms);
   const [newItemText, setNewItemText] = useState('');
-  const [packagePrice, setPackagePrice] = useState<number>(PRESET_PACKAGES[1].price);
-  const [fairDiscount, setFairDiscount] = useState<number>(PRESET_PACKAGES[1].fairDiscount);
-  const [depositPaid, setDepositPaid] = useState<number>(PRESET_PACKAGES[1].depositSuggestion);
+  const [packagePrice, setPackagePrice] = useState<number>(PRESET_PACKAGES[0].price);
+  
+  // Special Add-on Video Guestbook State
+  const [includeVideoGuestbook, setIncludeVideoGuestbook] = useState(false);
+  
+  const [fairDiscount, setFairDiscount] = useState<number>(0);
+  const [depositPaid, setDepositPaid] = useState<number>(PRESET_PACKAGES[0].depositSuggestion);
   const [paymentMethod, setPaymentMethod] = useState('DuitNow QR Instant Transfer');
   const [consultantName, setConsultantName] = useState('');
-  const [customRemarks, setCustomRemarks] = useState('');
 
   // Receipt Upload State
   const [receiptImage, setReceiptImage] = useState<string | null>(null);
@@ -112,8 +153,16 @@ export default function BridalFairBookingPage() {
   const [createdProjectId, setCreatedProjectId] = useState<string | null>(null);
   const printAreaRef = useRef<HTMLDivElement>(null);
 
+  const currentPreset = PRESET_PACKAGES.find(p => p.id === selectedPresetId) || PRESET_PACKAGES[0];
+
+  // Calculate Addon Price
+  let resolvedAddonPrice = 0;
+  if (includeVideoGuestbook && currentPreset.hasAddon) {
+    resolvedAddonPrice = currentPreset.addonPromoPrice;
+  }
+
   // Calculate totals
-  const totalAmount = Math.max(0, packagePrice - fairDiscount);
+  const totalAmount = Math.max(0, packagePrice + resolvedAddonPrice - fairDiscount);
   const balanceRemaining = Math.max(0, totalAmount - depositPaid);
 
   // Auto-generate reference number on load
@@ -130,10 +179,28 @@ export default function BridalFairBookingPage() {
     const preset = PRESET_PACKAGES.find(p => p.id === presetId);
     if (preset) {
       setPackageName(preset.name);
-      setPackageItems([...preset.inclusions]);
+      setPackageTerms(preset.terms);
+      let items = [...preset.inclusions];
+      if (includeVideoGuestbook && preset.hasAddon) {
+        items.push(`Special Add-On: Video Guestbook (视频/音频复古留言亭机 — 特惠 +RM ${preset.addonPromoPrice})`);
+      }
+      setPackageItems(items);
       setPackagePrice(preset.price);
       setFairDiscount(preset.fairDiscount);
       setDepositPaid(preset.depositSuggestion);
+    }
+  };
+
+  // Toggle Video Guestbook Add-on
+  const handleToggleAddon = (checked: boolean) => {
+    setIncludeVideoGuestbook(checked);
+    const addonText = `Special Add-On: Video Guestbook (视频/音频复古留言亭机 — 特惠 +RM ${currentPreset.addonPromoPrice})`;
+    if (checked) {
+      if (!packageItems.some(i => i.includes('Video Guestbook'))) {
+        setPackageItems([...packageItems, addonText]);
+      }
+    } else {
+      setPackageItems(packageItems.filter(i => !i.includes('Video Guestbook')));
     }
   };
 
@@ -224,7 +291,7 @@ export default function BridalFairBookingPage() {
     setIsSaving(true);
 
     try {
-      const projectName = `${groomName.trim()} & ${brideName.trim()} Wedding Banquet`;
+      const projectName = `${groomName.trim()} & ${brideName.trim()} Wedding Banquet (${packageName.split(' ')[1] || 'Wedding'})`;
 
       // 1. Insert into Supabase `projects` table
       const { data: newProject, error: projectError } = await supabase
@@ -274,11 +341,10 @@ export default function BridalFairBookingPage() {
     if (!element) return;
 
     try {
-      // Dynamic import html2pdf
       const html2pdf = (await import('html2pdf.js')).default;
       const opt = {
-        margin: [10, 10, 10, 10],
-        filename: `${orderRefNo}_${groomName}_${brideName}_Booking_Summary.pdf`,
+        margin: [8, 8, 8, 8],
+        filename: `${orderRefNo}_${groomName}_${brideName}_${selectedPresetId}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true, logging: false },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
@@ -300,15 +366,16 @@ export default function BridalFairBookingPage() {
   const handleSendWhatsApp = () => {
     const cleanPhone = phone.replace(/[^0-9]/g, '');
     const message = encodeURIComponent(
-      `🎉 恭喜 ${groomName} & ${brideName}！感谢您在婚博会现场签约 Zero To One Event！\n\n` +
+      `🎉 恭喜 ${groomName} & ${brideName}！感谢您在婚博会现场签约！\n\n` +
       `📋 签约单据编号：${orderRefNo}\n` +
       `📅 婚礼日期：${weddingDate} (${sessionTime})\n` +
       `🏛️ 宴会场地：${venue || '待定'}\n` +
-      `💎 签约配套：${packageName}\n` +
+      `🌸 签约配套：${packageName}\n` +
+      `${includeVideoGuestbook ? `🎥 包含特惠加购：Video Guestbook 留言机\n` : ''}` +
       `💰 协议总额：RM ${totalAmount.toLocaleString()}\n` +
-      `💳 已收定金：RM ${depositPaid.toLocaleString()} (${paymentMethod})\n` +
-      `💵 待付尾款：RM ${balanceRemaining.toLocaleString()}\n\n` +
-      `我们已在 Event OS 为您的盛大婚礼建立专属项目档案，期待与您携手打造毕生难忘的婚礼舞台与影音视听体验！✨`
+      `💳 今日已付定金：RM ${depositPaid.toLocaleString()} (${paymentMethod})\n` +
+      `💵 待付尾款余额：RM ${balanceRemaining.toLocaleString()}\n\n` +
+      `我们已在 Event OS 为您的婚礼建立专属档案与统筹筹备，期待与您携手打造毕生难忘的婚礼盛典！✨`
     );
     window.open(`https://wa.me/${cleanPhone.startsWith('60') ? cleanPhone : '60' + cleanPhone}?text=${message}`, '_blank');
   };
@@ -369,10 +436,10 @@ export default function BridalFairBookingPage() {
               }}
             >
               <i className="fa-solid fa-heart" style={{ marginRight: 4 }} />
-              Bridal Fair On-Site Sign-Up
+              Bridal Fair Official Packages
             </span>
             <span style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>
-              现场签约与即时建档开单
+              婚博会现场官方签约单
             </span>
           </div>
         </div>
@@ -523,54 +590,115 @@ export default function BridalFairBookingPage() {
                 <div style={panelHeaderStyle}>
                   <div style={stepBadgeStyle}>2</div>
                   <div>
-                    <h2 style={panelTitleStyle}>Wedding Package & Scope / 签约配套与项目</h2>
-                    <p style={panelDescStyle}>选择婚博会预设套餐或自定义配置服务</p>
+                    <h2 style={panelTitleStyle}>Official Bridal Fair Package / 签约官方配套</h2>
+                    <p style={panelDescStyle}>标准匹配 2026/2027 官方 PDF 套餐配置</p>
                   </div>
                 </div>
 
-                {/* Preset Options */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
-                  {PRESET_PACKAGES.map((preset) => (
-                    <div
-                      key={preset.id}
-                      onClick={() => handleSelectPreset(preset.id)}
-                      style={{
-                        padding: '12px 14px',
-                        borderRadius: 12,
-                        background: selectedPresetId === preset.id ? 'rgba(0,86,179,0.25)' : 'rgba(255,255,255,0.03)',
-                        border: selectedPresetId === preset.id ? '1.5px solid #0077CC' : '1px solid rgba(255,255,255,0.08)',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        transition: 'all 0.2s',
-                      }}
-                    >
-                      <div>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>{preset.name}</div>
-                        <div style={{ fontSize: 11, color: 'rgba(229,229,229,0.5)', marginTop: 2 }}>
-                          原价: RM {preset.price.toLocaleString()} | 展会特惠: -RM {preset.fairDiscount.toLocaleString()}
+                {/* Preset Options (A, B, C) */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
+                  {PRESET_PACKAGES.map((preset) => {
+                    const isSelected = selectedPresetId === preset.id;
+                    return (
+                      <div
+                        key={preset.id}
+                        onClick={() => handleSelectPreset(preset.id)}
+                        style={{
+                          padding: '14px 16px',
+                          borderRadius: 14,
+                          background: isSelected
+                            ? 'linear-gradient(135deg, rgba(236,72,153,0.18), rgba(0,86,179,0.25))'
+                            : 'rgba(255,255,255,0.03)',
+                          border: isSelected ? '2px solid #ec4899' : '1px solid rgba(255,255,255,0.08)',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          transition: 'all 0.2s',
+                          boxShadow: isSelected ? '0 0 20px rgba(236,72,153,0.25)' : 'none',
+                        }}
+                      >
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <span style={{ fontSize: 15, fontWeight: 800, color: '#fff' }}>{preset.name}</span>
+                            {isSelected && (
+                              <span style={{ background: '#ec4899', color: '#fff', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 100 }}>
+                                SELECTED
+                              </span>
+                            )}
+                          </div>
+                          <div style={{ fontSize: 11, color: 'rgba(229,229,229,0.6)', marginTop: 4 }}>
+                            {preset.subtitle}
+                          </div>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <span style={{ fontSize: 18, fontWeight: 900, color: '#ec4899' }}>
+                            RM {preset.price.toLocaleString()}
+                          </span>
                         </div>
                       </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <span style={{ fontSize: 14, fontWeight: 800, color: '#6BB8FF' }}>
-                          RM {(preset.price - preset.fairDiscount).toLocaleString()}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
+                {/* Special Add-on: Video Guestbook checkbox (for B and C) */}
+                {currentPreset.hasAddon && (
+                  <div
+                    style={{
+                      background: 'rgba(245, 158, 11, 0.1)',
+                      border: '1px solid rgba(245, 158, 11, 0.35)',
+                      borderRadius: 12,
+                      padding: '12px 16px',
+                      marginBottom: 16,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      cursor: 'pointer',
+                    }}
+                    onClick={() => handleToggleAddon(!includeVideoGuestbook)}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <input
+                        type="checkbox"
+                        checked={includeVideoGuestbook}
+                        onChange={(e) => handleToggleAddon(e.target.checked)}
+                        style={{ width: 18, height: 18, accentColor: '#f59e0b', cursor: 'pointer' }}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: '#fbbf24' }}>
+                          <i className="fa-solid fa-film" style={{ marginRight: 6 }} />
+                          Special Add-On: Video Guestbook (复古视频/语音留言亭)
+                        </div>
+                        <div style={{ fontSize: 11, color: 'rgba(229,229,229,0.6)' }}>
+                          原价 NP: RM {currentPreset.addonNormalPrice.toLocaleString()} ➔ 展会签约立省！
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <span style={{ fontSize: 14, fontWeight: 800, color: '#34d399' }}>
+                        + RM {currentPreset.addonPromoPrice.toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
                 {/* Package Inclusions List */}
-                <div style={{ marginTop: 14 }}>
-                  <label style={labelStyle}>Package Inclusions Checklist / 配套所含服务明细</label>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                    <label style={labelStyle}>Package Inclusions Checklist / 配套服务清单明细</label>
+                    <span style={{ fontSize: 10, color: '#ec4899', fontWeight: 600 }}>
+                      {packageItems.length} Items Included
+                    </span>
+                  </div>
+
                   <div
                     style={{
                       background: 'rgba(0,0,0,0.3)',
                       borderRadius: 10,
                       border: '1px solid rgba(255,255,255,0.08)',
                       padding: '10px 14px',
-                      maxHeight: 180,
+                      maxHeight: 220,
                       overflowY: 'auto',
                       display: 'flex',
                       flexDirection: 'column',
@@ -586,12 +714,12 @@ export default function BridalFairBookingPage() {
                           justifyContent: 'space-between',
                           fontSize: 12,
                           color: '#E5E7EB',
-                          padding: '4px 0',
+                          padding: '5px 0',
                           borderBottom: '1px solid rgba(255,255,255,0.04)',
                         }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <i className="fa-solid fa-check text-xs" style={{ color: '#10b981' }} />
+                          <i className="fa-solid fa-circle-check text-xs" style={{ color: '#ec4899' }} />
                           <span>{item}</span>
                         </div>
                         <button
@@ -615,7 +743,7 @@ export default function BridalFairBookingPage() {
                   <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
                     <input
                       type="text"
-                      placeholder="Add custom item (e.g. 进场干冰多加一次 / 双人提琴演奏)"
+                      placeholder="Add custom item (e.g. 追光灯加一组 / 音响专属调试)"
                       value={newItemText}
                       onChange={(e) => setNewItemText(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddItem())}
@@ -658,19 +786,19 @@ export default function BridalFairBookingPage() {
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                   <div>
-                    <label style={labelStyle}>Package Original Price (原价)</label>
+                    <label style={labelStyle}>Package Price (配套价格)</label>
                     <div style={{ position: 'relative' }}>
                       <span style={{ position: 'absolute', left: 12, top: 12, color: 'rgba(229,229,229,0.5)', fontSize: 13 }}>RM</span>
                       <input
                         type="number"
-                        value={packagePrice}
-                        onChange={(e) => setPackagePrice(Number(e.target.value))}
-                        style={{ ...inputStyle, paddingLeft: 42 }}
+                        value={packagePrice + resolvedAddonPrice}
+                        disabled
+                        style={{ ...inputStyle, paddingLeft: 42, background: 'rgba(255,255,255,0.04)', opacity: 0.9 }}
                       />
                     </div>
                   </div>
                   <div>
-                    <label style={labelStyle}>Fair Special Rebate (展会特惠扣减)</label>
+                    <label style={labelStyle}>Fair Special Rebate (展会特惠立减)</label>
                     <div style={{ position: 'relative' }}>
                       <span style={{ position: 'absolute', left: 12, top: 12, color: 'rgba(229,229,229,0.5)', fontSize: 13 }}>-RM</span>
                       <input
@@ -687,8 +815,8 @@ export default function BridalFairBookingPage() {
                 <div
                   style={{
                     margin: '16px 0',
-                    background: 'rgba(0,86,179,0.15)',
-                    border: '1px solid rgba(0,86,179,0.3)',
+                    background: 'linear-gradient(135deg, rgba(236,72,153,0.15), rgba(0,86,179,0.2))',
+                    border: '1px solid rgba(236,72,153,0.3)',
                     borderRadius: 12,
                     padding: '12px 16px',
                     display: 'flex',
@@ -696,10 +824,10 @@ export default function BridalFairBookingPage() {
                     justifyContent: 'space-between',
                   }}
                 >
-                  <span style={{ fontSize: 13, fontWeight: 600, color: '#6BB8FF' }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: '#F472B6' }}>
                     Final Agreed Contract Total (协议总额)
                   </span>
-                  <span style={{ fontSize: 18, fontWeight: 800, color: '#FFFFFF' }}>
+                  <span style={{ fontSize: 20, fontWeight: 900, color: '#FFFFFF' }}>
                     RM {totalAmount.toLocaleString()}
                   </span>
                 </div>
@@ -791,7 +919,7 @@ export default function BridalFairBookingPage() {
                     <img
                       src={receiptImage}
                       alt="Payment Receipt"
-                      style={{ width: '100%', maxHeight: 220, objectFit: 'contain' }}
+                      style={{ width: '100%', maxHeight: 200, objectFit: 'contain' }}
                     />
                     <button
                       type="button"
@@ -832,8 +960,8 @@ export default function BridalFairBookingPage() {
                       transition: 'all 0.2s',
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = '#0077CC';
-                      e.currentTarget.style.background = 'rgba(0,119,204,0.05)';
+                      e.currentTarget.style.borderColor = '#ec4899';
+                      e.currentTarget.style.background = 'rgba(236,72,153,0.05)';
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)';
@@ -845,8 +973,8 @@ export default function BridalFairBookingPage() {
                         width: 44,
                         height: 44,
                         borderRadius: '50%',
-                        background: 'rgba(0,86,179,0.15)',
-                        color: '#6BB8FF',
+                        background: 'rgba(236,72,153,0.15)',
+                        color: '#ec4899',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -880,8 +1008,8 @@ export default function BridalFairBookingPage() {
                   <canvas
                     ref={canvasRef}
                     width={480}
-                    height={130}
-                    style={{ width: '100%', height: 130, display: 'block', touchAction: 'none', cursor: 'crosshair' }}
+                    height={120}
+                    style={{ width: '100%', height: 120, display: 'block', touchAction: 'none', cursor: 'crosshair' }}
                     onMouseDown={startDrawing}
                     onMouseMove={draw}
                     onMouseUp={stopDrawing}
@@ -937,7 +1065,7 @@ export default function BridalFairBookingPage() {
                 disabled={isSaving}
                 onClick={handleConfirmAndSync}
                 style={{
-                  background: 'linear-gradient(135deg, #0056B3, #0077CC)',
+                  background: 'linear-gradient(135deg, #ec4899, #0056B3)',
                   color: '#fff',
                   border: 'none',
                   padding: '18px 28px',
@@ -945,7 +1073,7 @@ export default function BridalFairBookingPage() {
                   fontWeight: 800,
                   fontSize: 16,
                   cursor: isSaving ? 'not-allowed' : 'pointer',
-                  boxShadow: '0 10px 30px rgba(0,86,179,0.5)',
+                  boxShadow: '0 10px 30px rgba(236,72,153,0.4)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -1103,7 +1231,7 @@ export default function BridalFairBookingPage() {
               style={{
                 background: '#FFFFFF',
                 color: '#111827',
-                padding: 'clamp(32px, 5vw, 48px)',
+                padding: 'clamp(28px, 4vw, 44px)',
                 borderRadius: 18,
                 boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
                 position: 'relative',
@@ -1116,32 +1244,32 @@ export default function BridalFairBookingPage() {
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'flex-start',
-                  paddingBottom: 24,
+                  paddingBottom: 20,
                   borderBottom: '2px solid #0056B3',
-                  marginBottom: 24,
+                  marginBottom: 20,
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
                   <img
                     src={COMPANY_INFO.logoUrl}
                     alt="ZTO Logo"
                     style={{
-                      width: 68,
-                      height: 68,
+                      width: 64,
+                      height: 64,
                       objectFit: 'contain',
-                      borderRadius: 12,
+                      borderRadius: 10,
                       border: '1px solid #e2e8f0',
                       boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
                     }}
                   />
                   <div>
-                    <h1 style={{ fontSize: 22, fontWeight: 900, color: '#0056B3', margin: '0 0 2px', letterSpacing: '-0.5px' }}>
+                    <h1 style={{ fontSize: 20, fontWeight: 900, color: '#0056B3', margin: '0 0 2px', letterSpacing: '-0.5px' }}>
                       {COMPANY_INFO.name}
                     </h1>
                     <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '1px' }}>
                       {COMPANY_INFO.brand} · Reg: {COMPANY_INFO.regNo}
                     </div>
-                    <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>
+                    <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
                       HQ: {COMPANY_INFO.address} | Email: {COMPANY_INFO.email}
                     </div>
                     <div style={{ fontSize: 11, color: '#64748b' }}>
@@ -1154,7 +1282,7 @@ export default function BridalFairBookingPage() {
                   <div
                     style={{
                       display: 'inline-block',
-                      background: '#0056B3',
+                      background: 'linear-gradient(135deg, #ec4899, #0056B3)',
                       color: '#ffffff',
                       padding: '6px 14px',
                       borderRadius: 6,
@@ -1162,10 +1290,10 @@ export default function BridalFairBookingPage() {
                       fontWeight: 800,
                       textTransform: 'uppercase',
                       letterSpacing: '1px',
-                      marginBottom: 8,
+                      marginBottom: 6,
                     }}
                   >
-                    Bridal Fair Booking Voucher
+                    Bridal Fair Booking Confirmation
                   </div>
                   <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>
                     Ref No: <span style={{ color: '#0056B3' }}>{orderRefNo}</span>
@@ -1182,9 +1310,9 @@ export default function BridalFairBookingPage() {
               </div>
 
               {/* Couple & Wedding Schedule Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 24 }}>
-                <div style={{ background: '#f8fafc', padding: '16px 18px', borderRadius: 10, border: '1px solid #e2e8f0' }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: '#0056B3', marginBottom: 8, letterSpacing: '0.5px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
+                <div style={{ background: '#f8fafc', padding: '14px 16px', borderRadius: 10, border: '1px solid #e2e8f0' }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: '#0056B3', marginBottom: 6, letterSpacing: '0.5px' }}>
                     Couple & Client Particulars (新人资料)
                   </div>
                   <div style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', marginBottom: 4 }}>
@@ -1197,8 +1325,8 @@ export default function BridalFairBookingPage() {
                   </div>
                 </div>
 
-                <div style={{ background: '#f8fafc', padding: '16px 18px', borderRadius: 10, border: '1px solid #e2e8f0' }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: '#0056B3', marginBottom: 8, letterSpacing: '0.5px' }}>
+                <div style={{ background: '#f8fafc', padding: '14px 16px', borderRadius: 10, border: '1px solid #e2e8f0' }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: '#0056B3', marginBottom: 6, letterSpacing: '0.5px' }}>
                     Wedding Schedule & Venue (婚礼档期与宴会地点)
                   </div>
                   <div style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', marginBottom: 4 }}>
@@ -1213,34 +1341,35 @@ export default function BridalFairBookingPage() {
               </div>
 
               {/* Package & Service Inclusions Table */}
-              <div style={{ marginBottom: 24 }}>
-                <div style={{ fontSize: 13, fontWeight: 800, color: '#0f172a', marginBottom: 8 }}>
-                  Contracted Package & Production Inclusions (签约配套与制作清单)
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 13, fontWeight: 800, color: '#0f172a', marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>Contracted Package & Production Inclusions (签约配套与制作清单)</span>
+                  <span style={{ fontSize: 11, color: '#64748b', fontWeight: 500 }}>Valid until 31 Dec 2027</span>
                 </div>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                   <thead>
                     <tr style={{ background: '#0056B3', color: '#ffffff' }}>
-                      <th style={{ padding: '10px 14px', textAlign: 'left', borderRadius: '6px 0 0 0' }}>Item / Service Scope</th>
-                      <th style={{ padding: '10px 14px', textAlign: 'center', width: '25%' }}>Status</th>
-                      <th style={{ padding: '10px 14px', textAlign: 'right', width: '25%', borderRadius: '0 6px 0 0' }}>Remarks</th>
+                      <th style={{ padding: '8px 12px', textAlign: 'left', borderRadius: '6px 0 0 0' }}>Item / Service Scope</th>
+                      <th style={{ padding: '8px 12px', textAlign: 'center', width: '22%' }}>Status</th>
+                      <th style={{ padding: '8px 12px', textAlign: 'right', width: '24%', borderRadius: '0 6px 0 0' }}>Remarks</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr style={{ background: '#f1f5f9', fontWeight: 700 }}>
-                      <td style={{ padding: '10px 14px', borderBottom: '1px solid #cbd5e1', color: '#0056B3' }} colSpan={3}>
-                        Package Title: {packageName}
+                    <tr style={{ background: '#fdf2f8', fontWeight: 700 }}>
+                      <td style={{ padding: '8px 12px', borderBottom: '1px solid #cbd5e1', color: '#db2777' }} colSpan={3}>
+                        Selected: {packageName} (RM {packagePrice.toLocaleString()})
                       </td>
                     </tr>
                     {packageItems.map((item, idx) => (
                       <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                        <td style={{ padding: '8px 14px', color: '#1e293b' }}>
+                        <td style={{ padding: '7px 12px', color: '#1e293b' }}>
                           <span style={{ color: '#0056B3', marginRight: 8, fontWeight: 700 }}>{idx + 1}.</span>
                           {item}
                         </td>
-                        <td style={{ padding: '8px 14px', textAlign: 'center', color: '#16a34a', fontWeight: 600 }}>
+                        <td style={{ padding: '7px 12px', textAlign: 'center', color: '#16a34a', fontWeight: 600 }}>
                           Included in Package
                         </td>
-                        <td style={{ padding: '8px 14px', textAlign: 'right', color: '#64748b' }}>
+                        <td style={{ padding: '7px 12px', textAlign: 'right', color: '#64748b' }}>
                           Production Ready
                         </td>
                       </tr>
@@ -1250,36 +1379,42 @@ export default function BridalFairBookingPage() {
               </div>
 
               {/* Financial & Deposit Summary Table */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 24, marginBottom: 24 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 20, marginBottom: 20 }}>
                 
-                {/* Terms Box */}
+                {/* Terms Box directly from PDF */}
                 <div style={{ background: '#f8fafc', padding: '14px 16px', borderRadius: 10, border: '1px solid #e2e8f0', fontSize: 11, color: '#64748b', lineHeight: 1.6 }}>
                   <div style={{ fontWeight: 700, color: '#334155', marginBottom: 4, textTransform: 'uppercase' }}>
-                    Terms of Booking & Production Guarantee:
+                    Package Terms & Guarantee (配套细则与品质保障):
                   </div>
-                  <div>1. <strong>Date Securing:</strong> The deposit guarantees technician crew & AV equipment reservation on the event date.</div>
-                  <div>2. <strong>Balance Due:</strong> The remaining balance of RM {balanceRemaining.toLocaleString()} shall be settled 14 days prior to event setup.</div>
-                  <div>3. <strong>Rescheduling:</strong> Free date postponement allowed subject to hardware schedule availability.</div>
-                  <div>4. <strong>Quality Standard:</strong> Backed by Zero To One Event professional sound and lighting engineers.</div>
+                  <div>• <strong>Validity:</strong> This package is valid until <strong>31 December 2027</strong>.</div>
+                  <div>• <strong>Customization:</strong> Only the photobooth design is customizable. All other items included in this package are fixed and are not allowed to be replaced, or exchanged for other items.</div>
+                  <div>• <strong>Balance Settlement:</strong> The remaining balance of RM {balanceRemaining.toLocaleString()} shall be settled 14 days prior to event.</div>
+                  <div>• <strong>Production Assurance:</strong> Professional delivery coordinated by experienced bridal butler and sound engineers.</div>
                 </div>
 
                 {/* Amount Calculation Box */}
-                <div style={{ background: '#f1f5f9', padding: '16px 20px', borderRadius: 10, border: '1px solid #cbd5e1' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13, color: '#475569' }}>
-                    <span>Package Value (配套原价):</span>
+                <div style={{ background: '#f1f5f9', padding: '14px 18px', borderRadius: 10, border: '1px solid #cbd5e1' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 12, color: '#475569' }}>
+                    <span>Package Price (配套价):</span>
                     <span>RM {packagePrice.toLocaleString()}</span>
                   </div>
+                  {includeVideoGuestbook && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 12, color: '#d97706', fontWeight: 600 }}>
+                      <span>Video Guestbook (留言亭特惠加购):</span>
+                      <span>+ RM {resolvedAddonPrice.toLocaleString()}</span>
+                    </div>
+                  )}
                   {fairDiscount > 0 && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13, color: '#dc2626', fontWeight: 600 }}>
-                      <span>Bridal Fair Rebate (展会特惠):</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 12, color: '#dc2626', fontWeight: 600 }}>
+                      <span>Bridal Fair Rebate (展会立减):</span>
                       <span>- RM {fairDiscount.toLocaleString()}</span>
                     </div>
                   )}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12, paddingBottom: 10, borderBottom: '2px solid #cbd5e1', fontSize: 14, fontWeight: 800, color: '#0f172a' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10, paddingBottom: 8, borderBottom: '2px solid #cbd5e1', fontSize: 14, fontWeight: 800, color: '#0f172a' }}>
                     <span>Total Contract Amount (协议总额):</span>
                     <span>RM {totalAmount.toLocaleString()}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 14, fontWeight: 800, color: '#16a34a' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 14, fontWeight: 800, color: '#16a34a' }}>
                     <span>Deposit Paid (今日已付定金):</span>
                     <span>RM {depositPaid.toLocaleString()}</span>
                   </div>
@@ -1287,42 +1422,42 @@ export default function BridalFairBookingPage() {
                     <span>Balance Remaining (待付尾款):</span>
                     <span>RM {balanceRemaining.toLocaleString()}</span>
                   </div>
-                  <div style={{ fontSize: 11, color: '#64748b', marginTop: 10, textAlign: 'right' }}>
+                  <div style={{ fontSize: 11, color: '#64748b', marginTop: 8, textAlign: 'right' }}>
                     Payment Mode: <strong>{paymentMethod}</strong>
                   </div>
                 </div>
               </div>
 
               {/* Uploaded Receipt Proof & Signatures Section */}
-              <div style={{ display: 'grid', gridTemplateColumns: receiptImage ? '1fr 1.2fr' : '1fr', gap: 24, paddingTop: 16, borderTop: '1px solid #e2e8f0' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: receiptImage ? '1fr 1.2fr' : '1fr', gap: 20, paddingTop: 14, borderTop: '1px solid #e2e8f0' }}>
                 
                 {/* Receipt Image Thumbnail if uploaded */}
                 {receiptImage && (
-                  <div style={{ background: '#f8fafc', padding: 12, borderRadius: 10, border: '1px solid #e2e8f0', textAlign: 'center' }}>
+                  <div style={{ background: '#f8fafc', padding: 10, borderRadius: 10, border: '1px solid #e2e8f0', textAlign: 'center' }}>
                     <div style={{ fontSize: 11, fontWeight: 700, color: '#0056B3', marginBottom: 6, textTransform: 'uppercase' }}>
                       <i className="fa-solid fa-receipt" style={{ marginRight: 6 }} />
-                      Verified Payment Receipt (已附转账收据)
+                      Verified Payment Receipt (已附转账收据凭证)
                     </div>
                     <img
                       src={receiptImage}
                       alt="Payment Receipt"
-                      style={{ maxHeight: 150, maxWidth: '100%', objectFit: 'contain', borderRadius: 6, border: '1px solid #cbd5e1' }}
+                      style={{ maxHeight: 130, maxWidth: '100%', objectFit: 'contain', borderRadius: 6, border: '1px solid #cbd5e1' }}
                     />
                   </div>
                 )}
 
                 {/* Signatures */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
-                  <div style={{ textAlign: 'center', borderTop: '1px solid #cbd5e1', paddingTop: 10 }}>
-                    <div style={{ minHeight: 60, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+                  <div style={{ textAlign: 'center', borderTop: '1px solid #cbd5e1', paddingTop: 8 }}>
+                    <div style={{ minHeight: 50, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       {hasSignature && canvasRef.current ? (
                         <img
                           src={canvasRef.current.toDataURL()}
                           alt="Client Signature"
-                          style={{ maxHeight: 50, objectFit: 'contain' }}
+                          style={{ maxHeight: 45, objectFit: 'contain' }}
                         />
                       ) : (
-                        <div style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: 13 }}>
+                        <div style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: 12 }}>
                           {groomName || brideName || 'Client Signed on Fair'}
                         </div>
                       )}
@@ -1335,11 +1470,11 @@ export default function BridalFairBookingPage() {
                     </div>
                   </div>
 
-                  <div style={{ textAlign: 'center', borderTop: '1px solid #cbd5e1', paddingTop: 10 }}>
-                    <div style={{ minHeight: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0056B3', fontWeight: 800, fontSize: 14 }}>
+                  <div style={{ textAlign: 'center', borderTop: '1px solid #cbd5e1', paddingTop: 8 }}>
+                    <div style={{ minHeight: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0056B3', fontWeight: 800, fontSize: 13 }}>
                       <div style={{ textAlign: 'center' }}>
-                        <div style={{ fontSize: 12, letterSpacing: '1px' }}>ZERO TO ONE EVENT</div>
-                        <div style={{ fontSize: 10, color: '#64748b' }}>Authorized Production Director</div>
+                        <div style={{ fontSize: 11, letterSpacing: '0.5px' }}>ZERO TO ONE EVENT</div>
+                        <div style={{ fontSize: 9, color: '#64748b' }}>Authorized Production Director</div>
                       </div>
                     </div>
                     <div style={{ fontSize: 12, fontWeight: 700, color: '#0f172a' }}>
@@ -1352,9 +1487,27 @@ export default function BridalFairBookingPage() {
                 </div>
               </div>
 
-              {/* Bottom Official Footer */}
-              <div style={{ marginTop: 28, paddingTop: 14, borderTop: '1px solid #f1f5f9', textAlign: 'center', fontSize: 10, color: '#94a3b8' }}>
-                Thank you for choosing ZERO TO ONE EVENT. System generated via ZTO Event OS Tournament & Production Platform.
+              {/* Bottom Official Collaboration Brands Footer from PDF */}
+              <div
+                style={{
+                  marginTop: 24,
+                  paddingTop: 12,
+                  borderTop: '1px solid #f1f5f9',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: 8,
+                  fontSize: 10,
+                  color: '#64748b',
+                }}
+              >
+                <div>
+                  Presented by: <strong>Unforgettable Event Planner</strong> & <strong>Sophia Creation Florist</strong> & <strong>Zero To One Event</strong>
+                </div>
+                <div>
+                  Official Bridal Fair Order Voucher · Valid until 31 Dec 2027
+                </div>
               </div>
             </div>
           </div>
@@ -1387,7 +1540,7 @@ const stepBadgeStyle: React.CSSProperties = {
   width: 28,
   height: 28,
   borderRadius: '50%',
-  background: '#0056B3',
+  background: '#ec4899',
   color: '#fff',
   display: 'flex',
   alignItems: 'center',

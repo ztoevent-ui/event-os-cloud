@@ -82,6 +82,8 @@ function EnquiryFormContent() {
   const [brideName, setBrideName] = useState('');
   const [weddingType, setWeddingType] = useState('dinner_banquet');
   const [weddingTables, setWeddingTables] = useState('');
+  const [weddingPackageChoice, setWeddingPackageChoice] = useState('package_b');
+  const [interestedVideoGuestbook, setInterestedVideoGuestbook] = useState(false);
   const [weddingStyle, setWeddingStyle] = useState('');
   const [weddingServices, setWeddingServices] = useState<string[]>([]);
   const [weddingNotes, setWeddingNotes] = useState('');
@@ -135,6 +137,8 @@ function EnquiryFormContent() {
         brideName,
         weddingType,
         estimatedTables: weddingTables,
+        weddingPackageChoice,
+        interestedVideoGuestbook,
         weddingStyle,
         weddingServicesNeeded: weddingServices,
         specialVibeOrSongs: weddingNotes,
@@ -705,6 +709,74 @@ function EnquiryFormContent() {
                             style={inputStyle}
                           />
                         </div>
+                      </div>
+
+                      <div>
+                        <label style={labelStyle}>Interested Wedding Package / 意向官方配套 (匹配 2026/2027 官方手册)</label>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10, marginBottom: 12 }}>
+                          {[
+                            { id: 'package_a', title: '🌸 Package A — RM 9,888', desc: '迎宾/主桌花艺 + 拱门 + 8组路引花柱 + 16x10ft布幔打卡墙 + 3人管家团队 (晚宴) + 鲜花手捧花 + 4朵胸花' },
+                            { id: 'package_b', title: '🌿 Package B — RM 12,888', desc: '全套花艺 + 舞台两侧美陈 + 16x9ft硬板打卡墙 + 早晚双场管家 + 鲜花手捧花 + 8朵胸花 + 婚车扎花' },
+                            { id: 'package_c', title: '👑 Package C — RM 16,888', desc: '7尺3D立体花艺拱门 + 发光路引 + 3组精美相框画廊 + 定制硬板打卡墙 + 控场管家 + 12朵胸花 + 婚车扎花' },
+                            { id: 'custom', title: '✨ Custom AV & Production', desc: '全案高级定制 / 根据场地规模与预算专属策划' },
+                          ].map(pkg => (
+                            <div
+                              key={pkg.id}
+                              onClick={() => {
+                                setWeddingPackageChoice(pkg.id);
+                                if (pkg.id === 'package_a') setBudgetRange('RM 10,000 - RM 15,000');
+                                else if (pkg.id === 'package_b') setBudgetRange('RM 15,000 - RM 25,000');
+                                else if (pkg.id === 'package_c') setBudgetRange('RM 15,000 - RM 25,000');
+                              }}
+                              style={{
+                                padding: '12px 14px',
+                                borderRadius: 10,
+                                background: weddingPackageChoice === pkg.id ? 'rgba(236,72,153,0.18)' : 'rgba(255,255,255,0.03)',
+                                border: weddingPackageChoice === pkg.id ? '2px solid #ec4899' : '1px solid rgba(255,255,255,0.08)',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                              }}
+                            >
+                              <div style={{ fontSize: 13, fontWeight: 700, color: weddingPackageChoice === pkg.id ? '#ec4899' : '#fff' }}>
+                                {pkg.title}
+                              </div>
+                              <div style={{ fontSize: 11, color: 'rgba(229,229,229,0.5)', marginTop: 4, lineHeight: 1.4 }}>
+                                {pkg.desc}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Special Add-on checkbox */}
+                        {(weddingPackageChoice === 'package_b' || weddingPackageChoice === 'package_c') && (
+                          <div
+                            onClick={() => setInterestedVideoGuestbook(!interestedVideoGuestbook)}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              padding: '10px 14px',
+                              borderRadius: 10,
+                              background: 'rgba(245, 158, 11, 0.08)',
+                              border: '1px solid rgba(245, 158, 11, 0.3)',
+                              cursor: 'pointer',
+                              marginBottom: 14,
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                              <input
+                                type="checkbox"
+                                checked={interestedVideoGuestbook}
+                                onChange={(e) => setInterestedVideoGuestbook(e.target.checked)}
+                                style={{ width: 16, height: 16, accentColor: '#f59e0b' }}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                              <span style={{ fontSize: 12, fontWeight: 600, color: '#fbbf24' }}>
+                                加购 Special Add-On: Video Guestbook (复古视频/语音留言机 — 现场特惠 RM {weddingPackageChoice === 'package_c' ? '788' : '888'})
+                              </span>
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       <div>
