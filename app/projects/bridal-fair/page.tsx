@@ -214,6 +214,9 @@ export default function BridalFairBookingPage() {
                 setIsWaitingForIpad(false);
                 setShowIpadQRModal(false);
                 setBookingConfirmed(true);
+
+                // Auto-create/sync event to Event Management with full details
+                syncToEventManagement(parsed, data.id);
               }
             } catch (e) {
               console.error('Error parsing meeting_notes during iPad polling:', e);
@@ -440,6 +443,230 @@ export default function BridalFairBookingPage() {
     }
   };
 
+  // Auto-sync and Create Event in Event Management with all relevant details
+  const syncToEventManagement = async (orderData: any, existingProjId?: string | null) => {
+    try {
+      const pName = `${orderData.groomName || groomName} & ${orderData.brideName || brideName} 婚礼统筹 (${(orderData.packageName || packageName).split(' ')[1] || 'Wedding'})`;
+      const wDate = orderData.weddingDate || weddingDate;
+      const vLoc = orderData.venue || venue;
+      const oRef = orderData.orderRefNo || orderRefNo;
+
+      let projId = existingProjId;
+      if (!projId && oRef) {
+        const { data: existing } = await supabase
+          .from('projects')
+          .select('id')
+          .eq('slug', oRef)
+          .maybeSingle();
+        projId = existing?.id;
+      }
+
+      // 1. Upsert Project into Event Management
+      if (projId) {
+        await supabase
+          .from('projects')
+          .update({
+            name: pName,
+            venue: vLoc || null,
+            start_date: wDate,
+            end_date: wDate,
+            status: 'planning',
+            meeting_notes: JSON.stringify(orderData),
+          })
+          .eq('id', projId);
+      } else {
+        const { data: newProj, error: insErr } = await supabase
+          .from('projects')
+          .insert({
+            name: pName,
+            type: 'wedding',
+            venue: vLoc || null,
+            start_date: wDate,
+            end_date: wDate,
+            status: 'planning',
+            slug: oRef,
+            meeting_notes: JSON.stringify(orderData),
+          })
+          .select()
+          .single();
+
+        if (insErr) {
+          console.error('Failed to create project in Event Management:', insErr);
+          return null;
+        }
+        projId = newProj?.id;
+      }
+
+      if (!projId) return null;
+
+      // 2. Budgets Sync (Clear existing project budgets first to keep clean and accurate)
+      try {
+        await supabase.from('budgets').delete().eq('project_id', projId);
+
+        const totalAmt = Number(orderData.totalAmount || 0);
+        const depPaid = Number(orderData.depositPaid || 0);
+        const balRem = Number(orderData.balanceRemaining || 0);
+        const fDisc = Number(orderData.fairDiscount || 0);
+
+        const budgetItemsToInsert = [
+          {
+            project_id: projId,
+            type: 'income',
+            category: 'Client Contract',
+            item: `[婚博签约合同总额] ${orderData.packageName} (折后实收 RM ${totalAmt.toLocaleString()})`,
+            amount: totalAmt,
+            status: 'confirmed',
+          },
+        ];
+
+        if (depPaid > 0) {
+          budgetItemsToInsert.push({
+            project_id: projId,
+            type: 'income',
+            category: 'Deposit Received',
+            item: `[婚博现场定金收款] ${orderData.paymentMethod || '转账/现金'} [单号: ${oRef}]`,
+            amount: depPaid,
+            status: 'paid',
+          });
+        }
+
+        if (balRem > 0) {
+          budgetItemsToInsert.push({
+            project_id: projId,
+            type: 'income',
+            category: 'Balance Due',
+            item: `[待收婚礼尾款余额] 婚前付清 [单号: ${oRef}]`,
+            amount: balRem,
+            status: 'planned',
+          });
+        }
+
+        if (fDisc > 0) {
+          budgetItemsToInsert.push({
+            project_id: projId,
+            type: 'expense',
+            category: 'Special Discount',
+            item: `[现场立减特惠] ${orderData.discountReason || '婚博会签约立减'} [单号: ${oRef}]`,
+            amount: fDisc,
+            status: 'confirmed',
+          });
+        }
+
+        await supabase.from('budgets').insert(budgetItemsToInsert);
+      } catch (bErr) {
+        console.warn('Budget auto-entry notice:', bErr);
+      }
+
+      // 3. Tasks Sync (Create core wedding planning milestone tasks)
+      try {
+        const { count: taskCount } = await supabase
+          .from('tasks')
+          .select('*', { count: 'exact', head: true })
+          .eq('project_id', projId);
+
+        if (!taskCount || taskCount === 0) {
+          const defaultTasks = [
+            {
+              project_id: projId,
+              title: `[客户对接] 发送正式签约单据与收据，建立专属婚礼统筹群`,
+              description: `联系新郎 ${orderData.groomName} / 新娘 ${orderData.brideName} (${orderData.phone})，确认收据并拉入婚礼专属策划群。`,
+              priority: 'high',
+              status: 'todo',
+              sort_order: 1,
+            },
+            {
+              project_id: projId,
+              title: `[场地对接] 预约 ${orderData.venue || '宴会场地'} 现场测量与工程动线勘测`,
+              description: `勘测宴会厅尺寸、迎宾区尺寸、电源插座及背板搭建空间，核实预估 ${orderData.tables ? orderData.tables + ' 席' : '待定'} 摆台走向。`,
+              priority: 'medium',
+              status: 'todo',
+              sort_order: 2,
+            },
+            {
+              project_id: projId,
+              title: `[物料设计] 启动「${orderData.packageName}」3D效果图与花艺方案定制`,
+              description: `细化迎宾桌、主桌花艺、入场经典大拱门、16ft 拍照背板${orderData.includeVideoGuestbook ? '及 Video Guestbook 留言机' : ''}设计图。`,
+              priority: 'medium',
+              status: 'todo',
+              sort_order: 3,
+            },
+            {
+              project_id: projId,
+              title: `[尾款跟进] 婚礼前14天核对最终出席桌数并收取尾款 RM ${Number(orderData.balanceRemaining || 0).toLocaleString()}`,
+              description: `跟进合同尾款结算，核对现场统筹工程人员与音响、灯光全流程总彩排。`,
+              priority: 'critical',
+              status: 'todo',
+              sort_order: 4,
+            },
+          ];
+          await supabase.from('tasks').insert(defaultTasks);
+        }
+      } catch (tErr) {
+        console.warn('Tasks auto-entry notice:', tErr);
+      }
+
+      // 4. Meeting Session / Archive Note (Accessible in Event Management Dashboard)
+      try {
+        const { count: sessionCount } = await supabase
+          .from('meeting_sessions')
+          .select('*', { count: 'exact', head: true })
+          .eq('project_id', projId);
+
+        if (!sessionCount || sessionCount === 0) {
+          const markdownContent = [
+            `# 💍 婚博会官方现场签约凭证档案`,
+            ``,
+            `- **签约单号 / Ref No**: ${oRef}`,
+            `- **新人姓名**: ${orderData.groomName}（新郎） & ${orderData.brideName}（新娘）`,
+            `- **联系电话 / WhatsApp**: ${orderData.phone}`,
+            `- **电子邮箱**: ${orderData.email || '未提供'}`,
+            `- **婚礼日期**: ${orderData.weddingDate} (${orderData.sessionTime || '晚宴'})`,
+            `- **预定席位 / 桌数**: ${orderData.tables ? orderData.tables + ' 席' : '待定'}`,
+            `- **宴会场地**: ${orderData.venue || '待定'}`,
+            `- **签约配套**: ${orderData.packageName} (原价 RM ${Number(orderData.packagePrice || 0).toLocaleString()})`,
+            orderData.includeVideoGuestbook ? `- **加购项目**: Video Guestbook 视频/音频复古留言亭机 (+RM ${orderData.addonPromoPrice || 788})` : null,
+            Number(orderData.fairDiscount) > 0 ? `- **现场立减特惠**: -RM ${Number(orderData.fairDiscount).toLocaleString()} (${orderData.discountReason || '婚博会现场签约立减'})` : null,
+            `- **协议实付总额**: RM ${Number(orderData.totalAmount || 0).toLocaleString()}`,
+            `- **已付定金**: RM ${Number(orderData.depositPaid || 0).toLocaleString()} (${orderData.paymentMethod || '转账/现金'})`,
+            `- **待付尾款**: RM ${Number(orderData.balanceRemaining || 0).toLocaleString()} (婚前付清)`,
+            `- **现场顾问 / Consultant**: ${orderData.consultantName || '官方销售顾问'}`,
+            ``,
+            `---`,
+            `### 📋 配套包含服务清单：`,
+            ...(orderData.packageItems || []).map((item: string) => `* ${item}`),
+            ``,
+            `---`,
+            `### 📜 条款细则与承诺：`,
+            orderData.packageTerms || '依官方正式服务细则执行。',
+          ].filter(Boolean).join('\n');
+
+          const assets: string[] = [];
+          if (orderData.receiptImage && typeof orderData.receiptImage === 'string' && orderData.receiptImage.length > 50) {
+            assets.push(orderData.receiptImage);
+          }
+          if (orderData.signatureImage && typeof orderData.signatureImage === 'string' && orderData.signatureImage.length > 50) {
+            assets.push(orderData.signatureImage);
+          }
+
+          await supabase.from('meeting_sessions').insert({
+            project_id: projId,
+            title: `💍 婚博会现场签约官方档案 (${oRef})`,
+            meeting_date: new Date().toISOString().split('T')[0],
+            content: markdownContent,
+            assets,
+          });
+        }
+      } catch (mErr) {
+        console.warn('Meeting session auto-entry notice:', mErr);
+      }
+
+      return projId;
+    } catch (err: any) {
+      console.error('syncToEventManagement Error:', err);
+      return null;
+    }
+  };
+
   // Confirm Booking directly on PC & Sync to Event Management
   const handleConfirmAndSync = async () => {
     if (!groomName.trim() || !brideName.trim()) {
@@ -458,75 +685,17 @@ export default function BridalFairBookingPage() {
     setIsSaving(true);
 
     try {
-      const projectName = `${groomName.trim()} & ${brideName.trim()} Wedding Banquet (${packageName.split(' ')[1] || 'Wedding'})`;
       const signatureImg = canvasRef.current && hasSignature ? canvasRef.current.toDataURL('image/png') : remoteSignatureImage;
       const orderData = buildOrderPayload(signatureImg, 'confirmed');
 
-      // Check if existing project
-      const { data: existing } = await supabase
-        .from('projects')
-        .select('id')
-        .eq('slug', orderRefNo)
-        .maybeSingle();
-
-      let projId = existing?.id;
-
-      if (existing) {
-        await supabase
-          .from('projects')
-          .update({
-            name: projectName,
-            venue: venue || null,
-            start_date: weddingDate,
-            end_date: weddingDate,
-            status: 'confirmed',
-            meeting_notes: JSON.stringify(orderData),
-          })
-          .eq('id', existing.id);
-      } else {
-        const { data: newProject, error: projectError } = await supabase
-          .from('projects')
-          .insert({
-            name: projectName,
-            type: 'wedding',
-            venue: venue || null,
-            start_date: weddingDate,
-            end_date: weddingDate,
-            status: 'confirmed',
-            slug: orderRefNo,
-            meeting_notes: JSON.stringify(orderData),
-          })
-          .select()
-          .single();
-
-        if (projectError) {
-          console.error('Project Insert Error:', projectError);
-          alert('建立活动档案遇到提示: ' + projectError.message);
-        } else if (newProject) {
-          projId = newProject.id;
-        }
-      }
-
+      const projId = await syncToEventManagement(orderData, createdProjectId);
       if (projId) {
         setCreatedProjectId(projId);
-
-        // Insert into `budgets` table as Confirmed Income
-        if (depositPaid > 0) {
-          await supabase.from('budgets').insert({
-            project_id: projId,
-            type: 'income',
-            category: 'Wedding Package Deposit',
-            item: `[Bridal Fair Deposit] ${orderRefNo} - ${packageName}`,
-            amount: depositPaid,
-            status: 'confirmed',
-          });
-        }
       }
-
       setBookingConfirmed(true);
     } catch (err: any) {
       console.error(err);
-      alert('Error saving booking: ' + err.message);
+      alert('开单同步失败: ' + err.message);
     } finally {
       setIsSaving(false);
     }
@@ -1515,41 +1684,85 @@ export default function BridalFairBookingPage() {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 flexWrap: 'wrap',
-                gap: 12,
-                background: 'rgba(18,20,24,0.85)',
-                border: '1px solid rgba(255,255,255,0.1)',
+                gap: 14,
+                background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(0, 86, 179, 0.18))',
+                border: '1.5px solid rgba(16, 185, 129, 0.45)',
                 borderRadius: 16,
-                padding: '16px 20px',
+                padding: '18px 22px',
                 backdropFilter: 'blur(16px)',
+                boxShadow: '0 8px 30px rgba(16, 185, 129, 0.15)',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
                 <div
                   style={{
-                    width: 38,
-                    height: 38,
-                    borderRadius: '50%',
-                    background: 'rgba(16,185,129,0.15)',
+                    width: 44,
+                    height: 44,
+                    borderRadius: 12,
+                    background: 'rgba(16,185,129,0.2)',
+                    border: '1px solid rgba(16,185,129,0.5)',
                     color: '#34d399',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: 18,
+                    fontSize: 20,
                   }}
                 >
-                  <i className="fa-solid fa-circle-check" />
+                  <i className="fa-solid fa-calendar-check" />
                 </div>
                 <div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>
-                    Booking Confirmed & Event Synced to System!
+                  <div style={{ fontSize: 16, fontWeight: 800, color: '#fff', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span>🎉 已在 Event Management 成功开单建档！</span>
+                    <span
+                      style={{
+                        fontSize: 10,
+                        padding: '2px 8px',
+                        borderRadius: 999,
+                        background: 'rgba(16, 185, 129, 0.25)',
+                        color: '#34d399',
+                        fontWeight: 700,
+                        letterSpacing: '0.05em',
+                      }}
+                    >
+                      PLANNING 筹备就绪
+                    </span>
                   </div>
-                  <div style={{ fontSize: 12, color: 'rgba(229,229,229,0.6)' }}>
-                    已成功在 Event OS 建立项目档案，并生成正式签约单据凭证。
+                  <div style={{ fontSize: 12, color: 'rgba(229,229,229,0.8)', marginTop: 3 }}>
+                    活动档案：<strong style={{ color: '#ec4899' }}>{groomName} & {brideName} 婚宴统筹</strong> ｜ 
+                    日期：<strong style={{ color: '#fff' }}>{weddingDate} ({sessionTime})</strong> ｜ 
+                    场地：<strong style={{ color: '#fff' }}>{venue || '待定'}</strong>
+                  </div>
+                  <div style={{ fontSize: 11, color: '#34d399', marginTop: 3, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <i className="fa-solid fa-circle-check" />
+                    <span>已自动录入：合同配套清单明细、定金财务账目、4项核心筹备任务、签约会议档案</span>
                   </div>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+                {createdProjectId && (
+                  <Link
+                    href={`/projects/${createdProjectId}`}
+                    style={{
+                      background: 'linear-gradient(135deg, #10b981, #0056B3)',
+                      color: '#fff',
+                      padding: '10px 18px',
+                      borderRadius: 10,
+                      fontWeight: 800,
+                      fontSize: 13,
+                      textDecoration: 'none',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      boxShadow: '0 4px 16px rgba(16, 185, 129, 0.35)',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    <i className="fa-solid fa-arrow-up-right-from-square" />
+                    <span>前往 Event Management 活动控制台</span>
+                  </Link>
+                )}
+
                 <button
                   type="button"
                   onClick={handleSendWhatsApp}

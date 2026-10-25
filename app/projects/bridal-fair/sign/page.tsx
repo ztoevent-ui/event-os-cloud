@@ -231,7 +231,7 @@ function BridalFairSignContent() {
       const { data: updatedProject, error: updateError } = await supabase
         .from('projects')
         .update({
-          status: 'confirmed',
+          status: 'planning', // Set to planning to ensure it displays actively in Event Management
           meeting_notes: JSON.stringify(updatedOrder),
         })
         .eq('slug', order.orderRefNo)
@@ -242,19 +242,158 @@ function BridalFairSignContent() {
         throw updateError;
       }
 
-      // 2. Insert into budgets if deposit paid
-      if (updatedProject && order.depositPaid > 0) {
+      // 2. Auto-sync Event Management details (Budgets, Tasks, Meeting Archive)
+      if (updatedProject) {
+        const projId = updatedProject.id;
+
+        // Sync Budgets
         try {
-          await supabase.from('budgets').insert({
-            project_id: updatedProject.id,
-            type: 'income',
-            category: 'Wedding Package Deposit',
-            item: `[Bridal Fair Deposit] ${order.orderRefNo} - ${order.packageName}`,
-            amount: order.depositPaid,
-            status: 'confirmed',
-          });
+          await supabase.from('budgets').delete().eq('project_id', projId);
+          const totalAmt = Number(order.totalAmount || 0);
+          const depPaid = Number(order.depositPaid || 0);
+          const balRem = Number(order.balanceRemaining || 0);
+          const fDisc = Number(order.fairDiscount || 0);
+
+          const budgetItems: any[] = [
+            {
+              project_id: projId,
+              type: 'income',
+              category: 'Client Contract',
+              item: `[婚博签约合同总额] ${order.packageName} (折后实收 RM ${totalAmt.toLocaleString()})`,
+              amount: totalAmt,
+              status: 'confirmed',
+            },
+          ];
+
+          if (depPaid > 0) {
+            budgetItems.push({
+              project_id: projId,
+              type: 'income',
+              category: 'Deposit Received',
+              item: `[婚博现场定金收款] ${order.paymentMethod || '现场支付'} [单号: ${order.orderRefNo}]`,
+              amount: depPaid,
+              status: 'paid',
+            });
+          }
+
+          if (balRem > 0) {
+            budgetItems.push({
+              project_id: projId,
+              type: 'income',
+              category: 'Balance Due',
+              item: `[待收婚礼尾款余额] 婚前付清 [单号: ${order.orderRefNo}]`,
+              amount: balRem,
+              status: 'planned',
+            });
+          }
+
+          if (fDisc > 0) {
+            budgetItems.push({
+              project_id: projId,
+              type: 'expense',
+              category: 'Special Discount',
+              item: `[现场立减特惠] ${order.discountReason || '婚博会现场签约立减'} [单号: ${order.orderRefNo}]`,
+              amount: fDisc,
+              status: 'confirmed',
+            });
+          }
+
+          await supabase.from('budgets').insert(budgetItems);
         } catch (bErr) {
-          console.warn('Budget record notice:', bErr);
+          console.warn('iPad sync budget error:', bErr);
+        }
+
+        // Sync Tasks (Wedding milestones)
+        try {
+          const { count: taskCount } = await supabase
+            .from('tasks')
+            .select('*', { count: 'exact', head: true })
+            .eq('project_id', projId);
+
+          if (!taskCount || taskCount === 0) {
+            await supabase.from('tasks').insert([
+              {
+                project_id: projId,
+                title: `[客户对接] 发送正式签约单据与收据，建立专属婚礼统筹群`,
+                description: `联系新郎 ${order.groomName} / 新娘 ${order.brideName} (${order.phone})，确认收据并拉入婚礼专属策划群。`,
+                priority: 'high',
+                status: 'todo',
+                sort_order: 1,
+              },
+              {
+                project_id: projId,
+                title: `[场地对接] 预约 ${order.venue || '宴会场地'} 现场测量与工程动线勘测`,
+                description: `勘测宴会厅尺寸、迎宾区尺寸、电源插座及背板搭建空间，核实预估 ${order.tables ? order.tables + ' 席' : '待定'} 摆台走向。`,
+                priority: 'medium',
+                status: 'todo',
+                sort_order: 2,
+              },
+              {
+                project_id: projId,
+                title: `[物料设计] 启动「${order.packageName}」3D效果图与花艺方案定制`,
+                description: `细化迎宾桌、主桌花艺、入场经典大拱门、16ft 拍照背板${order.includeVideoGuestbook ? '及 Video Guestbook 留言机' : ''}设计图。`,
+                priority: 'medium',
+                status: 'todo',
+                sort_order: 3,
+              },
+              {
+                project_id: projId,
+                title: `[尾款跟进] 婚礼前14天核对最终出席桌数并收取尾款 RM ${Number(order.balanceRemaining || 0).toLocaleString()}`,
+                description: `跟进合同尾款结算，核对现场统筹工程人员与音响、灯光全流程总彩排。`,
+                priority: 'critical',
+                status: 'todo',
+                sort_order: 4,
+              },
+            ]);
+          }
+        } catch (tErr) {
+          console.warn('iPad sync tasks error:', tErr);
+        }
+
+        // Sync Meeting Session Archive Note
+        try {
+          const { count: sessionCount } = await supabase
+            .from('meeting_sessions')
+            .select('*', { count: 'exact', head: true })
+            .eq('project_id', projId);
+
+          if (!sessionCount || sessionCount === 0) {
+            const markdownContent = [
+              `# 💍 婚博会官方现场签约凭证档案`,
+              ``,
+              `- **签约单号 / Ref No**: ${order.orderRefNo}`,
+              `- **新人姓名**: ${order.groomName}（新郎） & ${order.brideName}（新娘）`,
+              `- **联系电话 / WhatsApp**: ${order.phone}`,
+              `- **电子邮箱**: ${order.email || '未提供'}`,
+              `- **婚礼日期**: ${order.weddingDate} (${order.sessionTime || '晚宴'})`,
+              `- **预定席位 / 桌数**: ${order.tables ? order.tables + ' 席' : '待定'}`,
+              `- **宴会场地**: ${order.venue || '待定'}`,
+              `- **签约配套**: ${order.packageName} (原价 RM ${Number(order.packagePrice || 0).toLocaleString()})`,
+              order.includeVideoGuestbook ? `- **加购项目**: Video Guestbook 视频/音频复古留言亭机 (+RM ${order.addonPromoPrice || 788})` : null,
+              Number(order.fairDiscount) > 0 ? `- **现场立减特惠**: -RM ${Number(order.fairDiscount).toLocaleString()} (${order.discountReason || '婚博会现场签约立减'})` : null,
+              `- **协议实付总额**: RM ${Number(order.totalAmount || 0).toLocaleString()}`,
+              `- **已付定金**: RM ${Number(order.depositPaid || 0).toLocaleString()} (${order.paymentMethod || '转账/现金'})`,
+              `- **待付尾款**: RM ${Number(order.balanceRemaining || 0).toLocaleString()} (婚前付清)`,
+              `- **现场顾问 / Consultant**: ${order.consultantName || '官方销售顾问'}`,
+              ``,
+              `---`,
+              `### 📋 配套包含服务清单：`,
+              ...(order.packageItems || []).map((item: string) => `* ${item}`),
+              ``,
+              `---`,
+              `### 📜 条款细则与承诺：`,
+              order.packageTerms || '依官方正式服务细则执行。',
+            ].filter(Boolean).join('\n');
+
+            await supabase.from('meeting_sessions').insert({
+              project_id: projId,
+              title: `💍 婚博会现场签约官方档案 (${order.orderRefNo})`,
+              meeting_date: new Date().toISOString().split('T')[0],
+              content: markdownContent,
+            });
+          }
+        } catch (mErr) {
+          console.warn('iPad sync meeting session error:', mErr);
         }
       }
 
@@ -740,9 +879,14 @@ function BridalFairSignContent() {
                 <h1 style={{ fontSize: 24, fontWeight: 900, color: '#0f172a', margin: '0 0 6px' }}>
                   🎉 签约成功！恭喜新人！
                 </h1>
-                <p style={{ fontSize: 14, color: '#64748b', maxWidth: 500, margin: '0 auto 24px' }}>
+                <p style={{ fontSize: 14, color: '#64748b', maxWidth: 500, margin: '0 auto 16px' }}>
                   尊敬的 <strong>{order.groomName} & {order.brideName}</strong>，您的婚礼签约单已正式建立，电脑端正在自动生成官方单据凭证。
                 </p>
+
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 16px', borderRadius: 999, background: 'rgba(16,185,129,0.1)', color: '#059669', fontSize: 12, fontWeight: 700, margin: '0 auto 24px' }}>
+                  <i className="fa-solid fa-circle-check" />
+                  活动档案、定金财务与筹备任务已自动同步录入 Event Management 系统
+                </div>
 
                 {/* Signature Preview Thumbnail */}
                 {order.signatureImage && (
