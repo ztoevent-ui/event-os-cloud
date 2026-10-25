@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { QRCodeSVG } from 'qrcode.react';
 import { supabase } from '@/lib/supabaseClient';
 
 // Company Profile Information
@@ -153,6 +154,15 @@ export default function BridalFairBookingPage() {
   const [createdProjectId, setCreatedProjectId] = useState<string | null>(null);
   const printAreaRef = useRef<HTMLDivElement>(null);
 
+  // iPad Handover & QR Sync State
+  const [showIpadQRModal, setShowIpadQRModal] = useState(false);
+  const [isWaitingForIpad, setIsWaitingForIpad] = useState(false);
+  const [remoteSignatureImage, setRemoteSignatureImage] = useState<string | null>(null);
+  const [showDraftsModal, setShowDraftsModal] = useState(false);
+  const [recentDrafts, setRecentDrafts] = useState<any[]>([]);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [hostOrigin, setHostOrigin] = useState('');
+
   const currentPreset = PRESET_PACKAGES.find(p => p.id === selectedPresetId) || PRESET_PACKAGES[0];
 
   // Calculate Addon Price
@@ -165,13 +175,59 @@ export default function BridalFairBookingPage() {
   const totalAmount = Math.max(0, packagePrice + resolvedAddonPrice - fairDiscount);
   const balanceRemaining = Math.max(0, totalAmount - depositPaid);
 
-  // Auto-generate reference number on load
+  // Auto-generate reference number and setup host origin on load
   useEffect(() => {
     const today = new Date();
     const yymm = today.getFullYear().toString().slice(2) + String(today.getMonth() + 1).padStart(2, '0');
     const rand = Math.floor(1000 + Math.random() * 9000);
     setOrderRefNo(`ZTO-BF-${yymm}-${rand}`);
+
+    if (typeof window !== 'undefined') {
+      setHostOrigin(window.location.origin);
+    }
   }, []);
+
+  const ipadSignUrl = `${hostOrigin || 'https://ztoevent.com'}/projects/bridal-fair/sign?ref=${orderRefNo}`;
+
+  // Real-time Polling for iPad Signature
+  useEffect(() => {
+    let timer: NodeJS.Timeout | null = null;
+    if (isWaitingForIpad && orderRefNo && !bookingConfirmed) {
+      timer = setInterval(async () => {
+        try {
+          const { data } = await supabase
+            .from('projects')
+            .select('status, meeting_notes, id')
+            .eq('slug', orderRefNo)
+            .single();
+
+          if (data?.meeting_notes) {
+            try {
+              const parsed = JSON.parse(data.meeting_notes);
+              if (parsed.signatureImage || data.status === 'confirmed') {
+                if (parsed.signatureImage) {
+                  setRemoteSignatureImage(parsed.signatureImage);
+                }
+                setCreatedProjectId(data.id);
+                setHasSignature(true);
+                setIsWaitingForIpad(false);
+                setShowIpadQRModal(false);
+                setBookingConfirmed(true);
+              }
+            } catch (e) {
+              console.error('Error parsing meeting_notes during iPad polling:', e);
+            }
+          }
+        } catch (err) {
+          console.error('Polling error:', err);
+        }
+      }, 2000);
+    }
+
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [isWaitingForIpad, orderRefNo, bookingConfirmed]);
 
   // Handle Preset Select
   const handleSelectPreset = (presetId: string) => {
@@ -273,7 +329,116 @@ export default function BridalFairBookingPage() {
     setHasSignature(false);
   };
 
-  // Confirm Booking & Sync to Event Management (projects + budgets table)
+  // Build Order Data Payload
+  const buildOrderPayload = (signature?: string | null, status: 'draft' | 'confirmed' = 'confirmed') => ({
+    orderRefNo,
+    groomName: groomName.trim(),
+    brideName: brideName.trim(),
+    phone: phone.trim(),
+    email: email.trim(),
+    weddingDate,
+    sessionTime,
+    venue: venue.trim(),
+    tables: tables.trim(),
+    selectedPresetId,
+    packageName,
+    packagePrice,
+    packageItems,
+    packageTerms,
+    includeVideoGuestbook,
+    addonPromoPrice: currentPreset.addonPromoPrice,
+    fairDiscount,
+    depositPaid,
+    balanceRemaining,
+    totalAmount,
+    paymentMethod,
+    consultantName: consultantName.trim(),
+    receiptImage,
+    signatureImage: signature || remoteSignatureImage || null,
+    status,
+    updatedAt: new Date().toISOString(),
+  });
+
+  // Save Draft to DB & Handover to iPad for Signing
+  const handleSaveDraftAndShowQR = async () => {
+    if (!groomName.trim() || !brideName.trim()) {
+      alert('请先输入新郎与新娘姓名 (Please enter Groom and Bride names)');
+      return;
+    }
+    if (!weddingDate) {
+      alert('请选择婚礼日期 (Please select Wedding Date)');
+      return;
+    }
+    if (!phone) {
+      alert('请输入联系电话/WhatsApp (Please enter contact phone)');
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const projectName = `${groomName.trim()} & ${brideName.trim()} Wedding Banquet (${packageName.split(' ')[1] || 'Wedding'})`;
+      const orderData = buildOrderPayload(null, 'draft');
+
+      // Check if project already exists with this slug
+      const { data: existing } = await supabase
+        .from('projects')
+        .select('id')
+        .eq('slug', orderRefNo)
+        .maybeSingle();
+
+      let projId = existing?.id;
+
+      if (existing) {
+        await supabase
+          .from('projects')
+          .update({
+            name: projectName,
+            venue: venue || null,
+            start_date: weddingDate,
+            end_date: weddingDate,
+            status: 'draft',
+            meeting_notes: JSON.stringify(orderData),
+          })
+          .eq('id', existing.id);
+      } else {
+        const { data: newProj, error: insertErr } = await supabase
+          .from('projects')
+          .insert({
+            name: projectName,
+            type: 'wedding',
+            venue: venue || null,
+            start_date: weddingDate,
+            end_date: weddingDate,
+            status: 'draft',
+            slug: orderRefNo,
+            meeting_notes: JSON.stringify(orderData),
+          })
+          .select()
+          .single();
+
+        if (insertErr) {
+          console.error(insertErr);
+        } else {
+          projId = newProj?.id;
+        }
+      }
+
+      if (projId) {
+        setCreatedProjectId(projId);
+      }
+
+      setShowIpadQRModal(true);
+      setIsWaitingForIpad(true);
+    } catch (err: any) {
+      console.error(err);
+      alert('保存草稿失败: ' + err.message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Confirm Booking directly on PC & Sync to Event Management
   const handleConfirmAndSync = async () => {
     if (!groomName.trim() || !brideName.trim()) {
       alert('请输入新郎与新娘姓名 (Please enter Groom and Bride names)');
@@ -292,31 +457,61 @@ export default function BridalFairBookingPage() {
 
     try {
       const projectName = `${groomName.trim()} & ${brideName.trim()} Wedding Banquet (${packageName.split(' ')[1] || 'Wedding'})`;
+      const signatureImg = canvasRef.current && hasSignature ? canvasRef.current.toDataURL('image/png') : remoteSignatureImage;
+      const orderData = buildOrderPayload(signatureImg, 'confirmed');
 
-      // 1. Insert into Supabase `projects` table
-      const { data: newProject, error: projectError } = await supabase
+      // Check if existing project
+      const { data: existing } = await supabase
         .from('projects')
-        .insert({
-          name: projectName,
-          type: 'wedding',
-          venue: venue || null,
-          start_date: weddingDate,
-          end_date: weddingDate,
-          status: 'confirmed',
-        })
-        .select()
-        .single();
+        .select('id')
+        .eq('slug', orderRefNo)
+        .maybeSingle();
 
-      if (projectError) {
-        console.error('Project Insert Error:', projectError);
-        alert('建立活动档案遇到提示: ' + projectError.message);
-      } else if (newProject) {
-        setCreatedProjectId(newProject.id);
+      let projId = existing?.id;
 
-        // 2. Insert into `budgets` table as Confirmed Income
+      if (existing) {
+        await supabase
+          .from('projects')
+          .update({
+            name: projectName,
+            venue: venue || null,
+            start_date: weddingDate,
+            end_date: weddingDate,
+            status: 'confirmed',
+            meeting_notes: JSON.stringify(orderData),
+          })
+          .eq('id', existing.id);
+      } else {
+        const { data: newProject, error: projectError } = await supabase
+          .from('projects')
+          .insert({
+            name: projectName,
+            type: 'wedding',
+            venue: venue || null,
+            start_date: weddingDate,
+            end_date: weddingDate,
+            status: 'confirmed',
+            slug: orderRefNo,
+            meeting_notes: JSON.stringify(orderData),
+          })
+          .select()
+          .single();
+
+        if (projectError) {
+          console.error('Project Insert Error:', projectError);
+          alert('建立活动档案遇到提示: ' + projectError.message);
+        } else if (newProject) {
+          projId = newProject.id;
+        }
+      }
+
+      if (projId) {
+        setCreatedProjectId(projId);
+
+        // Insert into `budgets` table as Confirmed Income
         if (depositPaid > 0) {
           await supabase.from('budgets').insert({
-            project_id: newProject.id,
+            project_id: projId,
             type: 'income',
             category: 'Wedding Package Deposit',
             item: `[Bridal Fair Deposit] ${orderRefNo} - ${packageName}`,
@@ -332,6 +527,64 @@ export default function BridalFairBookingPage() {
       alert('Error saving booking: ' + err.message);
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  // Load Recent Drafts from Supabase
+  const handleOpenDraftsModal = async () => {
+    setShowDraftsModal(true);
+    try {
+      const { data } = await supabase
+        .from('projects')
+        .select('id, name, slug, start_date, meeting_notes, created_at, status')
+        .eq('type', 'wedding')
+        .not('slug', 'is', null)
+        .order('created_at', { ascending: false })
+        .limit(10);
+      if (data) {
+        setRecentDrafts(data);
+      }
+    } catch (e) {
+      console.error('Failed to load drafts:', e);
+    }
+  };
+
+  const handleApplyDraft = (draft: any) => {
+    if (draft.meeting_notes) {
+      try {
+        const d = JSON.parse(draft.meeting_notes);
+        if (d.groomName) setGroomName(d.groomName);
+        if (d.brideName) setBrideName(d.brideName);
+        if (d.phone) setPhone(d.phone);
+        if (d.email) setEmail(d.email);
+        if (d.weddingDate) setWeddingDate(d.weddingDate);
+        if (d.sessionTime) setSessionTime(d.sessionTime);
+        if (d.venue) setVenue(d.venue);
+        if (d.tables) setTables(d.tables);
+        if (d.selectedPresetId) setSelectedPresetId(d.selectedPresetId);
+        if (d.packageName) setPackageName(d.packageName);
+        if (d.packageItems) setPackageItems(d.packageItems);
+        if (d.packageTerms) setPackageTerms(d.packageTerms);
+        if (d.packagePrice) setPackagePrice(d.packagePrice);
+        setIncludeVideoGuestbook(!!d.includeVideoGuestbook);
+        if (d.fairDiscount !== undefined) setFairDiscount(d.fairDiscount);
+        if (d.depositPaid !== undefined) setDepositPaid(d.depositPaid);
+        if (d.paymentMethod) setPaymentMethod(d.paymentMethod);
+        if (d.consultantName) setConsultantName(d.consultantName);
+        if (d.receiptImage) setReceiptImage(d.receiptImage);
+        if (d.signatureImage) {
+          setRemoteSignatureImage(d.signatureImage);
+          setHasSignature(true);
+        }
+        if (d.orderRefNo) setOrderRefNo(d.orderRefNo);
+        setCreatedProjectId(draft.id);
+        if (draft.status === 'confirmed' || d.signatureImage) {
+          setBookingConfirmed(true);
+        }
+        setShowDraftsModal(false);
+      } catch (err) {
+        console.error('Failed to parse draft:', err);
+      }
     }
   };
 
@@ -444,7 +697,49 @@ export default function BridalFairBookingPage() {
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={handleOpenDraftsModal}
+            style={{
+              background: 'rgba(255,255,255,0.06)',
+              border: '1px solid rgba(255,255,255,0.15)',
+              color: '#fff',
+              fontSize: 12,
+              fontWeight: 600,
+              padding: '6px 12px',
+              borderRadius: 8,
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            <i className="fa-solid fa-folder-open text-[#6BB8FF]" />
+            <span>已存草稿 / 历史单据</span>
+          </button>
+
+          <Link
+            href="/projects/bridal-fair/sign"
+            target="_blank"
+            style={{
+              background: 'rgba(236,72,153,0.12)',
+              border: '1px solid rgba(236,72,153,0.3)',
+              color: '#ec4899',
+              fontSize: 12,
+              fontWeight: 600,
+              padding: '6px 12px',
+              borderRadius: 8,
+              textDecoration: 'none',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            <i className="fa-solid fa-tablet-screen-button" />
+            <span>iPad 签约屏端</span>
+          </Link>
+
           <span style={{ fontSize: 12, color: 'rgba(229,229,229,0.6)' }}>
             Doc Ref: <strong style={{ color: '#6BB8FF' }}>{orderRefNo}</strong>
           </span>
@@ -994,106 +1289,207 @@ export default function BridalFairBookingPage() {
                 )}
               </div>
 
-              {/* STEP 5: Digital Signature Pad */}
+              {/* STEP 5: Client Signature & iPad Handover */}
               <div style={panelStyle}>
                 <div style={panelHeaderStyle}>
                   <div style={stepBadgeStyle}>5</div>
                   <div>
                     <h2 style={panelTitleStyle}>Client Signature / 顾客现场电子签名</h2>
-                    <p style={panelDescStyle}>支持顾客直接在屏幕上手写签字确认</p>
+                    <p style={panelDescStyle}>支持换 iPad 给顾客手写签字，或在本电脑屏幕直接签名</p>
                   </div>
                 </div>
 
-                <div style={{ position: 'relative', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, overflow: 'hidden', background: '#ffffff' }}>
-                  <canvas
-                    ref={canvasRef}
-                    width={480}
-                    height={120}
-                    style={{ width: '100%', height: 120, display: 'block', touchAction: 'none', cursor: 'crosshair' }}
-                    onMouseDown={startDrawing}
-                    onMouseMove={draw}
-                    onMouseUp={stopDrawing}
-                    onMouseLeave={stopDrawing}
-                    onTouchStart={startDrawing}
-                    onTouchMove={draw}
-                    onTouchEnd={stopDrawing}
-                  />
-                  {!hasSignature && (
-                    <div
-                      style={{
-                        position: 'absolute',
-                        inset: 0,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        pointerEvents: 'none',
-                        color: '#94a3b8',
-                        fontSize: 13,
-                        fontWeight: 500,
-                      }}
-                    >
-                      <i className="fa-solid fa-signature" style={{ marginRight: 8 }} />
-                      Sign here on screen / 客户请在此签名
+                {/* iPad Handover Option Banner (Recommended) */}
+                <div
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(236,72,153,0.12), rgba(0,86,179,0.18))',
+                    border: '1.5px solid rgba(236,72,153,0.35)',
+                    borderRadius: 14,
+                    padding: '16px',
+                    marginBottom: 16,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div
+                        style={{
+                          width: 40,
+                          height: 40,
+                          borderRadius: 10,
+                          background: 'linear-gradient(135deg, #ec4899, #0056B3)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#fff',
+                          fontSize: 18,
+                        }}
+                      >
+                        <i className="fa-solid fa-tablet-screen-button" />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 800, color: '#fff' }}>
+                          推荐：电脑填完资料 ➔ 换 iPad 给顾客手写签字
+                        </div>
+                        <div style={{ fontSize: 11, color: 'rgba(229,229,229,0.6)' }}>
+                          点击下方按钮自动保存全部资料，生成 iPad 扫码签字二维码
+                        </div>
+                      </div>
                     </div>
-                  )}
-                  {hasSignature && (
+
                     <button
                       type="button"
-                      onClick={clearSignature}
+                      onClick={handleSaveDraftAndShowQR}
+                      disabled={isSaving}
                       style={{
-                        position: 'absolute',
-                        top: 6,
-                        right: 6,
-                        background: 'rgba(0,0,0,0.6)',
+                        background: 'linear-gradient(135deg, #ec4899, #0056B3)',
                         color: '#fff',
                         border: 'none',
-                        borderRadius: 6,
-                        padding: '4px 8px',
-                        fontSize: 11,
-                        cursor: 'pointer',
+                        padding: '10px 18px',
+                        borderRadius: 10,
+                        fontSize: 13,
+                        fontWeight: 700,
+                        cursor: isSaving ? 'not-allowed' : 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        boxShadow: '0 4px 14px rgba(236,72,153,0.35)',
                       }}
                     >
-                      Clear / 重签
+                      <i className="fa-solid fa-qrcode" />
+                      <span>保存并唤起 iPad 签名</span>
                     </button>
-                  )}
+                  </div>
+                </div>
+
+                {/* Local PC Canvas Fallback */}
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                    <span style={{ fontSize: 11, color: 'rgba(229,229,229,0.5)', fontWeight: 600 }}>
+                      或在本机触控板/触控屏手写签名 (备用):
+                    </span>
+                    {hasSignature && (
+                      <button
+                        type="button"
+                        onClick={clearSignature}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#f87171',
+                          fontSize: 11,
+                          cursor: 'pointer',
+                          fontWeight: 600,
+                        }}
+                      >
+                        Clear / 重写
+                      </button>
+                    )}
+                  </div>
+
+                  <div style={{ position: 'relative', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, overflow: 'hidden', background: '#ffffff' }}>
+                    <canvas
+                      ref={canvasRef}
+                      width={480}
+                      height={110}
+                      style={{ width: '100%', height: 110, display: 'block', touchAction: 'none', cursor: 'crosshair' }}
+                      onMouseDown={startDrawing}
+                      onMouseMove={draw}
+                      onMouseUp={stopDrawing}
+                      onMouseLeave={stopDrawing}
+                      onTouchStart={startDrawing}
+                      onTouchMove={draw}
+                      onTouchEnd={stopDrawing}
+                    />
+                    {!hasSignature && !remoteSignatureImage && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          inset: 0,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          pointerEvents: 'none',
+                          color: '#94a3b8',
+                          fontSize: 12,
+                          fontWeight: 500,
+                        }}
+                      >
+                        <i className="fa-solid fa-signature" style={{ marginRight: 6 }} />
+                        Sign here on screen / 客户也可直接在此处签名
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              {/* ACTION: Confirm & Create Project Button */}
-              <button
-                type="button"
-                disabled={isSaving}
-                onClick={handleConfirmAndSync}
-                style={{
-                  background: 'linear-gradient(135deg, #ec4899, #0056B3)',
-                  color: '#fff',
-                  border: 'none',
-                  padding: '18px 28px',
-                  borderRadius: 14,
-                  fontWeight: 800,
-                  fontSize: 16,
-                  cursor: isSaving ? 'not-allowed' : 'pointer',
-                  boxShadow: '0 10px 30px rgba(236,72,153,0.4)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 10,
-                  transition: 'all 0.2s',
-                  opacity: isSaving ? 0.75 : 1,
-                }}
-              >
-                {isSaving ? (
-                  <>
-                    <i className="fa-solid fa-spinner fa-spin" />
-                    <span>Creating Wedding in Event OS & Generating Summary...</span>
-                  </>
-                ) : (
-                  <>
-                    <i className="fa-solid fa-file-signature" />
-                    <span>Confirm & Generate Booking Receipt / 确认签约并开单</span>
-                  </>
-                )}
-              </button>
+              {/* ACTION BUTTONS */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                
+                {/* 1. Primary Highlight Button: Save & Pass to iPad */}
+                <button
+                  type="button"
+                  disabled={isSaving}
+                  onClick={handleSaveDraftAndShowQR}
+                  style={{
+                    background: 'linear-gradient(135deg, #ec4899, #0056B3)',
+                    color: '#fff',
+                    border: 'none',
+                    padding: '18px 24px',
+                    borderRadius: 14,
+                    fontWeight: 900,
+                    fontSize: 16,
+                    cursor: isSaving ? 'not-allowed' : 'pointer',
+                    boxShadow: '0 10px 30px rgba(236,72,153,0.4)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 12,
+                    transition: 'all 0.2s',
+                    opacity: isSaving ? 0.75 : 1,
+                  }}
+                >
+                  {isSaving ? (
+                    <>
+                      <i className="fa-solid fa-spinner fa-spin" />
+                      <span>正在保存签约单草稿并生成签名二维码...</span>
+                    </>
+                  ) : (
+                    <>
+                      <i className="fa-solid fa-tablet-screen-button text-xl" />
+                      <div style={{ textAlign: 'left' }}>
+                        <div>📱 保存并换 iPad 签名 (Save & Sign on iPad)</div>
+                        <div style={{ fontSize: 11, fontWeight: 500, opacity: 0.85, marginTop: 2 }}>
+                          电脑自动监听，客户在 iPad 签完后本屏幕直接生成正式单据凭证
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </button>
+
+                {/* 2. Secondary Button: Confirm on this PC */}
+                <button
+                  type="button"
+                  disabled={isSaving}
+                  onClick={handleConfirmAndSync}
+                  style={{
+                    background: 'rgba(255,255,255,0.06)',
+                    color: 'rgba(229,229,229,0.85)',
+                    border: '1px solid rgba(255,255,255,0.15)',
+                    padding: '14px 20px',
+                    borderRadius: 12,
+                    fontWeight: 700,
+                    fontSize: 14,
+                    cursor: isSaving ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  <i className="fa-solid fa-laptop" />
+                  <span>💻 在本电脑直接确认签约开单 (Sign & Confirm on PC)</span>
+                </button>
+              </div>
             </div>
           </div>
         ) : (
@@ -1450,7 +1846,13 @@ export default function BridalFairBookingPage() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
                   <div style={{ textAlign: 'center', borderTop: '1px solid #cbd5e1', paddingTop: 8 }}>
                     <div style={{ minHeight: 50, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {hasSignature && canvasRef.current ? (
+                      {remoteSignatureImage ? (
+                        <img
+                          src={remoteSignatureImage}
+                          alt="Client Signature"
+                          style={{ maxHeight: 45, objectFit: 'contain' }}
+                        />
+                      ) : hasSignature && canvasRef.current ? (
                         <img
                           src={canvasRef.current.toDataURL()}
                           alt="Client Signature"
@@ -1509,6 +1911,318 @@ export default function BridalFairBookingPage() {
                   Official Bridal Fair Order Voucher · Valid until 31 Dec 2027
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL 1: iPad Handover QR Code Modal */}
+        {showIpadQRModal && (
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(0, 0, 0, 0.85)',
+              backdropFilter: 'blur(16px)',
+              zIndex: 9999,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: 20,
+            }}
+          >
+            <div
+              style={{
+                background: '#121418',
+                border: '2px solid rgba(236,72,153,0.4)',
+                borderRadius: 24,
+                maxWidth: 480,
+                width: '100%',
+                padding: 30,
+                textAlign: 'center',
+                boxShadow: '0 25px 60px rgba(0,0,0,0.8)',
+                position: 'relative',
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  setShowIpadQRModal(false);
+                  setIsWaitingForIpad(false);
+                }}
+                style={{
+                  position: 'absolute',
+                  top: 16,
+                  right: 16,
+                  background: 'rgba(255,255,255,0.08)',
+                  border: 'none',
+                  color: '#fff',
+                  borderRadius: '50%',
+                  width: 32,
+                  height: 32,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 14,
+                }}
+              >
+                <i className="fa-solid fa-xmark" />
+              </button>
+
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  background: 'rgba(236,72,153,0.15)',
+                  color: '#ec4899',
+                  padding: '6px 14px',
+                  borderRadius: 100,
+                  fontSize: 12,
+                  fontWeight: 800,
+                  textTransform: 'uppercase',
+                  marginBottom: 12,
+                }}
+              >
+                <i className="fa-solid fa-tablet-screen-button" />
+                iPad Handover Signing / 换 iPad 客户签名
+              </div>
+
+              <h2 style={{ fontSize: 20, fontWeight: 900, color: '#fff', margin: '0 0 6px' }}>
+                请用 iPad 扫描二维码签字
+              </h2>
+              <p style={{ fontSize: 13, color: 'rgba(229,229,229,0.6)', margin: '0 0 20px' }}>
+                已为您保存草稿【{orderRefNo}】。iPad 扫码后可直接交由客户在屏幕上手写签名。
+              </p>
+
+              {/* QR Code Container */}
+              <div
+                style={{
+                  background: '#FFFFFF',
+                  padding: 18,
+                  borderRadius: 18,
+                  display: 'inline-block',
+                  margin: '0 auto 18px',
+                  boxShadow: '0 10px 30px rgba(0,0,0,0.4)',
+                }}
+              >
+                <QRCodeSVG
+                  value={ipadSignUrl}
+                  size={200}
+                  bgColor="#FFFFFF"
+                  fgColor="#0A0B0E"
+                  level="Q"
+                />
+              </div>
+
+              {/* Contract Preview Card in Modal */}
+              <div
+                style={{
+                  background: 'rgba(255,255,255,0.03)',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  borderRadius: 12,
+                  padding: '10px 14px',
+                  fontSize: 12,
+                  color: 'rgba(229,229,229,0.8)',
+                  textAlign: 'left',
+                  marginBottom: 18,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
+                <div>
+                  <div style={{ fontWeight: 800, color: '#fff' }}>{groomName} & {brideName}</div>
+                  <div style={{ fontSize: 11, color: '#ec4899' }}>{packageName}</div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: 11, color: 'rgba(229,229,229,0.5)' }}>定金已付</div>
+                  <div style={{ fontWeight: 800, color: '#34d399' }}>RM {depositPaid.toLocaleString()}</div>
+                </div>
+              </div>
+
+              {/* Live Listening Status */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  color: '#34d399',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  marginBottom: 18,
+                }}
+              >
+                <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#34d399' }} />
+                <span>实时监听中... 客户在 iPad 签完后本屏幕将自动生成正式凭证</span>
+              </div>
+
+              {/* Actions */}
+              <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(ipadSignUrl);
+                      setCopiedLink(true);
+                      setTimeout(() => setCopiedLink(false), 2000);
+                    } catch {}
+                  }}
+                  style={{
+                    flex: 1,
+                    background: 'rgba(255,255,255,0.08)',
+                    color: '#fff',
+                    border: '1px solid rgba(255,255,255,0.15)',
+                    borderRadius: 10,
+                    padding: '10px 14px',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <i className="fa-solid fa-copy" style={{ marginRight: 6 }} />
+                  {copiedLink ? '已复制签名链接！' : '复制 iPad 签名链接'}
+                </button>
+
+                <a
+                  href={ipadSignUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{
+                    flex: 1,
+                    background: '#0056B3',
+                    color: '#fff',
+                    borderRadius: 10,
+                    padding: '10px 14px',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    textDecoration: 'none',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
+                  }}
+                >
+                  <i className="fa-solid fa-arrow-up-right-from-square" />
+                  <span>直接在当前窗口打开</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL 2: Saved Drafts Modal */}
+        {showDraftsModal && (
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(0, 0, 0, 0.85)',
+              backdropFilter: 'blur(16px)',
+              zIndex: 9999,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: 20,
+            }}
+          >
+            <div
+              style={{
+                background: '#121418',
+                border: '1px solid rgba(255,255,255,0.12)',
+                borderRadius: 24,
+                maxWidth: 620,
+                width: '100%',
+                padding: 28,
+                boxShadow: '0 25px 60px rgba(0,0,0,0.8)',
+                position: 'relative',
+                maxHeight: '85vh',
+                overflowY: 'auto',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                <div>
+                  <h2 style={{ fontSize: 18, fontWeight: 800, color: '#fff', margin: 0 }}>
+                    📂 婚博会现场已存草稿与签约历史
+                  </h2>
+                  <p style={{ fontSize: 12, color: 'rgba(229,229,229,0.5)', margin: '4px 0 0' }}>
+                    点击任一项目可立即载入电脑开单系统继续编辑或生成单据
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowDraftsModal(false)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: 'rgba(229,229,229,0.6)',
+                    fontSize: 18,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <i className="fa-solid fa-xmark" />
+                </button>
+              </div>
+
+              {recentDrafts.length === 0 ? (
+                <div style={{ padding: '40px 20px', textAlign: 'center', color: 'rgba(229,229,229,0.4)', fontSize: 13 }}>
+                  暂无已保存的草稿记录。
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {recentDrafts.map((draft) => (
+                    <div
+                      key={draft.id}
+                      onClick={() => handleApplyDraft(draft)}
+                      style={{
+                        padding: '14px 16px',
+                        background: 'rgba(255,255,255,0.03)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        borderRadius: 12,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        transition: 'all 0.2s',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor = '#ec4899';
+                        e.currentTarget.style.background = 'rgba(236,72,153,0.08)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
+                        e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
+                      }}
+                    >
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{ fontSize: 14, fontWeight: 800, color: '#fff' }}>{draft.name}</span>
+                          <span
+                            style={{
+                              fontSize: 10,
+                              fontWeight: 700,
+                              padding: '2px 8px',
+                              borderRadius: 100,
+                              background: draft.status === 'confirmed' ? 'rgba(16,185,129,0.2)' : 'rgba(245,158,11,0.2)',
+                              color: draft.status === 'confirmed' ? '#34d399' : '#fbbf24',
+                            }}
+                          >
+                            {draft.status === 'confirmed' ? '已签约确认' : '草稿待签名'}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: 11, color: 'rgba(229,229,229,0.5)', marginTop: 4 }}>
+                          单号: <strong style={{ color: '#6BB8FF' }}>{draft.slug}</strong> · 档期: {draft.start_date || '待定'}
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: '#ec4899' }}>载入 ➔</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
