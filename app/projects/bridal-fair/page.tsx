@@ -134,6 +134,7 @@ export default function BridalFairBookingPage() {
   const [includeVideoGuestbook, setIncludeVideoGuestbook] = useState(false);
   
   const [fairDiscount, setFairDiscount] = useState<number>(0);
+  const [discountReason, setDiscountReason] = useState<string>('Bridal Fair On-Site Sign-up Rebate (婚博会现场签约特惠立减)');
   const [depositPaid, setDepositPaid] = useState<number>(PRESET_PACKAGES[0].depositSuggestion);
   const [paymentMethod, setPaymentMethod] = useState('DuitNow QR Instant Transfer');
   const [consultantName, setConsultantName] = useState('');
@@ -348,6 +349,7 @@ export default function BridalFairBookingPage() {
     includeVideoGuestbook,
     addonPromoPrice: currentPreset.addonPromoPrice,
     fairDiscount,
+    discountReason: discountReason.trim(),
     depositPaid,
     balanceRemaining,
     totalAmount,
@@ -568,6 +570,7 @@ export default function BridalFairBookingPage() {
         if (d.packagePrice) setPackagePrice(d.packagePrice);
         setIncludeVideoGuestbook(!!d.includeVideoGuestbook);
         if (d.fairDiscount !== undefined) setFairDiscount(d.fairDiscount);
+        if (d.discountReason) setDiscountReason(d.discountReason);
         if (d.depositPaid !== undefined) setDepositPaid(d.depositPaid);
         if (d.paymentMethod) setPaymentMethod(d.paymentMethod);
         if (d.consultantName) setConsultantName(d.consultantName);
@@ -625,7 +628,8 @@ export default function BridalFairBookingPage() {
       `🏛️ 宴会场地：${venue || '待定'}\n` +
       `🌸 签约配套：${packageName}\n` +
       `${includeVideoGuestbook ? `🎥 包含特惠加购：Video Guestbook 留言机\n` : ''}` +
-      `💰 协议总额：RM ${totalAmount.toLocaleString()}\n` +
+      `${fairDiscount > 0 ? `🏷️ 现场签约特惠立减：-RM ${fairDiscount.toLocaleString()} (${discountReason})\n` : ''}` +
+      `💰 协议实付总额：RM ${totalAmount.toLocaleString()}\n` +
       `💳 今日已付定金：RM ${depositPaid.toLocaleString()} (${paymentMethod})\n` +
       `💵 待付尾款余额：RM ${balanceRemaining.toLocaleString()}\n\n` +
       `我们已在 Event OS 为您的婚礼建立专属档案与统筹筹备，期待与您携手打造毕生难忘的婚礼盛典！✨`
@@ -1069,19 +1073,20 @@ export default function BridalFairBookingPage() {
             {/* RIGHT COLUMN: Deposit, Receipt Upload, Signature & Confirm */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
               
-              {/* STEP 3: Financials & Deposit */}
+              {/* STEP 3: Financials & Special On-Site Discount */}
               <div style={panelStyle}>
                 <div style={panelHeaderStyle}>
                   <div style={stepBadgeStyle}>3</div>
                   <div>
-                    <h2 style={panelTitleStyle}>Deposit & Payment / 定金还了多少</h2>
-                    <p style={panelDescStyle}>记录现场实付定金与自动计算待付尾款</p>
+                    <h2 style={panelTitleStyle}>Special Discount & Payment / 现场签单特惠与定金</h2>
+                    <p style={panelDescStyle}>设置现场签约专属立减、优惠名目、实付定金与待付尾款</p>
                   </div>
                 </div>
 
+                {/* Pricing & Discount Inputs */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                   <div>
-                    <label style={labelStyle}>Package Price (配套价格)</label>
+                    <label style={labelStyle}>Standard Package Price (配套原价)</label>
                     <div style={{ position: 'relative' }}>
                       <span style={{ position: 'absolute', left: 12, top: 12, color: 'rgba(229,229,229,0.5)', fontSize: 13 }}>RM</span>
                       <input
@@ -1093,36 +1098,111 @@ export default function BridalFairBookingPage() {
                     </div>
                   </div>
                   <div>
-                    <label style={labelStyle}>Fair Special Rebate (展会特惠立减)</label>
+                    <label style={{ ...labelStyle, color: '#f87171', fontWeight: 700 }}>
+                      Special On-Site Discount (现场特惠立减) *
+                    </label>
                     <div style={{ position: 'relative' }}>
-                      <span style={{ position: 'absolute', left: 12, top: 12, color: 'rgba(229,229,229,0.5)', fontSize: 13 }}>-RM</span>
+                      <span style={{ position: 'absolute', left: 12, top: 12, color: '#f87171', fontWeight: 800, fontSize: 13 }}>-RM</span>
                       <input
                         type="number"
                         value={fairDiscount}
-                        onChange={(e) => setFairDiscount(Number(e.target.value))}
-                        style={{ ...inputStyle, paddingLeft: 46, color: '#f87171' }}
+                        onChange={(e) => setFairDiscount(Math.max(0, Number(e.target.value)))}
+                        style={{ ...inputStyle, paddingLeft: 48, color: '#f87171', fontWeight: 800, fontSize: 15, borderColor: 'rgba(239,68,68,0.4)' }}
                       />
                     </div>
                   </div>
                 </div>
 
-                {/* Final Total Amount Display */}
+                {/* Quick Discount Presets (展会现场快捷立减选项) */}
+                <div style={{ marginTop: 12, marginBottom: 12 }}>
+                  <div style={{ fontSize: 11, color: 'rgba(229,229,229,0.6)', marginBottom: 6, fontWeight: 600 }}>
+                    ⚡ 展会现场签约特惠快捷立减 (Quick Discount Presets):
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {[
+                      { label: '无折扣 (RM 0)', amount: 0 },
+                      { label: '立减 RM 500', amount: 500 },
+                      { label: '特惠 RM 888', amount: 888 },
+                      { label: '大促 RM 1,000', amount: 1000 },
+                      { label: '特批 RM 1,500', amount: 1500 },
+                      { label: '特批 RM 1,888', amount: 1888 },
+                      { label: '重磅 RM 2,000', amount: 2000 },
+                    ].map((preset) => {
+                      const isCurrent = fairDiscount === preset.amount;
+                      return (
+                        <button
+                          type="button"
+                          key={preset.amount}
+                          onClick={() => {
+                            setFairDiscount(preset.amount);
+                            if (preset.amount >= 1500) {
+                              setDiscountReason('Manager Special Approval (展会现场经理特批立减)');
+                            } else if (preset.amount > 0) {
+                              setDiscountReason('Bridal Fair On-Site Sign-up Rebate (婚博会现场签约特惠立减)');
+                            }
+                          }}
+                          style={{
+                            background: isCurrent ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.04)',
+                            border: isCurrent ? '1.5px solid #ef4444' : '1px solid rgba(255,255,255,0.08)',
+                            color: isCurrent ? '#f87171' : 'rgba(229,229,229,0.75)',
+                            padding: '5px 10px',
+                            borderRadius: 8,
+                            fontSize: 11,
+                            fontWeight: isCurrent ? 700 : 500,
+                            cursor: 'pointer',
+                            transition: 'all 0.15s',
+                          }}
+                        >
+                          {preset.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Discount Reason (立减名目) */}
+                {fairDiscount > 0 && (
+                  <div style={{ marginBottom: 12 }}>
+                    <label style={{ ...labelStyle, fontSize: 11 }}>Discount Reason / 优惠名目 (自动打印于正式单据)</label>
+                    <input
+                      type="text"
+                      value={discountReason}
+                      onChange={(e) => setDiscountReason(e.target.value)}
+                      placeholder="例如: 婚博会现场签约特惠立减 / 早鸟特惠 / 经理特批"
+                      style={{ ...inputStyle, fontSize: 12, color: '#fca5a5', borderColor: 'rgba(239,68,68,0.3)', padding: '8px 12px' }}
+                    />
+                  </div>
+                )}
+
+                {/* Final Total Amount Display with Strikethrough & Savings Badge */}
                 <div
                   style={{
-                    margin: '16px 0',
-                    background: 'linear-gradient(135deg, rgba(236,72,153,0.15), rgba(0,86,179,0.2))',
-                    border: '1px solid rgba(236,72,153,0.3)',
-                    borderRadius: 12,
-                    padding: '12px 16px',
+                    margin: '14px 0',
+                    background: 'linear-gradient(135deg, rgba(236,72,153,0.18), rgba(0,86,179,0.22))',
+                    border: '1.5px solid rgba(236,72,153,0.35)',
+                    borderRadius: 14,
+                    padding: '14px 18px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                    gap: 8,
                   }}
                 >
-                  <span style={{ fontSize: 13, fontWeight: 700, color: '#F472B6' }}>
-                    Final Agreed Contract Total (协议总额)
-                  </span>
-                  <span style={{ fontSize: 20, fontWeight: 900, color: '#FFFFFF' }}>
+                  <div>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: '#F472B6' }}>
+                      Final Agreed Contract Total (协议实付总额)
+                    </span>
+                    {fairDiscount > 0 && (
+                      <div style={{ fontSize: 11, color: 'rgba(229,229,229,0.5)', marginTop: 2 }}>
+                        原价: <span style={{ textDecoration: 'line-through' }}>RM {(packagePrice + resolvedAddonPrice).toLocaleString()}</span>
+                        <span style={{ marginLeft: 8, color: '#34d399', fontWeight: 700 }}>
+                          🔥 现场立省 RM {fairDiscount.toLocaleString()}！
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <span style={{ fontSize: 24, fontWeight: 900, color: '#FFFFFF' }}>
                     RM {totalAmount.toLocaleString()}
                   </span>
                 </div>
@@ -1801,8 +1881,8 @@ export default function BridalFairBookingPage() {
                     </div>
                   )}
                   {fairDiscount > 0 && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 12, color: '#dc2626', fontWeight: 600 }}>
-                      <span>Bridal Fair Rebate (展会立减):</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 12, color: '#dc2626', fontWeight: 700 }}>
+                      <span>Special On-Site Rebate ({discountReason || '展会现场签约特惠立减'}):</span>
                       <span>- RM {fairDiscount.toLocaleString()}</span>
                     </div>
                   )}

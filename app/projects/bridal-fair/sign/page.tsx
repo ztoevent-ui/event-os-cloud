@@ -36,6 +36,7 @@ interface OrderDetails {
   includeVideoGuestbook: boolean;
   addonPromoPrice: number;
   fairDiscount: number;
+  discountReason?: string;
   depositPaid: number;
   balanceRemaining: number;
   totalAmount: number;
@@ -512,7 +513,7 @@ function BridalFairSignContent() {
                   <div
                     style={{
                       display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
                       gap: 12,
                       background: 'rgba(0,0,0,0.3)',
                       padding: 14,
@@ -525,8 +526,18 @@ function BridalFairSignContent() {
                       <div style={{ fontSize: 11, color: 'rgba(229,229,229,0.5)' }}>签约配套</div>
                       <div style={{ fontSize: 13, fontWeight: 800, color: '#ec4899' }}>{order.packageName}</div>
                     </div>
+                    {order.fairDiscount > 0 && (
+                      <div>
+                        <div style={{ fontSize: 11, color: '#f87171', fontWeight: 600 }}>
+                          现场签单立减 ({order.discountReason || '特惠'})
+                        </div>
+                        <div style={{ fontSize: 14, fontWeight: 800, color: '#f87171' }}>
+                          - RM {order.fairDiscount.toLocaleString()}
+                        </div>
+                      </div>
+                    )}
                     <div>
-                      <div style={{ fontSize: 11, color: 'rgba(229,229,229,0.5)' }}>协议总额</div>
+                      <div style={{ fontSize: 11, color: 'rgba(229,229,229,0.5)' }}>协议实付总额</div>
                       <div style={{ fontSize: 15, fontWeight: 900, color: '#fff' }}>RM {order.totalAmount.toLocaleString()}</div>
                     </div>
                     <div>
