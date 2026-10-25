@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 import equipmentData from '../config/equipment.json';
+import CategoryPickerModal from './components/CategoryPickerModal';
 
 // ---------------------------------------------------------------------------
 // Data
@@ -255,7 +256,7 @@ function RevealSection({
 // ---------------------------------------------------------------------------
 // Nav
 // ---------------------------------------------------------------------------
-function Nav() {
+function Nav({ onOpenCategoryPicker }: { onOpenCategoryPicker?: (e?: React.MouseEvent) => void }) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -338,7 +339,10 @@ function Nav() {
           ))}
           <a
             href="/public/enquiry"
-            onClick={() => setMenuOpen(false)}
+            onClick={(e) => {
+              setMenuOpen(false);
+              if (onOpenCategoryPicker) onOpenCategoryPicker(e);
+            }}
             style={{
               marginTop: 8,
               background: 'linear-gradient(135deg, #0056B3, #0077CC)',
@@ -350,6 +354,7 @@ function Nav() {
               borderRadius: 10,
               textDecoration: 'none',
               boxShadow: '0 0 30px rgba(0,86,179,0.5)',
+              cursor: 'pointer',
             }}
           >
             Start a Project
@@ -428,7 +433,10 @@ function Nav() {
           <a
             id="nav-cta-start-project"
             href="/public/enquiry"
-            style={{ background: 'linear-gradient(135deg, #0056B3, #0077CC)', color: '#fff', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: 13, padding: '9px 20px', borderRadius: 8, textDecoration: 'none', whiteSpace: 'nowrap', boxShadow: '0 0 20px rgba(0,86,179,0.35)', transition: 'box-shadow 0.2s, transform 0.2s' }}
+            onClick={(e) => {
+              if (onOpenCategoryPicker) onOpenCategoryPicker(e);
+            }}
+            style={{ background: 'linear-gradient(135deg, #0056B3, #0077CC)', color: '#fff', fontFamily: 'Inter, sans-serif', fontWeight: 600, fontSize: 13, padding: '9px 20px', borderRadius: 8, textDecoration: 'none', whiteSpace: 'nowrap', boxShadow: '0 0 20px rgba(0,86,179,0.35)', transition: 'box-shadow 0.2s, transform 0.2s', cursor: 'pointer' }}
             onMouseEnter={(e) => { (e.currentTarget.style.boxShadow = '0 0 35px rgba(0,86,179,0.6)'); (e.currentTarget.style.transform = 'translateY(-1px)'); }}
             onMouseLeave={(e) => { (e.currentTarget.style.boxShadow = '0 0 20px rgba(0,86,179,0.35)'); (e.currentTarget.style.transform = 'translateY(0)'); }}
           >
@@ -515,7 +523,7 @@ function HeroVideo() {
   );
 }
 
-function Hero() {
+function Hero({ onOpenCategoryPicker }: { onOpenCategoryPicker?: (e?: React.MouseEvent) => void }) {
   return (
     <section
       id="hero"
@@ -639,6 +647,9 @@ function Hero() {
           <a
             id="hero-cta-consult"
             href="/public/enquiry"
+            onClick={(e) => {
+              if (onOpenCategoryPicker) onOpenCategoryPicker(e);
+            }}
             style={{
               background: 'linear-gradient(135deg, #0056B3, #0077CC)',
               color: '#fff',
@@ -655,6 +666,7 @@ function Hero() {
               display: 'inline-flex',
               alignItems: 'center',
               gap: 8,
+              cursor: 'pointer',
             }}
             onMouseEnter={(e) => {
               (e.currentTarget as HTMLElement).style.transform =
@@ -813,7 +825,7 @@ function StatsBar() {
 // ---------------------------------------------------------------------------
 // Identity Section
 // ---------------------------------------------------------------------------
-function IdentitySection() {
+function IdentitySection({ onOpenCategoryPicker }: { onOpenCategoryPicker?: (e?: React.MouseEvent) => void }) {
   return (
     <section
       id="identity"
@@ -915,6 +927,9 @@ function IdentitySection() {
             <a
               id="identity-cta-consult"
               href="/public/enquiry"
+              onClick={(e) => {
+                if (onOpenCategoryPicker) onOpenCategoryPicker(e);
+              }}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -927,6 +942,7 @@ function IdentitySection() {
                 borderBottom: '1px solid rgba(107,184,255,0.3)',
                 paddingBottom: 2,
                 transition: 'color 0.2s, border-color 0.2s',
+                cursor: 'pointer',
               }}
               onMouseEnter={(e) => {
                 (e.currentTarget as HTMLElement).style.color = '#fff';
@@ -1515,7 +1531,7 @@ function ServicesSection() {
 // ---------------------------------------------------------------------------
 // Equipment Rental & Supply
 // ---------------------------------------------------------------------------
-function EquipmentSection() {
+function EquipmentSection({ onOpenCategoryPicker }: { onOpenCategoryPicker?: (e?: React.MouseEvent) => void }) {
   return (
     <section
       id="equipment"
@@ -1705,6 +1721,9 @@ function EquipmentSection() {
                 <a
                   href="/public/enquiry"
                   className="equip-cta"
+                  onClick={(e) => {
+                    if (onOpenCategoryPicker) onOpenCategoryPicker(e);
+                  }}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -1720,6 +1739,7 @@ function EquipmentSection() {
                     fontSize: 13,
                     textDecoration: 'none',
                     transition: 'all 0.25s',
+                    cursor: 'pointer',
                   }}
                 >
                   Consult Details / 咨询详情
@@ -1737,7 +1757,7 @@ function EquipmentSection() {
 // ---------------------------------------------------------------------------
 // CTA Band
 // ---------------------------------------------------------------------------
-function CTABand() {
+function CTABand({ onOpenCategoryPicker }: { onOpenCategoryPicker?: (e?: React.MouseEvent) => void }) {
   return (
     <RevealSection>
       <div
@@ -1794,6 +1814,9 @@ function CTABand() {
           <a
             id="band-cta-consult"
             href="/public/enquiry"
+            onClick={(e) => {
+              if (onOpenCategoryPicker) onOpenCategoryPicker(e);
+            }}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -1809,6 +1832,7 @@ function CTABand() {
               letterSpacing: '-0.2px',
               boxShadow: '0 4px 30px rgba(0,0,0,0.4)',
               transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+              cursor: 'pointer',
             }}
             onMouseEnter={(e) => {
               (e.currentTarget as HTMLElement).style.transform =
@@ -1918,6 +1942,12 @@ function Footer() {
 // Main Export
 // ---------------------------------------------------------------------------
 export default function Home() {
+  const [isCategoryPickerOpen, setIsCategoryPickerOpen] = useState(false);
+  const handleOpenCategoryPicker = (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
+    setIsCategoryPickerOpen(true);
+  };
+
   return (
     <div
       style={{
@@ -1927,15 +1957,20 @@ export default function Home() {
         overflowX: 'hidden',
       }}
     >
-      <Nav />
-      <Hero />
+      <Nav onOpenCategoryPicker={handleOpenCategoryPicker} />
+      <Hero onOpenCategoryPicker={handleOpenCategoryPicker} />
       <StatsBar />
-      <IdentitySection />
+      <IdentitySection onOpenCategoryPicker={handleOpenCategoryPicker} />
       <MemoirsSection />
-      <EquipmentSection />
+      <EquipmentSection onOpenCategoryPicker={handleOpenCategoryPicker} />
       <ServicesSection />
-      <CTABand />
+      <CTABand onOpenCategoryPicker={handleOpenCategoryPicker} />
       <Footer />
+
+      <CategoryPickerModal
+        isOpen={isCategoryPickerOpen}
+        onClose={() => setIsCategoryPickerOpen(false)}
+      />
 
       {/* Memoir card hover CSS injected inline */}
       <style>{`

@@ -158,6 +158,9 @@ export default function ProjectsPage() {
                     <Link href="/dashboard" className="zto-btn zto-btn-ghost" style={{ textDecoration: 'none' }}>
                         <i className="fa-solid fa-arrow-left" /> Dashboard
                     </Link>
+                    <Link href="/projects/bridal-fair" style={{ textDecoration: 'none', background: 'rgba(236,72,153,0.15)', border: '1px solid rgba(236,72,153,0.4)', color: '#f472b6', fontWeight: 700 }} className="zto-btn">
+                        <i className="fa-solid fa-heart" style={{ color: '#ec4899' }} /> Bridal Fair 现场签单
+                    </Link>
                     <Link href="/projects/calendar" className="zto-btn zto-btn-ghost" style={{ textDecoration: 'none' }}>
                         <i className="fa-solid fa-calendar-days" /> Global Calendar
                     </Link>
