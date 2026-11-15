@@ -458,6 +458,8 @@ export function EventPortal({ project, settings, regState, children }: Props) {
                                 villageFacilities={run.village_facilities}
                                 accent={accent}
                                 courseMapUrl={run.course_map_url}
+                                startPoint={run.start_point}
+                                venueMapQuery={mapQuery}
                             />
                         </Section>
                     )}

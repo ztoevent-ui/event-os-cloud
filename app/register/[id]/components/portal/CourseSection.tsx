@@ -1,13 +1,33 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import React, { useMemo, useState } from 'react';
+import type { MapPin } from './RouteMapCanvas';
+
+const RouteMapCanvas = dynamic(() => import('./RouteMapCanvas'), {
+    ssr: false,
+    loading: () => (
+        <div className="w-full h-full flex items-center justify-center bg-zinc-950 text-xs text-zinc-500">
+            <i className="fa-solid fa-circle-notch fa-spin mr-2" /> Loading interactive route map...
+        </div>
+    ),
+});
 
 export type Station = {
     code: string;
     name: string;
     landmark?: string;
     km: number;
+    lat?: number;
+    lng?: number;
     supplies: string[];
+};
+
+export type StartPoint = {
+    lat: number;
+    lng: number;
+    name?: string;
+    landmark?: string;
 };
 
 type Pass = { km: number; station: Station; leg: 'out' | 'turn' | 'back' };
@@ -55,25 +75,57 @@ export function computePasses(stations: Station[], distance: number, turnKm?: nu
 
 const fmtKm = (n: number) => (Number.isInteger(n) ? `${n}` : `${+n.toFixed(2)}`);
 
+function buildGoogleDirectionsUrl(
+    startPoint: StartPoint | undefined,
+    pins: MapPin[],
+    fallbackUrl?: string
+): string | undefined {
+    if (!startPoint || pins.length === 0) return fallbackUrl;
+    const turnPin = pins.find(p => p.isTurnaround) || pins[pins.length - 1];
+    const waypoints = pins
+        .filter(p => p.code !== turnPin.code)
+        .slice(0, 8)
+        .map(p => `${p.lat},${p.lng}`)
+        .join('|');
+    const origin = `${startPoint.lat},${startPoint.lng}`;
+    const dest = `${turnPin.lat},${turnPin.lng}`;
+    const params = new URLSearchParams({
+        api: '1',
+        origin,
+        destination: dest,
+        travelmode: 'walking',
+        ...(waypoints ? { waypoints } : {}),
+    });
+    return `https://www.google.com/maps/dir/?${params.toString()}`;
+}
+
 export function CourseSection({
     categories,
     stations,
     villageFacilities,
     accent,
     courseMapUrl,
+    startPoint,
+    venueMapQuery,
 }: {
     categories: any[];
     stations: Station[];
     villageFacilities?: string[];
     accent: string;
     courseMapUrl?: string;
+    startPoint?: StartPoint;
+    venueMapQuery?: string;
 }) {
     const courses = categories.filter(c => Number(c.distance_km) > 0);
     const [activeIdx, setActiveIdx] = useState(Math.max(0, courses.length - 1));
     const [focusedPassIdx, setFocusedPassIdx] = useState<number | null>(null);
+    const [focusedCode, setFocusedCode] = useState<string | null>(null);
+    const [mapMode, setMapMode] = useState<'street' | 'satellite' | 'google'>('street');
+    const [fitSignal, setFitSignal] = useState(0);
 
     const cat = courses[activeIdx] || courses[0];
     const distance = Number(cat?.distance_km) || 0;
+    const turnKm = Number(cat?.turnaround_km) > 0 ? Number(cat.turnaround_km) : distance / 2;
     const color = cat?.color || accent;
 
     const passes = useMemo(
@@ -81,9 +133,107 @@ export function CourseSection({
         [cat, stations, distance]
     );
 
+    const mapPins: MapPin[] = useMemo(() => {
+        const seen = new Map<string, MapPin>();
+        passes.forEach(p => {
+            if (typeof p.station.lat !== 'number' || typeof p.station.lng !== 'number') return;
+            const prev = seen.get(p.station.code);
+            if (!prev) {
+                seen.set(p.station.code, {
+                    code: p.station.code,
+                    name: p.station.name,
+                    landmark: p.station.landmark,
+                    km: p.km,
+                    lat: p.station.lat,
+                    lng: p.station.lng,
+                    isTurnaround: p.leg === 'turn',
+                    supplies: p.station.supplies,
+                });
+            } else if (p.leg === 'back') {
+                prev.returnKm = p.km;
+            }
+        });
+        return Array.from(seen.values());
+    }, [passes]);
+
+    const routePolyline: [number, number][] = useMemo(() => {
+        if (Array.isArray(cat?.route_points) && cat.route_points.length >= 2) {
+            return cat.route_points;
+        }
+        const pts: [number, number][] = [];
+        if (startPoint) pts.push([startPoint.lat, startPoint.lng]);
+        mapPins.forEach(p => pts.push([p.lat, p.lng]));
+        return pts;
+    }, [cat, startPoint, mapPins]);
+
+    const hasInteractiveMap = routePolyline.length >= 2 || (!!startPoint && mapPins.length > 0);
+    const effectiveMode = hasInteractiveMap ? mapMode : 'google';
+
+    // Determine what Google Maps embed highlights when in Google Maps mode
+    const googleTarget = useMemo(() => {
+        if (focusedCode === 'START' && startPoint) {
+            return {
+                label: startPoint.name || 'Start / Finish Line',
+                query: `${startPoint.lat},${startPoint.lng}`,
+                zoom: 16,
+            };
+        }
+        const pin = (focusedCode && mapPins.find(p => p.code === focusedCode)) || mapPins.find(p => p.isTurnaround) || mapPins[0];
+        if (pin) {
+            return {
+                label: `${pin.code} · ${pin.name}`,
+                query: `${pin.lat},${pin.lng}`,
+                zoom: 16,
+            };
+        }
+        if (startPoint) {
+            return {
+                label: startPoint.name || 'Start / Finish',
+                query: `${startPoint.lat},${startPoint.lng}`,
+                zoom: 15,
+            };
+        }
+        return {
+            label: venueMapQuery || 'Event Route',
+            query: venueMapQuery || 'Bintulu',
+            zoom: 14,
+        };
+    }, [focusedCode, mapPins, startPoint, venueMapQuery]);
+
+    const googleRouteLink = useMemo(
+        () => buildGoogleDirectionsUrl(startPoint, mapPins, courseMapUrl),
+        [startPoint, mapPins, courseMapUrl]
+    );
+
     if (!cat) return null;
 
     const activePass = focusedPassIdx !== null ? passes[focusedPassIdx] : null;
+
+    const selectPass = (idx: number | null) => {
+        setFocusedPassIdx(idx);
+        if (idx === null) {
+            setFocusedCode(null);
+        } else {
+            setFocusedCode(passes[idx]?.station.code || null);
+        }
+    };
+
+    const selectCodeFromMap = (code: string | null) => {
+        setFocusedCode(code);
+        if (!code || code === 'START') {
+            setFocusedPassIdx(null);
+            return;
+        }
+        const firstIdx = passes.findIndex(p => p.station.code === code);
+        setFocusedPassIdx(firstIdx >= 0 ? firstIdx : null);
+    };
+
+    const switchCategory = (i: number) => {
+        setActiveIdx(i);
+        setFocusedPassIdx(null);
+        setFocusedCode(null);
+        setFitSignal(s => s + 1);
+    };
 
     return (
         <div className="rounded-3xl border border-white/10 bg-zinc-900/60 overflow-hidden">
@@ -96,10 +246,7 @@ export function CourseSection({
                         <button
                             key={c.name}
                             type="button"
-                            onClick={() => {
-                                setActiveIdx(i);
-                                setFocusedPassIdx(null);
-                            }}
+                            onClick={() => switchCategory(i)}
                             className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-wider border transition-all cursor-pointer ${
                                 active ? 'text-black shadow-md' : 'text-zinc-300 border-white/10 hover:border-white/25'
                             }`}
@@ -130,17 +277,170 @@ export function CourseSection({
                     </p>
                 )}
 
-                {/* Linear course diagram */}
+                {/* ── REAL INTERACTIVE ROUTE MAP + GOOGLE MAPS ────────── */}
+                <div className="rounded-2xl border border-white/10 bg-black/40 overflow-hidden">
+                    {/* Map mode toolbar */}
+                    <div className="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2.5 border-b border-white/5 bg-zinc-950/90">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                            {hasInteractiveMap && (
+                                <>
+                                    <button
+                                        type="button"
+                                        onClick={() => setMapMode('street')}
+                                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-colors cursor-pointer ${
+                                            effectiveMode === 'street' ? 'text-black' : 'text-zinc-400 hover:text-white bg-white/5'
+                                        }`}
+                                        style={effectiveMode === 'street' ? { backgroundColor: color } : undefined}
+                                    >
+                                        <i className="fa-solid fa-map" /> Road Map
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setMapMode('satellite')}
+                                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-colors cursor-pointer ${
+                                            effectiveMode === 'satellite' ? 'text-black' : 'text-zinc-400 hover:text-white bg-white/5'
+                                        }`}
+                                        style={effectiveMode === 'satellite' ? { backgroundColor: color } : undefined}
+                                    >
+                                        <i className="fa-solid fa-satellite" /> Satellite
+                                    </button>
+                                </>
+                            )}
+                            <button
+                                type="button"
+                                onClick={() => setMapMode('google')}
+                                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-colors cursor-pointer ${
+                                    effectiveMode === 'google' ? 'text-black' : 'text-zinc-400 hover:text-white bg-white/5'
+                                }`}
+                                style={effectiveMode === 'google' ? { backgroundColor: color } : undefined}
+                            >
+                                <i className="fa-brands fa-google" /> Google Maps
+                            </button>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            {effectiveMode !== 'google' && focusedCode && (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        selectPass(null);
+                                        setFitSignal(s => s + 1);
+                                    }}
+                                    className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-zinc-300 bg-white/5 border border-white/10 hover:bg-white/10 cursor-pointer"
+                                >
+                                    <i className="fa-solid fa-compress mr-1" /> Fit full route
+                                </button>
+                            )}
+                            {googleRouteLink && (
+                                <a
+                                    href={googleRouteLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-wider text-white bg-white/10 hover:bg-white/15 border border-white/10"
+                                >
+                                    <i className="fa-solid fa-diamond-turn-right" style={{ color }} />
+                                    Open in Google Maps
+                                </a>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Google Maps checkpoint selector strip when viewing embedded Google Maps */}
+                    {effectiveMode === 'google' && (startPoint || mapPins.length > 0) && (
+                        <div className="flex flex-wrap items-center gap-1.5 px-3.5 py-2 bg-black/50 border-b border-white/5 text-[11px]">
+                            <span className="text-zinc-500 font-bold mr-1">Inspect checkpoint:</span>
+                            {startPoint && (
+                                <button
+                                    type="button"
+                                    onClick={() => selectCodeFromMap('START')}
+                                    className={`px-2.5 py-1 rounded-md font-bold cursor-pointer transition-colors ${
+                                        focusedCode === 'START' ? 'bg-rose-500 text-white' : 'bg-white/5 text-zinc-300 hover:bg-white/10'
+                                    }`}
+                                >
+                                    Start / Finish
+                                </button>
+                            )}
+                            {mapPins.map(p => {
+                                const active = focusedCode === p.code || (!focusedCode && p.isTurnaround);
+                                return (
+                                    <button
+                                        key={p.code}
+                                        type="button"
+                                        onClick={() => selectCodeFromMap(p.code)}
+                                        className={`px-2.5 py-1 rounded-md font-bold cursor-pointer transition-colors ${
+                                            active ? 'text-black' : 'bg-white/5 text-zinc-300 hover:bg-white/10'
+                                        }`}
+                                        style={active ? { backgroundColor: p.isTurnaround ? '#f59e0b' : color } : undefined}
+                                    >
+                                        {p.code} ({fmtKm(p.km)}km{p.isTurnaround ? ' U-Turn' : ''})
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    )}
+
+                    {/* Map viewport */}
+                    <div className="relative h-[340px] sm:h-[420px] w-full bg-zinc-950">
+                        {effectiveMode === 'google' ? (
+                            <iframe
+                                title={`Google Maps — ${googleTarget.label}`}
+                                src={`https://www.google.com/maps?q=${encodeURIComponent(googleTarget.query)}&t=m&z=${googleTarget.zoom}&output=embed`}
+                                loading="lazy"
+                                className="w-full h-full border-0"
+                            />
+                        ) : (
+                            <RouteMapCanvas
+                                polyline={routePolyline}
+                                startPoint={startPoint}
+                                pins={mapPins}
+                                focusedCode={focusedCode}
+                                onSelectCode={selectCodeFromMap}
+                                accentColor={color}
+                                mapStyle={effectiveMode}
+                                fitSignal={fitSignal}
+                            />
+                        )}
+                    </div>
+
+                    {/* Footer status bar below map */}
+                    <div className="px-3.5 py-2.5 bg-black/50 border-t border-white/5 flex flex-wrap items-center justify-between gap-2 text-[11px] text-zinc-400">
+                        <div className="flex flex-wrap items-center gap-3">
+                            <span className="inline-flex items-center gap-1.5 font-bold text-zinc-200">
+                                <span className="w-2.5 h-2.5 rounded-full bg-rose-500" /> Start / Finish
+                            </span>
+                            <span className="inline-flex items-center gap-1.5 font-bold text-zinc-200">
+                                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: color }} /> {cat.short || `${distance}KM`} Road Route
+                            </span>
+                            <span className="inline-flex items-center gap-1.5 font-bold text-amber-400">
+                                <span className="w-2.5 h-2.5 rounded-full bg-amber-500" /> U-Turn @ {fmtKm(turnKm)} km
+                            </span>
+                        </div>
+                        <span className="text-zinc-500">
+                            {effectiveMode === 'google'
+                                ? `Showing Google Maps pin: ${googleTarget.label}`
+                                : 'Tap any map pin or table row to zoom to station'}
+                        </span>
+                    </div>
+                </div>
+
+                {/* Linear out-and-back distance symmetry bar */}
                 <div className="rounded-2xl bg-black/35 border border-white/5 px-6 sm:px-8 pt-9 pb-4">
                     <div className="relative h-14">
-                        {/* track */}
                         <div className="absolute left-0 right-0 top-[11px] h-[3px] rounded-full bg-white/10" />
                         <div
                             className="absolute left-0 right-0 top-[11px] h-[3px] rounded-full opacity-75"
                             style={{ background: `linear-gradient(90deg, ${color}, ${color}55, ${color})` }}
                         />
-                        {/* start */}
-                        <Marker left={0} label="0 km" title="START" tooltip="Start Line · Race Village" color="#f43f5e" icon="fa-flag" />
+                        <Marker
+                            left={0}
+                            label="0 km"
+                            title="START"
+                            tooltip="Start Line · Race Village"
+                            color="#f43f5e"
+                            icon="fa-flag"
+                            active={focusedCode === 'START'}
+                            onClick={() => selectCodeFromMap(focusedCode === 'START' ? null : 'START')}
+                        />
                         {passes.map((p, i) => (
                             <Marker
                                 key={i}
@@ -152,10 +452,19 @@ export function CourseSection({
                                 color={p.leg === 'turn' ? '#f59e0b' : color}
                                 dim={p.leg === 'back'}
                                 active={focusedPassIdx === i}
-                                onClick={() => setFocusedPassIdx(focusedPassIdx === i ? null : i)}
+                                onClick={() => selectPass(focusedPassIdx === i ? null : i)}
                             />
                         ))}
-                        <Marker left={100} label={`${fmtKm(distance)} km`} title="FINISH" tooltip="Finish Line · Race Village" color="#f43f5e" icon="fa-flag-checkered" />
+                        <Marker
+                            left={100}
+                            label={`${fmtKm(distance)} km`}
+                            title="FINISH"
+                            tooltip="Finish Line · Race Village"
+                            color="#f43f5e"
+                            icon="fa-flag-checkered"
+                            active={focusedCode === 'START'}
+                            onClick={() => selectCodeFromMap(focusedCode === 'START' ? null : 'START')}
+                        />
                     </div>
 
                     <div className="flex flex-wrap items-center justify-between gap-3 mt-4 pt-3 border-t border-white/5 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
@@ -167,7 +476,7 @@ export function CourseSection({
                         <span className="normal-case text-zinc-500">
                             {activePass
                                 ? `Selected: ${activePass.station.code} @ ${fmtKm(activePass.km)} km · ${activePass.station.name}`
-                                : 'Tap any pin or row to inspect station'}
+                                : 'Out-and-back distance split along course'}
                         </span>
                     </div>
                 </div>
@@ -180,11 +489,11 @@ export function CourseSection({
                         <span className="hidden md:block">Supplies</span>
                     </div>
                     {passes.map((p, i) => {
-                        const isFocused = focusedPassIdx === i;
+                        const isFocused = focusedPassIdx === i || (focusedPassIdx === null && focusedCode === p.station.code);
                         return (
                             <div
                                 key={i}
-                                onClick={() => setFocusedPassIdx(isFocused ? null : i)}
+                                onClick={() => selectPass(focusedPassIdx === i ? null : i)}
                                 className={`grid grid-cols-[64px_1fr] md:grid-cols-[80px_1.15fr_1.35fr] gap-y-2 items-start px-4 py-3.5 border-t border-white/5 text-sm transition-colors cursor-pointer ${
                                     isFocused ? 'bg-white/[0.06]' : 'hover:bg-white/[0.02]'
                                 }`}
@@ -219,7 +528,10 @@ export function CourseSection({
                             </div>
                         );
                     })}
-                    <div className="grid grid-cols-[64px_1fr] md:grid-cols-[80px_1.15fr_1.35fr] gap-y-2 items-start px-4 py-3.5 border-t border-white/5 text-sm bg-rose-500/[0.04]">
+                    <div
+                        onClick={() => selectCodeFromMap(focusedCode === 'START' ? null : 'START')}
+                        className="grid grid-cols-[64px_1fr] md:grid-cols-[80px_1.15fr_1.35fr] gap-y-2 items-start px-4 py-3.5 border-t border-white/5 text-sm bg-rose-500/[0.04] hover:bg-rose-500/[0.08] cursor-pointer transition-colors"
+                    >
                         <span className="font-mono font-black text-white">{fmtKm(distance)}</span>
                         <div className="font-bold text-white">
                             <i className="fa-solid fa-flag-checkered text-rose-400 mr-2" />Finish · Race Village
@@ -233,18 +545,6 @@ export function CourseSection({
                         </div>
                     </div>
                 </div>
-
-                {courseMapUrl && (
-                    <a
-                        href={courseMapUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-wider hover:underline"
-                        style={{ color }}
-                    >
-                        <i className="fa-solid fa-map-location-dot" /> Open coastal course corridor in Google Maps
-                    </a>
-                )}
             </div>
         </div>
     );

@@ -1190,6 +1190,33 @@ export default function RegistrationStudio() {
                                                 />
                                             </div>
                                             <div className="md:col-span-2">
+                                                <label className="text-[9px] font-black uppercase tracking-widest text-zinc-500 block mb-1">Start / Finish Line GPS (Lat, Lng — anchors interactive map)</label>
+                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                                    <input
+                                                        type="number"
+                                                        step="0.000001"
+                                                        value={runCfg.start_point?.lat ?? ''}
+                                                        onChange={e => setRunCfg({ start_point: { ...(runCfg.start_point || {}), lat: e.target.value ? parseFloat(e.target.value) : undefined } })}
+                                                        placeholder="Lat (e.g. 3.175324)"
+                                                        className="bg-black/50 border border-ink/5 rounded-lg px-3 py-2 text-xs text-ink font-mono"
+                                                    />
+                                                    <input
+                                                        type="number"
+                                                        step="0.000001"
+                                                        value={runCfg.start_point?.lng ?? ''}
+                                                        onChange={e => setRunCfg({ start_point: { ...(runCfg.start_point || {}), lng: e.target.value ? parseFloat(e.target.value) : undefined } })}
+                                                        placeholder="Lng (e.g. 113.039563)"
+                                                        className="bg-black/50 border border-ink/5 rounded-lg px-3 py-2 text-xs text-ink font-mono"
+                                                    />
+                                                    <input
+                                                        value={runCfg.start_point?.name || ''}
+                                                        onChange={e => setRunCfg({ start_point: { ...(runCfg.start_point || {}), name: e.target.value } })}
+                                                        placeholder="Start Venue Label"
+                                                        className="bg-black/50 border border-ink/5 rounded-lg px-3 py-2 text-xs text-ink"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="md:col-span-2">
                                                 <label className="text-[9px] font-black uppercase tracking-widest text-zinc-500 block mb-1">Finisher & Prize Note</label>
                                                 <input value={runCfg.prize_note || ''} onChange={e => setRunCfg({ prize_note: e.target.value })} placeholder="All finishers within cut-off receive an official 3D medal & e-certificate." className="w-full bg-black/50 border border-ink/5 rounded-lg px-3 py-2 text-xs text-ink" />
                                             </div>
@@ -1234,18 +1261,24 @@ export default function RegistrationStudio() {
                                                 </button>
                                             </div>
                                             {stations.map((st: any, idx: number) => (
-                                                <div key={idx} className="grid grid-cols-1 md:grid-cols-12 gap-2 items-center bg-black/30 p-2.5 rounded-xl border border-ink/5">
-                                                    <input value={st.code || ''} onChange={e => updateStation(idx, { code: e.target.value })} placeholder="WS1" className="md:col-span-1 bg-black/50 border border-ink/5 rounded-lg px-2.5 py-2 text-xs text-cyan-400 font-black font-mono" />
-                                                    <input type="number" step="0.05" value={st.km ?? ''} onChange={e => updateStation(idx, { km: parseFloat(e.target.value) || 0 })} placeholder="KM" className="md:col-span-2 bg-black/50 border border-ink/5 rounded-lg px-2.5 py-2 text-xs text-amber-400 font-mono" />
-                                                    <input value={st.name || ''} onChange={e => updateStation(idx, { name: e.target.value })} placeholder="Station Name" className="md:col-span-3 bg-black/50 border border-ink/5 rounded-lg px-2.5 py-2 text-xs text-ink font-bold" />
-                                                    <input value={st.landmark || ''} onChange={e => updateStation(idx, { landmark: e.target.value })} placeholder="Landmark / Junction" className="md:col-span-3 bg-black/50 border border-ink/5 rounded-lg px-2.5 py-2 text-xs text-zinc-400" />
-                                                    <input
-                                                        value={Array.isArray(st.supplies) ? st.supplies.join(', ') : (st.supplies || '')}
-                                                        onChange={e => updateStation(idx, { supplies: e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean) })}
-                                                        placeholder="Water, 100PLUS, Timing Mat"
-                                                        className="md:col-span-2 bg-black/50 border border-ink/5 rounded-lg px-2.5 py-2 text-xs text-ink"
-                                                    />
-                                                    <button type="button" onClick={() => setRunCfg({ stations: stations.filter((_: any, i: number) => i !== idx) })} className="md:col-span-1 h-9 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center"><i className="fa-solid fa-trash-can text-xs" /></button>
+                                                <div key={idx} className="space-y-2 bg-black/30 p-2.5 rounded-xl border border-ink/5">
+                                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-center">
+                                                        <input value={st.code || ''} onChange={e => updateStation(idx, { code: e.target.value })} placeholder="WS1" className="md:col-span-1 bg-black/50 border border-ink/5 rounded-lg px-2.5 py-2 text-xs text-cyan-400 font-black font-mono" />
+                                                        <input type="number" step="0.05" value={st.km ?? ''} onChange={e => updateStation(idx, { km: parseFloat(e.target.value) || 0 })} placeholder="KM" className="md:col-span-2 bg-black/50 border border-ink/5 rounded-lg px-2.5 py-2 text-xs text-amber-400 font-mono" />
+                                                        <input value={st.name || ''} onChange={e => updateStation(idx, { name: e.target.value })} placeholder="Station Name" className="md:col-span-3 bg-black/50 border border-ink/5 rounded-lg px-2.5 py-2 text-xs text-ink font-bold" />
+                                                        <input value={st.landmark || ''} onChange={e => updateStation(idx, { landmark: e.target.value })} placeholder="Landmark / Junction" className="md:col-span-3 bg-black/50 border border-ink/5 rounded-lg px-2.5 py-2 text-xs text-zinc-400" />
+                                                        <input
+                                                            value={Array.isArray(st.supplies) ? st.supplies.join(', ') : (st.supplies || '')}
+                                                            onChange={e => updateStation(idx, { supplies: e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean) })}
+                                                            placeholder="Water, 100PLUS, Timing Mat"
+                                                            className="md:col-span-2 bg-black/50 border border-ink/5 rounded-lg px-2.5 py-2 text-xs text-ink"
+                                                        />
+                                                        <button type="button" onClick={() => setRunCfg({ stations: stations.filter((_: any, i: number) => i !== idx) })} className="md:col-span-1 h-9 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center"><i className="fa-solid fa-trash-can text-xs" /></button>
+                                                    </div>
+                                                    <div className="grid grid-cols-2 md:grid-cols-6 gap-2 pl-1">
+                                                        <input type="number" step="0.000001" value={st.lat ?? ''} onChange={e => updateStation(idx, { lat: e.target.value ? parseFloat(e.target.value) : undefined })} placeholder="GPS Lat (optional)" className="bg-black/40 border border-ink/5 rounded-lg px-2.5 py-1.5 text-[11px] text-zinc-300 font-mono" />
+                                                        <input type="number" step="0.000001" value={st.lng ?? ''} onChange={e => updateStation(idx, { lng: e.target.value ? parseFloat(e.target.value) : undefined })} placeholder="GPS Lng (optional)" className="bg-black/40 border border-ink/5 rounded-lg px-2.5 py-1.5 text-[11px] text-zinc-300 font-mono" />
+                                                    </div>
                                                 </div>
                                             ))}
                                         </div>
