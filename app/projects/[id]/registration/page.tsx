@@ -376,7 +376,11 @@ export default function RegistrationStudio() {
 
     const publicRegUrl = publicRegPath ? `${origin}${publicRegPath}` : '';
 
-    const publicPagePath = settings.page_slug ? `/t/${settings.page_slug}` : '';
+    const publicPagePath = settings.fields_config?.short_slug
+        ? `/${settings.fields_config.short_slug}`
+        : settings.page_slug
+          ? `/${settings.page_slug}`
+          : '';
     const publicPageUrl = publicPagePath ? `${origin}${publicPagePath}` : '';
 
     // ── Repeatable list helpers ───────────────────────────────
@@ -938,11 +942,22 @@ export default function RegistrationStudio() {
 
                                 {publicPagePath && (
                                     <div className="flex items-center gap-3 w-full bg-ink/5 border border-ink/10 rounded-2xl px-4 py-3 text-left">
-                                        <i className="fa-solid fa-share-nodes text-accent-bright text-sm" />
+                                        <i className="fa-solid fa-bolt text-accent-bright text-sm" />
                                         <div className="flex-1 overflow-hidden">
-                                            <div className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Short Redirect Alias (/t/)</div>
+                                            <div className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Short Direct URL (最简短链)</div>
                                             <div className="text-[11px] font-bold text-ink truncate font-mono">{publicPageUrl}</div>
                                         </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(publicPageUrl);
+                                                Swal.fire({ title: 'Short URL Copied!', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, background: '#18181b', color: '#fff' });
+                                            }}
+                                            className="h-9 w-9 bg-zinc-900 border border-ink/10 rounded-xl text-zinc-300 hover:text-white transition-colors flex items-center justify-center shrink-0"
+                                            title="Copy Short URL"
+                                        >
+                                            <i className="fa-solid fa-copy text-xs" />
+                                        </button>
                                     </div>
                                 )}
                             </div>
