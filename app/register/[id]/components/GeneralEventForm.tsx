@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import { uploadICFile } from '@/app/actions/tournament-actions';
 import { supabase } from '@/lib/supabaseClient';
@@ -50,6 +50,15 @@ export function GeneralEventForm({ projectId, config, onSuccess }: FormProps) {
     // Primary Registrant State
     const [organizationName, setOrganizationName] = useState('');
     const [selectedCategory, setSelectedCategory] = useState(categories[0]?.name || '');
+
+    useEffect(() => {
+        const handler = (e: Event) => {
+            const catName = (e as CustomEvent<string>).detail;
+            if (catName) setSelectedCategory(catName);
+        };
+        window.addEventListener('zto:select-category', handler);
+        return () => window.removeEventListener('zto:select-category', handler);
+    }, []);
     const [registrant, setRegistrant] = useState<any>({
         name: '',
         bib_name: '',
@@ -296,12 +305,15 @@ export function GeneralEventForm({ projectId, config, onSuccess }: FormProps) {
     const previewBibText = (registrant.bib_name || registrant.name.trim().split(' ')[0] || 'RUNNER NAME')
         .toUpperCase()
         .slice(0, 12);
+    const selectedCatIdx = categories.findIndex(c => c.name === selectedCategory);
+    const selectedCatObj = selectedCatIdx >= 0 ? categories[selectedCatIdx] : null;
+    const bibPrefix = selectedCatObj?.bib_prefix || String.fromCharCode(65 + Math.max(0, selectedCatIdx));
 
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
             {/* ── Card 1: Category / Distance Selection (if enabled) ── */}
             {(fieldsConfig.show_category_select || categories.length > 0) && (
-                <div className="bg-zinc-900/95 border border-zinc-800 p-6 md:p-8 rounded-3xl shadow-xl">
+                <div className="bg-zinc-900/60 border border-white/10 p-6 md:p-8 rounded-3xl shadow-xl">
                     <div className="flex items-center gap-3 mb-5 pb-4 border-b border-zinc-800">
                         <div className="w-8 h-8 rounded-full flex items-center justify-center font-black text-sm" style={{ backgroundColor: `${accent}20`, color: accent }}>
                             <i className={`fa-solid ${fieldsConfig.enable_run_module ? 'fa-person-running' : 'fa-layer-group'}`} />
@@ -315,57 +327,45 @@ export function GeneralEventForm({ projectId, config, onSuccess }: FormProps) {
                     </div>
 
                     {categories.length > 0 ? (
-                        <div className="grid grid-cols-1 gap-3.5">
+                        <div className={`grid grid-cols-1 gap-3 ${categories.length >= 3 ? 'sm:grid-cols-3' : categories.length === 2 ? 'sm:grid-cols-2' : ''}`}>
                             {categories.map((cat: any, i: number) => {
                                 const isSelected = selectedCategory === cat.name;
                                 const feeVal = extractCategoryFee(cat);
+                                const catColor = cat.color || accent;
+                                const hasDetailsAbove = Array.isArray(cat.entitlements) && cat.entitlements.length > 0;
                                 return (
                                     <button
                                         key={i}
                                         type="button"
                                         onClick={() => setSelectedCategory(cat.name)}
-                                        className={`p-5 rounded-2xl border text-left transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer ${
-                                            isSelected
-                                                ? 'bg-white/10 border-white shadow-lg'
-                                                : 'bg-black/40 border-zinc-800 hover:border-zinc-700'
+                                        className={`relative p-4 rounded-2xl border text-left transition-all cursor-pointer ${
+                                            isSelected ? 'shadow-lg' : 'bg-black/40 border-zinc-800 hover:border-zinc-600'
                                         }`}
-                                        style={isSelected ? { borderColor: accent, backgroundColor: `${accent}14` } : undefined}
+                                        style={isSelected ? { borderColor: catColor, backgroundColor: `${catColor}14` } : undefined}
                                     >
-                                        <div className="space-y-1">
-                                            <div className="flex flex-wrap items-center gap-2">
-                                                <span className="font-black text-white text-base uppercase">{cat.name}</span>
-                                                {cat.open_to && (
-                                                    <span
-                                                        className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase border"
-                                                        style={{ color: accent, borderColor: `${accent}40`, backgroundColor: `${accent}15` }}
-                                                    >
-                                                        {cat.open_to}
-                                                    </span>
-                                                )}
-                                            </div>
-                                            {cat.description && (
-                                                <div className="text-xs text-zinc-400 leading-relaxed">{cat.description}</div>
-                                            )}
+                                        <div
+                                            className={`absolute top-3.5 right-3.5 w-5 h-5 rounded-full border flex items-center justify-center ${
+                                                isSelected ? 'border-transparent text-black' : 'border-zinc-700'
+                                            }`}
+                                            style={isSelected ? { backgroundColor: catColor } : undefined}
+                                        >
+                                            {isSelected && <i className="fa-solid fa-check text-[10px]" />}
                                         </div>
-
-                                        <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0 border-t sm:border-t-0 border-zinc-800 pt-2 sm:pt-0">
-                                            {(cat.fee || feeVal > 0) && (
-                                                <div className="text-left sm:text-right">
-                                                    <div className="text-[9px] font-bold uppercase text-zinc-500">Entry Fee</div>
-                                                    <div className="text-lg font-black text-white" style={isSelected ? { color: accent } : undefined}>
-                                                        {cat.fee || `RM ${feeVal}`}
-                                                    </div>
-                                                </div>
+                                        <div className="pr-7">
+                                            <div className="font-black text-white text-base leading-tight">{cat.short || cat.name}</div>
+                                            {(cat.subtitle || cat.short) && (
+                                                <div className="text-xs font-bold text-zinc-400 mt-0.5">{cat.subtitle || cat.name}</div>
                                             )}
-                                            <div
-                                                className={`w-6 h-6 rounded-full border flex items-center justify-center shrink-0 ${
-                                                    isSelected ? 'border-transparent text-black' : 'border-zinc-700'
-                                                }`}
-                                                style={isSelected ? { backgroundColor: accent } : undefined}
-                                            >
-                                                {isSelected && <i className="fa-solid fa-check text-xs" />}
-                                            </div>
+                                            {cat.open_to && <div className="text-[11px] text-zinc-500 mt-1">{cat.open_to}</div>}
                                         </div>
+                                        {(cat.fee || feeVal > 0) && (
+                                            <div className="mt-3 text-lg font-black" style={{ color: isSelected ? catColor : '#fff' }}>
+                                                {cat.fee || `RM ${feeVal}`}
+                                            </div>
+                                        )}
+                                        {!hasDetailsAbove && cat.description && (
+                                            <div className="text-xs text-zinc-400 mt-2 leading-relaxed">{cat.description}</div>
+                                        )}
                                     </button>
                                 );
                             })}
@@ -383,7 +383,7 @@ export function GeneralEventForm({ projectId, config, onSuccess }: FormProps) {
             )}
 
             {/* ── Card 2: Primary Participant / Runner Details ── */}
-            <div className="bg-zinc-900/95 border border-zinc-800 p-6 md:p-8 rounded-3xl shadow-xl">
+            <div className="bg-zinc-900/60 border border-white/10 p-6 md:p-8 rounded-3xl shadow-xl">
                 <div className="flex items-center gap-3 mb-6 pb-4 border-b border-zinc-800">
                     <div className="w-8 h-8 rounded-full flex items-center justify-center font-black text-sm" style={{ backgroundColor: `${accent}20`, color: accent }}>
                         <i className="fa-solid fa-user" />
@@ -493,12 +493,12 @@ export function GeneralEventForm({ projectId, config, onSuccess }: FormProps) {
 
                             {/* Live Race BIB Visual Preview */}
                             <div className="bg-gradient-to-br from-zinc-900 to-black border-2 rounded-2xl p-4 text-center relative overflow-hidden shadow-lg" style={{ borderColor: accent }}>
-                                <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-widest pb-1.5 mb-2 border-b border-zinc-800" style={{ color: accent }}>
-                                    <span>BINTULU 2027 OFFICIAL BIB</span>
-                                    <span>{selectedCategory ? selectedCategory.split(' ')[0] : 'RUN'}</span>
+                                <div className="flex items-center justify-between gap-2 text-[9px] font-black uppercase tracking-widest pb-1.5 mb-2 border-b border-zinc-800" style={{ color: accent }}>
+                                    <span className="truncate">{String(config.slogan || 'Official').slice(0, 28)} · BIB</span>
+                                    <span className="shrink-0">{selectedCatObj?.short || 'RUN'}</span>
                                 </div>
-                                <div className="text-2xl md:text-3xl font-black tracking-widest text-white font-mono">
-                                    {selectedCategory?.includes('21') ? 'A-2088' : selectedCategory?.includes('10') ? 'B-1042' : 'C-5019'}
+                                <div className="text-2xl md:text-3xl font-black tracking-widest text-white/80 font-mono">
+                                    {bibPrefix}-XXXX
                                 </div>
                                 <div
                                     className="mt-1.5 inline-block px-4 py-0.5 rounded text-xs font-black tracking-[0.2em] uppercase text-black"
@@ -507,8 +507,9 @@ export function GeneralEventForm({ projectId, config, onSuccess }: FormProps) {
                                     {previewBibText}
                                 </div>
                                 <div className="mt-2 flex items-center justify-between text-[9px] text-zinc-500 font-bold">
-                                    <span>SIZE: {registrant.tshirt_size || 'M'}</span>
-                                    <span>BLOOD: {registrant.blood_type || 'O+'}</span>
+                                    <span>SIZE: {registrant.tshirt_size || '–'}</span>
+                                    <span>No. assigned after payment check</span>
+                                    <span>BLOOD: {registrant.blood_type || '–'}</span>
                                 </div>
                             </div>
                         </div>
@@ -668,7 +669,7 @@ export function GeneralEventForm({ projectId, config, onSuccess }: FormProps) {
 
             {/* ── Card 3: Accompanying Family / Group Runners (if allow_companions is enabled) ── */}
             {fieldsConfig.allow_companions && (
-                <div className="bg-zinc-900/95 border border-zinc-800 p-6 md:p-8 rounded-3xl shadow-xl">
+                <div className="bg-zinc-900/60 border border-white/10 p-6 md:p-8 rounded-3xl shadow-xl">
                     <div className="flex flex-wrap items-center justify-between gap-4 mb-5 pb-4 border-b border-zinc-800">
                         <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-full flex items-center justify-center font-black text-sm" style={{ backgroundColor: `${accent}20`, color: accent }}>
@@ -782,8 +783,23 @@ export function GeneralEventForm({ projectId, config, onSuccess }: FormProps) {
                                         </div>
                                     </div>
 
-                                    {(fieldsConfig.show_ic_passport || fieldsConfig.show_tshirt_size || fieldsConfig.show_dietary) && (
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    {(fieldsConfig.requires_gender || fieldsConfig.show_ic_passport || fieldsConfig.show_tshirt_size || fieldsConfig.show_dietary) && (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                            {fieldsConfig.requires_gender && (
+                                                <div>
+                                                    <label className="block text-[10px] font-bold uppercase text-zinc-500 mb-1">Gender *</label>
+                                                    <select
+                                                        required
+                                                        value={comp.gender}
+                                                        onChange={e => updateCompanion(comp.id, 'gender', e.target.value)}
+                                                        className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none"
+                                                    >
+                                                        <option value="">Select Gender</option>
+                                                        <option value="Male">Male / 男</option>
+                                                        <option value="Female">Female / 女</option>
+                                                    </select>
+                                                </div>
+                                            )}
                                             {fieldsConfig.show_ic_passport && (
                                                 <div>
                                                     <label className="block text-[10px] font-bold uppercase text-zinc-500 mb-1">IC / Passport</label>
@@ -832,7 +848,7 @@ export function GeneralEventForm({ projectId, config, onSuccess }: FormProps) {
 
             {/* ── Card 4: Auto-Calculated Fee Summary & Payment Receipt Upload ── */}
             {(fieldsConfig.show_payment_receipt || feeBreakdown.total > 0) && (
-                <div className="bg-zinc-900/95 border border-zinc-800 p-6 md:p-8 rounded-3xl shadow-xl space-y-5">
+                <div className="bg-zinc-900/60 border border-white/10 p-6 md:p-8 rounded-3xl shadow-xl space-y-5">
                     <div className="flex items-center justify-between gap-3 pb-4 border-b border-zinc-800">
                         <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-full flex items-center justify-center font-black text-sm" style={{ backgroundColor: `${accent}20`, color: accent }}>
@@ -899,11 +915,11 @@ export function GeneralEventForm({ projectId, config, onSuccess }: FormProps) {
             )}
 
             {/* ── Submit Button ── */}
-            <div className="pt-4 pb-12">
+            <div className="pt-2 pb-2">
                 <button
                     disabled={isSubmitting}
                     type="submit"
-                    className="w-full disabled:opacity-50 text-black font-black uppercase tracking-widest px-8 py-5 rounded-2xl transition-all shadow-xl hover:opacity-95 text-base md:text-lg flex items-center justify-center gap-3 cursor-pointer"
+                    className="w-full disabled:opacity-50 text-black font-black uppercase tracking-widest px-8 py-4 rounded-2xl transition-all shadow-xl hover:opacity-95 text-sm md:text-base flex items-center justify-center gap-3 cursor-pointer"
                     style={{ backgroundColor: accent, boxShadow: `0 10px 35px ${accent}40` }}
                 >
                     <i className={`fa-solid ${isSubmitting ? 'fa-circle-notch fa-spin' : 'fa-paper-plane'}`} />

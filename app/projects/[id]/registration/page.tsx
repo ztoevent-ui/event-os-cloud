@@ -272,17 +272,20 @@ export default function RegistrationStudio() {
         if (submissions.length === 0) return;
         const headers = [
             'Registration Date',
-            'Organization / Dept / Group',
-            'Category / Team',
+            'Organization / Club / Dept',
+            'Primary Category',
             'Primary Name',
-            'Staff ID / Role',
+            'BIB Name / Role',
             'Phone',
             'Email',
             'IC / Passport',
             'Gender',
+            'Blood Type',
             'T-Shirt Size',
             'Dietary',
-            'Total Pax / Players',
+            'Emergency Contact',
+            'Total Pax / Runners',
+            'Total Fee (RM)',
             'Participants Breakdown',
             'Remarks',
             'IC / Receipt URL'
@@ -297,9 +300,10 @@ export default function RegistrationStudio() {
 
         for (const sub of submissions) {
             const d = sub.captain_details || {};
+            const ec = d.emergency_contact || {};
             const players: any[] = Array.isArray(sub.players) ? sub.players : [];
             const breakdown = players
-                .map((p, i) => `${i + 1}. ${p.name || ''} (${p.category || p.type || 'Participant'}${p.tshirt_size ? ` / Size:${p.tshirt_size}` : ''}${p.dietary ? ` / ${p.dietary}` : ''})`)
+                .map((p, i) => `${i + 1}. ${p.name || ''} (${p.category || p.type || 'Participant'}${p.bib_name ? ` / BIB:${p.bib_name}` : ''}${p.tshirt_size ? ` / Size:${p.tshirt_size}` : ''}${p.gender ? ` / ${p.gender}` : ''}${p.dietary ? ` / ${p.dietary}` : ''})`)
                 .join(' | ');
 
             const row = [
@@ -307,14 +311,17 @@ export default function RegistrationStudio() {
                 sub.organization_name || '',
                 sub.team_name || d.category || '',
                 sub.captain_name || '',
-                sub.captain_role || d.staff_id || '',
+                d.bib_name || sub.captain_role || d.staff_id || '',
                 sub.captain_phone || '',
                 sub.captain_email || '',
                 sub.captain_ic || '',
                 sub.captain_gender || '',
+                d.blood_type || '',
                 d.tshirt_size || '',
                 d.dietary || '',
+                ec.name ? `${ec.name} (${ec.relationship || 'Contact'}: ${ec.phone || ''})` : '',
                 players.length || 1,
+                d.total_fee_rm ? Number(d.total_fee_rm).toFixed(2) : '',
                 breakdown,
                 d.remarks || '',
                 sub.captain_ic_url || d.payment_receipt_url || ''
@@ -475,7 +482,7 @@ export default function RegistrationStudio() {
             <div className="print:hidden flex flex-wrap gap-2 border-b border-ink/5 pb-0 mb-8">
                 {[
                     { id: 'settings',    label: '1. Quick Launch & Form Builder', icon: 'fa-rocket' },
-                    { id: 'tournament',  label: '2. Event Info & Landing Page',   icon: 'fa-globe' },
+                    { id: 'tournament',  label: '2. Schedule, Prizes, Venue & Rules',   icon: 'fa-globe' },
                     { id: 'submissions', label: `3. Submissions (${submissions.length})`, icon: 'fa-users' },
                 ].map(tab => (
                     <button
@@ -756,7 +763,7 @@ export default function RegistrationStudio() {
                                     </div>
                                     <button
                                         type="button"
-                                        onClick={() => addRow('categories', { name: '', fee: '', open_to: '', description: '' })}
+                                        onClick={() => addRow('categories', { name: '', short: '', distance_km: '', flag_off: '', cut_off: '', fee: '', open_to: '', description: '' })}
                                         className="px-3.5 py-2 bg-accent/10 text-accent-bright hover:bg-accent hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors shrink-0"
                                     >
                                         <i className="fa-solid fa-plus mr-1.5" /> Add Category
@@ -768,38 +775,76 @@ export default function RegistrationStudio() {
                                 ) : (
                                     <div className="space-y-3">
                                         {(settings.categories || []).map((cat: any, idx: number) => (
-                                            <div key={idx} className="grid grid-cols-1 md:grid-cols-12 gap-2 items-center bg-black/30 p-3 rounded-xl border border-ink/5">
-                                                <input
-                                                    value={cat.name || ''}
-                                                    onChange={e => updateRow('categories', idx, 'name', e.target.value)}
-                                                    placeholder="Category Name (e.g. 5KM Fun Run)"
-                                                    className="md:col-span-4 bg-black/50 border border-ink/5 rounded-lg px-3 py-2 text-xs text-ink font-bold"
-                                                />
-                                                <input
-                                                    value={cat.fee || ''}
-                                                    onChange={e => updateRow('categories', idx, 'fee', e.target.value)}
-                                                    placeholder="Fee (e.g. RM 55)"
-                                                    className="md:col-span-2 bg-black/50 border border-ink/5 rounded-lg px-3 py-2 text-xs text-emerald-400 font-bold"
-                                                />
-                                                <input
-                                                    value={cat.open_to || ''}
-                                                    onChange={e => updateRow('categories', idx, 'open_to', e.target.value)}
-                                                    placeholder="Tag (e.g. Open 7+ / Flag-off 6:45AM)"
-                                                    className="md:col-span-2 bg-black/50 border border-ink/5 rounded-lg px-3 py-2 text-xs text-ink"
-                                                />
-                                                <input
-                                                    value={cat.description || ''}
-                                                    onChange={e => updateRow('categories', idx, 'description', e.target.value)}
-                                                    placeholder="Entitlements / Description"
-                                                    className="md:col-span-3 bg-black/50 border border-ink/5 rounded-lg px-3 py-2 text-xs text-ink"
-                                                />
-                                                <button
-                                                    type="button"
-                                                    onClick={() => removeRow('categories', idx)}
-                                                    className="md:col-span-1 h-9 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-colors"
-                                                >
-                                                    <i className="fa-solid fa-trash-can text-xs" />
-                                                </button>
+                                            <div key={idx} className="bg-black/30 p-3.5 rounded-xl border border-ink/5 space-y-2.5">
+                                                <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-center">
+                                                    <input
+                                                        value={cat.name || ''}
+                                                        onChange={e => updateRow('categories', idx, 'name', e.target.value)}
+                                                        placeholder="Category Name (e.g. 5KM Coastal Fun Run)"
+                                                        className="md:col-span-4 bg-black/50 border border-ink/5 rounded-lg px-3 py-2 text-xs text-ink font-bold"
+                                                    />
+                                                    <input
+                                                        value={cat.fee || ''}
+                                                        onChange={e => updateRow('categories', idx, 'fee', e.target.value)}
+                                                        placeholder="Fee (e.g. RM 55)"
+                                                        className="md:col-span-2 bg-black/50 border border-ink/5 rounded-lg px-3 py-2 text-xs text-emerald-400 font-bold"
+                                                    />
+                                                    <input
+                                                        value={cat.open_to || ''}
+                                                        onChange={e => updateRow('categories', idx, 'open_to', e.target.value)}
+                                                        placeholder="Eligibility (e.g. Open Ages 7+)"
+                                                        className="md:col-span-2 bg-black/50 border border-ink/5 rounded-lg px-3 py-2 text-xs text-ink"
+                                                    />
+                                                    <input
+                                                        value={cat.description || ''}
+                                                        onChange={e => updateRow('categories', idx, 'description', e.target.value)}
+                                                        placeholder="Short description / note"
+                                                        className="md:col-span-3 bg-black/50 border border-ink/5 rounded-lg px-3 py-2 text-xs text-ink"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeRow('categories', idx)}
+                                                        className="md:col-span-1 h-9 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-colors"
+                                                    >
+                                                        <i className="fa-solid fa-trash-can text-xs" />
+                                                    </button>
+                                                </div>
+                                                {settings.fields_config.enable_run_module && (
+                                                    <div className="grid grid-cols-2 md:grid-cols-5 gap-2 pt-2 border-t border-white/5">
+                                                        <input
+                                                            value={cat.short || ''}
+                                                            onChange={e => updateRow('categories', idx, 'short', e.target.value)}
+                                                            placeholder="Badge (e.g. 5KM)"
+                                                            className="bg-black/50 border border-ink/5 rounded-lg px-3 py-1.5 text-[11px] text-cyan-300 font-bold"
+                                                        />
+                                                        <input
+                                                            type="number"
+                                                            step="0.1"
+                                                            value={cat.distance_km ?? ''}
+                                                            onChange={e => updateRow('categories', idx, 'distance_km', e.target.value)}
+                                                            placeholder="Distance KM (e.g. 5)"
+                                                            className="bg-black/50 border border-ink/5 rounded-lg px-3 py-1.5 text-[11px] text-ink"
+                                                        />
+                                                        <input
+                                                            value={cat.flag_off || ''}
+                                                            onChange={e => updateRow('categories', idx, 'flag_off', e.target.value)}
+                                                            placeholder="Flag-off (06:45 AM)"
+                                                            className="bg-black/50 border border-ink/5 rounded-lg px-3 py-1.5 text-[11px] text-ink"
+                                                        />
+                                                        <input
+                                                            value={cat.cut_off || ''}
+                                                            onChange={e => updateRow('categories', idx, 'cut_off', e.target.value)}
+                                                            placeholder="Cut-off (1.5 hrs)"
+                                                            className="bg-black/50 border border-ink/5 rounded-lg px-3 py-1.5 text-[11px] text-ink"
+                                                        />
+                                                        <input
+                                                            value={cat.color || ''}
+                                                            onChange={e => updateRow('categories', idx, 'color', e.target.value)}
+                                                            placeholder="Hex Color (#10b981)"
+                                                            className="bg-black/50 border border-ink/5 rounded-lg px-3 py-1.5 text-[11px] text-ink font-mono"
+                                                        />
+                                                    </div>
+                                                )}
                                             </div>
                                         ))}
                                     </div>
@@ -887,22 +932,17 @@ export default function RegistrationStudio() {
                                     className="flex items-center justify-center gap-2.5 w-full bg-accent text-white rounded-2xl px-5 py-4 font-black text-xs uppercase tracking-widest hover:opacity-90 transition-all shadow-lg"
                                 >
                                     <i className="fa-solid fa-arrow-up-right-from-square" />
-                                    Preview Registration Portal
+                                    Open One-Page Event Portal
                                 </Link>
 
                                 {publicPagePath && (
-                                    <Link
-                                        href={publicPagePath}
-                                        target="_blank"
-                                        className="flex items-center gap-3 w-full bg-ink/5 border border-ink/10 rounded-2xl px-4 py-3.5 hover:bg-ink/10 transition-all group"
-                                    >
-                                        <i className="fa-solid fa-globe text-accent-bright text-sm" />
+                                    <div className="flex items-center gap-3 w-full bg-ink/5 border border-ink/10 rounded-2xl px-4 py-3 text-left">
+                                        <i className="fa-solid fa-share-nodes text-accent-bright text-sm" />
                                         <div className="flex-1 overflow-hidden">
-                                            <div className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Full Event Landing Page</div>
+                                            <div className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Short Redirect Alias (/t/)</div>
                                             <div className="text-[11px] font-bold text-ink truncate font-mono">{publicPageUrl}</div>
                                         </div>
-                                        <i className="fa-solid fa-external-link text-zinc-500 group-hover:text-ink transition-colors text-xs" />
-                                    </Link>
+                                    </div>
                                 )}
                             </div>
                         </div>
@@ -1017,29 +1057,229 @@ export default function RegistrationStudio() {
                                 </div>
                             </div>
 
+                            {/* Event Schedule / Timeline */}
+                            <div className="pt-6 border-t border-ink/5 space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <label className="text-[10px] font-black tracking-widest uppercase text-zinc-500 block">
+                                            Event Schedule / Program Flow (活动流程时间表)
+                                        </label>
+                                        <p className="text-[11px] text-zinc-600 mt-0.5">显示在报名页的 Schedule 区域</p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => addRow('event_schedule', { time: '', label: '', notes: '', highlight: false })}
+                                        className="px-3 py-1.5 bg-accent/10 text-accent-bright rounded-lg text-[10px] font-black uppercase tracking-widest"
+                                    >
+                                        + Add Time Slot
+                                    </button>
+                                </div>
+                                {(settings.event_schedule || []).map((sch: any, idx: number) => (
+                                    <div key={idx} className="grid grid-cols-1 md:grid-cols-12 gap-2 items-center bg-black/30 p-3 rounded-xl border border-ink/5">
+                                        <input
+                                            value={sch.time || sch.time_start || ''}
+                                            onChange={e => updateRow('event_schedule', idx, 'time', e.target.value)}
+                                            placeholder="05:30 AM"
+                                            className="md:col-span-2 bg-black/50 border border-ink/5 rounded-lg px-3 py-2 text-xs text-ink font-mono font-bold"
+                                        />
+                                        <input
+                                            value={sch.label || sch.title || ''}
+                                            onChange={e => updateRow('event_schedule', idx, 'label', e.target.value)}
+                                            placeholder="Activity (e.g. Flag-Off: 21.1KM)"
+                                            className="md:col-span-5 bg-black/50 border border-ink/5 rounded-lg px-3 py-2 text-xs text-ink font-bold"
+                                        />
+                                        <input
+                                            value={sch.notes || sch.desc || ''}
+                                            onChange={e => updateRow('event_schedule', idx, 'notes', e.target.value)}
+                                            placeholder="Notes / Location"
+                                            className="md:col-span-3 bg-black/50 border border-ink/5 rounded-lg px-3 py-2 text-xs text-ink"
+                                        />
+                                        <label className="md:col-span-1 flex items-center justify-center gap-1 text-[10px] font-bold text-zinc-400 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={!!sch.highlight}
+                                                onChange={e => {
+                                                    const arr = [...(settings.event_schedule || [])];
+                                                    arr[idx] = { ...arr[idx], highlight: e.target.checked };
+                                                    setSettings({ ...settings, event_schedule: arr });
+                                                }}
+                                            />
+                                            Key
+                                        </label>
+                                        <button
+                                            type="button"
+                                            onClick={() => removeRow('event_schedule', idx)}
+                                            className="md:col-span-1 h-9 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center"
+                                        >
+                                            <i className="fa-solid fa-trash-can text-xs" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+
                             {/* Prize Pool (Optional) */}
                             <div className="pt-6 border-t border-ink/5 space-y-4">
                                 <div className="flex items-center justify-between">
                                     <label className="text-[10px] font-black tracking-widest uppercase text-zinc-500">Prize Pool / Lucky Draw Prizes (Optional)</label>
-                                    <button type="button" onClick={() => addRow('prize_pool', { category: '', amount: '', currency: 'RM' })} className="px-3 py-1.5 bg-accent/10 text-accent-bright rounded-lg text-[10px] font-black uppercase tracking-widest">
+                                    <button type="button" onClick={() => addRow('prize_pool', { category: '', champion: '', runner_up: '', second_runner_up: '' })} className="px-3 py-1.5 bg-accent/10 text-accent-bright rounded-lg text-[10px] font-black uppercase tracking-widest">
                                         + Add Prize Row
                                     </button>
                                 </div>
                                 {(settings.prize_pool || []).map((p: any, idx: number) => (
-                                    <div key={idx} className="flex gap-2 items-center">
-                                        <input value={p.category || ''} onChange={e => updateRow('prize_pool', idx, 'category', e.target.value)} placeholder="Category / Tier (e.g. Champion)" className="flex-1 bg-black/40 border border-ink/5 rounded-xl px-4 py-2.5 text-xs text-ink" />
-                                        <input value={p.amount || ''} onChange={e => updateRow('prize_pool', idx, 'amount', e.target.value)} placeholder="Amount (e.g. 5000)" className="w-36 bg-black/40 border border-ink/5 rounded-xl px-4 py-2.5 text-xs text-ink font-mono" />
-                                        <button type="button" onClick={() => removeRow('prize_pool', idx)} className="w-9 h-9 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center"><i className="fa-solid fa-trash-can text-xs" /></button>
+                                    <div key={idx} className="grid grid-cols-1 md:grid-cols-12 gap-2 items-center bg-black/30 p-2.5 rounded-xl border border-ink/5">
+                                        <input value={p.category || ''} onChange={e => updateRow('prize_pool', idx, 'category', e.target.value)} placeholder="Category (e.g. 21.1KM Open)" className="md:col-span-5 bg-black/50 border border-ink/5 rounded-lg px-3 py-2 text-xs text-ink font-bold" />
+                                        <input value={p.champion || (p.amount ? `${p.currency || 'RM'} ${p.amount}` : '')} onChange={e => updateRow('prize_pool', idx, 'champion', e.target.value)} placeholder="🥇 1st (RM 1,500)" className="md:col-span-2 bg-black/50 border border-ink/5 rounded-lg px-3 py-2 text-xs text-amber-400 font-mono" />
+                                        <input value={p.runner_up || ''} onChange={e => updateRow('prize_pool', idx, 'runner_up', e.target.value)} placeholder="🥈 2nd (RM 1,000)" className="md:col-span-2 bg-black/50 border border-ink/5 rounded-lg px-3 py-2 text-xs text-ink font-mono" />
+                                        <input value={p.second_runner_up || ''} onChange={e => updateRow('prize_pool', idx, 'second_runner_up', e.target.value)} placeholder="🥉 3rd (RM 600)" className="md:col-span-2 bg-black/50 border border-ink/5 rounded-lg px-3 py-2 text-xs text-ink font-mono" />
+                                        <button type="button" onClick={() => removeRow('prize_pool', idx)} className="md:col-span-1 h-9 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center"><i className="fa-solid fa-trash-can text-xs" /></button>
                                     </div>
                                 ))}
                             </div>
+
+                            {/* Run Route, Water Stations, REPC & FAQ (when Running Event Showcase is ON) */}
+                            {settings.fields_config?.enable_run_module && (() => {
+                                const runCfg = settings.fields_config?.run_config || {};
+                                const setRunCfg = (patch: any) => setSettings({
+                                    ...settings,
+                                    fields_config: { ...settings.fields_config, run_config: { ...runCfg, ...patch } }
+                                });
+                                const stations: any[] = Array.isArray(runCfg.stations) ? runCfg.stations : [];
+                                const faqs: any[] = Array.isArray(runCfg.faq) ? runCfg.faq : [];
+                                const repc = runCfg.repc || {};
+                                const updateStation = (i: number, patch: any) => {
+                                    const next = [...stations];
+                                    next[i] = { ...next[i], ...patch };
+                                    setRunCfg({ stations: next });
+                                };
+                                const updateFaq = (i: number, patch: any) => {
+                                    const next = [...faqs];
+                                    next[i] = { ...next[i], ...patch };
+                                    setRunCfg({ faq: next });
+                                };
+
+                                return (
+                                    <div className="pt-6 border-t border-cyan-500/20 space-y-6">
+                                        <div className="flex flex-wrap items-center justify-between gap-2">
+                                            <div>
+                                                <label className="text-[10px] font-black tracking-widest uppercase text-cyan-400">Run Route, Water Stations, REPC & FAQ</label>
+                                                <p className="text-[10px] text-zinc-500 mt-0.5">Powers the linear route map, aid station table, REPC panel, and FAQ accordion on the public portal.</p>
+                                            </div>
+                                        </div>
+
+                                        {/* General Run Venue Logistics */}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-black/30 p-4 rounded-2xl border border-ink/5">
+                                            <div>
+                                                <label className="text-[9px] font-black uppercase tracking-widest text-zinc-500 block mb-1">City / Region Badge</label>
+                                                <input value={runCfg.city || ''} onChange={e => setRunCfg({ city: e.target.value })} placeholder="Bintulu, Sarawak" className="w-full bg-black/50 border border-ink/5 rounded-lg px-3 py-2 text-xs text-ink" />
+                                            </div>
+                                            <div>
+                                                <label className="text-[9px] font-black uppercase tracking-widest text-zinc-500 block mb-1">External Route Map URL (Strava / GPX / GMaps)</label>
+                                                <input value={runCfg.course_map_url || ''} onChange={e => setRunCfg({ course_map_url: e.target.value })} placeholder="https://www.google.com/maps/..." className="w-full bg-black/50 border border-ink/5 rounded-lg px-3 py-2 text-xs text-ink" />
+                                            </div>
+                                            <div>
+                                                <label className="text-[9px] font-black uppercase tracking-widest text-zinc-500 block mb-1">Parking / Access Info</label>
+                                                <input value={runCfg.parking || ''} onChange={e => setRunCfg({ parking: e.target.value })} placeholder="Free parking at Lasar Kenyalang..." className="w-full bg-black/50 border border-ink/5 rounded-lg px-3 py-2 text-xs text-ink" />
+                                            </div>
+                                            <div>
+                                                <label className="text-[9px] font-black uppercase tracking-widest text-zinc-500 block mb-1">Finish Village Facilities (comma-separated)</label>
+                                                <input
+                                                    value={Array.isArray(runCfg.village_facilities) ? runCfg.village_facilities.join(', ') : (runCfg.village_facilities || '')}
+                                                    onChange={e => setRunCfg({ village_facilities: e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean) })}
+                                                    placeholder="Finish Arch, Baggage Deposit, Medical Tent, Toilets"
+                                                    className="w-full bg-black/50 border border-ink/5 rounded-lg px-3 py-2 text-xs text-ink"
+                                                />
+                                            </div>
+                                            <div className="md:col-span-2">
+                                                <label className="text-[9px] font-black uppercase tracking-widest text-zinc-500 block mb-1">Finisher & Prize Note</label>
+                                                <input value={runCfg.prize_note || ''} onChange={e => setRunCfg({ prize_note: e.target.value })} placeholder="All finishers within cut-off receive an official 3D medal & e-certificate." className="w-full bg-black/50 border border-ink/5 rounded-lg px-3 py-2 text-xs text-ink" />
+                                            </div>
+                                        </div>
+
+                                        {/* REPC (Race Kit Collection) */}
+                                        <div className="bg-black/30 p-4 rounded-2xl border border-ink/5 space-y-3">
+                                            <label className="text-[9px] font-black uppercase tracking-widest text-cyan-400 block">Race Entry Pack Collection (REPC)</label>
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                                <input value={repc.dates || ''} onChange={e => setRunCfg({ repc: { ...repc, dates: e.target.value } })} placeholder="Dates (e.g. 12–13 Feb 2027)" className="bg-black/50 border border-ink/5 rounded-lg px-3 py-2 text-xs text-ink" />
+                                                <input value={repc.time || ''} onChange={e => setRunCfg({ repc: { ...repc, time: e.target.value } })} placeholder="Hours (10:00 AM – 8:00 PM)" className="bg-black/50 border border-ink/5 rounded-lg px-3 py-2 text-xs text-ink" />
+                                                <input value={repc.venue || ''} onChange={e => setRunCfg({ repc: { ...repc, venue: e.target.value } })} placeholder="Venue (e.g. Parkcity Mall Bintulu)" className="bg-black/50 border border-ink/5 rounded-lg px-3 py-2 text-xs text-ink" />
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                                <textarea
+                                                    rows={3}
+                                                    value={Array.isArray(repc.bring) ? repc.bring.join('\n') : (repc.bring || '')}
+                                                    onChange={e => setRunCfg({ repc: { ...repc, bring: e.target.value.split('\n').map((s: string) => s.trim()).filter(Boolean) } })}
+                                                    placeholder="Items to bring (one per line)&#10;Original IC / Passport&#10;Confirmation screenshot"
+                                                    className="bg-black/50 border border-ink/5 rounded-lg px-3 py-2 text-xs text-ink font-sans"
+                                                />
+                                                <textarea
+                                                    rows={3}
+                                                    value={repc.notes || ''}
+                                                    onChange={e => setRunCfg({ repc: { ...repc, notes: e.target.value } })}
+                                                    placeholder="Special notes (e.g. Outstation runner race-morning collection window)"
+                                                    className="bg-black/50 border border-ink/5 rounded-lg px-3 py-2 text-xs text-ink font-sans"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Water & Aid Stations */}
+                                        <div className="space-y-2.5">
+                                            <div className="flex items-center justify-between">
+                                                <label className="text-[9px] font-black tracking-widest uppercase text-zinc-500">Out-and-Back Water & Aid Stations</label>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setRunCfg({ stations: [...stations, { code: `WS${stations.length + 1}`, name: '', landmark: '', km: 2.5 * (stations.length + 1), supplies: ['Water'] }] })}
+                                                    className="px-3 py-1.5 bg-cyan-500/15 text-cyan-400 rounded-lg text-[10px] font-black uppercase tracking-widest"
+                                                >
+                                                    + Add Station
+                                                </button>
+                                            </div>
+                                            {stations.map((st: any, idx: number) => (
+                                                <div key={idx} className="grid grid-cols-1 md:grid-cols-12 gap-2 items-center bg-black/30 p-2.5 rounded-xl border border-ink/5">
+                                                    <input value={st.code || ''} onChange={e => updateStation(idx, { code: e.target.value })} placeholder="WS1" className="md:col-span-1 bg-black/50 border border-ink/5 rounded-lg px-2.5 py-2 text-xs text-cyan-400 font-black font-mono" />
+                                                    <input type="number" step="0.05" value={st.km ?? ''} onChange={e => updateStation(idx, { km: parseFloat(e.target.value) || 0 })} placeholder="KM" className="md:col-span-2 bg-black/50 border border-ink/5 rounded-lg px-2.5 py-2 text-xs text-amber-400 font-mono" />
+                                                    <input value={st.name || ''} onChange={e => updateStation(idx, { name: e.target.value })} placeholder="Station Name" className="md:col-span-3 bg-black/50 border border-ink/5 rounded-lg px-2.5 py-2 text-xs text-ink font-bold" />
+                                                    <input value={st.landmark || ''} onChange={e => updateStation(idx, { landmark: e.target.value })} placeholder="Landmark / Junction" className="md:col-span-3 bg-black/50 border border-ink/5 rounded-lg px-2.5 py-2 text-xs text-zinc-400" />
+                                                    <input
+                                                        value={Array.isArray(st.supplies) ? st.supplies.join(', ') : (st.supplies || '')}
+                                                        onChange={e => updateStation(idx, { supplies: e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean) })}
+                                                        placeholder="Water, 100PLUS, Timing Mat"
+                                                        className="md:col-span-2 bg-black/50 border border-ink/5 rounded-lg px-2.5 py-2 text-xs text-ink"
+                                                    />
+                                                    <button type="button" onClick={() => setRunCfg({ stations: stations.filter((_: any, i: number) => i !== idx) })} className="md:col-span-1 h-9 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center"><i className="fa-solid fa-trash-can text-xs" /></button>
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        {/* Event FAQ */}
+                                        <div className="space-y-2.5">
+                                            <div className="flex items-center justify-between">
+                                                <label className="text-[9px] font-black tracking-widest uppercase text-zinc-500">Frequently Asked Questions (FAQ)</label>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setRunCfg({ faq: [...faqs, { q: '', a: '' }] })}
+                                                    className="px-3 py-1.5 bg-accent/10 text-accent-bright rounded-lg text-[10px] font-black uppercase tracking-widest"
+                                                >
+                                                    + Add FAQ
+                                                </button>
+                                            </div>
+                                            {faqs.map((item: any, idx: number) => (
+                                                <div key={idx} className="grid grid-cols-1 md:grid-cols-12 gap-2 items-start bg-black/30 p-2.5 rounded-xl border border-ink/5">
+                                                    <input value={item.q || ''} onChange={e => updateFaq(idx, { q: e.target.value })} placeholder="Question" className="md:col-span-5 bg-black/50 border border-ink/5 rounded-lg px-3 py-2 text-xs text-ink font-bold" />
+                                                    <input value={item.a || ''} onChange={e => updateFaq(idx, { a: e.target.value })} placeholder="Answer" className="md:col-span-6 bg-black/50 border border-ink/5 rounded-lg px-3 py-2 text-xs text-zinc-300" />
+                                                    <button type="button" onClick={() => setRunCfg({ faq: faqs.filter((_: any, i: number) => i !== idx) })} className="md:col-span-1 h-9 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center"><i className="fa-solid fa-trash-can text-xs" /></button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                );
+                            })()}
                         </div>
                     </div>
 
                     {/* Preview sidebar */}
                     <div className="space-y-6">
                         <div className="bg-ink/[0.03] border border-ink/5 backdrop-blur-xl p-8 rounded-[32px] sticky top-24 shadow-xl">
-                            <h3 className="text-[10px] font-black tracking-widest uppercase text-zinc-500 mb-6">Portal Links</h3>
+                            <h3 className="text-[10px] font-black tracking-widest uppercase text-zinc-500 mb-6">Unified Portal Link</h3>
 
                             <div className="space-y-6">
                                 <div className="bg-white p-5 rounded-3xl inline-block mx-auto w-full flex justify-center shadow-2xl">
@@ -1047,14 +1287,8 @@ export default function RegistrationStudio() {
                                 </div>
                                 <Link href={publicRegPath || '#'} target="_blank" className="flex items-center justify-center gap-3 w-full bg-accent text-white rounded-2xl px-6 py-4 font-black text-[10px] tracking-widest uppercase shadow-lg hover:scale-[1.02] transition-all">
                                     <i className="fa-solid fa-external-link" />
-                                    Open Registration Portal
+                                    Open All-in-One Event Portal
                                 </Link>
-                                {publicPagePath && (
-                                    <Link href={publicPagePath} target="_blank" className="flex items-center justify-center gap-3 w-full bg-ink/5 border border-ink/10 text-ink rounded-2xl px-6 py-4 font-black text-[10px] tracking-widest uppercase hover:bg-ink/10 transition-all">
-                                        <i className="fa-solid fa-globe" />
-                                        Open Info Landing Page (/t/{settings.page_slug})
-                                    </Link>
-                                )}
                             </div>
                         </div>
                     </div>
@@ -1240,17 +1474,31 @@ export default function RegistrationStudio() {
                                 <span className="text-white font-bold">{selectedSub.captain_ic || '—'}</span>
                             </div>
                             <div>
-                                <span className="text-zinc-500 block text-[10px] uppercase font-bold">Role / Staff ID</span>
-                                <span className="text-white font-bold">{selectedSub.captain_role || selectedSub.captain_details?.staff_id || '—'}</span>
+                                <span className="text-zinc-500 block text-[10px] uppercase font-bold">BIB Name / Role</span>
+                                <span className="text-white font-bold">{selectedSub.captain_details?.bib_name || selectedSub.captain_role || selectedSub.captain_details?.staff_id || '—'}</span>
                             </div>
                             <div>
-                                <span className="text-zinc-500 block text-[10px] uppercase font-bold">T-Shirt Size</span>
+                                <span className="text-zinc-500 block text-[10px] uppercase font-bold">Jersey / T-Shirt Size</span>
                                 <span className="text-amber-400 font-bold">{selectedSub.captain_details?.tshirt_size || '—'}</span>
                             </div>
                             <div>
-                                <span className="text-zinc-500 block text-[10px] uppercase font-bold">Dietary</span>
-                                <span className="text-white font-bold">{selectedSub.captain_details?.dietary || '—'}</span>
+                                <span className="text-zinc-500 block text-[10px] uppercase font-bold">Blood Type / Dietary</span>
+                                <span className="text-white font-bold">{selectedSub.captain_details?.blood_type || selectedSub.captain_details?.dietary || '—'}</span>
                             </div>
+                            {selectedSub.captain_details?.total_fee_rm > 0 && (
+                                <div>
+                                    <span className="text-zinc-500 block text-[10px] uppercase font-bold">Total Fee</span>
+                                    <span className="text-emerald-400 font-black">RM {Number(selectedSub.captain_details.total_fee_rm).toFixed(2)}</span>
+                                </div>
+                            )}
+                            {selectedSub.captain_details?.emergency_contact?.name && (
+                                <div className="col-span-2">
+                                    <span className="text-zinc-500 block text-[10px] uppercase font-bold">Emergency Contact</span>
+                                    <span className="text-white font-bold">
+                                        {selectedSub.captain_details.emergency_contact.name} ({selectedSub.captain_details.emergency_contact.relationship || 'Contact'}) — {selectedSub.captain_details.emergency_contact.phone || '—'}
+                                    </span>
+                                </div>
+                            )}
                         </div>
 
                         {selectedSub.captain_details?.remarks && (
