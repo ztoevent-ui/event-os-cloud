@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { CourseSection, Station } from './CourseSection';
 
-export type RegState = 'open' | 'not_open' | 'closed';
+export type RegState = 'open' | 'not_open' | 'closed' | 'info_only';
 
 type Props = {
     project: any;
@@ -82,6 +82,7 @@ function normalizeSchedule(raw: any): { date?: string; time: string; label: stri
 export function EventPortal({ project, settings, regState, children }: Props) {
     const accent: string = settings.theme_color || '#f59e0b';
     const title: string = settings.slogan || project?.name || 'Event Registration';
+    const isInfoOnly = regState === 'info_only';
     const fc = settings.fields_config || {};
     const run = fc.run_config || {};
     const categories: any[] = Array.isArray(settings.categories) ? settings.categories.filter((c: any) => c?.name) : [];
@@ -95,6 +96,10 @@ export function EventPortal({ project, settings, regState, children }: Props) {
     const minFee = fees.length ? Math.min(...fees) : null;
     const stations: Station[] = Array.isArray(run.stations) ? run.stations : [];
     const hasCourse = !!fc.enable_run_module && stations.length > 0 && categories.some(c => Number(c.distance_km) > 0);
+    const spotlight = run.spotlight;
+    const posters: { label: string; lang?: string; url: string }[] = Array.isArray(run.posters) ? run.posters : [];
+    const secondaryVenue = run.secondary_venue;
+    const showCategoriesSection = run.show_categories !== false && categories.length > 0;
     const rules = splitLines(settings.rules);
     const notes = splitLines(settings.format_description);
     const faq: { q: string; a: string }[] = Array.isArray(run.faq) ? run.faq : [];
@@ -103,7 +108,7 @@ export function EventPortal({ project, settings, regState, children }: Props) {
     const showSizeChart = !!fc.show_tshirt_size;
     const whatsapp = social.whatsapp ? `https://wa.me/${String(social.whatsapp).replace(/\D/g, '')}` : null;
     const hasPrizeTiers = prizes.some(p => p.champion || p.runner_up || p.second_runner_up);
-    const hasInfo = rules.length > 0 || notes.length > 0 || faq.length > 0 || showSizeChart;
+    const hasInfo = rules.length > 0 || notes.length > 0 || faq.length > 0 || showSizeChart || posters.length > 0;
 
     const closeTs = settings.reg_close_date
         ? new Date(String(settings.reg_close_date).includes('T') ? settings.reg_close_date : `${settings.reg_close_date}T23:59:59`).getTime()
@@ -112,19 +117,20 @@ export function EventPortal({ project, settings, regState, children }: Props) {
         ? Math.ceil((closeTs - Date.now()) / 86400000)
         : null;
 
-    const [showBanner, setShowBanner] = useState(false);
+    const [lightboxImg, setLightboxImg] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
     const [activeSection, setActiveSection] = useState('overview');
 
     const navItems = [
         { id: 'overview', label: 'Overview', show: true },
-        { id: 'categories', label: hasCourse ? 'Categories & Fees' : 'Categories', show: categories.length > 0 },
-        { id: 'route', label: 'Route & Water Stations', show: hasCourse },
+        { id: 'spotlight', label: spotlight?.nav_label || 'Worship & Churches', show: !!spotlight },
+        { id: 'categories', label: hasCourse ? 'Categories & Fees' : 'Categories', show: showCategoriesSection },
+        { id: 'route', label: run.route_nav_label || (run.route_type === 'point_to_point' ? 'Parade Route' : 'Route & Water Stations'), show: hasCourse },
         { id: 'schedule', label: 'Schedule', show: schedule.length > 0 || !!repc },
         { id: 'prizes', label: 'Prizes', show: prizes.length > 0 },
-        { id: 'info', label: 'Rules & FAQ', show: hasInfo },
+        { id: 'info', label: run.info_nav_label || (isInfoOnly ? 'Posters & Guide' : 'Rules & FAQ'), show: hasInfo },
         { id: 'venue', label: 'Venue', show: !!venueName },
-        { id: 'register', label: 'Register', show: true },
+        { id: 'register', label: 'Register', show: !isInfoOnly },
     ].filter(n => n.show);
 
     useEffect(() => {
@@ -159,7 +165,12 @@ export function EventPortal({ project, settings, regState, children }: Props) {
     const highlights: { icon?: string; label: string; detail?: string }[] = Array.isArray(run.highlights) ? run.highlights : [];
 
     const statusPill =
-        regState === 'open' ? (
+        regState === 'info_only' ? (
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[11px] font-black uppercase tracking-wider">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                {run.status_badge || 'Event Information · Free Admission'}
+            </span>
+        ) : regState === 'open' ? (
             <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[11px] font-black uppercase tracking-wider">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 Registration open{daysLeft !== null && daysLeft >= 0 ? ` · ${daysLeft} days left` : ''}
@@ -179,19 +190,35 @@ export function EventPortal({ project, settings, regState, children }: Props) {
             icon: 'fa-regular fa-calendar',
             label: 'Event date',
             value: fmtDate(project.start_date) + (project.end_date && project.end_date !== project.start_date ? ` – ${fmtDate(project.end_date)}` : ''),
-            sub: categories.map(c => c.flag_off).filter(Boolean).length
+            sub: run.time_summary || (categories.map(c => c.flag_off).filter(Boolean).length
                 ? `First flag-off ${[...categories.map(c => c.flag_off).filter(Boolean)].sort((a, b) => toMin(a) - toMin(b))[0]}`
-                : undefined,
+                : undefined),
         },
-        venueName && { icon: 'fa-solid fa-location-dot', label: 'Venue', value: venueName, sub: run.city || undefined },
-        categories.length > 0 && {
+        venueName && { icon: 'fa-solid fa-location-dot', label: run.start_label || 'Venue', value: venueName, sub: run.city || undefined },
+        run.finish_venue && {
+            icon: 'fa-solid fa-flag-checkered',
+            label: 'Finish point',
+            value: run.finish_venue,
+            sub: run.finish_note || undefined,
+        },
+        showCategoriesSection && {
             icon: hasCourse ? 'fa-solid fa-person-running' : 'fa-solid fa-layer-group',
             label: 'Categories',
             value: categories.map(c => c.short || c.name).join(' · '),
             sub: `${categories.length} categories`,
         },
-        minFee !== null && { icon: 'fa-solid fa-ticket', label: 'Entry fee', value: `From RM ${minFee}`, sub: fees.length > 1 ? `Up to RM ${Math.max(...fees)}` : undefined },
-        settings.reg_close_date && {
+        minFee !== null
+            ? { icon: 'fa-solid fa-ticket', label: 'Entry fee', value: `From RM ${minFee}`, sub: fees.length > 1 ? `Up to RM ${Math.max(...fees)}` : undefined }
+            : run.admission_label
+              ? { icon: 'fa-solid fa-ticket', label: 'Admission', value: run.admission_label, sub: run.admission_sub || undefined }
+              : null,
+        run.after_event_fact && {
+            icon: run.after_event_fact.icon || 'fa-solid fa-hands-praying',
+            label: run.after_event_fact.label || 'After parade',
+            value: run.after_event_fact.value,
+            sub: run.after_event_fact.sub || undefined,
+        },
+        !isInfoOnly && settings.reg_close_date && {
             icon: 'fa-solid fa-hourglass-half',
             label: 'Registration closes',
             value: fmtDate(settings.reg_close_date, false),
@@ -203,12 +230,12 @@ export function EventPortal({ project, settings, regState, children }: Props) {
         facts.length >= 5
             ? 'lg:grid-cols-5'
             : facts.length === 4
-              ? 'lg:grid-cols-4'
-              : facts.length === 3
-                ? 'lg:grid-cols-3'
-                : facts.length === 2
-                  ? 'lg:grid-cols-2'
-                  : 'lg:grid-cols-1';
+                ? 'lg:grid-cols-4'
+                : facts.length === 3
+                    ? 'lg:grid-cols-3'
+                    : facts.length === 2
+                        ? 'lg:grid-cols-2'
+                        : 'lg:grid-cols-1';
 
     return (
         <div className="min-h-screen w-full overflow-x-clip bg-[#07080b] text-zinc-300 font-sans pb-24 lg:pb-0" style={{ ['--accent' as any]: accent }}>
@@ -245,6 +272,15 @@ export function EventPortal({ project, settings, regState, children }: Props) {
                             Register
                         </a>
                     )}
+                    {isInfoOnly && (
+                        <a
+                            href={hasCourse ? '#route' : '#schedule'}
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-[11px] font-black uppercase tracking-wider text-black hover:opacity-90"
+                            style={{ backgroundColor: accent }}
+                        >
+                            <i className="fa-solid fa-route" /> {run.top_cta_label || (hasCourse ? 'Parade Route' : 'Schedule')}
+                        </a>
+                    )}
                 </div>
             </div>
 
@@ -265,7 +301,7 @@ export function EventPortal({ project, settings, regState, children }: Props) {
                     {settings.hero_banner_url && (
                         <button
                             type="button"
-                            onClick={() => setShowBanner(true)}
+                            onClick={() => setLightboxImg(settings.hero_banner_url)}
                             className="block w-full rounded-3xl overflow-hidden border border-white/10 shadow-2xl cursor-zoom-in"
                         >
                             <img src={settings.hero_banner_url} alt={title} className="w-full h-auto max-h-[560px] object-cover" />
@@ -298,7 +334,32 @@ export function EventPortal({ project, settings, regState, children }: Props) {
                                     <i className="fa-solid fa-pen-to-square" /> Register now
                                 </a>
                             )}
-                            {hasCourse && (
+                            {isInfoOnly && hasCourse && (
+                                <a
+                                    href="#route"
+                                    className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-sm font-black uppercase tracking-wider text-black hover:opacity-90 shadow-lg"
+                                    style={{ backgroundColor: accent, boxShadow: `0 10px 30px ${accent}40` }}
+                                >
+                                    <i className="fa-solid fa-route" /> Parade route
+                                </a>
+                            )}
+                            {isInfoOnly && spotlight && (
+                                <a
+                                    href="#spotlight"
+                                    className="inline-flex items-center gap-2 px-5 py-3.5 rounded-xl text-sm font-bold text-white border border-white/15 hover:bg-white/5"
+                                >
+                                    <i className="fa-solid fa-music" /> {spotlight.cta_label || 'United Worship'}
+                                </a>
+                            )}
+                            {isInfoOnly && schedule.length > 0 && (
+                                <a
+                                    href="#schedule"
+                                    className="inline-flex items-center gap-2 px-5 py-3.5 rounded-xl text-sm font-bold text-white border border-white/15 hover:bg-white/5"
+                                >
+                                    <i className="fa-regular fa-clock" /> Schedule
+                                </a>
+                            )}
+                            {!isInfoOnly && hasCourse && (
                                 <a
                                     href="#route"
                                     className="inline-flex items-center gap-2 px-5 py-3.5 rounded-xl text-sm font-bold text-white border border-white/15 hover:bg-white/5"
@@ -336,9 +397,8 @@ export function EventPortal({ project, settings, regState, children }: Props) {
                             <a
                                 key={n.id}
                                 href={`#${n.id}`}
-                                className={`whitespace-nowrap px-3.5 py-3.5 text-[11px] font-black uppercase tracking-wider border-b-2 transition-colors ${
-                                    active ? 'text-white' : 'text-zinc-500 border-transparent hover:text-zinc-300'
-                                }`}
+                                className={`whitespace-nowrap px-3.5 py-3.5 text-[11px] font-black uppercase tracking-wider border-b-2 transition-colors ${active ? 'text-white' : 'text-zinc-500 border-transparent hover:text-zinc-300'
+                                    }`}
                                 style={active ? { borderColor: accent } : undefined}
                             >
                                 {n.label}
@@ -371,8 +431,98 @@ export function EventPortal({ project, settings, regState, children }: Props) {
                         )}
                     </Section>
 
+                    {/* Spotlight: Post-Parade Finale & Churches */}
+                    {spotlight && (
+                        <Section
+                            id="spotlight"
+                            eyebrow={spotlight.eyebrow || 'Featured Program Highlight'}
+                            title={spotlight.title || 'Post-Parade United Celebration'}
+                            sub={spotlight.subtitle || undefined}
+                            accent={accent}
+                        >
+                            <div
+                                className="rounded-3xl border border-white/15 bg-zinc-900/70 overflow-hidden"
+                                style={{ boxShadow: `0 20px 60px ${accent}14` }}
+                            >
+                                <div
+                                    className="p-6 md:p-7 border-b border-white/10"
+                                    style={{ background: `linear-gradient(135deg, ${accent}22, rgba(24,24,27,0.4) 60%)` }}
+                                >
+                                    <div className="flex flex-wrap items-center justify-between gap-3">
+                                        {spotlight.badge && (
+                                            <span
+                                                className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider text-black"
+                                                style={{ backgroundColor: accent }}
+                                            >
+                                                <i className="fa-solid fa-music" /> {spotlight.badge}
+                                            </span>
+                                        )}
+                                        {spotlight.time && (
+                                            <span className="text-xs font-mono font-bold text-amber-200 bg-black/40 border border-white/10 px-3 py-1 rounded-lg">
+                                                <i className="fa-regular fa-clock mr-1.5" style={{ color: accent }} />
+                                                {spotlight.time}
+                                            </span>
+                                        )}
+                                    </div>
+                                    {spotlight.venue && (
+                                        <div className="mt-4 flex items-start gap-3">
+                                            <i className="fa-solid fa-church mt-1 text-base shrink-0" style={{ color: accent }} />
+                                            <div>
+                                                <div className="text-lg md:text-xl font-black text-white">{spotlight.venue}</div>
+                                                {spotlight.venue_note && (
+                                                    <p className="text-[13px] text-zinc-300 mt-1.5 leading-relaxed">{spotlight.venue_note}</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {Array.isArray(spotlight.churches) && spotlight.churches.length > 0 && (
+                                    <div className="p-6 md:p-7">
+                                        <div className="text-[11px] font-black uppercase tracking-widest text-zinc-400 mb-4">
+                                            {spotlight.highlight_note || 'Co-led by participating denominations & worship teams'}
+                                        </div>
+                                        <div className="grid sm:grid-cols-2 gap-3">
+                                            {spotlight.churches.map((ch: any, idx: number) => {
+                                                const cColor = ch.color || accent;
+                                                return (
+                                                    <div
+                                                        key={idx}
+                                                        className="rounded-2xl border border-white/10 bg-black/45 p-4 flex items-start gap-3.5"
+                                                    >
+                                                        <span
+                                                            className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-sm font-black text-black"
+                                                            style={{ backgroundColor: cColor }}
+                                                        >
+                                                            <i className={ch.icon || 'fa-solid fa-place-of-worship'} />
+                                                        </span>
+                                                        <div className="min-w-0 flex-1">
+                                                            <div className="flex flex-wrap items-center gap-2">
+                                                                <span className="text-sm font-black text-white leading-snug">{ch.name}</span>
+                                                                {ch.badge && (
+                                                                    <span
+                                                                        className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-white/5 border border-white/10"
+                                                                        style={{ color: cColor }}
+                                                                    >
+                                                                        {ch.badge}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            {ch.name_zh && <div className="text-xs font-semibold text-zinc-300 mt-0.5">{ch.name_zh}</div>}
+                                                            {ch.role && <div className="text-[11px] text-zinc-400 mt-1 leading-snug">{ch.role}</div>}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </Section>
+                    )}
+
                     {/* Categories */}
-                    {categories.length > 0 && (
+                    {showCategoriesSection && (
                         <Section
                             id="categories"
                             eyebrow="Choose your challenge"
@@ -443,13 +593,15 @@ export function EventPortal({ project, settings, regState, children }: Props) {
                         </Section>
                     )}
 
-                    {/* Route & water stations */}
+                    {/* Route & checkpoints / water stations */}
                     {hasCourse && (
                         <Section
                             id="route"
-                            eyebrow="Course"
-                            title="Route & water stations"
-                            sub="Out-and-back course. Every water station before the U-turn is passed twice."
+                            eyebrow={run.route_eyebrow || (run.route_type === 'point_to_point' ? 'Parade Route' : 'Course')}
+                            title={run.route_title || (run.route_type === 'point_to_point' ? 'Parade route & checkpoints' : 'Route & water stations')}
+                            sub={run.route_sub ?? (run.route_type === 'point_to_point'
+                                ? 'Point-to-point route map with gathering points and major landmarks. Tap any checkpoint or open directions in Google Maps.'
+                                : 'Out-and-back course. Every water station before the U-turn is passed twice.')}
                             accent={accent}
                         >
                             <CourseSection
@@ -459,6 +611,11 @@ export function EventPortal({ project, settings, regState, children }: Props) {
                                 accent={accent}
                                 courseMapUrl={run.course_map_url}
                                 startPoint={run.start_point}
+                                endPoint={run.finish_point}
+                                routeType={run.route_type}
+                                checkpointLabel={run.checkpoint_label}
+                                detailLabel={run.detail_label}
+                                finishRowTitle={run.finish_row_title}
                                 venueMapQuery={mapQuery}
                             />
                         </Section>
@@ -503,7 +660,7 @@ export function EventPortal({ project, settings, regState, children }: Props) {
                                         <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1">
                                             {project?.start_date ? fmtDate(project.start_date) : 'Event day'}
                                         </div>
-                                        <div className="text-base font-black text-white mb-5">Race day schedule</div>
+                                        <div className="text-base font-black text-white mb-5">{run.schedule_title || (isInfoOnly ? 'Program schedule' : 'Race day schedule')}</div>
                                         <ol className="relative">
                                             {schedule.map((s, i) => (
                                                 <li key={i} className="relative flex gap-4 pb-4 last:pb-0">
@@ -574,13 +731,54 @@ export function EventPortal({ project, settings, regState, children }: Props) {
                         </Section>
                     )}
 
-                    {/* Rules, size chart, FAQ */}
+                    {/* Rules, posters, size chart, FAQ */}
                     {hasInfo && (
-                        <Section id="info" eyebrow="Good to know" title="Rules, sizes & FAQ" accent={accent}>
+                        <Section
+                            id="info"
+                            eyebrow={run.info_eyebrow || 'Good to know'}
+                            title={run.info_title || (isInfoOnly ? 'Official posters, advisories & FAQ' : 'Rules, sizes & FAQ')}
+                            accent={accent}
+                        >
                             <div className="space-y-4">
+                                {posters.length > 0 && (
+                                    <div className="rounded-3xl border border-white/10 bg-zinc-900/60 p-6">
+                                        <div className="flex items-center justify-between gap-2 mb-4">
+                                            <div className="text-sm font-black text-white">
+                                                <i className="fa-regular fa-images mr-2" style={{ color: accent }} />
+                                                {run.posters_title || 'Official Program Posters (Tap to enlarge)'}
+                                            </div>
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">EN / 中文</span>
+                                        </div>
+                                        <div className="grid sm:grid-cols-2 gap-4">
+                                            {posters.map((p, idx) => (
+                                                <button
+                                                    key={idx}
+                                                    type="button"
+                                                    onClick={() => setLightboxImg(p.url)}
+                                                    className="group text-left rounded-2xl overflow-hidden border border-white/10 bg-black/40 hover:border-white/25 transition-all cursor-zoom-in"
+                                                >
+                                                    <div className="aspect-video w-full overflow-hidden bg-zinc-950 p-1.5 flex items-center justify-center">
+                                                        <img
+                                                            src={p.url}
+                                                            alt={p.label}
+                                                            className="w-full h-full object-contain group-hover:scale-[1.02] transition-transform duration-300"
+                                                        />
+                                                    </div>
+                                                    <div className="px-4 py-3 flex items-center justify-between gap-2">
+                                                        <span className="text-xs font-bold text-white">{p.label}</span>
+                                                        <span className="text-[10px] font-black uppercase tracking-wider text-zinc-400 group-hover:text-white flex items-center gap-1">
+                                                            <i className="fa-solid fa-magnifying-glass-plus" /> View
+                                                        </span>
+                                                    </div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
                                 {(rules.length > 0 || notes.length > 0) && (
                                     <div className="rounded-3xl border border-white/10 bg-zinc-900/60 p-6">
-                                        <div className="text-sm font-black text-white mb-4">Race rules</div>
+                                        <div className="text-sm font-black text-white mb-4">{run.rules_title || (isInfoOnly ? 'Parade guidelines & advisories' : 'Race rules')}</div>
                                         <ol className="space-y-2.5 text-[13px] text-zinc-300">
                                             {[...rules, ...notes].map((r, i) => (
                                                 <li key={i} className="flex gap-3">
@@ -618,60 +816,117 @@ export function EventPortal({ project, settings, regState, children }: Props) {
 
                     {/* Venue */}
                     {venueName && (
-                        <Section id="venue" eyebrow="Getting there" title="Venue" accent={accent}>
-                            <div className="rounded-3xl border border-white/10 bg-zinc-900/60 overflow-hidden grid md:grid-cols-[1fr_1.3fr]">
-                                <div className="p-6 flex flex-col">
-                                    <div className="text-lg font-black text-white">{venueName}</div>
-                                    {venueAddress && <p className="text-sm text-zinc-400 mt-1.5 leading-relaxed">{venueAddress}</p>}
-                                    {run.parking && <p className="text-xs text-zinc-500 mt-4"><i className="fa-solid fa-square-parking mr-1.5" style={{ color: accent }} />{run.parking}</p>}
-                                    <div className="flex flex-wrap gap-2 mt-auto pt-6">
-                                        <a
-                                            href={settings.venue_map_url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-black text-black"
-                                            style={{ backgroundColor: accent }}
-                                        >
-                                            <i className="fa-solid fa-map-location-dot" /> Google Maps
-                                        </a>
-                                        <a
-                                            href={`https://waze.com/ul?q=${encodeURIComponent(mapQuery)}&navigate=yes`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-bold text-white border border-white/15 hover:bg-white/5"
-                                        >
-                                            <i className="fa-brands fa-waze" /> Waze
-                                        </a>
+                        <Section
+                            id="venue"
+                            eyebrow="Getting there"
+                            title={secondaryVenue?.name ? 'Venues & parking' : 'Venue'}
+                            accent={accent}
+                        >
+                            <div className="space-y-4">
+                                <div className="rounded-3xl border border-white/10 bg-zinc-900/60 overflow-hidden grid md:grid-cols-[1fr_1.3fr]">
+                                    <div className="p-6 flex flex-col">
+                                        {run.primary_venue_badge && (
+                                            <span
+                                                className="inline-flex self-start items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider text-black mb-2"
+                                                style={{ backgroundColor: accent }}
+                                            >
+                                                {run.primary_venue_badge}
+                                            </span>
+                                        )}
+                                        <div className="text-lg font-black text-white">{venueName}</div>
+                                        {venueAddress && <p className="text-sm text-zinc-400 mt-1.5 leading-relaxed">{venueAddress}</p>}
+                                        {run.parking && <p className="text-xs text-zinc-500 mt-4"><i className="fa-solid fa-square-parking mr-1.5" style={{ color: accent }} />{run.parking}</p>}
+                                        <div className="flex flex-wrap gap-2 mt-auto pt-6">
+                                            <a
+                                                href={settings.venue_map_url || (run.start_point ? `https://www.google.com/maps/search/?api=1&query=${run.start_point.lat},${run.start_point.lng}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`)}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-black text-black"
+                                                style={{ backgroundColor: accent }}
+                                            >
+                                                <i className="fa-solid fa-map-location-dot" /> Google Maps
+                                            </a>
+                                            <a
+                                                href={run.start_point ? `https://waze.com/ul?ll=${run.start_point.lat},${run.start_point.lng}&navigate=yes` : `https://waze.com/ul?q=${encodeURIComponent(mapQuery)}&navigate=yes`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-bold text-white border border-white/15 hover:bg-white/5"
+                                            >
+                                                <i className="fa-brands fa-waze" /> Waze
+                                            </a>
+                                        </div>
                                     </div>
+                                    <iframe
+                                        title="Venue map"
+                                        src={`https://www.google.com/maps?q=${encodeURIComponent(run.start_point ? `${run.start_point.lat},${run.start_point.lng}` : mapQuery)}&z=16&output=embed`}
+                                        loading="lazy"
+                                        className="w-full h-64 md:h-full min-h-[260px] border-0 grayscale-[35%]"
+                                    />
                                 </div>
-                                <iframe
-                                    title="Venue map"
-                                    src={`https://www.google.com/maps?q=${encodeURIComponent(mapQuery)}&z=15&output=embed`}
-                                    loading="lazy"
-                                    className="w-full h-64 md:h-full min-h-[260px] border-0 grayscale-[35%]"
-                                />
+
+                                {secondaryVenue?.name && (
+                                    <div className="rounded-3xl border border-white/10 bg-zinc-900/60 overflow-hidden grid md:grid-cols-[1fr_1.3fr]">
+                                        <div className="p-6 flex flex-col">
+                                            {secondaryVenue.badge && (
+                                                <span className="inline-flex self-start items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-500/15 border border-rose-500/30 text-rose-300 mb-2">
+                                                    {secondaryVenue.badge}
+                                                </span>
+                                            )}
+                                            <div className="text-lg font-black text-white">{secondaryVenue.name}</div>
+                                            {secondaryVenue.address && <p className="text-sm text-zinc-400 mt-1.5 leading-relaxed">{secondaryVenue.address}</p>}
+                                            {secondaryVenue.note && <p className="text-xs text-zinc-500 mt-4"><i className="fa-solid fa-circle-info mr-1.5" style={{ color: accent }} />{secondaryVenue.note}</p>}
+                                            <div className="flex flex-wrap gap-2 mt-auto pt-6">
+                                                <a
+                                                    href={secondaryVenue.map_url || (typeof secondaryVenue.lat === 'number' ? `https://www.google.com/maps/search/?api=1&query=${secondaryVenue.lat},${secondaryVenue.lng}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(secondaryVenue.query || secondaryVenue.name)}`)}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-black text-black"
+                                                    style={{ backgroundColor: accent }}
+                                                >
+                                                    <i className="fa-solid fa-map-location-dot" /> Google Maps
+                                                </a>
+                                                <a
+                                                    href={typeof secondaryVenue.lat === 'number' ? `https://waze.com/ul?ll=${secondaryVenue.lat},${secondaryVenue.lng}&navigate=yes` : `https://waze.com/ul?q=${encodeURIComponent(secondaryVenue.query || secondaryVenue.name)}&navigate=yes`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-bold text-white border border-white/15 hover:bg-white/5"
+                                                >
+                                                    <i className="fa-brands fa-waze" /> Waze
+                                                </a>
+                                            </div>
+                                        </div>
+                                        <iframe
+                                            title="Secondary venue map"
+                                            src={`https://www.google.com/maps?q=${encodeURIComponent(typeof secondaryVenue.lat === 'number' ? `${secondaryVenue.lat},${secondaryVenue.lng}` : (secondaryVenue.query || secondaryVenue.name))}&z=16&output=embed`}
+                                            loading="lazy"
+                                            className="w-full h-64 md:h-full min-h-[260px] border-0 grayscale-[35%]"
+                                        />
+                                    </div>
+                                )}
                             </div>
                         </Section>
                     )}
 
                     {/* Register */}
-                    <Section id="register" eyebrow="Secure your slot" title="Registration form" accent={accent}>
-                        {regState === 'open' ? (
-                            children
-                        ) : (
-                            <div className="rounded-3xl border border-white/10 bg-zinc-900/60 p-10 text-center">
-                                <i className={`text-4xl mb-4 ${regState === 'closed' ? 'fa-solid fa-lock text-rose-400' : 'fa-regular fa-clock text-amber-400'}`} />
-                                <div className="text-xl font-black text-white">
-                                    {regState === 'closed' ? 'Registration has closed' : `Registration opens ${fmtDate(settings.reg_open_date)}`}
+                    {!isInfoOnly && (
+                        <Section id="register" eyebrow="Secure your slot" title="Registration form" accent={accent}>
+                            {regState === 'open' ? (
+                                children
+                            ) : (
+                                <div className="rounded-3xl border border-white/10 bg-zinc-900/60 p-10 text-center">
+                                    <i className={`text-4xl mb-4 ${regState === 'closed' ? 'fa-solid fa-lock text-rose-400' : 'fa-regular fa-clock text-amber-400'}`} />
+                                    <div className="text-xl font-black text-white">
+                                        {regState === 'closed' ? 'Registration has closed' : `Registration opens ${fmtDate(settings.reg_open_date)}`}
+                                    </div>
+                                    {whatsapp && (
+                                        <a href={whatsapp} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 mt-5 text-sm font-bold text-emerald-400">
+                                            <i className="fa-brands fa-whatsapp" /> Contact the organiser
+                                        </a>
+                                    )}
                                 </div>
-                                {whatsapp && (
-                                    <a href={whatsapp} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 mt-5 text-sm font-bold text-emerald-400">
-                                        <i className="fa-brands fa-whatsapp" /> Contact the organiser
-                                    </a>
-                                )}
-                            </div>
-                        )}
-                    </Section>
+                            )}
+                        </Section>
+                    )}
                 </div>
 
                 {/* ── STICKY SUMMARY (desktop) ─────────────────── */}
@@ -679,44 +934,81 @@ export function EventPortal({ project, settings, regState, children }: Props) {
                     <div className="sticky top-32 space-y-4">
                         <div className="rounded-3xl border border-white/10 bg-zinc-900/80 p-6">
                             <div className="mb-4">{statusPill}</div>
-                            {categories.length > 0 && (
+                            {isInfoOnly ? (
                                 <>
-                                    <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2">
-                                        {fees.length ? 'Entry fees' : 'Categories'}
-                                    </div>
-                                    <ul className="divide-y divide-white/5 mb-5">
-                                        {categories.map((c, i) => (
-                                            <li key={i}>
-                                                <button
-                                                    type="button"
-                                                    disabled={regState !== 'open'}
-                                                    onClick={() => pickCategoryAndScroll(c.name)}
-                                                    className={`w-full flex items-center justify-between gap-3 py-2.5 text-sm text-left transition-colors ${regState === 'open' ? 'hover:text-white cursor-pointer' : ''}`}
-                                                >
-                                                    <span className="flex items-center gap-2 min-w-0">
-                                                        <span className="w-2 h-2 rounded-full shrink-0" style={{ background: c.color || accent }} />
-                                                        <span className="font-bold text-zinc-200 truncate">{c.short ? `${c.short} ${c.subtitle || ''}` : c.name}</span>
-                                                    </span>
-                                                    {c.fee && <span className="font-black text-white shrink-0">{c.fee}</span>}
-                                                </button>
-                                            </li>
-                                        ))}
-                                    </ul>
+                                    {Array.isArray(run.quick_facts) && run.quick_facts.length > 0 && (
+                                        <>
+                                            <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2">
+                                                At a glance
+                                            </div>
+                                            <ul className="divide-y divide-white/5 mb-5">
+                                                {run.quick_facts.map((qf: any, i: number) => (
+                                                    <li key={i} className="flex items-start justify-between gap-3 py-2.5 text-xs">
+                                                        <span className="text-zinc-400 font-bold shrink-0">{qf.label}</span>
+                                                        <span className="font-black text-white text-right">{qf.value}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </>
+                                    )}
+                                    <a
+                                        href={hasCourse ? '#route' : '#schedule'}
+                                        className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl text-sm font-black uppercase tracking-wider text-black hover:opacity-90"
+                                        style={{ backgroundColor: accent }}
+                                    >
+                                        <i className="fa-solid fa-route" /> {hasCourse ? 'View parade route' : 'View schedule'}
+                                    </a>
+                                    {spotlight && (
+                                        <a
+                                            href="#spotlight"
+                                            className="mt-2 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-xs font-bold text-zinc-200 bg-white/5 border border-white/10 hover:bg-white/10"
+                                        >
+                                            <i className="fa-solid fa-music" style={{ color: accent }} /> {spotlight.cta_label || 'After-parade worship'}
+                                        </a>
+                                    )}
                                 </>
-                            )}
-                            {regState === 'open' ? (
-                                <a
-                                    href="#register"
-                                    className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl text-sm font-black uppercase tracking-wider text-black hover:opacity-90"
-                                    style={{ backgroundColor: accent }}
-                                >
-                                    <i className="fa-solid fa-pen-to-square" /> Register now
-                                </a>
                             ) : (
-                                <div className="text-center text-xs text-zinc-500 py-2">Registration is not available</div>
-                            )}
-                            {settings.reg_close_date && regState === 'open' && (
-                                <p className="text-[11px] text-zinc-500 text-center mt-2.5">Closes {fmtDate(settings.reg_close_date)}</p>
+                                <>
+                                    {categories.length > 0 && (
+                                        <>
+                                            <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2">
+                                                {fees.length ? 'Entry fees' : 'Categories'}
+                                            </div>
+                                            <ul className="divide-y divide-white/5 mb-5">
+                                                {categories.map((c, i) => (
+                                                    <li key={i}>
+                                                        <button
+                                                            type="button"
+                                                            disabled={regState !== 'open'}
+                                                            onClick={() => pickCategoryAndScroll(c.name)}
+                                                            className={`w-full flex items-center justify-between gap-3 py-2.5 text-sm text-left transition-colors ${regState === 'open' ? 'hover:text-white cursor-pointer' : ''}`}
+                                                        >
+                                                            <span className="flex items-center gap-2 min-w-0">
+                                                                <span className="w-2 h-2 rounded-full shrink-0" style={{ background: c.color || accent }} />
+                                                                <span className="font-bold text-zinc-200 truncate">{c.short ? `${c.short} ${c.subtitle || ''}` : c.name}</span>
+                                                            </span>
+                                                            {c.fee && <span className="font-black text-white shrink-0">{c.fee}</span>}
+                                                        </button>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </>
+                                    )}
+                                    {regState === 'open' ? (
+                                        <a
+                                            href="#register"
+                                            className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl text-sm font-black uppercase tracking-wider text-black hover:opacity-90"
+                                            style={{ backgroundColor: accent }}
+                                        >
+                                            <i className="fa-solid fa-pen-to-square" /> Register now
+                                        </a>
+                                    ) : (
+                                        <div className="text-center text-xs text-zinc-500 py-2">Registration is not available</div>
+                                    )}
+                                    {settings.reg_close_date && regState === 'open' && (
+                                        <p className="text-[11px] text-zinc-500 text-center mt-2.5">Closes {fmtDate(settings.reg_close_date)}</p>
+                                    )}
+                                </>
                             )}
                             <div className="grid grid-cols-2 gap-2 mt-4">
                                 {whatsapp && (
@@ -775,21 +1067,40 @@ export function EventPortal({ project, settings, regState, children }: Props) {
                     </a>
                 </div>
             )}
+            {isInfoOnly && (
+                <div className="lg:hidden fixed bottom-0 inset-x-0 z-50 bg-black/90 backdrop-blur-xl border-t border-white/10 px-4 py-3 flex items-center gap-3">
+                    <div className="min-w-0 flex-1">
+                        <div className="text-sm font-black text-white truncate">
+                            {run.mobile_summary_title || (project?.start_date ? fmtDate(project.start_date) : title)}
+                        </div>
+                        <div className="text-[11px] text-zinc-400 truncate">
+                            {run.mobile_summary_sub || run.status_badge || 'Free Admission · No Registration Required'}
+                        </div>
+                    </div>
+                    <a
+                        href={hasCourse ? '#route' : '#schedule'}
+                        className="px-5 py-3 rounded-xl text-xs font-black uppercase tracking-wider text-black shrink-0"
+                        style={{ backgroundColor: accent }}
+                    >
+                        {hasCourse ? 'Parade route' : 'Schedule'}
+                    </a>
+                </div>
+            )}
 
-            {/* ── BANNER LIGHTBOX ─────────────────────────────── */}
-            {showBanner && settings.hero_banner_url && (
+            {/* ── BANNER / POSTER LIGHTBOX ─────────────────────── */}
+            {lightboxImg && (
                 <div
-                    onClick={() => setShowBanner(false)}
+                    onClick={() => setLightboxImg(null)}
                     className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 cursor-zoom-out"
                 >
                     <button
                         type="button"
-                        onClick={() => setShowBanner(false)}
+                        onClick={() => setLightboxImg(null)}
                         className="fixed top-5 right-5 w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20"
                     >
                         <i className="fa-solid fa-xmark" />
                     </button>
-                    <img src={settings.hero_banner_url} alt={title} className="max-w-full max-h-[90vh] object-contain rounded-xl" />
+                    <img src={lightboxImg} alt={title} className="max-w-full max-h-[90vh] object-contain rounded-xl" />
                 </div>
             )}
         </div>

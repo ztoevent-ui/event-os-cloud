@@ -103,11 +103,13 @@ export default function RegistrationPage() {
         ? new Date(String(settings.reg_close_date).includes('T') ? settings.reg_close_date : `${settings.reg_close_date}T23:59:59`).getTime()
         : null;
     const regState: RegState =
-        settings.reg_open_date && now < new Date(settings.reg_open_date)
-            ? 'not_open'
-            : closeDateMs !== null && !Number.isNaN(closeDateMs) && now.getTime() > closeDateMs
-              ? 'closed'
-              : 'open';
+        settings.fields_config?.info_only
+            ? 'info_only'
+            : settings.reg_open_date && now < new Date(settings.reg_open_date)
+              ? 'not_open'
+              : closeDateMs !== null && !Number.isNaN(closeDateMs) && now.getTime() > closeDateMs
+                ? 'closed'
+                : 'open';
 
     if (isSuccess) {
         const rows: [string, any][] = successSummary

@@ -672,6 +672,7 @@ export default function RegistrationStudio() {
                                 </label>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     {[
+                                        { key: 'info_only', label: 'ℹ️ Info-Only Landing Page (纯展示活动页 - 隐藏报名表格)' },
                                         { key: 'enable_run_module', label: '🏃 Enable Run Route & Aid Station Map (马拉松路线与补给站展示)' },
                                         { key: 'show_bib_name', label: '🎽 Custom Race BIB Name (号码布印名 + 预览)' },
                                         { key: 'show_blood_type', label: '🩸 Blood Type (血型选项 - 印于号码布)' },
@@ -1190,7 +1191,18 @@ export default function RegistrationStudio() {
                                                 />
                                             </div>
                                             <div className="md:col-span-2">
-                                                <label className="text-[9px] font-black uppercase tracking-widest text-zinc-500 block mb-1">Start / Finish Line GPS (Lat, Lng — anchors interactive map)</label>
+                                                <label className="text-[9px] font-black uppercase tracking-widest text-zinc-500 block mb-1">Route Mode</label>
+                                                <select
+                                                    value={runCfg.route_type || 'out_and_back'}
+                                                    onChange={e => setRunCfg({ route_type: e.target.value })}
+                                                    className="w-full bg-black/50 border border-ink/5 rounded-lg px-3 py-2 text-xs text-ink"
+                                                >
+                                                    <option value="out_and_back">Out &amp; Back Loop (折返环线 - Start &amp; Finish at same venue)</option>
+                                                    <option value="point_to_point">Point-to-Point (单程点对点路线 - Start ➔ Separate Finish Point)</option>
+                                                </select>
+                                            </div>
+                                            <div className="md:col-span-2">
+                                                <label className="text-[9px] font-black uppercase tracking-widest text-zinc-500 block mb-1">Start / Assembly GPS (Lat, Lng — anchors interactive map)</label>
                                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                                                     <input
                                                         type="number"
@@ -1216,6 +1228,35 @@ export default function RegistrationStudio() {
                                                     />
                                                 </div>
                                             </div>
+                                            {(runCfg.route_type === 'point_to_point' || runCfg.finish_point?.lat) && (
+                                                <div className="md:col-span-2">
+                                                    <label className="text-[9px] font-black uppercase tracking-widest text-zinc-500 block mb-1">Finish Point GPS (Point-to-Point End Venue)</label>
+                                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                                        <input
+                                                            type="number"
+                                                            step="0.000001"
+                                                            value={runCfg.finish_point?.lat ?? ''}
+                                                            onChange={e => setRunCfg({ finish_point: { ...(runCfg.finish_point || {}), lat: e.target.value ? parseFloat(e.target.value) : undefined } })}
+                                                            placeholder="Finish Lat"
+                                                            className="bg-black/50 border border-ink/5 rounded-lg px-3 py-2 text-xs text-ink font-mono"
+                                                        />
+                                                        <input
+                                                            type="number"
+                                                            step="0.000001"
+                                                            value={runCfg.finish_point?.lng ?? ''}
+                                                            onChange={e => setRunCfg({ finish_point: { ...(runCfg.finish_point || {}), lng: e.target.value ? parseFloat(e.target.value) : undefined } })}
+                                                            placeholder="Finish Lng"
+                                                            className="bg-black/50 border border-ink/5 rounded-lg px-3 py-2 text-xs text-ink font-mono"
+                                                        />
+                                                        <input
+                                                            value={runCfg.finish_point?.name || ''}
+                                                            onChange={e => setRunCfg({ finish_point: { ...(runCfg.finish_point || {}), name: e.target.value } })}
+                                                            placeholder="Finish Venue Label"
+                                                            className="bg-black/50 border border-ink/5 rounded-lg px-3 py-2 text-xs text-ink"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
                                             <div className="md:col-span-2">
                                                 <label className="text-[9px] font-black uppercase tracking-widest text-zinc-500 block mb-1">Finisher & Prize Note</label>
                                                 <input value={runCfg.prize_note || ''} onChange={e => setRunCfg({ prize_note: e.target.value })} placeholder="All finishers within cut-off receive an official 3D medal & e-certificate." className="w-full bg-black/50 border border-ink/5 rounded-lg px-3 py-2 text-xs text-ink" />

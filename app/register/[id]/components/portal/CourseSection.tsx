@@ -77,10 +77,27 @@ const fmtKm = (n: number) => (Number.isInteger(n) ? `${n}` : `${+n.toFixed(2)}`)
 
 function buildGoogleDirectionsUrl(
     startPoint: StartPoint | undefined,
+    endPoint: StartPoint | undefined,
     pins: MapPin[],
+    isPointToPoint: boolean,
     fallbackUrl?: string
 ): string | undefined {
-    if (!startPoint || pins.length === 0) return fallbackUrl;
+    if (!startPoint) return fallbackUrl;
+    if (isPointToPoint && endPoint) {
+        const waypoints = pins
+            .slice(0, 8)
+            .map(p => `${p.lat},${p.lng}`)
+            .join('|');
+        const params = new URLSearchParams({
+            api: '1',
+            origin: `${startPoint.lat},${startPoint.lng}`,
+            destination: `${endPoint.lat},${endPoint.lng}`,
+            travelmode: 'walking',
+            ...(waypoints ? { waypoints } : {}),
+        });
+        return `https://www.google.com/maps/dir/?${params.toString()}`;
+    }
+    if (pins.length === 0) return fallbackUrl;
     const turnPin = pins.find(p => p.isTurnaround) || pins[pins.length - 1];
     const waypoints = pins
         .filter(p => p.code !== turnPin.code)
@@ -106,6 +123,11 @@ export function CourseSection({
     accent,
     courseMapUrl,
     startPoint,
+    endPoint,
+    routeType,
+    checkpointLabel,
+    detailLabel,
+    finishRowTitle,
     venueMapQuery,
 }: {
     categories: any[];
@@ -114,6 +136,11 @@ export function CourseSection({
     accent: string;
     courseMapUrl?: string;
     startPoint?: StartPoint;
+    endPoint?: StartPoint;
+    routeType?: 'out_and_back' | 'point_to_point';
+    checkpointLabel?: string;
+    detailLabel?: string;
+    finishRowTitle?: string;
     venueMapQuery?: string;
 }) {
     const courses = categories.filter(c => Number(c.distance_km) > 0);
@@ -125,13 +152,21 @@ export function CourseSection({
 
     const cat = courses[activeIdx] || courses[0];
     const distance = Number(cat?.distance_km) || 0;
+    const isPointToPoint = (cat?.route_type || routeType) === 'point_to_point';
+    const resolvedEndPoint: StartPoint | undefined = cat?.finish_point || endPoint;
     const turnKm = Number(cat?.turnaround_km) > 0 ? Number(cat.turnaround_km) : distance / 2;
     const color = cat?.color || accent;
 
-    const passes = useMemo(
-        () => (cat ? computePasses(stations, distance, Number(cat.turnaround_km) || undefined) : []),
-        [cat, stations, distance]
-    );
+    const passes = useMemo(() => {
+        if (!cat) return [];
+        if (isPointToPoint) {
+            return stations
+                .filter(s => s.km >= 0 && s.km <= distance)
+                .map(s => ({ km: s.km, station: s, leg: 'out' as const }))
+                .sort((a, b) => a.km - b.km);
+        }
+        return computePasses(stations, distance, Number(cat.turnaround_km) || undefined);
+    }, [cat, stations, distance, isPointToPoint]);
 
     const mapPins: MapPin[] = useMemo(() => {
         const seen = new Map<string, MapPin>();
@@ -146,7 +181,7 @@ export function CourseSection({
                     km: p.km,
                     lat: p.station.lat,
                     lng: p.station.lng,
-                    isTurnaround: p.leg === 'turn',
+                    isTurnaround: !isPointToPoint && p.leg === 'turn',
                     supplies: p.station.supplies,
                 });
             } else if (p.leg === 'back') {
@@ -154,7 +189,7 @@ export function CourseSection({
             }
         });
         return Array.from(seen.values());
-    }, [passes]);
+    }, [passes, isPointToPoint]);
 
     const routePolyline: [number, number][] = useMemo(() => {
         if (Array.isArray(cat?.route_points) && cat.route_points.length >= 2) {
@@ -163,8 +198,9 @@ export function CourseSection({
         const pts: [number, number][] = [];
         if (startPoint) pts.push([startPoint.lat, startPoint.lng]);
         mapPins.forEach(p => pts.push([p.lat, p.lng]));
+        if (isPointToPoint && resolvedEndPoint) pts.push([resolvedEndPoint.lat, resolvedEndPoint.lng]);
         return pts;
-    }, [cat, startPoint, mapPins]);
+    }, [cat, startPoint, mapPins, isPointToPoint, resolvedEndPoint]);
 
     const hasInteractiveMap = routePolyline.length >= 2 || (!!startPoint && mapPins.length > 0);
     const effectiveMode = hasInteractiveMap ? mapMode : 'google';
@@ -173,8 +209,15 @@ export function CourseSection({
     const googleTarget = useMemo(() => {
         if (focusedCode === 'START' && startPoint) {
             return {
-                label: startPoint.name || 'Start / Finish Line',
+                label: startPoint.name || 'Start Line',
                 query: `${startPoint.lat},${startPoint.lng}`,
+                zoom: 16,
+            };
+        }
+        if (focusedCode === 'FINISH' && resolvedEndPoint) {
+            return {
+                label: resolvedEndPoint.name || 'Finish Line',
+                query: `${resolvedEndPoint.lat},${resolvedEndPoint.lng}`,
                 zoom: 16,
             };
         }
@@ -188,7 +231,7 @@ export function CourseSection({
         }
         if (startPoint) {
             return {
-                label: startPoint.name || 'Start / Finish',
+                label: startPoint.name || 'Start Venue',
                 query: `${startPoint.lat},${startPoint.lng}`,
                 zoom: 15,
             };
@@ -198,11 +241,11 @@ export function CourseSection({
             query: venueMapQuery || 'Bintulu',
             zoom: 14,
         };
-    }, [focusedCode, mapPins, startPoint, venueMapQuery]);
+    }, [focusedCode, mapPins, startPoint, resolvedEndPoint, venueMapQuery]);
 
     const googleRouteLink = useMemo(
-        () => buildGoogleDirectionsUrl(startPoint, mapPins, courseMapUrl),
-        [startPoint, mapPins, courseMapUrl]
+        () => buildGoogleDirectionsUrl(startPoint, resolvedEndPoint, mapPins, isPointToPoint, courseMapUrl),
+        [startPoint, resolvedEndPoint, mapPins, isPointToPoint, courseMapUrl]
     );
 
     if (!cat) return null;
@@ -346,7 +389,7 @@ export function CourseSection({
                     </div>
 
                     {/* Google Maps checkpoint selector strip when viewing embedded Google Maps */}
-                    {effectiveMode === 'google' && (startPoint || mapPins.length > 0) && (
+                    {effectiveMode === 'google' && (startPoint || resolvedEndPoint || mapPins.length > 0) && (
                         <div className="flex flex-wrap items-center gap-1.5 px-3.5 py-2 bg-black/50 border-b border-white/5 text-[11px]">
                             <span className="text-zinc-500 font-bold mr-1">Inspect checkpoint:</span>
                             {startPoint && (
@@ -354,10 +397,10 @@ export function CourseSection({
                                     type="button"
                                     onClick={() => selectCodeFromMap('START')}
                                     className={`px-2.5 py-1 rounded-md font-bold cursor-pointer transition-colors ${
-                                        focusedCode === 'START' ? 'bg-rose-500 text-white' : 'bg-white/5 text-zinc-300 hover:bg-white/10'
+                                        focusedCode === 'START' ? 'bg-emerald-500 text-black' : 'bg-white/5 text-zinc-300 hover:bg-white/10'
                                     }`}
                                 >
-                                    Start / Finish
+                                    {isPointToPoint ? 'Start Point' : 'Start / Finish'}
                                 </button>
                             )}
                             {mapPins.map(p => {
@@ -376,6 +419,17 @@ export function CourseSection({
                                     </button>
                                 );
                             })}
+                            {isPointToPoint && resolvedEndPoint && (
+                                <button
+                                    type="button"
+                                    onClick={() => selectCodeFromMap('FINISH')}
+                                    className={`px-2.5 py-1 rounded-md font-bold cursor-pointer transition-colors ${
+                                        focusedCode === 'FINISH' ? 'bg-rose-500 text-white' : 'bg-white/5 text-zinc-300 hover:bg-white/10'
+                                    }`}
+                                >
+                                    Finish Point
+                                </button>
+                            )}
                         </div>
                     )}
 
@@ -392,6 +446,7 @@ export function CourseSection({
                             <RouteMapCanvas
                                 polyline={routePolyline}
                                 startPoint={startPoint}
+                                endPoint={isPointToPoint ? resolvedEndPoint : undefined}
                                 pins={mapPins}
                                 focusedCode={focusedCode}
                                 onSelectCode={selectCodeFromMap}
@@ -405,25 +460,41 @@ export function CourseSection({
                     {/* Footer status bar below map */}
                     <div className="px-3.5 py-2.5 bg-black/50 border-t border-white/5 flex flex-wrap items-center justify-between gap-2 text-[11px] text-zinc-400">
                         <div className="flex flex-wrap items-center gap-3">
-                            <span className="inline-flex items-center gap-1.5 font-bold text-zinc-200">
-                                <span className="w-2.5 h-2.5 rounded-full bg-rose-500" /> Start / Finish
-                            </span>
-                            <span className="inline-flex items-center gap-1.5 font-bold text-zinc-200">
-                                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: color }} /> {cat.short || `${distance}KM`} Road Route
-                            </span>
-                            <span className="inline-flex items-center gap-1.5 font-bold text-amber-400">
-                                <span className="w-2.5 h-2.5 rounded-full bg-amber-500" /> U-Turn @ {fmtKm(turnKm)} km
-                            </span>
+                            {isPointToPoint ? (
+                                <>
+                                    <span className="inline-flex items-center gap-1.5 font-bold text-zinc-200">
+                                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> Start
+                                    </span>
+                                    <span className="inline-flex items-center gap-1.5 font-bold text-zinc-200">
+                                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: color }} /> {cat.short || `${distance}KM`} Route
+                                    </span>
+                                    <span className="inline-flex items-center gap-1.5 font-bold text-rose-400">
+                                        <span className="w-2.5 h-2.5 rounded-full bg-rose-500" /> Finish Point
+                                    </span>
+                                </>
+                            ) : (
+                                <>
+                                    <span className="inline-flex items-center gap-1.5 font-bold text-zinc-200">
+                                        <span className="w-2.5 h-2.5 rounded-full bg-rose-500" /> Start / Finish
+                                    </span>
+                                    <span className="inline-flex items-center gap-1.5 font-bold text-zinc-200">
+                                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: color }} /> {cat.short || `${distance}KM`} Road Route
+                                    </span>
+                                    <span className="inline-flex items-center gap-1.5 font-bold text-amber-400">
+                                        <span className="w-2.5 h-2.5 rounded-full bg-amber-500" /> U-Turn @ {fmtKm(turnKm)} km
+                                    </span>
+                                </>
+                            )}
                         </div>
                         <span className="text-zinc-500">
                             {effectiveMode === 'google'
                                 ? `Showing Google Maps pin: ${googleTarget.label}`
-                                : 'Tap any map pin or table row to zoom to station'}
+                                : 'Tap any map pin or row to zoom to location'}
                         </span>
                     </div>
                 </div>
 
-                {/* Linear out-and-back distance symmetry bar */}
+                {/* Linear distance bar */}
                 <div className="rounded-2xl bg-black/35 border border-white/5 px-6 sm:px-8 pt-9 pb-4">
                     <div className="relative h-14">
                         <div className="absolute left-0 right-0 top-[11px] h-[3px] rounded-full bg-white/10" />
@@ -435,8 +506,8 @@ export function CourseSection({
                             left={0}
                             label="0 km"
                             title="START"
-                            tooltip="Start Line · Race Village"
-                            color="#f43f5e"
+                            tooltip={startPoint?.name || 'Start Line'}
+                            color={isPointToPoint ? '#10b981' : '#f43f5e'}
                             icon="fa-flag"
                             active={focusedCode === 'START'}
                             onClick={() => selectCodeFromMap(focusedCode === 'START' ? null : 'START')}
@@ -444,13 +515,13 @@ export function CourseSection({
                         {passes.map((p, i) => (
                             <Marker
                                 key={i}
-                                left={(p.km / distance) * 100}
+                                left={distance > 0 ? Math.min(97, Math.max(3, (p.km / distance) * 100)) : 50}
                                 label={fmtKm(p.km)}
-                                code={p.station.code.replace(/^WS/, '')}
-                                title={p.leg === 'turn' ? 'U-TURN' : undefined}
+                                code={p.station.code.replace(/^(WS|CP|P)/i, '')}
+                                title={!isPointToPoint && p.leg === 'turn' ? 'U-TURN' : undefined}
                                 tooltip={`${p.station.code} (${fmtKm(p.km)} km) — ${p.station.name}`}
-                                color={p.leg === 'turn' ? '#f59e0b' : color}
-                                dim={p.leg === 'back'}
+                                color={!isPointToPoint && p.leg === 'turn' ? '#f59e0b' : color}
+                                dim={!isPointToPoint && p.leg === 'back'}
                                 active={focusedPassIdx === i}
                                 onClick={() => selectPass(focusedPassIdx === i ? null : i)}
                             />
@@ -459,35 +530,69 @@ export function CourseSection({
                             left={100}
                             label={`${fmtKm(distance)} km`}
                             title="FINISH"
-                            tooltip="Finish Line · Race Village"
+                            tooltip={resolvedEndPoint?.name || 'Finish Line'}
                             color="#f43f5e"
                             icon="fa-flag-checkered"
-                            active={focusedCode === 'START'}
-                            onClick={() => selectCodeFromMap(focusedCode === 'START' ? null : 'START')}
+                            active={focusedCode === (isPointToPoint ? 'FINISH' : 'START')}
+                            onClick={() => selectCodeFromMap(focusedCode === (isPointToPoint ? 'FINISH' : 'START') ? null : isPointToPoint ? 'FINISH' : 'START')}
                         />
                     </div>
 
                     <div className="flex flex-wrap items-center justify-between gap-3 mt-4 pt-3 border-t border-white/5 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
                         <div className="flex flex-wrap items-center gap-4">
-                            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ background: color }} />Outbound</span>
-                            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full opacity-55" style={{ background: color }} />Return leg</span>
-                            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-500" />U-turn</span>
+                            {isPointToPoint ? (
+                                <>
+                                    <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />Assembly & Start</span>
+                                    <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ background: color }} />Checkpoints</span>
+                                    <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-rose-500" />Finish Point</span>
+                                </>
+                            ) : (
+                                <>
+                                    <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ background: color }} />Outbound</span>
+                                    <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full opacity-55" style={{ background: color }} />Return leg</span>
+                                    <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-500" />U-turn</span>
+                                </>
+                            )}
                         </div>
                         <span className="normal-case text-zinc-500">
                             {activePass
                                 ? `Selected: ${activePass.station.code} @ ${fmtKm(activePass.km)} km · ${activePass.station.name}`
-                                : 'Out-and-back distance split along course'}
+                                : isPointToPoint
+                                  ? `${fmtKm(distance)} km point-to-point parade route`
+                                  : 'Out-and-back distance split along course'}
                         </span>
                     </div>
                 </div>
 
-                {/* Water station list */}
+                {/* Water station / Checkpoint list */}
                 <div className="rounded-2xl border border-white/5 overflow-hidden">
                     <div className="grid grid-cols-[64px_1fr] md:grid-cols-[80px_1.15fr_1.35fr] text-[10px] font-black uppercase tracking-widest text-zinc-500 bg-black/40 px-4 py-2.5">
                         <span>KM</span>
-                        <span>Water station</span>
-                        <span className="hidden md:block">Supplies</span>
+                        <span>{checkpointLabel || (isPointToPoint ? 'Parade checkpoint' : 'Water station')}</span>
+                        <span className="hidden md:block">{detailLabel || (isPointToPoint ? 'Notes & facilities' : 'Supplies')}</span>
                     </div>
+                    {isPointToPoint && startPoint && (
+                        <div
+                            onClick={() => selectCodeFromMap(focusedCode === 'START' ? null : 'START')}
+                            className={`grid grid-cols-[64px_1fr] md:grid-cols-[80px_1.15fr_1.35fr] gap-y-2 items-start px-4 py-3.5 border-t border-white/5 text-sm cursor-pointer transition-colors ${
+                                focusedCode === 'START' ? 'bg-emerald-500/[0.08]' : 'bg-emerald-500/[0.03] hover:bg-emerald-500/[0.06]'
+                            }`}
+                        >
+                            <span className="font-mono font-black text-emerald-400">0</span>
+                            <div>
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <span className="px-1.5 py-0.5 rounded text-[10px] font-black bg-emerald-500 text-black">START</span>
+                                    <span className="font-bold text-white">{startPoint.name || 'Assembly & Start Point'}</span>
+                                </div>
+                                {startPoint.landmark && <div className="text-xs text-zinc-500 mt-0.5">{startPoint.landmark}</div>}
+                            </div>
+                            <div className="col-span-2 md:col-span-1 flex flex-wrap gap-1.5">
+                                <span className="px-2 py-1 rounded-md bg-white/5 border border-white/5 text-[11px] font-semibold text-zinc-300">
+                                    Assembly & Parking Lot
+                                </span>
+                            </div>
+                        </div>
+                    )}
                     {passes.map((p, i) => {
                         const isFocused = focusedPassIdx === i || (focusedPassIdx === null && focusedCode === p.station.code);
                         return (
@@ -503,15 +608,15 @@ export function CourseSection({
                                     <div className="flex flex-wrap items-center gap-2">
                                         <span
                                             className="px-1.5 py-0.5 rounded text-[10px] font-black text-black"
-                                            style={{ backgroundColor: p.leg === 'turn' ? '#f59e0b' : color }}
+                                            style={{ backgroundColor: !isPointToPoint && p.leg === 'turn' ? '#f59e0b' : color }}
                                         >
                                             {p.station.code}
                                         </span>
                                         <span className="font-bold text-white">{p.station.name}</span>
-                                        {p.leg === 'turn' && (
+                                        {!isPointToPoint && p.leg === 'turn' && (
                                             <span className="text-[10px] font-black uppercase text-amber-400">↩ U-turn</span>
                                         )}
-                                        {p.leg === 'back' && (
+                                        {!isPointToPoint && p.leg === 'back' && (
                                             <span className="text-[10px] font-bold uppercase text-zinc-500">Return</span>
                                         )}
                                     </div>
@@ -529,12 +634,18 @@ export function CourseSection({
                         );
                     })}
                     <div
-                        onClick={() => selectCodeFromMap(focusedCode === 'START' ? null : 'START')}
+                        onClick={() => selectCodeFromMap(focusedCode === (isPointToPoint ? 'FINISH' : 'START') ? null : isPointToPoint ? 'FINISH' : 'START')}
                         className="grid grid-cols-[64px_1fr] md:grid-cols-[80px_1.15fr_1.35fr] gap-y-2 items-start px-4 py-3.5 border-t border-white/5 text-sm bg-rose-500/[0.04] hover:bg-rose-500/[0.08] cursor-pointer transition-colors"
                     >
                         <span className="font-mono font-black text-white">{fmtKm(distance)}</span>
-                        <div className="font-bold text-white">
-                            <i className="fa-solid fa-flag-checkered text-rose-400 mr-2" />Finish · Race Village
+                        <div>
+                            <div className="font-bold text-white">
+                                <i className="fa-solid fa-flag-checkered text-rose-400 mr-2" />
+                                {finishRowTitle || resolvedEndPoint?.name || 'Finish · Race Village'}
+                            </div>
+                            {isPointToPoint && resolvedEndPoint?.landmark && (
+                                <div className="text-xs text-zinc-500 mt-0.5">{resolvedEndPoint.landmark}</div>
+                            )}
                         </div>
                         <div className="col-span-2 md:col-span-1 flex flex-wrap gap-1.5">
                             {(villageFacilities || []).map(s => (

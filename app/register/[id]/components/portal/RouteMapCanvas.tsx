@@ -19,6 +19,7 @@ export type MapPin = {
 type Props = {
     polyline: [number, number][];
     startPoint?: { lat: number; lng: number; name?: string; landmark?: string };
+    endPoint?: { lat: number; lng: number; name?: string; landmark?: string };
     pins: MapPin[];
     focusedCode: string | null;
     onSelectCode: (code: string | null) => void;
@@ -43,6 +44,7 @@ function escapeHtml(str: string) {
 export default function RouteMapCanvas({
     polyline,
     startPoint,
+    endPoint,
     pins,
     focusedCode,
     onSelectCode,
@@ -128,6 +130,7 @@ export default function RouteMapCanvas({
                 : [
                       ...(startPoint ? [[startPoint.lat, startPoint.lng] as [number, number]] : []),
                       ...pins.map(p => [p.lat, p.lng] as [number, number]),
+                      ...(endPoint ? [[endPoint.lat, endPoint.lng] as [number, number]] : []),
                   ];
 
         if (validPts.length >= 2) {
@@ -149,22 +152,28 @@ export default function RouteMapCanvas({
             }).addTo(rg);
         }
 
-        // Start / Finish marker
+        const separateEndpoints =
+            !!endPoint &&
+            (!startPoint || Math.abs(endPoint.lat - startPoint.lat) > 0.0002 || Math.abs(endPoint.lng - startPoint.lng) > 0.0002);
+
+        // Start marker (or merged Start / Finish)
         if (startPoint) {
             const isActive = focusedCode === 'START';
+            const badgeText = separateEndpoints ? 'START · 5:30 PM' : 'START / FINISH';
+            const badgeBg = separateEndpoints ? '#10b981' : '#f43f5e';
             const icon = L.divIcon({
                 className: 'zto-map-pin',
                 iconSize: [0, 0],
                 iconAnchor: [0, 0],
                 html: `<div style="transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;pointer-events:auto;cursor:pointer;">
-                    <div style="background:#f43f5e;color:#fff;font-size:10px;font-weight:900;letter-spacing:0.06em;padding:3px 8px;border-radius:999px;border:2px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,0.45);white-space:nowrap;${isActive ? 'transform:scale(1.12);' : ''}">START / FINISH</div>
+                    <div style="background:${badgeBg};color:#fff;font-size:10px;font-weight:900;letter-spacing:0.06em;padding:3px 9px;border-radius:999px;border:2px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,0.45);white-space:nowrap;${isActive ? 'transform:scale(1.12);' : ''}">${badgeText}</div>
                 </div>`,
             });
             const m = L.marker([startPoint.lat, startPoint.lng], { icon, zIndexOffset: 600 }).addTo(rg);
             m.bindPopup(
                 `<div style="font-family:sans-serif;min-width:170px;">
-                    <div style="font-size:10px;font-weight:800;color:#e11d48;text-transform:uppercase;letter-spacing:0.08em;">Race Village · 0.0 KM</div>
-                    <div style="font-size:13px;font-weight:800;color:#111827;margin-top:2px;">${escapeHtml(startPoint.name || 'Start / Finish Line')}</div>
+                    <div style="font-size:10px;font-weight:800;color:${separateEndpoints ? '#059669' : '#e11d48'};text-transform:uppercase;letter-spacing:0.08em;">${separateEndpoints ? 'Assembly & Start · 0.0 KM' : 'Race Village · 0.0 KM'}</div>
+                    <div style="font-size:13px;font-weight:800;color:#111827;margin-top:2px;">${escapeHtml(startPoint.name || 'Start Line')}</div>
                     ${startPoint.landmark ? `<div style="font-size:11px;color:#4b5563;margin-top:2px;">${escapeHtml(startPoint.landmark)}</div>` : ''}
                 </div>`
             );
@@ -172,11 +181,34 @@ export default function RouteMapCanvas({
             markersRef.current.set('START', m);
         }
 
-        // Aid stations & turnaround marker
+        // Separate Finish marker (for point-to-point routes/parades)
+        if (separateEndpoints && endPoint) {
+            const isActive = focusedCode === 'FINISH';
+            const icon = L.divIcon({
+                className: 'zto-map-pin',
+                iconSize: [0, 0],
+                iconAnchor: [0, 0],
+                html: `<div style="transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;pointer-events:auto;cursor:pointer;">
+                    <div style="background:#f43f5e;color:#fff;font-size:10px;font-weight:900;letter-spacing:0.06em;padding:3px 9px;border-radius:999px;border:2px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,0.45);white-space:nowrap;${isActive ? 'transform:scale(1.12);' : ''}">FINISH · END POINT</div>
+                </div>`,
+            });
+            const m = L.marker([endPoint.lat, endPoint.lng], { icon, zIndexOffset: 610 }).addTo(rg);
+            m.bindPopup(
+                `<div style="font-family:sans-serif;min-width:170px;">
+                    <div style="font-size:10px;font-weight:800;color:#e11d48;text-transform:uppercase;letter-spacing:0.08em;">Finish & Finale Point</div>
+                    <div style="font-size:13px;font-weight:800;color:#111827;margin-top:2px;">${escapeHtml(endPoint.name || 'Finish Line')}</div>
+                    ${endPoint.landmark ? `<div style="font-size:11px;color:#4b5563;margin-top:2px;">${escapeHtml(endPoint.landmark)}</div>` : ''}
+                </div>`
+            );
+            m.on('click', () => onSelectCode(focusedCode === 'FINISH' ? null : 'FINISH'));
+            markersRef.current.set('FINISH', m);
+        }
+
+        // Aid stations & checkpoint markers
         pins.forEach(p => {
             const isActive = focusedCode === p.code;
             const bg = p.isTurnaround ? '#f59e0b' : accentColor;
-            const numLabel = p.code.replace(/^WS/, '');
+            const numLabel = p.code.replace(/^(WS|CP|P)/i, '');
             const tag = p.isTurnaround ? `U-TURN · ${p.km}KM` : `${p.code} · ${p.km}km`;
 
             const icon = L.divIcon({
@@ -205,7 +237,7 @@ export default function RouteMapCanvas({
                     <div style="font-size:10px;font-weight:800;color:${p.isTurnaround ? '#d97706' : '#0284c7'};text-transform:uppercase;letter-spacing:0.06em;">${escapeHtml(p.code)} · ${escapeHtml(passText)}</div>
                     <div style="font-size:13px;font-weight:800;color:#111827;margin-top:2px;">${escapeHtml(p.name)}</div>
                     ${p.landmark ? `<div style="font-size:11px;color:#4b5563;margin-top:2px;">${escapeHtml(p.landmark)}</div>` : ''}
-                    ${p.supplies?.length ? `<div style="font-size:11px;color:#0f172a;margin-top:6px;padding-top:5px;border-top:1px solid #e5e7eb;"><b>Supplies:</b> ${escapeHtml(p.supplies.join(', '))}</div>` : ''}
+                    ${p.supplies?.length ? `<div style="font-size:11px;color:#0f172a;margin-top:6px;padding-top:5px;border-top:1px solid #e5e7eb;"><b>Notes:</b> ${escapeHtml(p.supplies.join(' · '))}</div>` : ''}
                 </div>`
             );
             m.on('click', () => onSelectCode(focusedCode === p.code ? null : p.code));
@@ -218,16 +250,17 @@ export default function RouteMapCanvas({
             lastFitKeyRef.current = fitKey;
             const bounds = L.latLngBounds(validPts.map(pt => L.latLng(pt[0], pt[1])));
             if (startPoint) bounds.extend([startPoint.lat, startPoint.lng]);
+            if (endPoint) bounds.extend([endPoint.lat, endPoint.lng]);
             pins.forEach(p => bounds.extend([p.lat, p.lng]));
             const fit = () => {
                 if (!mapRef.current) return;
                 mapRef.current.invalidateSize({ animate: false });
-                mapRef.current.fitBounds(bounds, { padding: [52, 52], maxZoom: 15, animate: false });
+                mapRef.current.fitBounds(bounds, { padding: [52, 52], maxZoom: 16, animate: false });
             };
             fit();
             requestAnimationFrame(fit);
         }
-    }, [polyline, startPoint, pins, focusedCode, accentColor, fitSignal]);
+    }, [polyline, startPoint, endPoint, pins, focusedCode, accentColor, fitSignal]);
 
     // Smoothly fly to focused station & open popup
     useEffect(() => {
