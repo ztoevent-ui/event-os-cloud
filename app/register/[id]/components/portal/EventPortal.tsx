@@ -97,6 +97,9 @@ export function EventPortal({ project, settings, regState, children }: Props) {
     const stations: Station[] = Array.isArray(run.stations) ? run.stations : [];
     const hasCourse = !!fc.enable_run_module && stations.length > 0 && categories.some(c => Number(c.distance_km) > 0);
     const spotlight = run.spotlight;
+    const storyCards: any[] = Array.isArray(run.story_cards) ? run.story_cards : [];
+    const schedulePosters: { lang: string; label: string; url: string }[] = Array.isArray(run.schedule_posters) ? run.schedule_posters : [];
+    const quickTips: { icon?: string; title: string; detail?: string; color?: string }[] = Array.isArray(run.quick_tips) ? run.quick_tips : [];
     const posters: { label: string; lang?: string; url: string }[] = Array.isArray(run.posters) ? run.posters : [];
     const secondaryVenue = run.secondary_venue;
     const showCategoriesSection = run.show_categories !== false && categories.length > 0;
@@ -108,7 +111,7 @@ export function EventPortal({ project, settings, regState, children }: Props) {
     const showSizeChart = !!fc.show_tshirt_size;
     const whatsapp = social.whatsapp ? `https://wa.me/${String(social.whatsapp).replace(/\D/g, '')}` : null;
     const hasPrizeTiers = prizes.some(p => p.champion || p.runner_up || p.second_runner_up);
-    const hasInfo = rules.length > 0 || notes.length > 0 || faq.length > 0 || showSizeChart || posters.length > 0;
+    const hasInfo = rules.length > 0 || notes.length > 0 || faq.length > 0 || showSizeChart || posters.length > 0 || quickTips.length > 0;
 
     const closeTs = settings.reg_close_date
         ? new Date(String(settings.reg_close_date).includes('T') ? settings.reg_close_date : `${settings.reg_close_date}T23:59:59`).getTime()
@@ -118,6 +121,7 @@ export function EventPortal({ project, settings, regState, children }: Props) {
         : null;
 
     const [lightboxImg, setLightboxImg] = useState<string | null>(null);
+    const [activePosterIdx, setActivePosterIdx] = useState(0);
     const [copied, setCopied] = useState(false);
     const [activeSection, setActiveSection] = useState('overview');
 
@@ -210,8 +214,8 @@ export function EventPortal({ project, settings, regState, children }: Props) {
         minFee !== null
             ? { icon: 'fa-solid fa-ticket', label: 'Entry fee', value: `From RM ${minFee}`, sub: fees.length > 1 ? `Up to RM ${Math.max(...fees)}` : undefined }
             : run.admission_label
-              ? { icon: 'fa-solid fa-ticket', label: 'Admission', value: run.admission_label, sub: run.admission_sub || undefined }
-              : null,
+                ? { icon: 'fa-solid fa-ticket', label: 'Admission', value: run.admission_label, sub: run.admission_sub || undefined }
+                : null,
         run.after_event_fact && {
             icon: run.after_event_fact.icon || 'fa-solid fa-hands-praying',
             label: run.after_event_fact.label || 'After parade',
@@ -412,11 +416,95 @@ export function EventPortal({ project, settings, regState, children }: Props) {
             <main className="max-w-6xl mx-auto px-4 md:px-6 py-10 grid grid-cols-[minmax(0,1fr)] lg:grid-cols-[minmax(0,1fr)_320px] gap-10">
                 <div className="space-y-16 min-w-0">
                     {/* Overview */}
-                    <Section id="overview" eyebrow="About the event" title="Overview" accent={accent}>
-                        {settings.event_description ? (
+                    <Section
+                        id="overview"
+                        eyebrow={run.overview_eyebrow || 'About the event'}
+                        title={run.overview_title || 'Overview'}
+                        sub={run.overview_sub || undefined}
+                        accent={accent}
+                    >
+                        {settings.event_description && (
                             <p className="text-[15px] text-zinc-300 leading-relaxed whitespace-pre-line">{settings.event_description}</p>
-                        ) : (
+                        )}
+                        {!settings.event_description && storyCards.length === 0 && (
                             <p className="text-sm text-zinc-500">Event details will be announced soon.</p>
+                        )}
+                        {storyCards.length > 0 && (
+                            <div className={`grid sm:grid-cols-2 lg:grid-cols-3 gap-4 ${settings.event_description ? 'mt-6' : ''}`}>
+                                {storyCards.map((card, i) => (
+                                    <div
+                                        key={i}
+                                        className="group rounded-3xl border border-white/10 bg-zinc-900/70 overflow-hidden flex flex-col hover:border-white/20 transition-all"
+                                    >
+                                        {card.image && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setLightboxImg(card.image)}
+                                                className="relative aspect-[16/10] w-full overflow-hidden bg-zinc-950 cursor-zoom-in text-left"
+                                            >
+                                                <img
+                                                    src={card.image}
+                                                    alt={card.title}
+                                                    className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500"
+                                                />
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-transparent" />
+                                                {card.badge && (
+                                                    <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-2">
+                                                        <span className="text-[11px] font-bold text-zinc-100 drop-shadow truncate">
+                                                            {card.badge}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </button>
+                                        )}
+                                        <div className="p-4 md:p-5 flex-1 flex flex-col">
+                                            {(card.step || card.time) && (
+                                                <div className="flex flex-wrap items-center gap-2 mb-2.5">
+                                                    {card.step && (
+                                                        <span
+                                                            className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider text-black"
+                                                            style={{ backgroundColor: accent }}
+                                                        >
+                                                            {card.step}
+                                                        </span>
+                                                    )}
+                                                    {card.time && (
+                                                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-zinc-800 text-zinc-200 border border-white/10">
+                                                            {card.time}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            )}
+                                            <div className="flex items-start gap-2.5">
+                                                {card.icon && (
+                                                    <span
+                                                        className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-xs mt-0.5 bg-white/5"
+                                                        style={{ color: accent }}
+                                                    >
+                                                        <i className={card.icon} />
+                                                    </span>
+                                                )}
+                                                <div className="min-w-0">
+                                                    <div className="text-sm font-black text-white leading-snug">{card.title}</div>
+                                                    {card.subtitle && (
+                                                        <div className="text-xs text-zinc-400 mt-1 leading-snug">{card.subtitle}</div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            {card.anchor && card.cta && (
+                                                <a
+                                                    href={card.anchor}
+                                                    className="mt-4 pt-3 border-t border-white/5 inline-flex items-center justify-between text-[11px] font-black uppercase tracking-wider hover:opacity-80 transition-opacity"
+                                                    style={{ color: accent }}
+                                                >
+                                                    <span>{card.cta}</span>
+                                                    <i className="fa-solid fa-arrow-right text-[10px]" />
+                                                </a>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         )}
                         {highlights.length > 0 && (
                             <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-3 mt-6">
@@ -444,38 +532,80 @@ export function EventPortal({ project, settings, regState, children }: Props) {
                                 className="rounded-3xl border border-white/15 bg-zinc-900/70 overflow-hidden"
                                 style={{ boxShadow: `0 20px 60px ${accent}14` }}
                             >
-                                <div
-                                    className="p-6 md:p-7 border-b border-white/10"
-                                    style={{ background: `linear-gradient(135deg, ${accent}22, rgba(24,24,27,0.4) 60%)` }}
-                                >
-                                    <div className="flex flex-wrap items-center justify-between gap-3">
-                                        {spotlight.badge && (
-                                            <span
-                                                className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider text-black"
-                                                style={{ backgroundColor: accent }}
-                                            >
-                                                <i className="fa-solid fa-music" /> {spotlight.badge}
-                                            </span>
-                                        )}
-                                        {spotlight.time && (
-                                            <span className="text-xs font-mono font-bold text-amber-200 bg-black/40 border border-white/10 px-3 py-1 rounded-lg">
-                                                <i className="fa-regular fa-clock mr-1.5" style={{ color: accent }} />
-                                                {spotlight.time}
-                                            </span>
-                                        )}
-                                    </div>
-                                    {spotlight.venue && (
-                                        <div className="mt-4 flex items-start gap-3">
-                                            <i className="fa-solid fa-church mt-1 text-base shrink-0" style={{ color: accent }} />
-                                            <div>
-                                                <div className="text-lg md:text-xl font-black text-white">{spotlight.venue}</div>
-                                                {spotlight.venue_note && (
-                                                    <p className="text-[13px] text-zinc-300 mt-1.5 leading-relaxed">{spotlight.venue_note}</p>
+                                {spotlight.hero_image ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => setLightboxImg(spotlight.hero_image)}
+                                        className="relative w-full h-56 md:h-64 overflow-hidden bg-black text-left block cursor-zoom-in group border-b border-white/10"
+                                    >
+                                        <img
+                                            src={spotlight.hero_image}
+                                            alt={spotlight.venue || spotlight.title}
+                                            className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500 opacity-85"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/45 to-black/20" />
+                                        <div className="absolute inset-x-0 bottom-0 p-5 md:p-7">
+                                            <div className="flex flex-wrap items-center gap-2 mb-2.5">
+                                                {spotlight.badge && (
+                                                    <span
+                                                        className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider text-black"
+                                                        style={{ backgroundColor: accent }}
+                                                    >
+                                                        <i className="fa-solid fa-music" /> {spotlight.badge}
+                                                    </span>
+                                                )}
+                                                {spotlight.time && (
+                                                    <span className="text-xs font-mono font-bold text-amber-200 bg-black/70 border border-white/15 px-3 py-1 rounded-full backdrop-blur-sm">
+                                                        <i className="fa-regular fa-clock mr-1.5" style={{ color: accent }} />
+                                                        {spotlight.time}
+                                                    </span>
                                                 )}
                                             </div>
+                                            {spotlight.venue && (
+                                                <div className="flex items-center gap-2.5 text-lg md:text-2xl font-black text-white">
+                                                    <i className="fa-solid fa-church text-base shrink-0" style={{ color: accent }} />
+                                                    <span>{spotlight.venue}</span>
+                                                </div>
+                                            )}
+                                            {spotlight.venue_note && (
+                                                <p className="text-xs md:text-[13px] text-zinc-200 mt-1 max-w-2xl">{spotlight.venue_note}</p>
+                                            )}
                                         </div>
-                                    )}
-                                </div>
+                                    </button>
+                                ) : (
+                                    <div
+                                        className="p-6 md:p-7 border-b border-white/10"
+                                        style={{ background: `linear-gradient(135deg, ${accent}22, rgba(24,24,27,0.4) 60%)` }}
+                                    >
+                                        <div className="flex flex-wrap items-center justify-between gap-3">
+                                            {spotlight.badge && (
+                                                <span
+                                                    className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider text-black"
+                                                    style={{ backgroundColor: accent }}
+                                                >
+                                                    <i className="fa-solid fa-music" /> {spotlight.badge}
+                                                </span>
+                                            )}
+                                            {spotlight.time && (
+                                                <span className="text-xs font-mono font-bold text-amber-200 bg-black/40 border border-white/10 px-3 py-1 rounded-lg">
+                                                    <i className="fa-regular fa-clock mr-1.5" style={{ color: accent }} />
+                                                    {spotlight.time}
+                                                </span>
+                                            )}
+                                        </div>
+                                        {spotlight.venue && (
+                                            <div className="mt-4 flex items-start gap-3">
+                                                <i className="fa-solid fa-church mt-1 text-base shrink-0" style={{ color: accent }} />
+                                                <div>
+                                                    <div className="text-lg md:text-xl font-black text-white">{spotlight.venue}</div>
+                                                    {spotlight.venue_note && (
+                                                        <p className="text-[13px] text-zinc-300 mt-1.5 leading-relaxed">{spotlight.venue_note}</p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
 
                                 {Array.isArray(spotlight.churches) && spotlight.churches.length > 0 && (
                                     <div className="p-6 md:p-7">
@@ -622,8 +752,53 @@ export function EventPortal({ project, settings, regState, children }: Props) {
                     )}
 
                     {/* Schedule + REPC */}
-                    {(schedule.length > 0 || repc) && (
-                        <Section id="schedule" eyebrow="Plan your day" title={repc ? 'Race pack collection & race day' : 'Event schedule'} accent={accent}>
+                    {(schedule.length > 0 || repc || schedulePosters.length > 0) && (
+                        <Section
+                            id="schedule"
+                            eyebrow="Plan your day"
+                            title={repc ? 'Race pack collection & race day' : (run.schedule_title || 'Program schedule')}
+                            sub={run.schedule_sub || undefined}
+                            accent={accent}
+                        >
+                            {schedulePosters.length > 0 && (
+                                <div className="rounded-3xl border border-white/10 bg-zinc-900/60 p-4 md:p-5 mb-5">
+                                    <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                                        <div className="flex items-center gap-1.5 bg-black/50 p-1 rounded-xl border border-white/10">
+                                            {schedulePosters.map((sp, idx) => (
+                                                <button
+                                                    key={idx}
+                                                    type="button"
+                                                    onClick={() => setActivePosterIdx(idx)}
+                                                    className={`px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-wider cursor-pointer transition-colors ${
+                                                        activePosterIdx === idx ? 'text-black' : 'text-zinc-400 hover:text-white'
+                                                    }`}
+                                                    style={activePosterIdx === idx ? { backgroundColor: accent } : undefined}
+                                                >
+                                                    {sp.lang}
+                                                </button>
+                                            ))}
+                                        </div>
+                                        <span className="text-[11px] text-zinc-400">
+                                            <i className="fa-solid fa-magnifying-glass-plus mr-1" style={{ color: accent }} />
+                                            Tap poster to zoom
+                                        </span>
+                                    </div>
+                                    {schedulePosters[activePosterIdx] && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setLightboxImg(schedulePosters[activePosterIdx].url)}
+                                            className="w-full rounded-2xl overflow-hidden border border-white/10 bg-black cursor-zoom-in block"
+                                        >
+                                            <img
+                                                src={schedulePosters[activePosterIdx].url}
+                                                alt={schedulePosters[activePosterIdx].label}
+                                                className="w-full h-auto max-h-[500px] object-contain mx-auto"
+                                            />
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+
                             <div className={`grid gap-5 ${repc && schedule.length ? 'md:grid-cols-[1fr_1.15fr]' : ''}`}>
                                 {repc && (
                                     <div className="rounded-3xl border border-white/10 bg-zinc-900/60 p-6 space-y-4">
@@ -656,32 +831,60 @@ export function EventPortal({ project, settings, regState, children }: Props) {
                                 )}
 
                                 {schedule.length > 0 && (
-                                    <div className="rounded-3xl border border-white/10 bg-zinc-900/60 p-6">
-                                        <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1">
-                                            {project?.start_date ? fmtDate(project.start_date) : 'Event day'}
-                                        </div>
-                                        <div className="text-base font-black text-white mb-5">{run.schedule_title || (isInfoOnly ? 'Program schedule' : 'Race day schedule')}</div>
-                                        <ol className="relative">
-                                            {schedule.map((s, i) => (
-                                                <li key={i} className="relative flex gap-4 pb-4 last:pb-0">
-                                                    {i < schedule.length - 1 && <span className="absolute left-[76px] top-4 bottom-0 w-px bg-white/10" />}
-                                                    <span className={`w-[64px] shrink-0 text-right font-mono text-xs font-black pt-0.5 ${s.highlight ? '' : 'text-zinc-400'}`} style={s.highlight ? { color: accent } : undefined}>
-                                                        {s.time}
-                                                    </span>
-                                                    <span
-                                                        className="relative z-10 mt-1.5 w-[9px] h-[9px] rounded-full shrink-0 ring-4 ring-zinc-900"
-                                                        style={{ backgroundColor: s.highlight ? accent : '#52525b' }}
-                                                    />
-                                                    <div className="min-w-0">
-                                                        {s.date && s.date !== project?.start_date && (
-                                                            <div className="text-[10px] font-bold text-zinc-500 uppercase">{fmtDate(s.date)}</div>
-                                                        )}
-                                                        <div className={`text-sm ${s.highlight ? 'font-black text-white' : 'font-semibold text-zinc-200'}`}>{s.label}</div>
-                                                        {s.notes && <div className="text-xs text-zinc-500">{s.notes}</div>}
+                                    <div className="rounded-3xl border border-white/10 bg-zinc-900/60 p-5 md:p-6">
+                                        {schedulePosters.length > 0 ? (
+                                            <div className="grid sm:grid-cols-2 gap-2.5">
+                                                {schedule.map((s, i) => (
+                                                    <div
+                                                        key={i}
+                                                        className={`rounded-2xl border p-3.5 flex items-start gap-3 ${
+                                                            s.highlight ? 'border-amber-500/30 bg-amber-500/[0.06]' : 'border-white/10 bg-black/35'
+                                                        }`}
+                                                    >
+                                                        <span
+                                                            className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-black shrink-0 ${
+                                                                s.highlight ? 'text-black' : 'bg-white/5 text-zinc-300'
+                                                            }`}
+                                                            style={s.highlight ? { backgroundColor: accent } : undefined}
+                                                        >
+                                                            {s.time}
+                                                        </span>
+                                                        <div className="min-w-0">
+                                                            <div className="text-xs md:text-[13px] font-bold text-white leading-snug">{s.label}</div>
+                                                            {s.notes && <div className="text-[11px] text-zinc-400 mt-0.5 leading-snug">{s.notes}</div>}
+                                                        </div>
                                                     </div>
-                                                </li>
-                                            ))}
-                                        </ol>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1">
+                                                    {project?.start_date ? fmtDate(project.start_date) : 'Event day'}
+                                                </div>
+                                                <div className="text-base font-black text-white mb-5">{run.schedule_title || (isInfoOnly ? 'Program schedule' : 'Race day schedule')}</div>
+                                                <ol className="relative">
+                                                    {schedule.map((s, i) => (
+                                                        <li key={i} className="relative flex gap-4 pb-4 last:pb-0">
+                                                            {i < schedule.length - 1 && <span className="absolute left-[76px] top-4 bottom-0 w-px bg-white/10" />}
+                                                            <span className={`w-[64px] shrink-0 text-right font-mono text-xs font-black pt-0.5 ${s.highlight ? '' : 'text-zinc-400'}`} style={s.highlight ? { color: accent } : undefined}>
+                                                                {s.time}
+                                                            </span>
+                                                            <span
+                                                                className="relative z-10 mt-1.5 w-[9px] h-[9px] rounded-full shrink-0 ring-4 ring-zinc-900"
+                                                                style={{ backgroundColor: s.highlight ? accent : '#52525b' }}
+                                                            />
+                                                            <div className="min-w-0">
+                                                                {s.date && s.date !== project?.start_date && (
+                                                                    <div className="text-[10px] font-bold text-zinc-500 uppercase">{fmtDate(s.date)}</div>
+                                                                )}
+                                                                <div className={`text-sm ${s.highlight ? 'font-black text-white' : 'font-semibold text-zinc-200'}`}>{s.label}</div>
+                                                                {s.notes && <div className="text-xs text-zinc-500">{s.notes}</div>}
+                                                            </div>
+                                                        </li>
+                                                    ))}
+                                                </ol>
+                                            </>
+                                        )}
                                     </div>
                                 )}
                             </div>
@@ -740,6 +943,28 @@ export function EventPortal({ project, settings, regState, children }: Props) {
                             accent={accent}
                         >
                             <div className="space-y-4">
+                                {quickTips.length > 0 && (
+                                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                        {quickTips.map((tip, idx) => {
+                                            const tColor = tip.color || accent;
+                                            return (
+                                                <div key={idx} className="rounded-2xl border border-white/10 bg-zinc-900/60 p-4 flex items-start gap-3">
+                                                    <span
+                                                        className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-sm text-black"
+                                                        style={{ backgroundColor: tColor }}
+                                                    >
+                                                        <i className={tip.icon || 'fa-solid fa-circle-info'} />
+                                                    </span>
+                                                    <div className="min-w-0">
+                                                        <div className="text-xs font-black text-white leading-snug">{tip.title}</div>
+                                                        {tip.detail && <div className="text-[11px] text-zinc-400 mt-0.5 leading-snug">{tip.detail}</div>}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+
                                 {posters.length > 0 && (
                                     <div className="rounded-3xl border border-white/10 bg-zinc-900/60 p-6">
                                         <div className="flex items-center justify-between gap-2 mb-4">
