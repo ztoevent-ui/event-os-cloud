@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabaseClient';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import { RunEventShowcase } from '@/app/register/[id]/components/RunEventShowcase';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params;
@@ -34,7 +35,7 @@ export default async function TournamentPublicPage({ params }: { params: Promise
     const categories: any[] = ts.categories || [];
     const schedule: any[] = ts.event_schedule || [];
     const social: any = ts.social_links || {};
-    const regUrl = ts.page_slug ? `https://ztoevent.com/register/${ts.page_slug}` : `https://ztoevent.com/register/${project?.id}`;
+    const regUrl = ts.page_slug ? `/register/${ts.page_slug}` : `/register/${project?.id}`;
 
     const formatDate = (d: string | null) => {
         if (!d) return '';
@@ -185,41 +186,49 @@ export default async function TournamentPublicPage({ params }: { params: Promise
                 {ts.event_description && (
                     <section id="about" className="py-16 border-b border-gray-100">
                         <div className="section-label mb-2">About</div>
-                        <h2 className="section-title mb-6">Tournament Overview</h2>
+                        <h2 className="section-title mb-6">Event Overview</h2>
                         <div className="max-w-3xl">
                             <p className="text-gray-600 text-lg leading-relaxed">{ts.event_description}</p>
                         </div>
                     </section>
                 )}
 
+                {/* ── INTERACTIVE RUN ROUTE & AID STATIONS SHOWCASE ─── */}
+                {ts.fields_config?.enable_run_module && (
+                    <section id="route-map" className="py-12 border-b border-gray-100">
+                        <RunEventShowcase config={ts} />
+                    </section>
+                )}
+
                 {/* ── PRIZE POOL ─────────────────────────────────────── */}
                 {prizePool.length > 0 && (
                     <section id="prize-pool" className="py-16 border-b border-gray-100">
-                        <div className="section-label mb-2">Prize Money</div>
-                        <h2 className="section-title mb-2">
-                            Prize Pool
-                            {prizePool.length > 0 && (
-                                <span className="ml-4 text-2xl md:text-3xl" style={{ color: accent }}>
-                                    — {prizePool[0]?.currency || 'RM'}{prizePool.reduce((s: number, p: any) => s + (Number(p.amount) || 0), 0).toLocaleString()}
-                                </span>
-                            )}
-                        </h2>
-                        <p className="text-gray-400 text-sm mb-8 font-semibold uppercase tracking-wider">Total prize distribution across all categories</p>
+                        <div className="section-label mb-2">Awards &amp; Prizes</div>
+                        <h2 className="section-title mb-2">Prize Pool</h2>
+                        <p className="text-gray-400 text-sm mb-8 font-semibold uppercase tracking-wider">Official prize distribution across categories</p>
 
                         <div className="overflow-x-auto rounded-xl border border-gray-200 card-shadow">
                             <table className="w-full prize-table text-sm">
                                 <thead>
                                     <tr>
                                         <th className="px-6 py-4 text-left text-xs font-black tracking-widest uppercase">Category / 组别</th>
-                                        <th className="px-6 py-4 text-right text-xs font-black tracking-widest uppercase">Prize Money</th>
+                                        <th className="px-6 py-4 text-right text-xs font-black tracking-widest uppercase">Champion / 冠军</th>
+                                        <th className="px-6 py-4 text-right text-xs font-black tracking-widest uppercase">1st Runner-Up / 亚军</th>
+                                        <th className="px-6 py-4 text-right text-xs font-black tracking-widest uppercase">2nd Runner-Up / 季军</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {prizePool.map((prize: any, i: number) => (
                                         <tr key={i} className="transition-colors">
                                             <td className="px-6 py-4 font-black text-[#0d1b2a] uppercase tracking-wide">{prize.category}</td>
-                                            <td className="px-6 py-4 text-right font-black text-xl" style={{ color: accent }}>
-                                                {prize.currency || 'RM'} {Number(prize.amount || 0).toLocaleString()}
+                                            <td className="px-6 py-4 text-right font-black text-lg" style={{ color: accent }}>
+                                                {prize.champion || (prize.amount ? `${prize.currency || 'RM'} ${Number(prize.amount).toLocaleString()}` : '-')}
+                                            </td>
+                                            <td className="px-6 py-4 text-right font-bold text-[#0d1b2a]">
+                                                {prize.runner_up || '-'}
+                                            </td>
+                                            <td className="px-6 py-4 text-right font-bold text-gray-600">
+                                                {prize.second_runner_up || '-'}
                                             </td>
                                         </tr>
                                     ))}
@@ -233,19 +242,26 @@ export default async function TournamentPublicPage({ params }: { params: Promise
                 {categories.length > 0 && (
                     <section id="categories" className="py-16 border-b border-gray-100">
                         <div className="section-label mb-2">Divisions</div>
-                        <h2 className="section-title mb-8">Categories</h2>
+                        <h2 className="section-title mb-8">Categories &amp; Fees</h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                             {categories.map((cat: any, i: number) => (
                                 <div key={i} className="rounded-xl border border-gray-200 p-6 card-shadow hover:border-gray-300 transition-all group">
-                                    <div className="flex items-start justify-between mb-3">
-                                        <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-black mr-3 shrink-0 accent-bg text-sm">
+                                    <div className="flex items-start justify-between mb-3 gap-2">
+                                        <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-black mr-2 shrink-0 accent-bg text-sm">
                                             {i + 1}
                                         </div>
-                                        {cat.open_to && (
-                                            <span className="text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-full accent-bg-soft accent border border-current shrink-0">
-                                                {cat.open_to}
-                                            </span>
-                                        )}
+                                        <div className="flex flex-wrap items-center justify-end gap-1.5">
+                                            {cat.fee && (
+                                                <span className="text-xs font-black uppercase px-2.5 py-1 rounded-full text-white accent-bg">
+                                                    {cat.fee}
+                                                </span>
+                                            )}
+                                            {cat.open_to && (
+                                                <span className="text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-full accent-bg-soft accent border border-current shrink-0">
+                                                    {cat.open_to}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
                                     <h3 className="font-black text-lg text-[#0d1b2a] uppercase mb-2 group-hover:accent transition-colors">{cat.name}</h3>
                                     {cat.description && <p className="text-gray-500 text-sm leading-relaxed">{cat.description}</p>}
