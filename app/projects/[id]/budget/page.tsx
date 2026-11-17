@@ -1,49 +1,83 @@
 'use client';
-import React, { useState, useEffect, use } from 'react';
+import React, { useState, useEffect, useMemo, use } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { AddBudgetButton, DeleteBudgetButton, EditBudgetModal, PrintReportButton, CopyBudgetButton } from '../../components/ProjectModals';
 import { PrintBreakTrigger } from '../../components/PrintBreakTrigger';
 import { usePrint } from '../../components/PrintContext';
+import { ExpenseQuickEditRow, QuickAddExpensePanel } from './ExpenseQuickPanel';
+import {
+    DEFAULT_BUDGET_CATEGORIES,
+    buildHistoricalCatalog,
+    fetchAllBudgetHistory,
+    parseBudgetItemMeta,
+} from '../../budgetUtils';
 
 export default function BudgetPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
     const [budgetItems, setBudgetItems] = useState<any[]>([]);
+    const [rawHistory, setRawHistory] = useState<any[]>([]);
     const [project, setProject] = useState<any>(null);
     const [logoUrl, setLogoUrl] = useState<string>('');
     const [loading, setLoading] = useState(true);
     const [editingItem, setEditingItem] = useState<any>(null);
+    const [quickAddOpen, setQuickAddOpen] = useState(false);
+    const [quickEditMode, setQuickEditMode] = useState(false);
     const [userRole, setUserRole] = useState<string | null>(null);
     const { pageBreakIds, layoutType } = usePrint();
 
     useEffect(() => {
-        fetchData();
+        fetchData(false);
     }, [id]);
 
-    const fetchData = async () => {
-        setLoading(true);
-        const { data: projectData } = await supabase.from('projects').select('type, name').eq('id', id).single();
+    const fetchData = async (silent = true) => {
+        if (!silent) setLoading(true);
+        const [
+            { data: projectData },
+            { data: settingsData },
+            { data: budgetData },
+            historyData,
+            { data: { user } },
+        ] = await Promise.all([
+            supabase.from('projects').select('type, name').eq('id', id).single(),
+            supabase.from('tournament_settings').select('logo_url').eq('project_id', id).maybeSingle(),
+            supabase
+                .from('budgets')
+                .select('*')
+                .eq('project_id', id)
+                .order('type', { ascending: false })
+                .order('category', { ascending: true })
+                .order('created_at', { ascending: true }),
+            fetchAllBudgetHistory(),
+            supabase.auth.getUser(),
+        ]);
+
         setProject(projectData);
-
-        const { data: settingsData } = await supabase.from('tournament_settings').select('logo_url').eq('project_id', id).maybeSingle();
         if (settingsData?.logo_url) setLogoUrl(settingsData.logo_url);
-
-        const { data: budgetData } = await supabase
-            .from('budgets')
-            .select('*')
-            .eq('project_id', id)
-            .order('type', { ascending: false })
-            .order('category', { ascending: true })
-            .order('created_at', { ascending: true });
-
         setBudgetItems(budgetData || []);
+        setRawHistory(historyData);
 
-        const { data: { user } } = await supabase.auth.getUser();
         if (user) {
             const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
             if (profile) setUserRole(profile.role);
         }
 
         setLoading(false);
+    };
+
+    const expenseCatalog = useMemo(() => buildHistoricalCatalog(rawHistory, 'expense'), [rawHistory]);
+
+    const handleQuickAdded = (row: any) => {
+        setBudgetItems(prev => [...prev, row]);
+        fetchAllBudgetHistory().then(setRawHistory);
+    };
+
+    const handleQuickSaved = (updated: any) => {
+        setBudgetItems(prev => prev.map(r => (r.id === updated.id ? updated : r)));
+        fetchAllBudgetHistory().then(setRawHistory);
+    };
+
+    const handleQuickDeleted = (deletedId: string) => {
+        setBudgetItems(prev => prev.filter(r => r.id !== deletedId));
     };
 
     if (loading) return (
@@ -167,11 +201,15 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
                     {/* Actions */}
                     <div className="flex items-center gap-3">
                         <PrintReportButton title="Budget Report" />
-                        <CopyBudgetButton projectId={id} onSuccess={fetchData} />
-                        <AddBudgetButton projectId={id} isWedding={false} onSuccess={fetchData} />
+                        <CopyBudgetButton projectId={id} onSuccess={() => fetchData(true)} />
+                        <AddBudgetButton projectId={id} isWedding={false} catalog={expenseCatalog} onSuccess={() => fetchData(true)} />
                     </div>
                 </div>
             </div>
+
+            <datalist id="quick-exp-categories">
+                {DEFAULT_BUDGET_CATEGORIES.map(c => <option key={c} value={c} />)}
+            </datalist>
 
             {/* ══════════════════════════════════════════════
                 SCREEN VIEW — 2 column cards
@@ -179,46 +217,118 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
             <div className={`${layoutType === 'table' ? 'print:hidden' : 'print:grid'} grid grid-cols-1 md:grid-cols-2 gap-8 items-start`}>
 
                 {/* Expenses column */}
-                <div className="flex flex-col gap-4">
-                    <div className="flex items-center justify-between border-b border-ink/5 pb-3">
-                        <div className="flex items-center gap-3">
+                <div className="flex flex-col gap-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-ink/5 pb-3">
+                        <div className="flex items-center gap-2.5">
                             <div className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
                             <h3 className="text-[10px] font-black text-red-500 uppercase tracking-[0.3em]">Debit / Expenses</h3>
+                            <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">({expenses.length})</span>
                         </div>
-                        <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">{expenses.length} records</span>
+                        <div className="print:hidden flex items-center gap-1.5">
+                            <button
+                                type="button"
+                                onClick={() => setQuickAddOpen(o => !o)}
+                                className={`h-7 px-2.5 rounded-lg text-[10px] font-black uppercase tracking-wider border transition-colors flex items-center gap-1.5 cursor-pointer ${
+                                    quickAddOpen
+                                        ? 'bg-red-500 border-red-500 text-white'
+                                        : 'bg-ink/[0.04] border-ink/10 text-zinc-300 hover:text-ink hover:border-red-500/40'
+                                }`}
+                            >
+                                <i className="fa-solid fa-plus" /> Quick Add
+                            </button>
+                            {expenses.length > 0 && (
+                                <button
+                                    type="button"
+                                    onClick={() => setQuickEditMode(m => !m)}
+                                    className={`h-7 px-2.5 rounded-lg text-[10px] font-black uppercase tracking-wider border transition-colors flex items-center gap-1.5 cursor-pointer ${
+                                        quickEditMode
+                                            ? 'bg-amber-500 border-amber-500 text-black'
+                                            : 'bg-ink/[0.04] border-ink/10 text-zinc-300 hover:text-ink hover:border-amber-500/40'
+                                    }`}
+                                >
+                                    <i className={`fa-solid ${quickEditMode ? 'fa-check' : 'fa-sliders'}`} />
+                                    {quickEditMode ? 'Done Editing' : 'Quick Edit'}
+                                </button>
+                            )}
+                        </div>
                     </div>
 
-                    {expenses.length === 0 ? (
-                        <div className="py-12 border border-dashed border-ink/5 rounded-2xl flex flex-col items-center justify-center opacity-30">
-                            <i className="fa-solid fa-receipt text-2xl mb-3" />
-                            <p className="text-[9px] font-black uppercase tracking-widest">No expenses logged</p>
+                    {quickAddOpen && (
+                        <div className="print:hidden">
+                            <QuickAddExpensePanel
+                                projectId={id}
+                                catalog={expenseCatalog}
+                                onAdded={handleQuickAdded}
+                                onClose={() => setQuickAddOpen(false)}
+                            />
                         </div>
-                    ) : (
+                    )}
+
+                    {expenses.length === 0 ? (
+                        <div className="py-12 border border-dashed border-ink/5 rounded-2xl flex flex-col items-center justify-center opacity-50 gap-3">
+                            <i className="fa-solid fa-receipt text-2xl opacity-60" />
+                            <p className="text-[9px] font-black uppercase tracking-widest">No expenses logged</p>
+                            {!quickAddOpen && (
+                                <button
+                                    type="button"
+                                    onClick={() => setQuickAddOpen(true)}
+                                    className="px-3.5 py-1.5 rounded-xl bg-red-500/15 border border-red-500/30 text-red-400 text-[10px] font-black uppercase tracking-wider cursor-pointer hover:bg-red-500/25"
+                                >
+                                    + Add from Past Items
+                                </button>
+                            )}
+                        </div>
+                    ) : quickEditMode ? (
                         expenses.map(item => (
-                            <div
+                            <ExpenseQuickEditRow
                                 key={item.id}
-                                onClick={() => setEditingItem(item)}
-                                className="group relative bg-ink/[0.03] border border-ink/5 px-5 py-4 rounded-2xl hover:border-red-500/30 transition-all cursor-pointer"
-                            >
-                                <div className="flex justify-between items-start">
-                                    <div className="flex-1 min-w-0 pr-4">
-                                        <h4 className="text-[13px] font-black text-ink uppercase tracking-tight group-hover:text-red-400 transition-colors truncate">{item.item}</h4>
-                                        <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mt-0.5">{item.category}</p>
-                                    </div>
-                                    <div className="text-right flex flex-col items-end shrink-0">
-                                        <div className="text-sm font-black text-red-500 font-mono whitespace-nowrap">− RM {Number(item.amount).toFixed(2)}</div>
-                                        <div className="mt-1.5 flex items-center gap-2">
-                                            <span className="text-[8px] font-black px-2 py-0.5 rounded bg-ink/5 text-zinc-600 uppercase tracking-tighter">{item.status}</span>
-                                            <i className="fa-solid fa-pen-to-square text-[10px] text-zinc-700 group-hover:text-red-400 transition-colors" />
-                                            <div onClick={e => e.stopPropagation()}>
-                                                <DeleteBudgetButton id={item.id} projectId={id} onSuccess={fetchData} />
+                                item={item}
+                                projectId={id}
+                                catalog={expenseCatalog}
+                                onSaved={handleQuickSaved}
+                                onDeleted={handleQuickDeleted}
+                            />
+                        ))
+                    ) : (
+                        expenses.map(item => {
+                            const meta = parseBudgetItemMeta(item.item, item.amount);
+                            return (
+                                <div
+                                    key={item.id}
+                                    onClick={() => setEditingItem(item)}
+                                    className="group relative bg-ink/[0.03] border border-ink/5 px-5 py-4 rounded-2xl hover:border-red-500/30 transition-all cursor-pointer"
+                                >
+                                    <div className="flex justify-between items-start">
+                                        <div className="flex-1 min-w-0 pr-4">
+                                            <h4 className="text-[13px] font-black text-ink uppercase tracking-tight group-hover:text-red-400 transition-colors truncate">
+                                                {meta.baseName}
+                                            </h4>
+                                            <div className="flex flex-wrap items-center gap-2 mt-1">
+                                                {item.category && (
+                                                    <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">
+                                                        {item.category}
+                                                    </span>
+                                                )}
+                                                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-ink/[0.04] border border-ink/5 text-zinc-400">
+                                                    {meta.qty} × RM {meta.unitPrice.toFixed(2)}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="text-right flex flex-col items-end shrink-0">
+                                            <div className="text-sm font-black text-red-500 font-mono whitespace-nowrap">− RM {Number(item.amount).toFixed(2)}</div>
+                                            <div className="mt-1.5 flex items-center gap-2">
+                                                <span className="text-[8px] font-black px-2 py-0.5 rounded bg-ink/5 text-zinc-600 uppercase tracking-tighter">{item.status}</span>
+                                                <i className="fa-solid fa-pen-to-square text-[10px] text-zinc-700 group-hover:text-red-400 transition-colors" />
+                                                <div onClick={e => e.stopPropagation()}>
+                                                    <DeleteBudgetButton id={item.id} projectId={id} onSuccess={() => fetchData(true)} />
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
+                                    <PrintBreakTrigger id={item.id} />
                                 </div>
-                                <PrintBreakTrigger id={item.id} />
-                            </div>
-                        ))
+                            );
+                        })
                     )}
 
                     {expenses.length > 0 && (
@@ -230,7 +340,7 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
                 </div>
 
                 {/* Income column */}
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-3">
                     <div className="flex items-center justify-between border-b border-ink/5 pb-3">
                         <div className="flex items-center gap-3">
                             <div className="w-2 h-2 rounded-full bg-accent-2 shadow-[0_0_10px_rgb(var(--c-accent-2-rgb)/0.5)]" />
@@ -245,31 +355,47 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
                             <p className="text-[9px] font-black uppercase tracking-widest">No income logged</p>
                         </div>
                     ) : (
-                        income.map(item => (
-                            <div
-                                key={item.id}
-                                onClick={() => setEditingItem(item)}
-                                className="group relative bg-ink/[0.03] border border-ink/5 px-5 py-4 rounded-2xl hover:border-accent-2/30 transition-all cursor-pointer"
-                            >
-                                <div className="flex justify-between items-start">
-                                    <div className="flex-1 min-w-0 pr-4">
-                                        <h4 className="text-[13px] font-black text-ink uppercase tracking-tight group-hover:text-accent-2 transition-colors truncate">{item.item}</h4>
-                                        <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mt-0.5">{item.category}</p>
-                                    </div>
-                                    <div className="text-right flex flex-col items-end shrink-0">
-                                        <div className="text-sm font-black text-accent-2 font-mono whitespace-nowrap">+ RM {Number(item.amount).toFixed(2)}</div>
-                                        <div className="mt-1.5 flex items-center gap-2">
-                                            <span className="text-[8px] font-black px-2 py-0.5 rounded bg-ink/5 text-zinc-600 uppercase tracking-tighter">{item.status}</span>
-                                            <i className="fa-solid fa-pen-to-square text-[10px] text-zinc-700 group-hover:text-accent-2 transition-colors" />
-                                            <div onClick={e => e.stopPropagation()}>
-                                                <DeleteBudgetButton id={item.id} projectId={id} onSuccess={fetchData} />
+                        income.map(item => {
+                            const meta = parseBudgetItemMeta(item.item, item.amount);
+                            return (
+                                <div
+                                    key={item.id}
+                                    onClick={() => setEditingItem(item)}
+                                    className="group relative bg-ink/[0.03] border border-ink/5 px-5 py-4 rounded-2xl hover:border-accent-2/30 transition-all cursor-pointer"
+                                >
+                                    <div className="flex justify-between items-start">
+                                        <div className="flex-1 min-w-0 pr-4">
+                                            <h4 className="text-[13px] font-black text-ink uppercase tracking-tight group-hover:text-accent-2 transition-colors truncate">
+                                                {meta.baseName}
+                                            </h4>
+                                            <div className="flex flex-wrap items-center gap-2 mt-1">
+                                                {item.category && (
+                                                    <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">
+                                                        {item.category}
+                                                    </span>
+                                                )}
+                                                {(meta.hasQtyMeta || meta.qty !== 1) && (
+                                                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-ink/[0.04] border border-ink/5 text-zinc-400">
+                                                        {meta.qty} × RM {meta.unitPrice.toFixed(2)}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="text-right flex flex-col items-end shrink-0">
+                                            <div className="text-sm font-black text-accent-2 font-mono whitespace-nowrap">+ RM {Number(item.amount).toFixed(2)}</div>
+                                            <div className="mt-1.5 flex items-center gap-2">
+                                                <span className="text-[8px] font-black px-2 py-0.5 rounded bg-ink/5 text-zinc-600 uppercase tracking-tighter">{item.status}</span>
+                                                <i className="fa-solid fa-pen-to-square text-[10px] text-zinc-700 group-hover:text-accent-2 transition-colors" />
+                                                <div onClick={e => e.stopPropagation()}>
+                                                    <DeleteBudgetButton id={item.id} projectId={id} onSuccess={() => fetchData(true)} />
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
+                                    <PrintBreakTrigger id={item.id} />
                                 </div>
-                                <PrintBreakTrigger id={item.id} />
-                            </div>
-                        ))
+                            );
+                        })
                     )}
 
                     {income.length > 0 && (
@@ -299,29 +425,34 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
                                 <tr style={{ background: '#f4f4f5', borderBottom: '1.5px solid #d4d4d8' }}>
                                     <th style={{ textAlign: 'left', padding: '5px 8px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#52525b', fontSize: 8 }}>#</th>
                                     <th style={{ textAlign: 'left', padding: '5px 8px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#52525b', fontSize: 8 }}>Item</th>
+                                    <th style={{ textAlign: 'left', padding: '5px 8px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#52525b', fontSize: 8 }}>Qty × Unit</th>
                                     <th style={{ textAlign: 'left', padding: '5px 8px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#52525b', fontSize: 8 }}>Category</th>
                                     <th style={{ textAlign: 'left', padding: '5px 8px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#52525b', fontSize: 8 }}>Status</th>
                                     <th style={{ textAlign: 'right', padding: '5px 8px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#52525b', fontSize: 8 }}>Amount (RM)</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {expenses.map((item, idx) => (
-                                    <tr key={item.id} style={{ borderBottom: '1px solid #e4e4e7', background: idx % 2 === 0 ? '#fff' : '#fafafa' }}>
-                                        <td style={{ padding: '4px 8px', color: '#a1a1aa', fontWeight: 700 }}>{idx + 1}</td>
-                                        <td style={{ padding: '4px 8px', fontWeight: 800, color: '#18181b', textTransform: 'uppercase', letterSpacing: '0.02em', maxWidth: 200 }}>{item.item}</td>
-                                        <td style={{ padding: '4px 8px', color: '#71717a', textTransform: 'uppercase', fontSize: 8 }}>{item.category || '—'}</td>
-                                        <td style={{ padding: '4px 8px' }}>
-                                            <span style={{ background: item.status === 'paid' ? '#dcfce7' : item.status === 'confirmed' ? '#dbeafe' : '#f4f4f5', color: item.status === 'paid' ? '#16a34a' : item.status === 'confirmed' ? '#1d4ed8' : '#71717a', padding: '1px 6px', borderRadius: 4, fontSize: 7, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                                                {item.status}
-                                            </span>
-                                        </td>
-                                        <td style={{ padding: '4px 8px', textAlign: 'right', fontWeight: 900, color: '#dc2626', fontFamily: 'monospace' }}>{Number(item.amount).toFixed(2)}</td>
-                                    </tr>
-                                ))}
+                                {expenses.map((item, idx) => {
+                                    const meta = parseBudgetItemMeta(item.item, item.amount);
+                                    return (
+                                        <tr key={item.id} style={{ borderBottom: '1px solid #e4e4e7', background: idx % 2 === 0 ? '#fff' : '#fafafa' }}>
+                                            <td style={{ padding: '4px 8px', color: '#a1a1aa', fontWeight: 700 }}>{idx + 1}</td>
+                                            <td style={{ padding: '4px 8px', fontWeight: 800, color: '#18181b', textTransform: 'uppercase', letterSpacing: '0.02em', maxWidth: 190 }}>{meta.baseName}</td>
+                                            <td style={{ padding: '4px 8px', color: '#52525b', fontFamily: 'monospace', fontSize: 8, whiteSpace: 'nowrap' }}>{meta.qty} × {meta.unitPrice.toFixed(2)}</td>
+                                            <td style={{ padding: '4px 8px', color: '#71717a', textTransform: 'uppercase', fontSize: 8 }}>{item.category || '—'}</td>
+                                            <td style={{ padding: '4px 8px' }}>
+                                                <span style={{ background: item.status === 'paid' ? '#dcfce7' : item.status === 'confirmed' ? '#dbeafe' : '#f4f4f5', color: item.status === 'paid' ? '#16a34a' : item.status === 'confirmed' ? '#1d4ed8' : '#71717a', padding: '1px 6px', borderRadius: 4, fontSize: 7, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                                                    {item.status}
+                                                </span>
+                                            </td>
+                                            <td style={{ padding: '4px 8px', textAlign: 'right', fontWeight: 900, color: '#dc2626', fontFamily: 'monospace' }}>{Number(item.amount).toFixed(2)}</td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                             <tfoot>
                                 <tr style={{ borderTop: '2px solid #d4d4d8', background: '#fef2f2' }}>
-                                    <td colSpan={4} style={{ padding: '6px 8px', fontWeight: 900, textTransform: 'uppercase', fontSize: 9, letterSpacing: '0.1em', color: '#dc2626' }}>Total Expenses</td>
+                                    <td colSpan={5} style={{ padding: '6px 8px', fontWeight: 900, textTransform: 'uppercase', fontSize: 9, letterSpacing: '0.1em', color: '#dc2626' }}>Total Expenses</td>
                                     <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 900, color: '#dc2626', fontFamily: 'monospace', fontSize: 11 }}>RM {totalSpends.toFixed(2)}</td>
                                 </tr>
                             </tfoot>
@@ -341,29 +472,34 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
                                 <tr style={{ background: '#f0fdf4', borderBottom: '1.5px solid #bbf7d0' }}>
                                     <th style={{ textAlign: 'left', padding: '5px 8px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#52525b', fontSize: 8 }}>#</th>
                                     <th style={{ textAlign: 'left', padding: '5px 8px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#52525b', fontSize: 8 }}>Item</th>
+                                    <th style={{ textAlign: 'left', padding: '5px 8px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#52525b', fontSize: 8 }}>Qty × Unit</th>
                                     <th style={{ textAlign: 'left', padding: '5px 8px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#52525b', fontSize: 8 }}>Category</th>
                                     <th style={{ textAlign: 'left', padding: '5px 8px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#52525b', fontSize: 8 }}>Status</th>
                                     <th style={{ textAlign: 'right', padding: '5px 8px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#52525b', fontSize: 8 }}>Amount (RM)</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {income.map((item, idx) => (
-                                    <tr key={item.id} style={{ borderBottom: '1px solid #dcfce7', background: idx % 2 === 0 ? '#fff' : '#f0fdf4' }}>
-                                        <td style={{ padding: '4px 8px', color: '#a1a1aa', fontWeight: 700 }}>{idx + 1}</td>
-                                        <td style={{ padding: '4px 8px', fontWeight: 800, color: '#18181b', textTransform: 'uppercase', letterSpacing: '0.02em' }}>{item.item}</td>
-                                        <td style={{ padding: '4px 8px', color: '#71717a', textTransform: 'uppercase', fontSize: 8 }}>{item.category || '—'}</td>
-                                        <td style={{ padding: '4px 8px' }}>
-                                            <span style={{ background: item.status === 'received' ? '#dcfce7' : item.status === 'confirmed' ? '#dbeafe' : '#f4f4f5', color: item.status === 'received' ? '#16a34a' : item.status === 'confirmed' ? '#1d4ed8' : '#71717a', padding: '1px 6px', borderRadius: 4, fontSize: 7, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                                                {item.status}
-                                            </span>
-                                        </td>
-                                        <td style={{ padding: '4px 8px', textAlign: 'right', fontWeight: 900, color: '#16a34a', fontFamily: 'monospace' }}>{Number(item.amount).toFixed(2)}</td>
-                                    </tr>
-                                ))}
+                                {income.map((item, idx) => {
+                                    const meta = parseBudgetItemMeta(item.item, item.amount);
+                                    return (
+                                        <tr key={item.id} style={{ borderBottom: '1px solid #dcfce7', background: idx % 2 === 0 ? '#fff' : '#f0fdf4' }}>
+                                            <td style={{ padding: '4px 8px', color: '#a1a1aa', fontWeight: 700 }}>{idx + 1}</td>
+                                            <td style={{ padding: '4px 8px', fontWeight: 800, color: '#18181b', textTransform: 'uppercase', letterSpacing: '0.02em' }}>{meta.baseName}</td>
+                                            <td style={{ padding: '4px 8px', color: '#52525b', fontFamily: 'monospace', fontSize: 8, whiteSpace: 'nowrap' }}>{meta.hasQtyMeta || meta.qty !== 1 ? `${meta.qty} × ${meta.unitPrice.toFixed(2)}` : '1'}</td>
+                                            <td style={{ padding: '4px 8px', color: '#71717a', textTransform: 'uppercase', fontSize: 8 }}>{item.category || '—'}</td>
+                                            <td style={{ padding: '4px 8px' }}>
+                                                <span style={{ background: item.status === 'received' ? '#dcfce7' : item.status === 'confirmed' ? '#dbeafe' : '#f4f4f5', color: item.status === 'received' ? '#16a34a' : item.status === 'confirmed' ? '#1d4ed8' : '#71717a', padding: '1px 6px', borderRadius: 4, fontSize: 7, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                                                    {item.status}
+                                                </span>
+                                            </td>
+                                            <td style={{ padding: '4px 8px', textAlign: 'right', fontWeight: 900, color: '#16a34a', fontFamily: 'monospace' }}>{Number(item.amount).toFixed(2)}</td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                             <tfoot>
                                 <tr style={{ borderTop: '2px solid #bbf7d0', background: '#f0fdf4' }}>
-                                    <td colSpan={4} style={{ padding: '6px 8px', fontWeight: 900, textTransform: 'uppercase', fontSize: 9, letterSpacing: '0.1em', color: '#16a34a' }}>Total Income</td>
+                                    <td colSpan={5} style={{ padding: '6px 8px', fontWeight: 900, textTransform: 'uppercase', fontSize: 9, letterSpacing: '0.1em', color: '#16a34a' }}>Total Income</td>
                                     <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 900, color: '#16a34a', fontFamily: 'monospace', fontSize: 11 }}>RM {totalIncome.toFixed(2)}</td>
                                 </tr>
                             </tfoot>
@@ -389,8 +525,9 @@ export default function BudgetPage({ params }: { params: Promise<{ id: string }>
                 item={editingItem}
                 projectId={id}
                 isOpen={!!editingItem}
+                catalog={editingItem?.type === 'expense' ? expenseCatalog : undefined}
                 onClose={() => setEditingItem(null)}
-                onSuccess={fetchData}
+                onSuccess={() => fetchData(true)}
             />
 
             {/* Print Styles */}

@@ -8,6 +8,16 @@ import { useRouter } from 'next/navigation';
 import { PrintOptionsModal } from './PrintOptionsModal';
 import { usePrint } from './PrintContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { BudgetItemPicker } from './BudgetItemPicker';
+import {
+    DEFAULT_BUDGET_CATEGORIES,
+    buildHistoricalCatalog,
+    fetchAllBudgetHistory,
+    formatBudgetItemName,
+    parseBudgetItemMeta,
+    round2,
+    type HistoricalBudgetItem,
+} from '../budgetUtils';
 
 
 // --- SHARED UI COMPONENTS ---
@@ -222,59 +232,286 @@ export function DeleteTimelineButton({ id, projectId }: { id: string, projectId:
 
 // --- BUDGETS ---
 
-export function AddBudgetButton({ projectId, isWedding, onSuccess }: { projectId: string; isWedding?: boolean; onSuccess?: () => void }) {
-    const [isOpen, setIsOpen] = useState(false);
+function BudgetTransactionForm({
+    mode,
+    projectId,
+    initialItem,
+    defaultType = 'expense',
+    externalCatalog,
+    onClose,
+    onSuccess,
+    buttonClass = 'bg-accent hover:bg-accent-hover shadow-accent/20 text-ink',
+}: {
+    mode: 'add' | 'edit';
+    projectId: string;
+    initialItem?: any;
+    defaultType?: 'expense' | 'income';
+    externalCatalog?: HistoricalBudgetItem[];
+    onClose: () => void;
+    onSuccess?: () => void;
+    buttonClass?: string;
+}) {
+    const parsed = initialItem
+        ? parseBudgetItemMeta(initialItem.item, initialItem.amount)
+        : { baseName: '', qty: 1, unitPrice: 0, hasQtyMeta: false };
+
+    const [type, setType] = useState<'expense' | 'income'>((initialItem?.type as 'expense' | 'income') || defaultType);
+    const [baseName, setBaseName] = useState(parsed.baseName);
+    const [qty, setQty] = useState<string>(String(parsed.qty || 1));
+    const [unitPrice, setUnitPrice] = useState<string>(initialItem ? String(parsed.unitPrice) : '');
+    const [amount, setAmount] = useState<string>(initialItem ? String(Number(initialItem.amount) || 0) : '');
+    const [category, setCategory] = useState(initialItem?.category || '');
+    const [status, setStatus] = useState(initialItem?.status || 'planned');
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const colorClass = isWedding ? 'bg-accent hover:bg-accent-hover shadow-accent/20' : 'bg-accent hover:bg-accent shadow-accent/20';
-    const focusClass = isWedding ? 'focus:border-accent' : 'focus:border-accent/30';
+    const [rawHistory, setRawHistory] = useState<any[]>([]);
+
+    useEffect(() => {
+        if ((externalCatalog && type === defaultType) || rawHistory.length > 0) return;
+        let cancelled = false;
+        fetchAllBudgetHistory().then(rows => {
+            if (!cancelled) setRawHistory(rows);
+        });
+        return () => { cancelled = true; };
+    }, [externalCatalog, type, defaultType, rawHistory.length]);
+
+    const catalog = externalCatalog && type === defaultType
+        ? externalCatalog
+        : buildHistoricalCatalog(rawHistory, type);
+
+    const handleQtyChange = (val: string) => {
+        setQty(val);
+        const q = parseFloat(val);
+        const u = parseFloat(unitPrice);
+        if (Number.isFinite(q) && Number.isFinite(u)) {
+            setAmount(String(round2(q * u)));
+        }
+    };
+
+    const handleUnitChange = (val: string) => {
+        setUnitPrice(val);
+        const q = parseFloat(qty);
+        const u = parseFloat(val);
+        if (Number.isFinite(q) && Number.isFinite(u)) {
+            setAmount(String(round2(q * u)));
+        }
+    };
+
+    const handleAmountChange = (val: string) => {
+        setAmount(val);
+        const tot = parseFloat(val);
+        const q = parseFloat(qty);
+        if (Number.isFinite(tot) && Number.isFinite(q) && q > 0) {
+            setUnitPrice(String(round2(tot / q)));
+        }
+    };
+
+    const handlePickPast = (picked: HistoricalBudgetItem) => {
+        setBaseName(picked.name);
+        if (picked.category) setCategory(picked.category);
+        const q = picked.defaultQty > 0 ? picked.defaultQty : 1;
+        setQty(String(q));
+        setUnitPrice(String(picked.unitPrice));
+        setAmount(String(round2(q * picked.unitPrice)));
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!baseName.trim()) return;
+        const qNum = parseFloat(qty) || 1;
+        const uNum = parseFloat(unitPrice) || 0;
+        const totalNum = amount !== '' ? Number(amount) : round2(qNum * uNum);
+        const formattedName = formatBudgetItemName(baseName, qNum, uNum);
+
+        setIsSubmitting(true);
+        const fd = new FormData();
+        fd.append('project_id', projectId);
+        fd.append('item', formattedName);
+        fd.append('amount', round2(totalNum).toFixed(2));
+        fd.append('type', type);
+        fd.append('category', category.trim());
+        if (mode === 'edit' && initialItem?.id) {
+            fd.append('id', initialItem.id);
+            fd.append('status', status);
+            await updateBudget(fd);
+        } else {
+            await createBudget(fd);
+        }
+        setIsSubmitting(false);
+        onClose();
+        onSuccess?.();
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Past Item Picker */}
+            <div>
+                <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1.5">
+                    Quick Fill From Past {type === 'expense' ? 'Expenses' : 'Items'}
+                </label>
+                <BudgetItemPicker
+                    catalog={catalog}
+                    onSelect={handlePickPast}
+                    label={catalog.length ? `Choose Past ${type === 'expense' ? 'Expense' : 'Income'} Item...` : 'Loading Past Items...'}
+                />
+            </div>
+
+            {/* Type + Category */}
+            <div className="grid grid-cols-2 gap-3">
+                <div>
+                    <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Type</label>
+                    <select
+                        value={type}
+                        onChange={e => setType(e.target.value as 'expense' | 'income')}
+                        className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-ink focus:outline-none focus:border-accent"
+                    >
+                        <option value="expense">Expense</option>
+                        <option value="income">Income</option>
+                    </select>
+                </div>
+                <div>
+                    <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Category</label>
+                    <input
+                        value={category}
+                        onChange={e => setCategory(e.target.value)}
+                        list="budget-categories-shared"
+                        className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-ink focus:outline-none focus:border-accent"
+                        placeholder="e.g. Equipment"
+                    />
+                    <datalist id="budget-categories-shared">
+                        {DEFAULT_BUDGET_CATEGORIES.map(c => <option key={c} value={c} />)}
+                    </datalist>
+                </div>
+            </div>
+
+            {/* Item Name */}
+            <div>
+                <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Item Name</label>
+                <input
+                    value={baseName}
+                    onChange={e => setBaseName(e.target.value)}
+                    required
+                    className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-ink focus:outline-none focus:border-accent"
+                    placeholder="e.g. Aircooler / Wall Fan / Staff"
+                />
+            </div>
+
+            {/* Qty x Unit Price = Total */}
+            <div className="rounded-xl bg-black/30 border border-white/10 p-3 space-y-2">
+                <div className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+                    Qty × Unit Price = Total (RM)
+                </div>
+                <div className="grid grid-cols-[0.8fr_1.1fr_1.2fr] gap-2">
+                    <div>
+                        <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Qty</label>
+                        <input
+                            type="number"
+                            step="any"
+                            min="0.01"
+                            value={qty}
+                            onChange={e => handleQtyChange(e.target.value)}
+                            required
+                            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-2.5 py-2 text-sm font-mono text-ink focus:outline-none focus:border-accent"
+                            placeholder="1"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Unit (RM)</label>
+                        <input
+                            type="number"
+                            step="0.01"
+                            value={unitPrice}
+                            onChange={e => handleUnitChange(e.target.value)}
+                            required
+                            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-2.5 py-2 text-sm font-mono text-ink focus:outline-none focus:border-accent"
+                            placeholder="0.00"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-[9px] font-bold text-zinc-500 uppercase mb-1">Total (RM)</label>
+                        <input
+                            type="number"
+                            step="0.01"
+                            value={amount}
+                            onChange={e => handleAmountChange(e.target.value)}
+                            required
+                            className="w-full bg-zinc-900 border border-accent/40 rounded-lg px-2.5 py-2 text-sm font-black font-mono text-accent-2 focus:outline-none focus:border-accent"
+                            placeholder="0.00"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            {mode === 'edit' && (
+                <div>
+                    <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Status</label>
+                    <select
+                        value={status}
+                        onChange={e => setStatus(e.target.value)}
+                        className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-ink focus:outline-none focus:border-accent"
+                    >
+                        <option value="planned">Planned</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="paid">Paid</option>
+                        <option value="received">Received</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+            )}
+
+            <div className="flex gap-3 pt-1">
+                {mode === 'edit' && (
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="flex-1 py-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold text-sm transition-colors cursor-pointer"
+                    >
+                        Cancel
+                    </button>
+                )}
+                <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className={`${mode === 'edit' ? 'flex-1' : 'w-full'} ${buttonClass} font-bold py-3 rounded-xl transition-colors shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer`}
+                >
+                    {isSubmitting && <i className="fa-solid fa-circle-notch fa-spin" />}
+                    {isSubmitting ? 'Saving...' : mode === 'edit' ? 'Save Changes' : 'Add Transaction'}
+                </button>
+            </div>
+        </form>
+    );
+}
+
+export function AddBudgetButton({
+    projectId,
+    isWedding,
+    onSuccess,
+    defaultType = 'expense',
+    catalog,
+}: {
+    projectId: string;
+    isWedding?: boolean;
+    onSuccess?: () => void;
+    defaultType?: 'expense' | 'income';
+    catalog?: HistoricalBudgetItem[];
+}) {
+    const [isOpen, setIsOpen] = useState(false);
+    const colorClass = isWedding ? 'bg-accent hover:bg-accent-hover shadow-accent/20 text-black' : 'bg-accent hover:bg-accent-hover shadow-accent/20 text-ink';
 
     return (
         <>
-            <button onClick={() => setIsOpen(true)} className={`h-12 px-6 rounded-2xl ${colorClass} text-ink font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2.5 hover:-translate-y-0.5 active:translate-y-0 shadow-lg`}>
+            <button onClick={() => setIsOpen(true)} className={`h-12 px-6 rounded-2xl ${colorClass} font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2.5 hover:-translate-y-0.5 active:translate-y-0 shadow-lg cursor-pointer`}>
                 <i className="fa-solid fa-plus text-lg"></i> Add Transaction
             </button>
             <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title="New Budget Item">
-                <form action={async (formData) => {
-                    setIsSubmitting(true);
-                    await createBudget(formData);
-                    setIsOpen(false);
-                    setIsSubmitting(false);
-                    onSuccess?.();
-                }} className="space-y-4">
-                    <input type="hidden" name="project_id" value={projectId} />
-                    <div>
-                        <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Item Name</label>
-                        <input name="item" required className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none ${focusClass}`} placeholder="e.g. Venue Deposit" />
-                    </div>
-                    <div>
-                        <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Amount (RM)</label>
-                        <input name="amount" type="number" step="0.01" required className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none ${focusClass}`} placeholder="0.00" />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Type</label>
-                            <select name="type" className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none ${focusClass}`}>
-                                <option value="expense">Expense</option>
-                                <option value="income">Income</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Category</label>
-                            <input name="category" list="categories" className={`w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none ${focusClass}`} placeholder="Select or type..." />
-                            <datalist id="categories">
-                                <option value="Venue" />
-                                <option value="Decor" />
-                                <option value="Marketing" />
-                                <option value="Staff" />
-                                <option value="Sponsorship" />
-                            </datalist>
-                        </div>
-                    </div>
-                    <button type="submit" disabled={isSubmitting} className={`w-full ${colorClass} text-ink font-bold py-3 rounded-xl transition-colors mt-4 shadow-lg flex items-center justify-center gap-2 disabled:opacity-50`}>
-                        {isSubmitting && <i className="fa-solid fa-circle-notch fa-spin" />}
-                        {isSubmitting ? 'Saving...' : 'Add Transaction'}
-                    </button>
-                </form>
+                <BudgetTransactionForm
+                    mode="add"
+                    projectId={projectId}
+                    defaultType={defaultType}
+                    externalCatalog={catalog}
+                    buttonClass={colorClass}
+                    onClose={() => setIsOpen(false)}
+                    onSuccess={onSuccess}
+                />
             </Modal>
         </>
     );
@@ -399,132 +636,29 @@ export function EditBudgetModal({
     isOpen,
     onClose,
     onSuccess,
+    catalog,
 }: {
     item: any;
     projectId: string;
     isOpen: boolean;
     onClose: () => void;
     onSuccess?: () => void;
+    catalog?: HistoricalBudgetItem[];
 }) {
-    const [isSubmitting, setIsSubmitting] = useState(false);
     if (!isOpen || !item) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md p-6 shadow-2xl relative animate-in zoom-in-95">
-                <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-lg font-black text-ink uppercase tracking-tight">Edit Transaction</h3>
-                    <button onClick={onClose} className="text-zinc-500 hover:text-ink transition-colors">
-                        <i className="fa-solid fa-xmark text-lg" />
-                    </button>
-                </div>
-
-                <form
-                    action={async (formData) => {
-                        setIsSubmitting(true);
-                        await updateBudget(formData);
-                        setIsSubmitting(false);
-                        onClose();
-                        onSuccess?.();
-                    }}
-                    className="space-y-4"
-                >
-                    <input type="hidden" name="id" value={item.id} />
-                    <input type="hidden" name="project_id" value={projectId} />
-
-                    <div>
-                        <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Item Name</label>
-                        <input
-                            name="item"
-                            defaultValue={item.item}
-                            required
-                            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none focus:border-accent/50 transition-colors"
-                            placeholder="e.g. Venue Deposit"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Amount (RM)</label>
-                        <input
-                            name="amount"
-                            type="number"
-                            step="0.01"
-                            defaultValue={item.amount}
-                            required
-                            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none focus:border-accent/50 transition-colors"
-                            placeholder="0.00"
-                        />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Type</label>
-                            <select
-                                name="type"
-                                defaultValue={item.type}
-                                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none focus:border-accent/50"
-                            >
-                                <option value="expense">Expense</option>
-                                <option value="income">Income</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Status</label>
-                            <select
-                                name="status"
-                                defaultValue={item.status}
-                                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none focus:border-accent/50"
-                            >
-                                <option value="planned">Planned</option>
-                                <option value="confirmed">Confirmed</option>
-                                <option value="paid">Paid</option>
-                                <option value="received">Received</option>
-                                <option value="cancelled">Cancelled</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Category</label>
-                        <input
-                            name="category"
-                            list="edit-categories"
-                            defaultValue={item.category}
-                            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-ink focus:outline-none focus:border-accent/50 transition-colors"
-                            placeholder="Select or type..."
-                        />
-                        <datalist id="edit-categories">
-                            <option value="Venue" />
-                            <option value="Decor" />
-                            <option value="Marketing" />
-                            <option value="Staff" />
-                            <option value="Sponsorship" />
-                            <option value="Equipment" />
-                            <option value="Catering" />
-                            <option value="Transport" />
-                        </datalist>
-                    </div>
-
-                    <div className="flex gap-3 pt-2">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="flex-1 py-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-400 font-bold text-sm transition-colors"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={isSubmitting}
-                            className="flex-1 py-3 rounded-xl bg-accent hover:bg-[#0069d9] text-white font-bold text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-                        >
-                            {isSubmitting && <i className="fa-solid fa-circle-notch fa-spin" />}
-                            {isSubmitting ? 'Saving...' : 'Save Changes'}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+        <Modal isOpen={isOpen} onClose={onClose} title="Edit Transaction">
+            <BudgetTransactionForm
+                key={item.id}
+                mode="edit"
+                projectId={projectId}
+                initialItem={item}
+                externalCatalog={catalog}
+                onClose={onClose}
+                onSuccess={onSuccess}
+            />
+        </Modal>
     );
 }
 
