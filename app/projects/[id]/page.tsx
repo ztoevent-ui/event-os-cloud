@@ -5,6 +5,14 @@ import { supabase } from '@/lib/supabaseClient';
 import Link from 'next/link';
 import { PrintReportButton } from '../components/ProjectModals';
 import MeetingNotesPanel from '../components/MeetingNotesPanel';
+import {
+    computeEventPowerSummary,
+    fetchVendorPowerSubmissions,
+    getVendorPowerConfig,
+    upsertVendorPowerConfig,
+    type VendorPowerConfig,
+    type VendorPowerSubmission,
+} from '../vendorPower';
 
 const fmt = (d?: string) =>
     d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : null;
@@ -30,6 +38,9 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [project, setProject] = useState<any>(null);
     const [stats, setStats] = useState({ pending: 0, critical: 0, done: 0, expenses: 0, enquiries: 0 });
+    const [powerConfig, setPowerConfig] = useState<VendorPowerConfig | null>(null);
+    const [powerSubs, setPowerSubs] = useState<VendorPowerSubmission[]>([]);
+    const [copiedPowerLink, setCopiedPowerLink] = useState(false);
     const [loading, setLoading] = useState(true);
     const [editOpen, setEditOpen] = useState(false);
     const [editData, setEditData] = useState<any>(null);
@@ -47,17 +58,23 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
             { count: critical },
             { count: done },
             { data: budgetItems },
-            { count: enquiries }
+            { count: enquiries },
+            vpCfg,
+            vpSubs,
         ] = await Promise.all([
             supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('project_id', id).neq('status', 'done'),
             supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('project_id', id).eq('priority', 'critical').neq('status', 'done'),
             supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('project_id', id).eq('status', 'done'),
             supabase.from('budgets').select('amount,type').eq('project_id', id),
             supabase.from('consulting_forms').select('*', { count: 'exact', head: true }).eq('project_id', id),
+            getVendorPowerConfig(id),
+            fetchVendorPowerSubmissions(id),
         ]);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const exp = budgetItems?.filter((b: any) => b.type === 'expense').reduce((s: number, b: any) => s + Number(b.amount), 0) ?? 0;
         setStats({ pending: pending ?? 0, critical: critical ?? 0, done: done ?? 0, expenses: exp, enquiries: enquiries ?? 0 });
+        setPowerConfig(vpCfg);
+        setPowerSubs(vpSubs);
         
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
@@ -76,6 +93,8 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
             start_date: project?.start_date || '',
             end_date: project?.end_date || '',
             status: project?.status || 'planning',
+            needVendorPowerLink: !!powerConfig?.enabled,
+            gensetKva: String(powerConfig?.genset_kva ?? 30),
         });
         setEditOpen(true);
     };
@@ -91,8 +110,20 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
             end_date: editData.end_date || null,
             status: editData.status,
         }).eq('id', id);
+        if (error) { setSaving(false); alert('Save failed: ' + error.message); return; }
+
+        if (editData.needVendorPowerLink || powerConfig) {
+            const updatedCfg = await upsertVendorPowerConfig(
+                id,
+                {
+                    enabled: !!editData.needVendorPowerLink,
+                    genset_kva: parseFloat(editData.gensetKva) || 0,
+                },
+                editData.name.trim()
+            );
+            setPowerConfig(updatedCfg);
+        }
         setSaving(false);
-        if (error) { alert('Save failed: ' + error.message); return; }
         setProject({ ...project, ...editData });
         setEditOpen(false);
     };
@@ -289,6 +320,54 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
                 })}
             </div>
 
+            {/* ── Vendor Power & Equipment Link Card ── */}
+            {powerConfig?.enabled && (() => {
+                const pSum = computeEventPowerSummary(powerSubs, powerConfig);
+                const sharePath = `/share/vendor-power/${powerConfig.token}`;
+                const fullShareUrl = typeof window !== 'undefined' ? `${window.location.origin}${sharePath}` : sharePath;
+                return (
+                    <div className="zto-card" style={{ padding: 24, borderColor: 'rgba(245, 158, 11, 0.35)', background: 'linear-gradient(135deg, rgba(245,158,11,0.07), rgba(10,10,12,0.85))' }}>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+                            <div style={{ minWidth: 0 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                                    <span style={{ padding: '2px 8px', borderRadius: 999, background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#34d399', fontSize: 10, fontWeight: 800, textTransform: 'uppercase' }}>
+                                        Public Form Live
+                                    </span>
+                                    <span style={{ fontSize: 12, fontWeight: 700, color: '#fbbf24' }}>
+                                        {pSum.vendorCount} Stalls · {pSum.totalKw} kW · {pSum.totalCircuits} Circuits Needed
+                                    </span>
+                                </div>
+                                <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--c-ink)' }}>
+                                    <i className="fa-solid fa-bolt" style={{ color: '#f59e0b', marginRight: 8 }} />
+                                    Vendor Electrical Load &amp; Equipment Link
+                                </div>
+                                <div style={{ fontSize: 12, fontFamily: 'monospace', color: 'rgb(var(--c-ink-rgb) / 0.55)', marginTop: 4 }}>
+                                    {fullShareUrl}
+                                </div>
+                            </div>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(fullShareUrl);
+                                        setCopiedPowerLink(true);
+                                        setTimeout(() => setCopiedPowerLink(false), 1600);
+                                    }}
+                                    className="zto-btn zto-btn-ghost"
+                                    style={{ fontSize: 12, padding: '8px 14px' }}
+                                >
+                                    <i className={`fa-solid ${copiedPowerLink ? 'fa-check' : 'fa-link'}`} />
+                                    {copiedPowerLink ? 'Copied!' : 'Copy Vendor Link'}
+                                </button>
+                                <Link href={`/projects/${id}/vendors?tab=power`} className="zto-btn zto-btn-primary" style={{ textDecoration: 'none', fontSize: 12, padding: '8px 16px' }}>
+                                    <i className="fa-solid fa-gauge-high" /> Power Load Hub
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+                );
+            })()}
+
             {/* ── Meeting Notes ── */}
             <div>
                 <MeetingNotesPanel project={project} />
@@ -406,6 +485,32 @@ export default function ProjectDashboard({ params }: { params: Promise<{ id: str
                                     <label className="zto-label" style={{ display: 'block', marginBottom: 6 }}>End Date</label>
                                     <input type="date" className="zto-input" value={editData.end_date} onChange={e => setEditData({ ...editData, end_date: e.target.value })} style={{ colorScheme: 'dark' }} />
                                 </div>
+                            </div>
+                            <div style={{ padding: 12, borderRadius: 12, background: 'rgb(var(--c-ink-rgb) / 0.04)', border: '1px solid rgb(var(--c-ink-rgb) / 0.1)' }}>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+                                    <input
+                                        type="checkbox"
+                                        checked={!!editData.needVendorPowerLink}
+                                        onChange={e => setEditData({ ...editData, needVendorPowerLink: e.target.checked })}
+                                        style={{ accentColor: '#f59e0b', width: 15, height: 15 }}
+                                    />
+                                    <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--c-ink)' }}>
+                                        Need Vendor Equipment Registration Link?
+                                    </span>
+                                </label>
+                                {editData.needVendorPowerLink && (
+                                    <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
+                                        <span style={{ fontSize: 11, color: 'rgb(var(--c-ink-rgb) / 0.6)' }}>Generator Size (kVA):</span>
+                                        <input
+                                            type="number"
+                                            min={0}
+                                            className="zto-input"
+                                            value={editData.gensetKva}
+                                            onChange={e => setEditData({ ...editData, gensetKva: e.target.value })}
+                                            style={{ maxWidth: 100, padding: '6px 10px', fontSize: 12 }}
+                                        />
+                                    </div>
+                                )}
                             </div>
                         </div>
 

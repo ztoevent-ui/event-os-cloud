@@ -1,9 +1,19 @@
 'use client';
-import React, { useState, useEffect, use } from 'react';
+import React, { useState, useEffect, useMemo, use } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { AddVendorButton, DeleteVendorButton, PrintReportButton, EditVendorModal } from '../../components/ProjectModals';
 import { PrintBreakTrigger } from '../../components/PrintBreakTrigger';
 import { usePrint } from '../../components/PrintContext';
+import { VendorPowerDashboard } from './VendorPowerDashboard';
+import {
+    DEFAULT_VENDOR_POWER_CONFIG,
+    computeEventPowerSummary,
+    computeSubmissionStats,
+    fetchVendorPowerSubmissions,
+    getVendorPowerConfig,
+    type VendorPowerConfig,
+    type VendorPowerSubmission,
+} from '../../vendorPower';
 
 export default function VendorsPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
@@ -11,29 +21,46 @@ export default function VendorsPage({ params }: { params: Promise<{ id: string }
     const [editingVendor, setEditingVendor] = useState<any>(null);
     const [project, setProject] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState<'directory' | 'power'>('directory');
+    const [powerConfig, setPowerConfig] = useState<VendorPowerConfig | null>(null);
+    const [powerSubmissions, setPowerSubmissions] = useState<VendorPowerSubmission[]>([]);
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [sortBy, setSortBy] = useState<'name' | 'category' | 'status'>('name');
     const [searchQuery, setSearchQuery] = useState('');
     const { pageBreakIds, layoutType } = usePrint();
 
     useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const tab = new URLSearchParams(window.location.search).get('tab');
+            if (tab === 'power') setActiveTab('power');
+        }
         fetchData();
     }, [id]);
 
     const fetchData = async () => {
         setLoading(true);
-        const { data: projectData } = await supabase.from('projects').select('type').eq('id', id).single();
+        const [
+            { data: projectData },
+            { data: vendorsData },
+            cfg,
+            subs,
+        ] = await Promise.all([
+            supabase.from('projects').select('type, name, venue').eq('id', id).single(),
+            supabase.from('vendors').select('*').eq('project_id', id).order('name', { ascending: true }),
+            getVendorPowerConfig(id),
+            fetchVendorPowerSubmissions(id),
+        ]);
         setProject(projectData);
-
-        const { data: vendorsData } = await supabase
-            .from('vendors')
-            .select('*')
-            .eq('project_id', id)
-            .order('name', { ascending: true });
-        
         setVendors(vendorsData || []);
+        setPowerConfig(cfg);
+        setPowerSubmissions(subs);
         setLoading(false);
     };
+
+    const powerSummary = useMemo(
+        () => computeEventPowerSummary(powerSubmissions, powerConfig || DEFAULT_VENDOR_POWER_CONFIG()),
+        [powerSubmissions, powerConfig]
+    );
 
     if (loading) return <div className="p-20 text-center animate-pulse">Syncing Vendor Directory...</div>;
 
@@ -93,11 +120,101 @@ export default function VendorsPage({ params }: { params: Promise<{ id: string }
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <PrintReportButton title="Vendor List" />
+                        <PrintReportButton title={activeTab === 'power' ? 'Vendor Electrical Load Schedule' : 'Vendor List'} />
                         <AddVendorButton projectId={id} isWedding={isWedding} />
                     </div>
                 </div>
             </div>
+
+            {/* ── Section Switcher Tabs ── */}
+            <div className="print:hidden flex flex-wrap items-center gap-2 mb-8">
+                <button
+                    type="button"
+                    onClick={() => setActiveTab('directory')}
+                    className={`px-4 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider border transition-all cursor-pointer flex items-center gap-2 ${
+                        activeTab === 'directory'
+                            ? 'bg-accent border-accent text-ink shadow-md'
+                            : 'bg-ink/[0.03] border-ink/10 text-zinc-400 hover:text-ink'
+                    }`}
+                >
+                    <i className="fa-solid fa-store" />
+                    <span>Vendor Directory</span>
+                    <span className="px-1.5 py-0.2 rounded bg-black/25 text-[10px] font-mono">{vendors.length}</span>
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setActiveTab('power')}
+                    className={`px-4 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider border transition-all cursor-pointer flex items-center gap-2 ${
+                        activeTab === 'power'
+                            ? 'bg-amber-400 border-amber-400 text-black shadow-md'
+                            : 'bg-ink/[0.03] border-ink/10 text-zinc-400 hover:text-ink'
+                    }`}
+                >
+                    <i className="fa-solid fa-bolt" />
+                    <span>Power &amp; Equipment Load</span>
+                    <span className={`px-1.5 py-0.2 rounded text-[10px] font-mono ${activeTab === 'power' ? 'bg-black/20 text-black' : 'bg-white/10 text-amber-300'}`}>
+                        {powerSubmissions.length > 0 ? `${powerSubmissions.length} · ${powerSummary.totalKw} kW` : (powerConfig?.enabled ? 'ON' : 'OFF')}
+                    </span>
+                </button>
+            </div>
+
+            {activeTab === 'power' ? (
+                <>
+                    <VendorPowerDashboard
+                        projectId={id}
+                        projectName={project?.name || 'Event Project'}
+                        venue={project?.venue || undefined}
+                        config={powerConfig}
+                        submissions={powerSubmissions}
+                        onConfigChange={setPowerConfig}
+                        onSubmissionsChange={setPowerSubmissions}
+                    />
+                    {powerSubmissions.length > 0 && (
+                        <div className="hidden print:block w-full mt-6">
+                            <h2 className="text-base font-black uppercase mb-3">
+                                {project?.name || 'Event'} — Electrical Load &amp; Circuit Distribution ({powerSummary.totalKw} kW · {powerSummary.totalCircuits} Circuits)
+                            </h2>
+                            <table className="w-full text-left text-[10px] border-collapse border border-black/20">
+                                <thead>
+                                    <tr className="bg-black/5 border-b-2 border-black">
+                                        <th className="py-2 px-2 font-black uppercase">Vendor / Zone</th>
+                                        <th className="py-2 px-2 font-black uppercase">Appliances Declared</th>
+                                        <th className="py-2 px-2 font-black uppercase text-right">Watts / Amps</th>
+                                        <th className="py-2 px-2 font-black uppercase text-center">Circuits</th>
+                                        <th className="py-2 px-2 font-black uppercase text-center">DB / Phase</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {powerSubmissions.map(sub => {
+                                        const st = computeSubmissionStats(sub, powerConfig || DEFAULT_VENDOR_POWER_CONFIG());
+                                        return (
+                                            <tr key={sub.id || sub.submission_id} className="border-b border-black/15">
+                                                <td className="py-2 px-2 font-bold">
+                                                    <div>{sub.vendor_name}</div>
+                                                    {sub.zone && <div className="text-[9px] text-black/60">{sub.zone}</div>}
+                                                </td>
+                                                <td className="py-2 px-2">
+                                                    {(sub.appliances || []).map((a, idx) => (
+                                                        <div key={idx}>{a.name} ×{a.qty} ({a.verified_watts_per_unit ?? a.watts_per_unit}W)</div>
+                                                    ))}
+                                                </td>
+                                                <td className="py-2 px-2 text-right font-mono font-bold">
+                                                    {st.totalWatts}W ({st.totalAmps}A)
+                                                </td>
+                                                <td className="py-2 px-2 text-center font-bold">{st.recommendedCircuits}</td>
+                                                <td className="py-2 px-2 text-center font-mono">
+                                                    {[sub.assigned_circuit, sub.assigned_phase ? `L${sub.assigned_phase === 'R' ? '1-R' : sub.assigned_phase === 'Y' ? '2-Y' : '3-B'}` : ''].filter(Boolean).join(' · ') || '-'}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </>
+            ) : (
+            <>
 
             {/* ── Toolbar ── */}
             <div className="print:hidden flex flex-col md:flex-row gap-4 mb-8">
@@ -312,6 +429,8 @@ export default function VendorsPage({ params }: { params: Promise<{ id: string }
                         </tbody>
                     </table>
                 </div>
+            )}
+            </>
             )}
 
             <style jsx global>{`

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import PTWWizard from './components/PTWWizard';
+import { upsertVendorPowerConfig } from './vendorPower';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Project = any;
@@ -25,6 +26,8 @@ export default function ProjectsPage() {
         start_date: '',
         end_date: '',
         venue: '',
+        needVendorPowerLink: false,
+        gensetKva: '30',
     });
 
     const deleteProject = async (e: React.MouseEvent, projectId: string, projectName: string) => {
@@ -52,8 +55,19 @@ export default function ProjectsPage() {
             alert('创建失败: ' + error.message);
             setCreating(false);
         } else {
+            if (formData.needVendorPowerLink && data?.id) {
+                try {
+                    await upsertVendorPowerConfig(
+                        data.id,
+                        { enabled: true, genset_kva: parseFloat(formData.gensetKva) || 0 },
+                        formData.name.trim()
+                    );
+                } catch (cfgErr) {
+                    console.error('Failed to init vendor power link:', cfgErr);
+                }
+            }
             setShowModal(false);
-            setFormData({ name: '', type: 'corporate', start_date: '', end_date: '', venue: '' });
+            setFormData({ name: '', type: 'corporate', start_date: '', end_date: '', venue: '', needVendorPowerLink: false, gensetKva: '30' });
             setCreating(false);
             router.push(`/projects/${data.id}`);
         }
@@ -414,6 +428,50 @@ export default function ProjectsPage() {
                                     placeholder="e.g. Parkcity Sector-4"
                                     className="zto-input"
                                 />
+                            </div>
+
+                            {/* Vendor Power & Equipment Link Option */}
+                            <div style={{
+                                padding: 14,
+                                borderRadius: 14,
+                                background: formData.needVendorPowerLink ? 'rgba(245, 158, 11, 0.08)' : 'rgb(var(--c-ink-rgb) / 0.03)',
+                                border: formData.needVendorPowerLink ? '1px solid rgba(245, 158, 11, 0.4)' : '1px solid rgb(var(--c-ink-rgb) / 0.08)',
+                                transition: 'all 0.2s',
+                            }}>
+                                <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer' }}>
+                                    <input
+                                        type="checkbox"
+                                        checked={formData.needVendorPowerLink}
+                                        onChange={e => setFormData({ ...formData, needVendorPowerLink: e.target.checked })}
+                                        style={{ marginTop: 3, accentColor: '#f59e0b', width: 16, height: 16 }}
+                                    />
+                                    <div style={{ flex: 1 }}>
+                                        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--c-ink)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                            <i className="fa-solid fa-bolt" style={{ color: '#f59e0b', fontSize: 11 }} />
+                                            Need Vendor Equipment Registration Link?
+                                        </div>
+                                        <div style={{ fontSize: 11, color: 'rgb(var(--c-ink-rgb) / 0.5)', marginTop: 3, lineHeight: 1.4 }}>
+                                            Auto-generates a public link for F&amp;B / booth vendors to declare appliances, Watts/Amps &amp; upload nameplate photos for circuit planning.
+                                        </div>
+                                    </div>
+                                </label>
+                                {formData.needVendorPowerLink && (
+                                    <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', gap: 10 }}>
+                                        <label style={{ fontSize: 11, fontWeight: 600, color: 'rgb(var(--c-ink-rgb) / 0.65)', whiteSpace: 'nowrap' }}>
+                                            Generator Size (kVA):
+                                        </label>
+                                        <input
+                                            type="number"
+                                            min={0}
+                                            value={formData.gensetKva}
+                                            onChange={e => setFormData({ ...formData, gensetKva: e.target.value })}
+                                            placeholder="30"
+                                            className="zto-input"
+                                            style={{ maxWidth: 110, padding: '6px 10px', fontSize: 12 }}
+                                        />
+                                        <span style={{ fontSize: 10, color: 'rgb(var(--c-ink-rgb) / 0.4)' }}>0 = venue mains</span>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
