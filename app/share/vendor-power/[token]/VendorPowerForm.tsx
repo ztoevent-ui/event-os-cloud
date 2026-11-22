@@ -192,8 +192,16 @@ export function VendorPowerForm({
     project: { id: string; name: string; venue?: string | null; start_date?: string | null };
     config: VendorPowerConfig;
 }) {
-    const [lang, setLang] = useState<FormLang>('zh');
+    const [lang, setLang] = useState<FormLang>('en');
     const L = UI[lang];
+
+    React.useEffect(() => {
+        if (typeof window === 'undefined') return;
+        const param = new URLSearchParams(window.location.search).get('lang');
+        if (param === 'en' || param === 'bm' || param === 'zh') {
+            setLang(param);
+        }
+    }, []);
 
     const [vendorName, setVendorName] = useState('');
     const [contactPerson, setContactPerson] = useState('');
@@ -404,7 +412,7 @@ export function VendorPowerForm({
                     </div>
 
                     <div className="inline-flex p-0.5 rounded-xl bg-zinc-900 border border-white/15 shrink-0">
-                        {(['zh', 'en', 'bm'] as FormLang[]).map(code => (
+                        {(['en', 'bm', 'zh'] as FormLang[]).map(code => (
                             <button
                                 key={code}
                                 type="button"

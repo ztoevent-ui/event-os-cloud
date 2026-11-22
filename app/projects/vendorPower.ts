@@ -496,11 +496,12 @@ export async function deleteVendorPowerSubmission(rowId: string): Promise<void> 
 export function buildVendorInviteMessage(projectName: string, shareUrl: string, venue?: string): string {
     const loc = venue ? ` (${venue})` : '';
     return [
-        `[${projectName}${loc}] Vendor Electrical & Appliance Declaration / 参展摊位电器用电申报`,
+        `[${projectName}${loc}] Vendor Electrical Load & Equipment Registration`,
         ``,
-        `Dear Vendor, to ensure safe & stable power circuits under the marquee tent without tripping, please declare all electrical appliances you are bringing (oven, coffee machine, microwave, blender, chiller, etc.) and upload clear photos of each appliance's power rating sticker (Watts / Amps):`,
+        `Dear Vendor,`,
+        `To ensure safe and stable power distribution under the marquee tent without circuit tripping, please list all electrical appliances you are bringing (oven, coffee machine, microwave, blender, chiller, fryer, etc.) and upload clear photos of each appliance's power rating sticker (Watts / Amps):`,
         shareUrl,
         ``,
-        `请各位饮食/摊位商家填写并拍照上传所有携带电器的功率铭牌照片（W / kW / A），以便大会提前为您安排独立电源与足够回路，避免跳电。谢谢配合！`,
+        `Thank you for your cooperation!`,
     ].join('\n');
 }

@@ -33,14 +33,14 @@ export default function ProjectsPage() {
     const deleteProject = async (e: React.MouseEvent, projectId: string, projectName: string) => {
         e.preventDefault();
         e.stopPropagation();
-        if (!confirm(`确定要删除 "${projectName}" 吗？此操作无法撤销。`)) return;
+        if (!confirm(`Are you sure you want to delete "${projectName}"? This action cannot be undone.`)) return;
         const { error } = await supabase.from('projects').delete().eq('id', projectId);
-        if (error) alert('删除失败: ' + error.message);
+        if (error) alert('Delete failed: ' + error.message);
         else setProjects(prev => prev.filter(p => p.id !== projectId));
     };
 
     const createProject = async () => {
-        if (!formData.name.trim()) { alert('请输入活动名称'); return; }
+        if (!formData.name.trim()) { alert('Please enter a project name.'); return; }
         setCreating(true);
         const { data, error } = await supabase.from('projects').insert({
             name: formData.name.trim(),
@@ -52,7 +52,7 @@ export default function ProjectsPage() {
         }).select().single();
 
         if (error) {
-            alert('创建失败: ' + error.message);
+            alert('Create failed: ' + error.message);
             setCreating(false);
         } else {
             if (formData.needVendorPowerLink && data?.id) {
@@ -173,7 +173,7 @@ export default function ProjectsPage() {
                         <i className="fa-solid fa-arrow-left" /> Dashboard
                     </Link>
                     <Link href="/projects/bridal-fair" style={{ textDecoration: 'none', background: 'rgba(236,72,153,0.15)', border: '1px solid rgba(236,72,153,0.4)', color: '#f472b6', fontWeight: 700 }} className="zto-btn">
-                        <i className="fa-solid fa-heart" style={{ color: '#ec4899' }} /> Bridal Fair 现场签单
+                        <i className="fa-solid fa-heart" style={{ color: '#ec4899' }} /> Bridal Fair Sign-Up
                     </Link>
                     <Link href="/projects/calendar" className="zto-btn zto-btn-ghost" style={{ textDecoration: 'none' }}>
                         <i className="fa-solid fa-calendar-days" /> Global Calendar
