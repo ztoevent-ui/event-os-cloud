@@ -39,7 +39,7 @@ export function DbOutletRegistryPanel({
     mainMccbAmps: number;
     supplyVoltage: number;
     registeredOutletAmps: { R: number; Y: number; B: number };
-    onUpdateOutlets: (next: DbOutletEntry[]) => void;
+    onUpdateOutlets: (updater: (prev: DbOutletEntry[]) => DbOutletEntry[]) => void;
 }) {
     const [draftLabel, setDraftLabel] = useState('');
     const [draftUsage, setDraftUsage] = useState('');
@@ -51,17 +51,19 @@ export function DbOutletRegistryPanel({
     const addOutlet = (override?: Partial<DbOutletEntry>) => {
         const qty = Math.max(1, parseInt(String(override?.qty ?? draftQty), 10) || 1);
         const amps = Math.max(1, parseFloat(String(override?.amps_per_outlet ?? draftAmps)) || 13);
-        const idx = outlets.length + 1;
-        const entry: DbOutletEntry = {
-            id: `dbout_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-            outlet_label: (override?.outlet_label ?? draftLabel.trim()) || `TAP-${String(idx).padStart(2, '0')}`,
-            usage: (override?.usage ?? draftUsage.trim()) || 'Event Area / Booth Distribution',
-            phase: dbPhaseMode === '1phase' ? 'R' : (override?.phase ?? draftPhase),
-            qty,
-            amps_per_outlet: amps,
-            cable_spec: (override?.cable_spec ?? draftCable.trim()) || '',
-        };
-        onUpdateOutlets([...outlets, entry]);
+        onUpdateOutlets(prev => {
+            const idx = prev.length + 1;
+            const entry: DbOutletEntry = {
+                id: `dbout_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+                outlet_label: (override?.outlet_label ?? draftLabel.trim()) || `TAP-${String(idx).padStart(2, '0')}`,
+                usage: (override?.usage ?? draftUsage.trim()) || 'Event Area / Booth Distribution',
+                phase: dbPhaseMode === '1phase' ? 'R' : (override?.phase ?? draftPhase),
+                qty,
+                amps_per_outlet: amps,
+                cable_spec: (override?.cable_spec ?? draftCable.trim()) || '',
+            };
+            return [...prev, entry];
+        });
         if (!override) {
             setDraftLabel('');
             setDraftUsage('');
@@ -70,11 +72,11 @@ export function DbOutletRegistryPanel({
     };
 
     const patchOutlet = (id: string, patch: Partial<DbOutletEntry>) => {
-        onUpdateOutlets(outlets.map(o => (o.id === id ? { ...o, ...patch } : o)));
+        onUpdateOutlets(prev => prev.map(o => (o.id === id ? { ...o, ...patch } : o)));
     };
 
     const removeOutlet = (id: string) => {
-        onUpdateOutlets(outlets.filter(o => o.id !== id));
+        onUpdateOutlets(prev => prev.filter(o => o.id !== id));
     };
 
     const totalOutlets = outlets.reduce((s, o) => s + (Number(o.qty) || 1), 0);

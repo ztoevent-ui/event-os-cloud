@@ -51,6 +51,10 @@ export function VendorPowerDashboard({
     const [draftInstr, setDraftInstr] = useState(cfg.instructions || '');
     const [showOutletsInGenset, setShowOutletsInGenset] = useState(false);
 
+    const cfgRef = React.useRef<VendorPowerConfig>(cfg);
+    cfgRef.current = cfg;
+    const configWriteQueueRef = React.useRef<Promise<void>>(Promise.resolve());
+
     const summary = useMemo(() => computeEventPowerSummary(submissions, cfg), [submissions, cfg]);
     const supplySource: PowerSupplySource = summary.supplySource;
     const dbPhaseMode: DbPhaseMode = summary.dbPhaseMode;
@@ -61,19 +65,36 @@ export function VendorPowerDashboard({
         return `${window.location.origin}${path}`;
     }, [cfg.token]);
 
-    const saveConfigPatch = async (patch: Partial<VendorPowerConfig>) => {
-        setSavingCfg(true);
-        try {
-            const next = await upsertVendorPowerConfig(projectId, { ...cfg, ...patch }, projectName);
-            onConfigChange(next);
-            setDraftKva(String(next.genset_kva ?? 30));
-            setDraftMccbAmps(String(next.main_mccb_amps ?? 63));
-            setDraftDbLocation(next.db_location || '');
-            setDraftCircuitW(String(next.safe_circuit_watts ?? 2400));
-            setDraftInstr(next.instructions || '');
-        } finally {
-            setSavingCfg(false);
-        }
+    const saveConfigPatch = (
+        patchOrFn: Partial<VendorPowerConfig> | ((prev: VendorPowerConfig) => Partial<VendorPowerConfig>)
+    ) => {
+        const patch = typeof patchOrFn === 'function' ? patchOrFn(cfgRef.current) : patchOrFn;
+        const optimistic: VendorPowerConfig = { ...cfgRef.current, ...patch };
+        cfgRef.current = optimistic;
+        onConfigChange(optimistic);
+
+        configWriteQueueRef.current = configWriteQueueRef.current.then(async () => {
+            setSavingCfg(true);
+            try {
+                const next = await upsertVendorPowerConfig(projectId, patch, projectName);
+                const merged: VendorPowerConfig = {
+                    ...next,
+                    ...cfgRef.current,
+                    token: next.token || cfgRef.current.token,
+                    updated_at: next.updated_at,
+                };
+                cfgRef.current = merged;
+                onConfigChange(merged);
+                setDraftKva(String(merged.genset_kva ?? 30));
+                setDraftMccbAmps(String(merged.main_mccb_amps ?? 63));
+                setDraftDbLocation(merged.db_location || '');
+                setDraftCircuitW(String(merged.safe_circuit_watts ?? 2400));
+                setDraftInstr(merged.instructions || '');
+            } finally {
+                setSavingCfg(false);
+            }
+        });
+        return configWriteQueueRef.current;
     };
 
     const copyText = (type: 'link' | 'invite') => {
@@ -564,7 +585,11 @@ export function VendorPowerDashboard({
                     mainMccbAmps={summary.mainMccbAmps}
                     supplyVoltage={cfg.supply_voltage || 230}
                     registeredOutletAmps={summary.registeredOutletAmps}
-                    onUpdateOutlets={nextOutlets => saveConfigPatch({ db_outlets: nextOutlets })}
+                    onUpdateOutlets={updater =>
+                        saveConfigPatch(prev => ({
+                            db_outlets: updater(prev.db_outlets || []),
+                        }))
+                    }
                 />
             )}
 
