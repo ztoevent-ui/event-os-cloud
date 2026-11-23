@@ -5,10 +5,31 @@ export const VENDOR_POWER_SUBMISSION_TOOL = 'vendor_power_submission';
 
 export type PowerInputMode = 'W' | 'kW' | 'A';
 export type PhaseCode = '' | 'R' | 'Y' | 'B';
+export type PowerSupplySource = 'generator' | 'building_db';
+export type DbPhaseMode = '3phase' | '1phase';
+export type DbOutletPhase = 'R' | 'Y' | 'B' | '3P';
+
+export type DbOutletEntry = {
+    id: string;
+    outlet_label: string;
+    usage: string;
+    phase: DbOutletPhase;
+    qty: number;
+    amps_per_outlet: number;
+    cable_spec?: string;
+    notes?: string;
+};
+
+export const MCCB_PRESET_AMPS = [32, 40, 63, 100, 125, 150, 200] as const;
 
 export type VendorPowerConfig = {
     enabled: boolean;
     token: string;
+    supply_source?: PowerSupplySource;
+    db_phase_mode?: DbPhaseMode;
+    main_mccb_amps?: number;
+    db_location?: string;
+    db_outlets?: DbOutletEntry[];
     supply_voltage: number;     // Malaysia standard 230V
     circuit_amps_limit: number; // e.g. 13A MCB or 16A CEE
     safe_circuit_watts: number; // 80% continuous safe ceiling (2400W for 13A @ 230V)
@@ -106,6 +127,11 @@ export const VENDOR_APPLIANCE_PRESETS: AppliancePreset[] = [
 export const DEFAULT_VENDOR_POWER_CONFIG = (token = ''): VendorPowerConfig => ({
     enabled: false,
     token: token || generateVendorPowerToken(),
+    supply_source: 'generator',
+    db_phase_mode: '3phase',
+    main_mccb_amps: 63,
+    db_location: '',
+    db_outlets: [],
     supply_voltage: 230,
     circuit_amps_limit: 13,
     safe_circuit_watts: 2400,
@@ -259,6 +285,50 @@ export function computeEventPowerSummary(subs: VendorPowerSubmission[], cfg: Ven
 
     const totalKw = roundNum(totalWatts / 1000, 2);
     const peakKw = roundNum(peakWatts / 1000, 2);
+    const supplySource: PowerSupplySource =
+        cfg.supply_source || (Number(cfg.genset_kva) > 0 ? 'generator' : 'building_db');
+    const dbPhaseMode: DbPhaseMode = cfg.db_phase_mode || '3phase';
+    const mainMccbAmps = Number(cfg.main_mccb_amps) > 0 ? Number(cfg.main_mccb_amps) : 63;
+    const phaseMultiplier = dbPhaseMode === '3phase' ? 3 : 1;
+    const dbPerPhaseKw = roundNum((mainMccbAmps * supplyV) / 1000, 1);
+    const dbTotalMaxKw = roundNum((phaseMultiplier * mainMccbAmps * supplyV) / 1000, 1);
+    const dbSafePhaseAmps = roundNum(mainMccbAmps * 0.8, 1);
+
+    const phaseAmps = {
+        R: roundNum(phaseWatts.R / supplyV, 1),
+        Y: roundNum(phaseWatts.Y / supplyV, 1),
+        B: roundNum(phaseWatts.B / supplyV, 1),
+    };
+    const totalAmpsEq230 = roundNum(totalWatts / supplyV, 1);
+    const peakPhaseAmps = Math.max(phaseAmps.R, phaseAmps.Y, phaseAmps.B);
+    const mccbUsagePct =
+        mainMccbAmps > 0
+            ? Math.round(
+                  ((dbPhaseMode === '3phase'
+                      ? Math.max(peakPhaseAmps, totalAmpsEq230 / 3)
+                      : totalAmpsEq230) /
+                      mainMccbAmps) *
+                      100
+              )
+            : 0;
+
+    const dbOutlets = cfg.db_outlets || [];
+    let registeredOutletsTotal = 0;
+    const registeredOutletAmps = { R: 0, Y: 0, B: 0 };
+    for (const o of dbOutlets) {
+        const q = Math.max(1, Number(o.qty) || 1);
+        const a = Math.max(0, Number(o.amps_per_outlet) || 0);
+        registeredOutletsTotal += q;
+        const lineAmps = q * a;
+        if (o.phase === '3P') {
+            registeredOutletAmps.R += lineAmps;
+            registeredOutletAmps.Y += lineAmps;
+            registeredOutletAmps.B += lineAmps;
+        } else if (o.phase === 'R' || o.phase === 'Y' || o.phase === 'B') {
+            registeredOutletAmps[o.phase] += lineAmps;
+        }
+    }
+
     const gensetKva = Number(cfg.genset_kva) || 0;
     const gensetRealKw = roundNum(gensetKva * 0.8, 1);       // PF = 0.8
     const gensetSafeKw = roundNum(gensetRealKw * 0.8, 1);    // 80% continuous safe cap
@@ -270,11 +340,21 @@ export function computeEventPowerSummary(subs: VendorPowerSubmission[], cfg: Ven
         totalWatts,
         totalKw,
         peakKw,
-        totalAmpsEq230: roundNum(totalWatts / supplyV, 1),
+        totalAmpsEq230,
         totalCircuits,
         dedicatedCount,
         totalPhotos,
         missingPhotos,
+        supplySource,
+        dbPhaseMode,
+        mainMccbAmps,
+        dbPerPhaseKw,
+        dbTotalMaxKw,
+        dbSafePhaseAmps,
+        peakPhaseAmps,
+        mccbUsagePct,
+        registeredOutletsTotal,
+        registeredOutletAmps,
         gensetKva,
         gensetRealKw,
         gensetSafeKw,
@@ -285,11 +365,7 @@ export function computeEventPowerSummary(subs: VendorPowerSubmission[], cfg: Ven
             B: roundNum(phaseWatts.B / 1000, 2),
             unassigned: roundNum(phaseWatts.unassigned / 1000, 2),
         },
-        phaseAmps: {
-            R: roundNum(phaseWatts.R / supplyV, 1),
-            Y: roundNum(phaseWatts.Y / supplyV, 1),
-            B: roundNum(phaseWatts.B / supplyV, 1),
-        },
+        phaseAmps,
     };
 }
 

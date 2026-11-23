@@ -3,6 +3,7 @@
 import React, { useMemo, useState } from 'react';
 import {
     DEFAULT_VENDOR_POWER_CONFIG,
+    MCCB_PRESET_AMPS,
     PHASE_META,
     buildVendorInviteMessage,
     computeApplianceStats,
@@ -13,10 +14,13 @@ import {
     sortSubmissionsForWiring,
     updateVendorPowerSubmission,
     upsertVendorPowerConfig,
+    type DbPhaseMode,
+    type PhaseCode,
+    type PowerSupplySource,
     type VendorPowerConfig,
     type VendorPowerSubmission,
-    type PhaseCode,
 } from '../../vendorPower';
+import { DbOutletRegistryPanel } from './DbOutletRegistryPanel';
 
 export function VendorPowerDashboard({
     projectId,
@@ -41,10 +45,15 @@ export function VendorPowerDashboard({
     const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
     const [savingRowId, setSavingRowId] = useState<string | null>(null);
     const [draftKva, setDraftKva] = useState(String(cfg.genset_kva ?? 30));
+    const [draftMccbAmps, setDraftMccbAmps] = useState(String(cfg.main_mccb_amps ?? 63));
+    const [draftDbLocation, setDraftDbLocation] = useState(cfg.db_location || '');
     const [draftCircuitW, setDraftCircuitW] = useState(String(cfg.safe_circuit_watts ?? 2400));
     const [draftInstr, setDraftInstr] = useState(cfg.instructions || '');
+    const [showOutletsInGenset, setShowOutletsInGenset] = useState(false);
 
     const summary = useMemo(() => computeEventPowerSummary(submissions, cfg), [submissions, cfg]);
+    const supplySource: PowerSupplySource = summary.supplySource;
+    const dbPhaseMode: DbPhaseMode = summary.dbPhaseMode;
 
     const shareUrl = useMemo(() => {
         const path = `/share/vendor-power/${cfg.token}`;
@@ -57,8 +66,10 @@ export function VendorPowerDashboard({
         try {
             const next = await upsertVendorPowerConfig(projectId, { ...cfg, ...patch }, projectName);
             onConfigChange(next);
-            setDraftKva(String(next.genset_kva));
-            setDraftCircuitW(String(next.safe_circuit_watts));
+            setDraftKva(String(next.genset_kva ?? 30));
+            setDraftMccbAmps(String(next.main_mccb_amps ?? 63));
+            setDraftDbLocation(next.db_location || '');
+            setDraftCircuitW(String(next.safe_circuit_watts ?? 2400));
             setDraftInstr(next.instructions || '');
         } finally {
             setSavingCfg(false);
@@ -89,8 +100,9 @@ export function VendorPowerDashboard({
         onSubmissionsChange(submissions.filter(s => s.id !== sub.id));
     };
 
+    const activeUsagePct = supplySource === 'building_db' ? summary.mccbUsagePct : summary.gensetUsagePct;
     const gensetBarColor =
-        summary.gensetUsagePct > 85 ? '#ef4444' : summary.gensetUsagePct > 65 ? '#f59e0b' : '#22c55e';
+        activeUsagePct > 85 ? '#ef4444' : activeUsagePct > 65 ? '#f59e0b' : '#22c55e';
 
     const wiringRows = useMemo(() => sortSubmissionsForWiring(submissions), [submissions]);
 
@@ -201,60 +213,241 @@ export function VendorPowerDashboard({
                     </div>
                 )}
 
-                {/* Electrical Spec Inputs */}
-                <div className="grid grid-cols-1 sm:grid-cols-[0.9fr_0.9fr_1.6fr_auto] gap-3 items-end pt-1 border-t border-white/5">
-                    <div>
-                        <label className="block text-[9px] font-black uppercase tracking-widest text-zinc-500 mb-1">
-                            Generator Size (kVA)
-                        </label>
-                        <input
-                            type="number"
-                            min={0}
-                            step="1"
-                            value={draftKva}
-                            onChange={e => setDraftKva(e.target.value)}
-                            className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs font-mono font-bold text-ink focus:outline-none focus:border-accent"
-                            placeholder="30"
-                        />
+                {/* Electrical Source Switcher + Spec Inputs */}
+                <div className="pt-2 border-t border-white/5 space-y-3">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500 mr-1">
+                                Supply Source:
+                            </span>
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    saveConfigPatch({
+                                        supply_source: 'generator',
+                                        genset_kva: parseFloat(draftKva) || cfg.genset_kva || 30,
+                                    })
+                                }
+                                className={`px-3 py-1.5 rounded-xl text-[11px] font-black uppercase tracking-wider border transition-colors cursor-pointer flex items-center gap-1.5 ${
+                                    supplySource === 'generator'
+                                        ? 'bg-amber-400 border-amber-400 text-black'
+                                        : 'bg-black/40 border-white/10 text-zinc-400 hover:text-white'
+                                }`}
+                            >
+                                <i className="fa-solid fa-car-battery" /> Generator (kVA)
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    saveConfigPatch({
+                                        supply_source: 'building_db',
+                                        db_phase_mode: dbPhaseMode,
+                                        main_mccb_amps: parseFloat(draftMccbAmps) || cfg.main_mccb_amps || 63,
+                                    })
+                                }
+                                className={`px-3 py-1.5 rounded-xl text-[11px] font-black uppercase tracking-wider border transition-colors cursor-pointer flex items-center gap-1.5 ${
+                                    supplySource === 'building_db'
+                                        ? 'bg-sky-400 border-sky-400 text-black'
+                                        : 'bg-black/40 border-white/10 text-zinc-400 hover:text-white'
+                                }`}
+                            >
+                                <i className="fa-solid fa-building-bolt" /> Building DB Incoming Tap
+                            </button>
+                        </div>
+
+                        {supplySource === 'generator' && (
+                            <button
+                                type="button"
+                                onClick={() => setShowOutletsInGenset(v => !v)}
+                                className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] font-bold text-zinc-300 cursor-pointer"
+                            >
+                                <i className="fa-solid fa-plug mr-1 text-sky-400" />
+                                {showOutletsInGenset ? 'Hide Sub-Outlets Registry' : `DB Sub-Outlets (${summary.registeredOutletsTotal})`}
+                            </button>
+                        )}
                     </div>
-                    <div>
-                        <label className="block text-[9px] font-black uppercase tracking-widest text-zinc-500 mb-1">
-                            Circuit Safe Limit (W)
-                        </label>
-                        <input
-                            type="number"
-                            min={500}
-                            step={100}
-                            value={draftCircuitW}
-                            onChange={e => setDraftCircuitW(e.target.value)}
-                            className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs font-mono font-bold text-ink focus:outline-none focus:border-accent"
-                            placeholder="2400"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-[9px] font-black uppercase tracking-widest text-zinc-500 mb-1">
-                            Instructions Shown To Vendors
-                        </label>
-                        <input
-                            value={draftInstr}
-                            onChange={e => setDraftInstr(e.target.value)}
-                            className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-ink focus:outline-none focus:border-accent"
-                            placeholder="e.g. Marquee Tent F&B booths — deadline Friday 5PM"
-                        />
-                    </div>
-                    <button
-                        type="button"
-                        onClick={() =>
-                            saveConfigPatch({
-                                genset_kva: parseFloat(draftKva) || 0,
-                                safe_circuit_watts: Math.max(500, parseFloat(draftCircuitW) || 2400),
-                                instructions: draftInstr.trim(),
-                            })
-                        }
-                        className="h-[34px] px-4 rounded-xl bg-ink/10 hover:bg-ink/20 border border-ink/15 text-xs font-black uppercase tracking-wider text-ink cursor-pointer"
-                    >
-                        Apply Specs
-                    </button>
+
+                    {supplySource === 'building_db' ? (
+                        <div className="space-y-3 rounded-2xl bg-sky-500/[0.04] border border-sky-500/20 p-3.5">
+                            <div className="flex flex-wrap items-center justify-between gap-3">
+                                <div className="flex flex-wrap items-center gap-1.5">
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400 mr-1">
+                                        DB Incoming:
+                                    </span>
+                                    <button
+                                        type="button"
+                                        onClick={() => saveConfigPatch({ db_phase_mode: '3phase' })}
+                                        className={`px-2.5 py-1 rounded-lg text-[11px] font-black border cursor-pointer ${
+                                            dbPhaseMode === '3phase'
+                                                ? 'bg-sky-500/20 border-sky-400 text-sky-300'
+                                                : 'bg-black/40 border-white/10 text-zinc-400'
+                                        }`}
+                                    >
+                                        3-Phase (415V / 230V L-N)
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => saveConfigPatch({ db_phase_mode: '1phase' })}
+                                        className={`px-2.5 py-1 rounded-lg text-[11px] font-black border cursor-pointer ${
+                                            dbPhaseMode === '1phase'
+                                                ? 'bg-sky-500/20 border-sky-400 text-sky-300'
+                                                : 'bg-black/40 border-white/10 text-zinc-400'
+                                        }`}
+                                    >
+                                        1-Phase (230V)
+                                    </button>
+                                </div>
+
+                                <div className="flex flex-wrap items-center gap-1">
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400 mr-1">
+                                        Main MCCB / MCB:
+                                    </span>
+                                    {MCCB_PRESET_AMPS.map(amps => (
+                                        <button
+                                            key={amps}
+                                            type="button"
+                                            onClick={() => {
+                                                setDraftMccbAmps(String(amps));
+                                                saveConfigPatch({ main_mccb_amps: amps });
+                                            }}
+                                            className={`px-2 py-1 rounded-lg text-[11px] font-mono font-black border cursor-pointer ${
+                                                Number(draftMccbAmps) === amps
+                                                    ? 'bg-sky-400 border-sky-400 text-black'
+                                                    : 'bg-black/40 border-white/10 text-zinc-300 hover:border-sky-400/50'
+                                            }`}
+                                        >
+                                            {amps}A
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-[0.8fr_1fr_0.8fr_1.4fr_auto] gap-3 items-end">
+                                <div>
+                                    <label className="block text-[9px] font-black uppercase tracking-widest text-zinc-500 mb-1">
+                                        MCCB Amps / Phase (A)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min={10}
+                                        step="1"
+                                        value={draftMccbAmps}
+                                        onChange={e => setDraftMccbAmps(e.target.value)}
+                                        className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs font-mono font-bold text-ink focus:outline-none focus:border-accent"
+                                        placeholder="63"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[9px] font-black uppercase tracking-widest text-zinc-500 mb-1">
+                                        DB Tapping Point / Location
+                                    </label>
+                                    <input
+                                        value={draftDbLocation}
+                                        onChange={e => setDraftDbLocation(e.target.value)}
+                                        className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-ink focus:outline-none focus:border-accent"
+                                        placeholder="e.g. Hall Main DB Incoming #1"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[9px] font-black uppercase tracking-widest text-zinc-500 mb-1">
+                                        Circuit Safe Limit (W)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min={500}
+                                        step={100}
+                                        value={draftCircuitW}
+                                        onChange={e => setDraftCircuitW(e.target.value)}
+                                        className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs font-mono font-bold text-ink focus:outline-none focus:border-accent"
+                                        placeholder="2400"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[9px] font-black uppercase tracking-widest text-zinc-500 mb-1">
+                                        Instructions Shown To Vendors
+                                    </label>
+                                    <input
+                                        value={draftInstr}
+                                        onChange={e => setDraftInstr(e.target.value)}
+                                        className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-ink focus:outline-none focus:border-accent"
+                                        placeholder="e.g. Building DB tap — declare all booth appliances"
+                                    />
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        saveConfigPatch({
+                                            supply_source: 'building_db',
+                                            db_phase_mode: dbPhaseMode,
+                                            main_mccb_amps: Math.max(10, parseFloat(draftMccbAmps) || 63),
+                                            db_location: draftDbLocation.trim(),
+                                            safe_circuit_watts: Math.max(500, parseFloat(draftCircuitW) || 2400),
+                                            instructions: draftInstr.trim(),
+                                        })
+                                    }
+                                    className="h-[34px] px-4 rounded-xl bg-sky-400 hover:bg-sky-300 text-xs font-black uppercase tracking-wider text-black cursor-pointer"
+                                >
+                                    Apply Specs
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-[0.9fr_0.9fr_1.6fr_auto] gap-3 items-end">
+                            <div>
+                                <label className="block text-[9px] font-black uppercase tracking-widest text-zinc-500 mb-1">
+                                    Generator Size (kVA)
+                                </label>
+                                <input
+                                    type="number"
+                                    min={0}
+                                    step="1"
+                                    value={draftKva}
+                                    onChange={e => setDraftKva(e.target.value)}
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs font-mono font-bold text-ink focus:outline-none focus:border-accent"
+                                    placeholder="30"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[9px] font-black uppercase tracking-widest text-zinc-500 mb-1">
+                                    Circuit Safe Limit (W)
+                                </label>
+                                <input
+                                    type="number"
+                                    min={500}
+                                    step={100}
+                                    value={draftCircuitW}
+                                    onChange={e => setDraftCircuitW(e.target.value)}
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs font-mono font-bold text-ink focus:outline-none focus:border-accent"
+                                    placeholder="2400"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[9px] font-black uppercase tracking-widest text-zinc-500 mb-1">
+                                    Instructions Shown To Vendors
+                                </label>
+                                <input
+                                    value={draftInstr}
+                                    onChange={e => setDraftInstr(e.target.value)}
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-ink focus:outline-none focus:border-accent"
+                                    placeholder="e.g. Marquee Tent F&B booths — deadline Friday 5PM"
+                                />
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    saveConfigPatch({
+                                        supply_source: 'generator',
+                                        genset_kva: parseFloat(draftKva) || 0,
+                                        safe_circuit_watts: Math.max(500, parseFloat(draftCircuitW) || 2400),
+                                        instructions: draftInstr.trim(),
+                                    })
+                                }
+                                className="h-[34px] px-4 rounded-xl bg-ink/10 hover:bg-ink/20 border border-ink/15 text-xs font-black uppercase tracking-wider text-ink cursor-pointer"
+                            >
+                                Apply Specs
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -290,9 +483,28 @@ export function VendorPowerDashboard({
 
                 <div className="rounded-2xl border border-ink/10 bg-ink/[0.03] p-4">
                     <div className="text-[9px] font-black uppercase tracking-widest text-zinc-500">
-                        {summary.gensetKva > 0 ? `${summary.gensetKva} kVA Genset Load` : 'Nameplate Photos'}
+                        {supplySource === 'building_db'
+                            ? `${summary.mainMccbAmps}A ${dbPhaseMode === '3phase' ? '3P' : '1P'} DB Incoming`
+                            : summary.gensetKva > 0
+                                ? `${summary.gensetKva} kVA Genset Load`
+                                : 'Nameplate Photos'}
                     </div>
-                    {summary.gensetKva > 0 ? (
+                    {supplySource === 'building_db' ? (
+                        <>
+                            <div className="text-2xl font-black font-mono mt-1" style={{ color: gensetBarColor }}>
+                                {summary.mccbUsagePct}%
+                            </div>
+                            <div className="w-full h-1.5 rounded-full bg-white/10 mt-1.5 overflow-hidden">
+                                <div
+                                    className="h-full rounded-full transition-all"
+                                    style={{ width: `${Math.min(100, summary.mccbUsagePct)}%`, backgroundColor: gensetBarColor }}
+                                />
+                            </div>
+                            <div className="text-[10px] font-mono text-zinc-400 mt-1">
+                                Peak {dbPhaseMode === '3phase' ? `${summary.peakPhaseAmps}A/ph` : `${summary.totalAmpsEq230}A`} / {summary.mainMccbAmps}A MCCB · Max {summary.dbTotalMaxKw} kW
+                            </div>
+                        </>
+                    ) : summary.gensetKva > 0 ? (
                         <>
                             <div className="text-2xl font-black font-mono mt-1" style={{ color: gensetBarColor }}>
                                 {summary.gensetUsagePct}%
@@ -320,17 +532,20 @@ export function VendorPowerDashboard({
             {submissions.length > 0 && (
                 <div className="print:hidden rounded-2xl border border-ink/10 bg-ink/[0.02] p-4 flex flex-wrap items-center justify-between gap-4">
                     <div className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
-                        <i className="fa-solid fa-diagram-project text-amber-400" /> 3-Phase Allocation Balance
+                        <i className="fa-solid fa-diagram-project text-amber-400" />
+                        {supplySource === 'building_db'
+                            ? `3-Phase DB Balance (MCCB Limit: ${summary.mainMccbAmps}A / Phase · Safe 80%: ${summary.dbSafePhaseAmps}A)`
+                            : '3-Phase Allocation Balance'}
                     </div>
                     <div className="flex flex-wrap items-center gap-3 text-xs font-mono font-bold">
                         <span className="px-3 py-1 rounded-lg bg-rose-500/10 border border-rose-500/25 text-rose-300">
-                            L1 Red: {summary.phaseKw.R} kW ({summary.phaseAmps.R} A)
+                            L1 Red: {summary.phaseKw.R} kW ({summary.phaseAmps.R}{supplySource === 'building_db' ? ` / ${summary.mainMccbAmps}` : ''} A)
                         </span>
                         <span className="px-3 py-1 rounded-lg bg-amber-500/10 border border-amber-500/25 text-amber-300">
-                            L2 Yellow: {summary.phaseKw.Y} kW ({summary.phaseAmps.Y} A)
+                            L2 Yellow: {summary.phaseKw.Y} kW ({summary.phaseAmps.Y}{supplySource === 'building_db' ? ` / ${summary.mainMccbAmps}` : ''} A)
                         </span>
                         <span className="px-3 py-1 rounded-lg bg-sky-500/10 border border-sky-500/25 text-sky-300">
-                            L3 Blue: {summary.phaseKw.B} kW ({summary.phaseAmps.B} A)
+                            L3 Blue: {summary.phaseKw.B} kW ({summary.phaseAmps.B}{supplySource === 'building_db' ? ` / ${summary.mainMccbAmps}` : ''} A)
                         </span>
                         {summary.phaseKw.unassigned > 0 && (
                             <span className="px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-zinc-400">
@@ -339,6 +554,18 @@ export function VendorPowerDashboard({
                         )}
                     </div>
                 </div>
+            )}
+
+            {/* ── Building DB Incoming Outlet Registry ── */}
+            {(supplySource === 'building_db' || showOutletsInGenset || (cfg.db_outlets && cfg.db_outlets.length > 0)) && (
+                <DbOutletRegistryPanel
+                    outlets={cfg.db_outlets || []}
+                    dbPhaseMode={dbPhaseMode}
+                    mainMccbAmps={summary.mainMccbAmps}
+                    supplyVoltage={cfg.supply_voltage || 230}
+                    registeredOutletAmps={summary.registeredOutletAmps}
+                    onUpdateOutlets={nextOutlets => saveConfigPatch({ db_outlets: nextOutlets })}
+                />
             )}
 
             {/* ── DB Phase & Cable Tagging Troubleshooting Table ── */}

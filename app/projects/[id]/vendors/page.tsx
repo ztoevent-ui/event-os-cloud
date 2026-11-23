@@ -171,8 +171,42 @@ export default function VendorsPage({ params }: { params: Promise<{ id: string }
                         onConfigChange={setPowerConfig}
                         onSubmissionsChange={setPowerSubmissions}
                     />
-                    {powerSubmissions.length > 0 && (
-                        <div className="hidden print:block w-full mt-6">
+                    {(powerSubmissions.length > 0 || (powerConfig?.db_outlets && powerConfig.db_outlets.length > 0)) && (
+                        <div className="hidden print:block w-full mt-6 space-y-5">
+                            {powerConfig?.supply_source === 'building_db' && (
+                                <div className="text-[11px] font-mono border border-black/30 p-2 bg-black/5">
+                                    <strong>BUILDING DB INCOMING:</strong> {powerSummary.mainMccbAmps}A {powerSummary.dbPhaseMode === '3phase' ? '3-Phase (415V/230V)' : '1-Phase (230V)'}
+                                    {powerConfig.db_location ? ` · Location: ${powerConfig.db_location}` : ''}
+                                    {` · Safe 80%/phase: ${powerSummary.dbSafePhaseAmps}A`}
+                                </div>
+                            )}
+                            {powerConfig?.db_outlets && powerConfig.db_outlets.length > 0 && (
+                                <div>
+                                    <h3 className="text-xs font-black uppercase mb-2">Registered DB Incoming Sub-Outlets ({powerSummary.registeredOutletsTotal} outlets)</h3>
+                                    <table className="w-full text-left text-[10px] border-collapse border border-black/30">
+                                        <thead>
+                                            <tr className="bg-black/5 border-b border-black">
+                                                <th className="py-1.5 px-2 font-black uppercase">Tag</th>
+                                                <th className="py-1.5 px-2 font-black uppercase">Where Used</th>
+                                                <th className="py-1.5 px-2 font-black uppercase">Phase</th>
+                                                <th className="py-1.5 px-2 font-black uppercase text-center">Outlets × Amps</th>
+                                                <th className="py-1.5 px-2 font-black uppercase">Cable Spec</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {powerConfig.db_outlets.map(o => (
+                                                <tr key={o.id} className="border-b border-black/20">
+                                                    <td className="py-1.5 px-2 font-mono font-bold">{o.outlet_label}</td>
+                                                    <td className="py-1.5 px-2">{o.usage}</td>
+                                                    <td className="py-1.5 px-2 font-bold">{o.phase === '3P' ? '3-Phase 415V' : formatPhaseLabel(o.phase)}</td>
+                                                    <td className="py-1.5 px-2 text-center font-mono">{o.qty} × {o.amps_per_outlet}A ({o.qty * o.amps_per_outlet}A)</td>
+                                                    <td className="py-1.5 px-2 font-mono text-[9px]">{o.cable_spec || '—'}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
                             <div className="flex items-baseline justify-between border-b-2 border-black pb-2 mb-3">
                                 <h2 className="text-base font-black uppercase">
                                     {project?.name || 'Event'} — DB Phase, Cable Tag &amp; Troubleshooting Schedule
