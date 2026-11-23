@@ -3,11 +3,14 @@
 import React, { useMemo, useState } from 'react';
 import {
     DEFAULT_VENDOR_POWER_CONFIG,
+    PHASE_META,
     buildVendorInviteMessage,
     computeApplianceStats,
     computeEventPowerSummary,
     computeSubmissionStats,
     deleteVendorPowerSubmission,
+    formatPhaseLabel,
+    sortSubmissionsForWiring,
     updateVendorPowerSubmission,
     upsertVendorPowerConfig,
     type VendorPowerConfig,
@@ -88,6 +91,40 @@ export function VendorPowerDashboard({
 
     const gensetBarColor =
         summary.gensetUsagePct > 85 ? '#ef4444' : summary.gensetUsagePct > 65 ? '#f59e0b' : '#22c55e';
+
+    const wiringRows = useMemo(() => sortSubmissionsForWiring(submissions), [submissions]);
+
+    const exportWiringCsv = () => {
+        const esc = (v: string | number | undefined) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+        const header = ['Cable #', 'Phase', 'DB Outlet', 'Cable Spec', 'Booth / Load Group', 'Zone', 'Appliances', 'Watts (W)', 'Current (A)', 'Status', 'Troubleshooting Note'];
+        const lines = wiringRows.map(sub => {
+            const st = computeSubmissionStats(sub, cfg);
+            const apps = (sub.appliances || [])
+                .map(a => `${a.name} x${a.qty} (${a.verified_watts_per_unit ?? a.watts_per_unit}W)`)
+                .join('; ');
+            return [
+                sub.cable_tag || '',
+                formatPhaseLabel(sub.assigned_phase),
+                sub.assigned_circuit || '',
+                sub.cable_spec || '',
+                sub.vendor_name,
+                sub.zone || '',
+                apps,
+                st.totalWatts,
+                st.totalAmps,
+                sub.status,
+                sub.wireman_note || sub.notes || '',
+            ].map(esc).join(',');
+        });
+        const csv = [header.map(esc).join(','), ...lines].join('\n');
+        const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${projectName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-wiring-schedule.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
 
     return (
         <div className="space-y-6">
@@ -222,7 +259,7 @@ export function VendorPowerDashboard({
             </div>
 
             {/* ── Engineering Summary KPIs + 3-Phase Balance ── */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="print:hidden grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="rounded-2xl border border-ink/10 bg-ink/[0.03] p-4">
                     <div className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Total Declared Load</div>
                     <div className="text-2xl font-black font-mono text-amber-400 mt-1">{summary.totalKw} kW</div>
@@ -281,7 +318,7 @@ export function VendorPowerDashboard({
 
             {/* ── 3-Phase Load Balancer Strip ── */}
             {submissions.length > 0 && (
-                <div className="rounded-2xl border border-ink/10 bg-ink/[0.02] p-4 flex flex-wrap items-center justify-between gap-4">
+                <div className="print:hidden rounded-2xl border border-ink/10 bg-ink/[0.02] p-4 flex flex-wrap items-center justify-between gap-4">
                     <div className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-2">
                         <i className="fa-solid fa-diagram-project text-amber-400" /> 3-Phase Allocation Balance
                     </div>
@@ -304,6 +341,150 @@ export function VendorPowerDashboard({
                 </div>
             )}
 
+            {/* ── DB Phase & Cable Tagging Troubleshooting Table ── */}
+            {submissions.length > 0 && (
+                <div className="print:hidden rounded-3xl border border-ink/10 bg-canvas overflow-hidden shadow-lg">
+                    <div className="p-4 md:p-5 border-b border-ink/10 flex flex-wrap items-center justify-between gap-3 bg-black/20">
+                        <div>
+                            <div className="flex flex-wrap items-center gap-2">
+                                <h3 className="text-sm font-black uppercase tracking-wider text-ink flex items-center gap-2">
+                                    <i className="fa-solid fa-plug-circle-bolt text-amber-400" />
+                                    DB Phase &amp; Cable Tag Troubleshooting Matrix
+                                </h3>
+                                <span className="px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-[9px] font-black uppercase tracking-wider text-amber-300">
+                                    Draft · Update As New Booths Submit
+                                </span>
+                            </div>
+                            <p className="text-[11px] text-zinc-400 mt-0.5">
+                                Assign every booth&apos;s Cable #, Phase, DB Outlet &amp; Cable Spec here so wiremen can trace trips immediately on event day.
+                            </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={exportWiringCsv}
+                                className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] font-bold text-ink cursor-pointer flex items-center gap-1.5"
+                            >
+                                <i className="fa-solid fa-file-csv text-emerald-400" /> Export Wiring CSV
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => window.print()}
+                                className="px-3 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-[11px] font-black text-black cursor-pointer flex items-center gap-1.5"
+                            >
+                                <i className="fa-solid fa-print" /> Print Wiring Sheet
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr className="border-b border-ink/10 bg-black/30 text-[9px] font-black uppercase tracking-widest text-zinc-400">
+                                    <th className="py-2.5 px-3">Cable #</th>
+                                    <th className="py-2.5 px-3">Phase</th>
+                                    <th className="py-2.5 px-3">DB Outlet</th>
+                                    <th className="py-2.5 px-3">Cable Spec</th>
+                                    <th className="py-2.5 px-3">Booth / Equipment Group</th>
+                                    <th className="py-2.5 px-3 text-right">Load</th>
+                                    <th className="py-2.5 px-3">Troubleshooting / Site Note</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/5">
+                                {wiringRows.map(sub => {
+                                    const st = computeSubmissionStats(sub, cfg);
+                                    const pMeta = sub.assigned_phase && PHASE_META[sub.assigned_phase];
+                                    return (
+                                        <tr key={sub.id || sub.submission_id} className="hover:bg-white/[0.02] align-middle">
+                                            <td className="py-2 px-3">
+                                                <input
+                                                    key={`${sub.id}-ct-${sub.cable_tag || ''}`}
+                                                    defaultValue={sub.cable_tag || ''}
+                                                    placeholder="C-01"
+                                                    onBlur={e => {
+                                                        const val = e.target.value.trim();
+                                                        if (val !== (sub.cable_tag || '')) {
+                                                            saveSubmissionPatch(sub, { ...sub, cable_tag: val });
+                                                        }
+                                                    }}
+                                                    className="w-20 bg-black/40 border border-white/15 rounded-lg px-2 py-1 text-[11px] font-mono font-black text-amber-300 focus:outline-none focus:border-accent"
+                                                />
+                                            </td>
+                                            <td className="py-2 px-3">
+                                                <select
+                                                    value={sub.assigned_phase || ''}
+                                                    onChange={e => saveSubmissionPatch(sub, { ...sub, assigned_phase: e.target.value as PhaseCode })}
+                                                    className={`rounded-lg px-2 py-1 text-[11px] font-black border focus:outline-none focus:border-accent ${
+                                                        pMeta ? pMeta.badgeClass : 'bg-black/40 border-white/15 text-zinc-400'
+                                                    }`}
+                                                >
+                                                    <option value="">Unassigned</option>
+                                                    <option value="R">L1 Red</option>
+                                                    <option value="Y">L2 Yellow</option>
+                                                    <option value="B">L3 Blue</option>
+                                                </select>
+                                            </td>
+                                            <td className="py-2 px-3">
+                                                <input
+                                                    key={`${sub.id}-cir-${sub.assigned_circuit || ''}`}
+                                                    defaultValue={sub.assigned_circuit || ''}
+                                                    placeholder="16A Blue #1"
+                                                    onBlur={e => {
+                                                        const val = e.target.value.trim();
+                                                        if (val !== (sub.assigned_circuit || '')) {
+                                                            saveSubmissionPatch(sub, { ...sub, assigned_circuit: val });
+                                                        }
+                                                    }}
+                                                    className="w-28 bg-black/40 border border-white/15 rounded-lg px-2 py-1 text-[11px] font-mono text-white focus:outline-none focus:border-accent"
+                                                />
+                                            </td>
+                                            <td className="py-2 px-3">
+                                                <input
+                                                    key={`${sub.id}-spec-${sub.cable_spec || ''}`}
+                                                    defaultValue={sub.cable_spec || ''}
+                                                    placeholder='2.0mm² 3C'
+                                                    onBlur={e => {
+                                                        const val = e.target.value.trim();
+                                                        if (val !== (sub.cable_spec || '')) {
+                                                            saveSubmissionPatch(sub, { ...sub, cable_spec: val });
+                                                        }
+                                                    }}
+                                                    className="w-36 bg-black/40 border border-white/15 rounded-lg px-2 py-1 text-[11px] font-mono text-zinc-200 focus:outline-none focus:border-accent"
+                                                />
+                                            </td>
+                                            <td className="py-2 px-3 min-w-[200px]">
+                                                <div className="font-bold text-ink">{sub.vendor_name}</div>
+                                                <div className="text-[10px] text-zinc-500 truncate max-w-[260px]">
+                                                    {(sub.appliances || []).map(a => `${a.name} ×${a.qty}`).join(', ')}
+                                                </div>
+                                            </td>
+                                            <td className="py-2 px-3 text-right font-mono whitespace-nowrap">
+                                                <div className="font-black text-amber-400">{st.totalKw} kW</div>
+                                                <div className="text-[10px] text-zinc-400">{st.totalAmps} A</div>
+                                            </td>
+                                            <td className="py-2 px-3">
+                                                <input
+                                                    key={`${sub.id}-wn-${sub.wireman_note || ''}`}
+                                                    defaultValue={sub.wireman_note || ''}
+                                                    placeholder="Wireman / breaker note..."
+                                                    onBlur={e => {
+                                                        const val = e.target.value.trim();
+                                                        if (val !== (sub.wireman_note || '')) {
+                                                            saveSubmissionPatch(sub, { ...sub, wireman_note: val });
+                                                        }
+                                                    }}
+                                                    className="w-full min-w-[200px] bg-black/40 border border-white/15 rounded-lg px-2 py-1 text-[11px] text-zinc-200 focus:outline-none focus:border-accent"
+                                                />
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+
             {/* ── Submissions List ── */}
             {submissions.length === 0 ? (
                 <div className="py-16 rounded-3xl border border-dashed border-ink/10 text-center space-y-2">
@@ -316,8 +497,8 @@ export function VendorPowerDashboard({
                     </p>
                 </div>
             ) : (
-                <div className="space-y-4">
-                    {submissions.map(sub => {
+                <div className="print:hidden space-y-4">
+                    {wiringRows.map(sub => {
                         const st = computeSubmissionStats(sub, cfg);
                         const isBusy = savingRowId === sub.id;
                         return (
@@ -329,6 +510,11 @@ export function VendorPowerDashboard({
                                 <div className="p-4 md:p-5 border-b border-ink/5 flex flex-wrap items-center justify-between gap-4 bg-black/20">
                                     <div className="min-w-0">
                                         <div className="flex flex-wrap items-center gap-2">
+                                            {sub.cable_tag && (
+                                                <span className="px-2 py-0.5 rounded-md bg-amber-400 text-black text-[10px] font-mono font-black">
+                                                    {sub.cable_tag}
+                                                </span>
+                                            )}
                                             <h3 className="text-base font-black text-ink uppercase">{sub.vendor_name}</h3>
                                             {sub.zone && (
                                                 <span className="px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[10px] font-bold text-zinc-300">

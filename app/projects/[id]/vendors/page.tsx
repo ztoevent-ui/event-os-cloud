@@ -10,7 +10,9 @@ import {
     computeEventPowerSummary,
     computeSubmissionStats,
     fetchVendorPowerSubmissions,
+    formatPhaseLabel,
     getVendorPowerConfig,
+    sortSubmissionsForWiring,
     type VendorPowerConfig,
     type VendorPowerSubmission,
 } from '../../vendorPower';
@@ -171,40 +173,50 @@ export default function VendorsPage({ params }: { params: Promise<{ id: string }
                     />
                     {powerSubmissions.length > 0 && (
                         <div className="hidden print:block w-full mt-6">
-                            <h2 className="text-base font-black uppercase mb-3">
-                                {project?.name || 'Event'} — Electrical Load &amp; Circuit Distribution ({powerSummary.totalKw} kW · {powerSummary.totalCircuits} Circuits)
-                            </h2>
-                            <table className="w-full text-left text-[10px] border-collapse border border-black/20">
+                            <div className="flex items-baseline justify-between border-b-2 border-black pb-2 mb-3">
+                                <h2 className="text-base font-black uppercase">
+                                    {project?.name || 'Event'} — DB Phase, Cable Tag &amp; Troubleshooting Schedule
+                                </h2>
+                                <span className="text-[10px] font-mono font-bold">
+                                    {powerSummary.totalKw} kW ({powerSummary.totalAmpsEq230} A) · L1: {powerSummary.phaseKw.R}kW | L2: {powerSummary.phaseKw.Y}kW | L3: {powerSummary.phaseKw.B}kW
+                                    {powerSummary.phaseKw.unassigned > 0 ? ` | Unassigned: ${powerSummary.phaseKw.unassigned}kW` : ''}
+                                </span>
+                            </div>
+                            <table className="w-full text-left text-[10px] border-collapse border border-black/30">
                                 <thead>
                                     <tr className="bg-black/5 border-b-2 border-black">
-                                        <th className="py-2 px-2 font-black uppercase">Vendor / Zone</th>
-                                        <th className="py-2 px-2 font-black uppercase">Appliances Declared</th>
-                                        <th className="py-2 px-2 font-black uppercase text-right">Watts / Amps</th>
-                                        <th className="py-2 px-2 font-black uppercase text-center">Circuits</th>
-                                        <th className="py-2 px-2 font-black uppercase text-center">DB / Phase</th>
+                                        <th className="py-2 px-2 font-black uppercase w-[8%]">Cable #</th>
+                                        <th className="py-2 px-2 font-black uppercase w-[10%]">Phase</th>
+                                        <th className="py-2 px-2 font-black uppercase w-[12%]">DB Outlet</th>
+                                        <th className="py-2 px-2 font-black uppercase w-[14%]">Cable Spec</th>
+                                        <th className="py-2 px-2 font-black uppercase w-[18%]">Booth / Load Group</th>
+                                        <th className="py-2 px-2 font-black uppercase w-[18%]">Appliances</th>
+                                        <th className="py-2 px-2 font-black uppercase text-right w-[10%]">Load</th>
+                                        <th className="py-2 px-2 font-black uppercase w-[10%]">Site Note</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {powerSubmissions.map(sub => {
+                                    {sortSubmissionsForWiring(powerSubmissions).map(sub => {
                                         const st = computeSubmissionStats(sub, powerConfig || DEFAULT_VENDOR_POWER_CONFIG());
                                         return (
-                                            <tr key={sub.id || sub.submission_id} className="border-b border-black/15">
+                                            <tr key={sub.id || sub.submission_id} className="border-b border-black/20 align-top">
+                                                <td className="py-2 px-2 font-mono font-black">{sub.cable_tag || '—'}</td>
+                                                <td className="py-2 px-2 font-bold">{formatPhaseLabel(sub.assigned_phase)}</td>
+                                                <td className="py-2 px-2 font-mono">{sub.assigned_circuit || '—'}</td>
+                                                <td className="py-2 px-2 font-mono text-[9px]">{sub.cable_spec || '—'}</td>
                                                 <td className="py-2 px-2 font-bold">
                                                     <div>{sub.vendor_name}</div>
-                                                    {sub.zone && <div className="text-[9px] text-black/60">{sub.zone}</div>}
+                                                    {sub.zone && <div className="text-[9px] font-normal text-black/60">{sub.zone}</div>}
                                                 </td>
                                                 <td className="py-2 px-2">
                                                     {(sub.appliances || []).map((a, idx) => (
                                                         <div key={idx}>{a.name} ×{a.qty} ({a.verified_watts_per_unit ?? a.watts_per_unit}W)</div>
                                                     ))}
                                                 </td>
-                                                <td className="py-2 px-2 text-right font-mono font-bold">
-                                                    {st.totalWatts}W ({st.totalAmps}A)
+                                                <td className="py-2 px-2 text-right font-mono font-bold whitespace-nowrap">
+                                                    {st.totalKw} kW<div className="text-[9px] font-normal">{st.totalAmps} A</div>
                                                 </td>
-                                                <td className="py-2 px-2 text-center font-bold">{st.recommendedCircuits}</td>
-                                                <td className="py-2 px-2 text-center font-mono">
-                                                    {[sub.assigned_circuit, sub.assigned_phase ? `L${sub.assigned_phase === 'R' ? '1-R' : sub.assigned_phase === 'Y' ? '2-Y' : '3-B'}` : ''].filter(Boolean).join(' · ') || '-'}
-                                                </td>
+                                                <td className="py-2 px-2 text-[9px]">{sub.wireman_note || sub.notes || '—'}</td>
                                             </tr>
                                         );
                                     })}

@@ -47,9 +47,36 @@ export type VendorPowerSubmission = {
     status: 'pending' | 'verified' | 'flagged';
     assigned_circuit?: string;
     assigned_phase?: PhaseCode;
+    cable_tag?: string;
+    cable_spec?: string;
     wireman_note?: string;
     submitted_at: string;
 };
+
+export const PHASE_META: Record<'R' | 'Y' | 'B', { label: string; short: string; badgeClass: string }> = {
+    R: { label: 'L1 Red', short: 'L1-R', badgeClass: 'bg-rose-500/15 border-rose-500/35 text-rose-300' },
+    Y: { label: 'L2 Yellow', short: 'L2-Y', badgeClass: 'bg-amber-500/15 border-amber-500/35 text-amber-300' },
+    B: { label: 'L3 Blue', short: 'L3-B', badgeClass: 'bg-sky-500/15 border-sky-500/35 text-sky-300' },
+};
+
+const PHASE_SORT_ORDER: Record<string, number> = { R: 1, Y: 2, B: 3 };
+
+export function formatPhaseLabel(phase?: PhaseCode): string {
+    return phase && PHASE_META[phase] ? PHASE_META[phase].label : 'Unassigned';
+}
+
+export function sortSubmissionsForWiring(subs: VendorPowerSubmission[]): VendorPowerSubmission[] {
+    return [...subs].sort((a, b) => {
+        const pa = PHASE_SORT_ORDER[a.assigned_phase || ''] ?? 9;
+        const pb = PHASE_SORT_ORDER[b.assigned_phase || ''] ?? 9;
+        if (pa !== pb) return pa - pb;
+        const ca = (a.cable_tag || '').localeCompare(b.cable_tag || '', undefined, { numeric: true });
+        if (ca !== 0) return ca;
+        const da = (a.assigned_circuit || '').localeCompare(b.assigned_circuit || '', undefined, { numeric: true });
+        if (da !== 0) return da;
+        return a.vendor_name.localeCompare(b.vendor_name);
+    });
+}
 
 export type AppliancePreset = {
     key: string;
