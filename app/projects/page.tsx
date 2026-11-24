@@ -178,6 +178,9 @@ export default function ProjectsPage() {
                     <Link href="/projects/calendar" className="zto-btn zto-btn-ghost" style={{ textDecoration: 'none' }}>
                         <i className="fa-solid fa-calendar-days" /> Global Calendar
                     </Link>
+                    <Link href="/projects/tasks" className="zto-btn zto-btn-ghost" style={{ textDecoration: 'none' }}>
+                        <i className="fa-solid fa-list-check" /> Global To-Do
+                    </Link>
                     <button onClick={e => openPTW(e, { id: 'GLOBAL', name: 'Global Operations', venue: 'HQ / Multiple' })} className="zto-btn zto-btn-ghost">
                         <i className="fa-solid fa-file-signature" /> Global PTW
                     </button>

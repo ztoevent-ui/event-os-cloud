@@ -136,6 +136,10 @@ export default function GlobalCalendarPage() {
     status: 'PENDING' as 'PENDING' | 'IN_PROGRESS' | 'DONE'
   });
 
+  // Sync Modal State
+  const [showSyncModal, setShowSyncModal] = useState(false);
+  const [copiedSync, setCopiedSync] = useState(false);
+
   // Add Modal State
   const [addingTask, setAddingTask] = useState(false);
   const [addFormData, setAddFormData] = useState({
@@ -390,7 +394,7 @@ export default function GlobalCalendarPage() {
       map[item.date].push(item);
     });
     Object.values(map).forEach(items => {
-      items.sort((a, b) => parseTimeMinutes(a.time) - parseTimeMinutes(b.time));
+      items.sort((a, b) => (parseTimeMinutes(a.time) - parseTimeMinutes(b.time)) || ((a.sort_order ?? 0) - (b.sort_order ?? 0)));
     });
     return map;
   }, [filteredScheduleItems]);
@@ -454,16 +458,31 @@ export default function GlobalCalendarPage() {
         </div>
 
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-          {/* Download ICS */}
+          {/* Download Live ICS */}
           <a
-            href="/ztoevent_global_schedule_2026.ics"
-            download="ztoevent_global_schedule_2026.ics"
+            href="/api/calendar/ics?download=1"
+            download="ztoevent_global_schedule.ics"
             className="zto-btn zto-btn-ghost"
             style={{ textDecoration: 'none', padding: '8px 14px', fontSize: 13, gap: 8, display: 'flex', alignItems: 'center' }}
-            title="Download .ICS for Apple Calendar or Google Calendar"
+            title="Download live .ICS snapshot for Apple Calendar or Google Calendar"
           >
             <i className="fa-solid fa-file-arrow-down" style={{ color: '#38bdf8' }} /> Export .ICS
           </a>
+
+          {/* Google / Apple Calendar Sync Modal */}
+          <button
+            onClick={() => setShowSyncModal(true)}
+            className="zto-btn zto-btn-ghost"
+            style={{ padding: '8px 14px', fontSize: 13, gap: 8, display: 'flex', alignItems: 'center' }}
+            title="Subscribe Google Calendar or Apple Calendar via live feed URL"
+          >
+            <i className="fa-brands fa-google" style={{ color: '#34d399' }} /> Google Sync
+          </button>
+
+          {/* Global To-Do */}
+          <Link href="/projects/tasks" className="zto-btn zto-btn-ghost" style={{ textDecoration: 'none', padding: '8px 14px', fontSize: 13, gap: 8, display: 'flex', alignItems: 'center' }}>
+            <i className="fa-solid fa-list-check" style={{ color: '#f59e0b' }} /> Global To-Do
+          </Link>
 
           {/* Add Task */}
           <button
@@ -1987,6 +2006,87 @@ export default function GlobalCalendarPage() {
               >
                 {loading ? <i className="fa-solid fa-circle-notch fa-spin" /> : 'Create Task'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Google / Apple Calendar Live Subscription Modal ── */}
+      {showSyncModal && (
+        <div
+          onClick={() => setShowSyncModal(false)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 999,
+            background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            className="zto-card"
+            style={{ maxWidth: 520, width: '100%', padding: 28, borderRadius: 20, position: 'relative' }}
+          >
+            <button
+              onClick={() => setShowSyncModal(false)}
+              className="zto-btn zto-btn-ghost"
+              style={{ position: 'absolute', top: 16, right: 16, padding: '6px 10px', fontSize: 13 }}
+            >
+              <i className="fa-solid fa-xmark" />
+            </button>
+            <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#34d399', marginBottom: 6 }}>
+              Live iCalendar Feed
+            </div>
+            <h2 style={{ fontSize: 20, fontWeight: 800, color: '#fff', margin: '0 0 8px' }}>
+              Subscribe in Google / Apple Calendar
+            </h2>
+            <p style={{ fontSize: 12, color: '#9ca3af', lineHeight: 1.5, marginBottom: 16 }}>
+              This URL stays connected to ZTO Event OS live schedule updates (every change in Global Calendar appears automatically in subscribed calendars).
+            </p>
+            <div style={{
+              background: 'rgba(0,0,0,0.45)', border: '1px solid rgba(255,255,255,0.12)',
+              borderRadius: 12, padding: '10px 12px', marginBottom: 14,
+              display: 'flex', alignItems: 'center', gap: 8
+            }}>
+              <code style={{ flex: 1, fontSize: 12, color: '#38bdf8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {typeof window !== 'undefined' ? `${window.location.origin}/api/calendar/ics` : 'https://ztoevent.com/api/calendar/ics'}
+              </code>
+              <button
+                onClick={async () => {
+                  const feedUrl = typeof window !== 'undefined' ? `${window.location.origin}/api/calendar/ics` : 'https://ztoevent.com/api/calendar/ics';
+                  await navigator.clipboard.writeText(feedUrl);
+                  setCopiedSync(true);
+                  setTimeout(() => setCopiedSync(false), 2000);
+                }}
+                className="zto-btn zto-btn-primary"
+                style={{ padding: '6px 12px', fontSize: 11 }}
+              >
+                {copiedSync ? 'Copied!' : 'Copy URL'}
+              </button>
+            </div>
+            <div style={{ fontSize: 12, color: '#d4d4d8', background: 'rgba(255,255,255,0.03)', borderRadius: 12, padding: 14, lineHeight: 1.7, marginBottom: 16 }}>
+              <div><strong>Google Calendar:</strong> Left sidebar → <em>Other calendars (+)</em> → <em>From URL</em> → Paste URL above → <em>Add calendar</em>.</div>
+              <div><strong>Apple Calendar:</strong> <em>File</em> → <em>New Calendar Subscription</em> → Paste URL above.</div>
+            </div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <a
+                href={`https://calendar.google.com/calendar/r?cid=${encodeURIComponent(
+                  (typeof window !== 'undefined' ? `${window.location.origin}/api/calendar/ics` : 'https://ztoevent.com/api/calendar/ics').replace(/^https?:/, 'webcal:')
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="zto-btn zto-btn-primary"
+                style={{ flex: 1, textDecoration: 'none', justifyContent: 'center', display: 'flex', alignItems: 'center', gap: 8 }}
+              >
+                <i className="fa-brands fa-google" /> Open Google Calendar Subscribe
+              </a>
+              <a
+                href="/api/calendar/ics?download=1"
+                download="ztoevent_global_schedule.ics"
+                className="zto-btn zto-btn-ghost"
+                style={{ textDecoration: 'none' }}
+              >
+                Download .ICS
+              </a>
             </div>
           </div>
         </div>
