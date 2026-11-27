@@ -131,7 +131,6 @@ export default function LuckyDrawPage() {
     const [isMuted, setIsMuted] = useState(false);
     const [bigWinnerModalOpen, setBigWinnerModalOpen] = useState(false);
     const [bigWinnerNames, setBigWinnerNames] = useState<string[]>([]);
-    const [bigWinnerCodes, setBigWinnerCodes] = useState<string[]>([]);
 
     // Stage Title & Background settings (persisted under ld_v3_*)
     const [eventTitle, setEventTitle] = useState('SMDS Secret Draw');
@@ -696,7 +695,6 @@ export default function LuckyDrawPage() {
             // Start exact 0.5s post-stop reveal timer immediately when wheel stops, saving to DB in parallel!
             postStopTimerRef.current = setTimeout(() => {
                 setBigWinnerNames(pickedRows.map((r) => r.name));
-                setBigWinnerCodes(pickedRows.map((r) => r.ticket_code));
                 setBigWinnerModalOpen(true);
                 fireConfetti();
                 playCelebrationFanfare();
@@ -1200,7 +1198,7 @@ export default function LuckyDrawPage() {
                                         <div className="min-w-0">
                                             <div className="font-bold text-emerald-950 text-sm truncate">{w.name}</div>
                                             <div className="text-[10px] font-semibold text-amber-700 uppercase tracking-wider">
-                                                #{displayedWinners.length - i} • {w.code}
+                                                Winner #{displayedWinners.length - i}
                                             </div>
                                         </div>
                                         <button
@@ -1263,11 +1261,6 @@ export default function LuckyDrawPage() {
                                 style={{ textShadow: '0 3px 14px rgba(0,0,0,0.6)' }}
                             >
                                 <div>{name}</div>
-                                {bigWinnerCodes[i] && (
-                                    <div className="text-xs sm:text-sm font-bold tracking-[0.25em] text-amber-300 mt-3 uppercase">
-                                        Ticket {bigWinnerCodes[i]}
-                                    </div>
-                                )}
                             </div>
                         ))}
                     </div>
